@@ -71,7 +71,7 @@ def _transform_cnxml_to_html_metadata(xml):
 
 def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     """Transforms raw cnxml content to html (body content only)."""
-    if not isinstance(cnxml, etree._ElementTree):        
+    if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
         cnxml = etree.parse(BytesIO(cnxml), xml_parser)
 
     # Transform the content to html.
@@ -81,7 +81,8 @@ def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
 def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     """Transforms raw cnxml content to a full html."""
-    cnxml = etree.parse(BytesIO(cnxml), xml_parser)
+    if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
+        cnxml = etree.parse(BytesIO(cnxml), xml_parser)
 
     # Transform the content to html.
     content = cnxml_to_html(cnxml)
@@ -99,10 +100,13 @@ def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
 def html_to_cnxml(html, xml_parser=DEFAULT_XMLPARSER):
     """Transforms html content to cnxml."""
-    html = etree.parse(BytesIO(html), xml_parser)
+    if not isinstance(html, (etree._ElementTree, etree._Element,)):
+        html = etree.parse(BytesIO(html), xml_parser).getroot()
+    elif isinstance(html, etree._ElementTree):
+        html = html.getroot()
 
     # Do the namespace dance...
-    nsmap = html.getroot().nsmap.copy()
+    nsmap = html.nsmap.copy()
     nsmap['h'] = nsmap.pop(None)
 
     # The transform only works when the root tag is 'body'.
