@@ -11,24 +11,24 @@ from io import BytesIO
 import rhaptos.cnxmlutils
 from lxml import etree
 
-
 __all__ = (
     'DEFAULT_XMLPARSER',
     'cnxml_to_html', 'cnxml_to_full_html',
     'html_to_cnxml', 'html_to_full_cnxml',
     )
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 CNXARCHIVE_DIR = os.path.abspath(os.path.join(here, '..'))
 RHAPTOS_CNXMLUTILS_DIR = os.path.dirname(rhaptos.cnxmlutils.__file__)
 
-XSL_DIRECTORY = os.path.abspath(os.path.join(RHAPTOS_CNXMLUTILS_DIR, 'xsl'))
+XSL_DIR = os.path.abspath(os.path.join(RHAPTOS_CNXMLUTILS_DIR, 'xsl'))
 MATHML_XSL_PATH = os.path.abspath(os.path.join(
     CNXARCHIVE_DIR, 'xsl', 'content2presentation.xsl'))
 
 
-_gen_xsl = lambda f, d=XSL_DIRECTORY: etree.XSLT(etree.parse(os.path.join(d, f)))
+def _gen_xsl(f, d=XSL_DIR):
+    return etree.XSLT(etree.parse(os.path.join(d, f)))
+
 CNXML_TO_HTML_XSL = _gen_xsl('cnxml-to-html5.xsl')
 CNXML_TO_HTML_METADATA_XSL = _gen_xsl('cnxml-to-html5-metadata.xsl')
 HTML_TO_CNXML_XSL = _gen_xsl('html5-to-cnxml.xsl')
