@@ -5,6 +5,8 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
+"""CNXML <-> HTML conversion code."""
+
 import os
 from io import BytesIO
 
@@ -57,8 +59,7 @@ HTML_TEMPLATE_FOR_CNXML = """\
 
 
 def _transform_cnxml_to_html_body(xml):
-    """Transform the cnxml XML (``etree.ElementTree``) content body to html.
-    """
+    """Transform the cnxml XML (``etree.ElementTree``) content body to html."""
     # Tranform content MathML to presentation MathML so MathJax can display it
     xml = MATHML_XSL(xml)
     return CNXML_TO_HTML_XSL(xml)
@@ -70,7 +71,7 @@ def _transform_cnxml_to_html_metadata(xml):
 
 
 def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
-    """Transforms raw cnxml content to html (body content only)."""
+    """Transform raw cnxml content to html (body content only)."""
     if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
         cnxml = etree.parse(BytesIO(cnxml), xml_parser)
 
@@ -80,7 +81,7 @@ def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
 
 def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
-    """Transforms raw cnxml content to a full html."""
+    """Transform raw cnxml content to a full html."""
     if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
         cnxml = etree.parse(BytesIO(cnxml), xml_parser)
 
@@ -99,7 +100,7 @@ def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
 
 def html_to_cnxml(html, xml_parser=DEFAULT_XMLPARSER):
-    """Transforms html content to cnxml."""
+    """Transform html content to cnxml."""
     if not isinstance(html, (etree._ElementTree, etree._Element,)):
         html = etree.parse(BytesIO(html), xml_parser).getroot()
     elif isinstance(html, etree._ElementTree):
