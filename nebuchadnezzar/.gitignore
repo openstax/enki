@@ -1,0 +1,28 @@
+# Development #
+###############
+__pycache__
+*.pyc
+*.egg-info
+.tox
+*.*~
+.DS_Store
+/*.log
+.cache
+
+# Virtualenv #
+##############
+bin
+lib
+include
+
+# Build file #
+##############
+build/
+dist/
+.eggs/
+docs/_build
+
+# Coverage #
+############
+.coverage
+htmlcov/
