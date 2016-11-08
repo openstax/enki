@@ -14,16 +14,16 @@ tests_require = [
 extras_require = {
     'test': tests_require,
     }
-description = "Connexions Berg publishing utility"
+description = "Connexions Nebu publishing utility"
 with open('README.rst', 'r') as readme:
     long_description = readme.read()
 
 setup(
-    name='berg',
+    name='nebu',
     version='0.0.0',
     author='Connexions team',
     author_email='info@cnx.org',
-    url="https://github.com/connexions/berg",
+    url="https://github.com/connexions/nebu",
     license='LGPL, See also LICENSE.txt',
     description=description,
     long_description=long_description,
@@ -31,11 +31,11 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require=extras_require,
-    test_suite='berg.tests',
+    test_suite='nebu.tests',
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        'berg.tests': ['data/**/*.*'],
+        'nebu.tests': ['data/**/*.*'],
         },
     entry_points="""\
     [console_scripts]

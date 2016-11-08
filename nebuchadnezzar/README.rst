@@ -1,4 +1,4 @@
-CNX Berg Publishing Utility
+CNX Nebu Publishing Utility
 ===========================
 
 This is a command-line interface for interacting with connexions content. The tools is primarily used to publish content to the cnx.org website.
