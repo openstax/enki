@@ -39,5 +39,6 @@ setup(
         },
     entry_points="""\
     [console_scripts]
+    neb = nebu.cli.main:main
     """,
     )
