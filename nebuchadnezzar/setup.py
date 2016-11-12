@@ -19,12 +19,12 @@ with open('README.rst', 'r') as readme:
     long_description = readme.read()
 
 setup(
-    name='nebu',
+    name='nebuchadnezzar',
     version='0.0.0',
     author='Connexions team',
     author_email='info@cnx.org',
-    url="https://github.com/connexions/nebu",
-    license='LGPL, See also LICENSE.txt',
+    url="https://github.com/connexions/nebuchadnezzar",
+    license='AGPL, See also LICENSE.txt',
     description=description,
     long_description=long_description,
     setup_requires=setup_requires,
