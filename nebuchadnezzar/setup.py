@@ -7,9 +7,12 @@ setup_requires = (
     )
 install_requires = (
     'click',
+    'cnx-litezip',
+    'requests',
     )
 tests_require = [
     'pytest',
+    'requests-mock',
     ]
 extras_require = {
     'test': tests_require,

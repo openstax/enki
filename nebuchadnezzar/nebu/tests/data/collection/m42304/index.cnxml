@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" id="id3758547" module-id="m12345" cnxml-version="0.7">
+  <title>Lab 1-1: 4-Bit Mux and all NAND/NOR Mux</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m42304/latest</md:content-url>
+  <md:content-id>m42304</md:content-id>
+  <md:title>Lab 1-1: 4-Bit Mux and all NAND/NOR Mux</md:title>
+  <md:version>1.3</md:version>
+  <md:created>2012/01/19 22:11:40 -0600</md:created>
+  <md:revised>2012/01/23 22:20:24 -0600</md:revised>
+  <md:actors>
+    <md:person userid="cavallar">
+      <md:firstname>Joseph</md:firstname>
+      <md:surname>Cavallaro</md:surname>
+      <md:fullname>Joseph Cavallaro</md:fullname>
+      <md:email>cavallar@rice.edu</md:email>
+    </md:person>
+    <md:person userid="jedifan42">
+      <md:firstname>Chris</md:firstname>
+      <md:surname>Stevenson</md:surname>
+      <md:fullname>Chris Stevenson</md:fullname>
+      <md:email>cms11@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">jedifan42 cavallar</md:role>
+    <md:role type="maintainer">jedifan42 cavallar</md:role>
+    <md:role type="licensor">jedifan42 cavallar</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>Altera</md:keyword>
+    <md:keyword>ELEC 220</md:keyword>
+    <md:keyword>FPGA</md:keyword>
+    <md:keyword>multiplexor</md:keyword>
+    <md:keyword>mux</md:keyword>
+    <md:keyword>NAND</md:keyword>
+    <md:keyword>NOR</md:keyword>
+    <md:keyword>Quartus</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>Briefly describes the tasks for Lab 1.1 of Rice University's ELEC 220 course.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+    <section id="id1170251895307">
+      <title>Lab 1-1</title>
+      <section id="id1170250705730">
+        <title>4-Bit Mux</title>
+        <para id="id1170238935634">For the first part of Lab 1 you will first design a 4-bit mux, similar to the 2-bit mux covered in the tutorial on Quartus projects found <link document="m42302">here</link>. An already started Quartus project complete with I/O pins and pin assignments for the DE0 board can be found on OWL Space. This will provide a helpful starting point and ensure a common board setup, making it easier for the labbies to check your circuits’ functionality. Download the .zip file and extract it to a temporary working directory on the C: drive, making sure to move it over to your U: drive before you leave the lab.</para>
+      </section>
+      <section id="id1170238936504">
+        <title>NAND or NOR only Mux</title>
+        <para id="id1170238936330">Create a new version of your original 4-bit mux using only NAND or only NOR gates. A useful tutorial for NAND/NOR conversion can be found <link document="m13240">here</link>. Do not use inverters (NOT gate) or gates with inverted inputs in your design.</para>
+      </section>
+    </section>
+  </content>
+</document>
