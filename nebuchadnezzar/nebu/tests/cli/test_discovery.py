@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 import argparse
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 import pytest
 import venusian

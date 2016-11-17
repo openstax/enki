@@ -6,11 +6,9 @@ setup_requires = (
     'pytest-runner',
     )
 install_requires = (
-    'pathlib;python_version<="2.7"',
     'venusian',
     )
 tests_require = [
-    'mock;python_version<="2.7"',
     'pytest',
     ]
 extras_require = {
