@@ -6,7 +6,7 @@ setup_requires = (
     'pytest-runner',
     )
 install_requires = (
-    'venusian',
+    'click',
     )
 tests_require = [
     'pytest',
@@ -39,6 +39,6 @@ setup(
         },
     entry_points="""\
     [console_scripts]
-    neb = nebu.cli.main:main
+    neb = nebu.cli.main:cli
     """,
     )
