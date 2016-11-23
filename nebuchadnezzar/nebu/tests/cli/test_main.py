@@ -101,8 +101,11 @@ def test_get_cmd(datadir, tmpcwd, requests_mocker, invoker):
     col_id = 'col11405'
     url = 'http://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
 
-    with (datadir / 'complete.zip').open('rb') as fb:
-        requests_mocker.get(url, content=fb.read())
+    complete_zip = datadir / 'complete.zip'
+    content_size = complete_zip.stat().st_size
+    with complete_zip.open('rb') as fb:
+        headers = {'Content-Length': str(content_size)}
+        requests_mocker.get(url, content=fb.read(), headers=headers)
 
     from nebu.cli.main import cli
     args = ['get', col_id]

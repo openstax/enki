@@ -98,17 +98,29 @@ def get(col_id, col_version, output_dir):
         raise ExistingOutputDir(output_dir)
 
     logger.debug('Request sent to {} ...'.format(url))
-    resp = requests.get(url)
+    resp = requests.get(url, stream=True)
 
     if not resp:
         logger.debug("Response code is {}".format(resp.status_code))
         raise MissingContent(col_id, col_version)
 
-    with zip_filepath.open('wb') as f:
-        f.write(resp.content)
+    content_size = int(resp.headers['Content-Length'].strip())
+    label = 'Downloading {}'.format(col_id)
+    progressbar = click.progressbar(label=label, length=content_size)
+    with progressbar as pbar, zip_filepath.open('wb') as fb:
+        for buffer_ in resp.iter_content(1024):
+            if buffer_:
+                fb.write(buffer_)
+                pbar.update(len(buffer_))
 
+    label = 'Extracting {}'.format(col_id)
     with zipfile.ZipFile(str(zip_filepath), 'r') as zip:
-        zip.extractall(str(tmp_dir))
+        progressbar = click.progressbar(iterable=zip.infolist(),
+                                        label=label,
+                                        show_eta=False)
+        with progressbar as pbar:
+            for i in pbar:
+                zip.extract(i, path=str(tmp_dir))
 
     extracted_dir = Path([x for x in tmp_dir.glob('col*_complete')][0])
 
