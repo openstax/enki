@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 import requests
-from litezip import convert_completezip
+from litezip import convert_completezip, parse_litezip, validate_litezip
 
 from ..logger import configure_logging, logger
 
@@ -33,6 +33,11 @@ console_logging_config = {
     },
     'loggers': {
         'nebuchadnezzar': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': 0,
+        },
+        'litezip': {
             'level': 'ERROR',
             'handlers': ['console'],
             'propagate': 0,
@@ -132,3 +137,23 @@ def get(col_id, col_version, output_dir):
         "Cleaning up extraction data at '{}'".format(tmp_dir))
     shutil.copytree(str(extracted_dir), str(output_dir))
     shutil.rmtree(str(tmp_dir))
+
+
+@cli.command()
+@click.argument('content_dir', default='.',
+                type=click.Path(exists=True, file_okay=False))
+def validate(content_dir):
+    content_dir = Path(content_dir).resolve()
+    struct = parse_litezip(content_dir)
+
+    has_errors = False
+    cwd = Path('.').resolve()
+    for filepath, error_msg in validate_litezip(struct):
+        has_errors = True
+        filepath = filepath.relative_to(cwd)
+        logger.error('{}:{}'.format(filepath, error_msg))
+
+    if has_errors:
+        logger.info("We've got problems... :(")
+    else:
+        logger.info("All good! :)")

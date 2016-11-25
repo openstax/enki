@@ -151,3 +151,47 @@ def test_get_cmd_with_failed_request(requests_mocker, invoker):
 
     msg = "content unavailable for '{}/latest'".format(col_id)
     assert msg in result.output
+
+
+def test_validate_cmd_in_cwd(datadir, monkeypatch, invoker):
+    id = 'collection'
+    monkeypatch.chdir(str(datadir / id))
+
+    from nebu.cli.main import cli
+    args = ['validate']  # using Current Working Directory (CWD)
+    result = invoker(cli, args)
+
+    assert result.exit_code == 0
+    assert result.output == 'All good! :)\n'
+
+
+def test_validate_cmd_outside_cwd(datadir, invoker):
+    path = datadir / 'collection'
+
+    from nebu.cli.main import cli
+    args = ['validate', str(path)]
+    result = invoker(cli, args)
+
+    assert result.exit_code == 0
+    assert result.output == 'All good! :)\n'
+
+
+def test_validate_cmd_with_invalid_content(datadir, monkeypatch, invoker):
+    id = 'invalid_collection'
+    monkeypatch.chdir(str(datadir / id))
+
+    from nebu.cli.main import cli
+    args = ['validate']  # using Current Working Directory (CWD)
+    result = invoker(cli, args)
+
+    assert result.exit_code == 0
+
+    expected_output = (
+        'collection.xml:114:13 -- error: element "para" from namespace "http://cnx.rice.edu/cnxml" not allowed in this context',
+        'mux:mux is not a valid identifier',
+        'mux/index.cnxml:61:10 -- error: unknown element "foo" from namespace "http://cnx.rice.edu/cnxml"',
+    )
+    for line in expected_output:
+        assert line in result.output
+
+    assert "We've got problems... :(" in result.output
