@@ -11,9 +11,7 @@ __pycache__
 
 # Virtualenv #
 ##############
-bin
-lib
-include
+/venv/
 
 # Build file #
 ##############
