@@ -23,7 +23,7 @@ with open('README.rst', 'r') as readme:
 
 setup(
     name='nebuchadnezzar',
-    version='0.0.0',
+    version='1.0.0',
     author='Connexions team',
     author_email='info@cnx.org',
     url="https://github.com/connexions/nebuchadnezzar",
