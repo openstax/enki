@@ -8,25 +8,32 @@ This software requires:
 - Python >= 3.5
 - JRE >= 6
 
+
 Install
 =======
 
-1. Install `git`
 1. Install `python3` (on OSX you can run `brew install python3`)
-1. Install `virtualenv`
-1. Download the source `git clone https://github.com/Connexions/nebuchadnezzar`
-1. `cd /path/to/nebuchadnezzar`
+1. Run `pip3 install nebuchadnezzar` in a terminal
+1. Run `neb --help` to verify the application is installed
+
+
+Development
+===========
+
+Install
+-------
+
+1. Install `python3` (on OSX you can run `brew install python3`)
 1. Initialize the python virtual environment:
   1. `virtualenv ./venv/ --python=python3.5`
   1. `source ./venv/bin/activate`
   1. `pip3 install --upgrade pip setuptools`
   1. `python setup.py develop`
 
-Run
-===
+Developer Run
+-------------
 
 1. Open up a new terminal
-1. `cd /path/to/nebuchadnezzar/`
 1. `source ./venv/bin/activate`
 1. Now you can run various commands:
   - `neb --help` for help with the various commands
