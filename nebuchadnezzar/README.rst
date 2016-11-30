@@ -19,6 +19,7 @@ Install
 1. Initialize the python virtual environment:
   1. `virtualenv ./venv/ --python=python3.5`
   1. `source ./venv/bin/activate`
+  1. `pip3 install --upgrade pip setuptools`
   1. `python setup.py develop`
 
 Run
