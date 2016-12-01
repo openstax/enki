@@ -13,6 +13,7 @@ Install
 =======
 
 1. Install `python3` (on OSX you can run `brew install python3`)
+1. Run `pip3 install --upgrade pip setuptools` in a terminal to upgrade python tools
 1. Run `pip3 install nebuchadnezzar` in a terminal
 1. Run `neb --help` to verify the application is installed
 
