@@ -40,6 +40,7 @@ class Cnxml2HtmlTests(unittest.TestCase):
         self.assertIn('<html', content)
         self.assertIn('<body', content)
 
+    @unittest.skip("the DTD files are not externally available")
     def test_module_transform_entity_expansion(self):
         # Case to test that a document's internal entities have been
         #   deref'ed from the DTD and expanded
