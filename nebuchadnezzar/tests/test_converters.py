@@ -30,6 +30,16 @@ class Cnxml2HtmlTests(unittest.TestCase):
         with open(path, 'r') as fp:
             return fp.read()
 
+    def test_dev_ctoh_version(self):
+        import rhaptos.cnxmlutils
+        # Mimic the in-database environment: no path
+        os.environ['PATH'] = ''
+        reload(rhaptos.cnxmlutils)
+        cnxml = self.get_file('m42033-1.3.cnxml')
+        content = self.call_target(cnxml)
+
+        self.assertNotIn('0+unknown', content)
+
     def test_success(self):
         # Case to test the transformation of cnxml to html.
         cnxml = self.get_file('m42033-1.3.cnxml')
@@ -39,6 +49,10 @@ class Cnxml2HtmlTests(unittest.TestCase):
 
         self.assertIn('<html', content)
         self.assertIn('<body', content)
+
+        # Check for ctoh version
+        import rhaptos.cnxmlutils
+        self.assertIn(rhaptos.cnxmlutils.__version__, content)
 
     @unittest.skip("the DTD files are not externally available")
     def test_module_transform_entity_expansion(self):
