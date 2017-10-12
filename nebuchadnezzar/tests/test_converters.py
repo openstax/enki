@@ -8,6 +8,10 @@
 import os
 import re
 import unittest
+try:
+    from importlib import reload
+except ImportError:
+    pass  # reload() is a built-in global in py2
 
 # XXX (2017-10-12) deps-on-cnx-archive: Depends on cnx-archive
 from cnxarchive.config import TEST_DATA_DIRECTORY
@@ -25,6 +29,7 @@ class Cnxml2HtmlTests(unittest.TestCase):
     def call_target(self, *args, **kwargs):
         return self.target(*args, **kwargs)
 
+    # FIXME (2017-10-12) deps-on-cnx-archive: Depends on cnx-archive
     def get_file(self, filename):
         path = os.path.join(TEST_DATA_DIRECTORY, filename)
         with open(path, 'r') as fp:
@@ -43,7 +48,6 @@ class Cnxml2HtmlTests(unittest.TestCase):
     def test_success(self):
         # Case to test the transformation of cnxml to html.
         cnxml = self.get_file('m42033-1.3.cnxml')
-        html = self.get_file('m42033-1.3.html')
 
         content = self.call_target(cnxml)
 
