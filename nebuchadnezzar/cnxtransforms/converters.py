@@ -9,6 +9,10 @@
 
 import os
 from io import BytesIO
+try:
+    from importlib import reload
+except ImportError:
+    pass  # reload() is a built-in global in py2
 
 import rhaptos.cnxmlutils
 from lxml import etree
@@ -17,15 +21,15 @@ __all__ = (
     'DEFAULT_XMLPARSER',
     'cnxml_to_html', 'cnxml_to_full_html',
     'html_to_cnxml', 'html_to_full_cnxml',
-    )
+)
 
 here = os.path.abspath(os.path.dirname(__file__))
-CNXARCHIVE_DIR = os.path.abspath(os.path.join(here, '..'))
+LOCAL_XSL_DIR = os.path.abspath(os.path.join(here, 'xsl'))
 RHAPTOS_CNXMLUTILS_DIR = os.path.dirname(rhaptos.cnxmlutils.__file__)
 
 XSL_DIR = os.path.abspath(os.path.join(RHAPTOS_CNXMLUTILS_DIR, 'xsl'))
 MATHML_XSL_PATH = os.path.abspath(os.path.join(
-    CNXARCHIVE_DIR, 'xsl', 'content2presentation.xsl'))
+    LOCAL_XSL_DIR, 'content2presentation.xsl'))
 
 
 def _gen_xsl(f, d=XSL_DIR):
@@ -43,6 +47,7 @@ def _gen_xsl(f, d=XSL_DIR):
 
     return transform_w_version
 
+
 CNXML_TO_HTML_XSL = _gen_xsl('cnxml-to-html5.xsl')
 CNXML_TO_HTML_METADATA_XSL = _gen_xsl('cnxml-to-html5-metadata.xsl')
 HTML_TO_CNXML_XSL = _gen_xsl('html5-to-cnxml.xsl')
@@ -53,7 +58,7 @@ XML_PARSER_OPTIONS = {
     'resolve_entities': True,
     'no_network': False,   # don't force loading our cnxml/DTD packages
     'attribute_defaults': False,
-    }
+}
 DEFAULT_XMLPARSER = etree.XMLParser(**XML_PARSER_OPTIONS)
 
 
@@ -129,6 +134,7 @@ def html_to_cnxml(html, xml_parser=DEFAULT_XMLPARSER):
     # Transform the content.
     cnxml = HTML_TO_CNXML_XSL(html)
     return etree.tostring(cnxml)
+
 
 # FFF (18-Jan-2015) Forward compatible version of html_to_cnxml.
 #     The forseable future shows a conversion that doesn't rely on legacy
