@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 # ###
-# Copyright (c) 2014, Rice University
+# Copyright (c) 2014-2017, Rice University
 # This software is subject to the provisions of the GNU Affero General
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
 import os
 import re
-import unittest
 try:
     from importlib import reload
 except ImportError:
@@ -17,23 +16,27 @@ except ImportError:
 from cnxarchive.config import TEST_DATA_DIRECTORY
 
 
-class Cnxml2HtmlTests(unittest.TestCase):
+class BaseTestCase(object):
 
-    maxDiff = None
+    @property
+    def target(self):
+        raise NotImplementedError()
+
+    def call_target(self, *args, **kwargs):
+        return self.target(*args, **kwargs)
+
+    def get_file(self, filename):
+        path = os.path.join(TEST_DATA_DIRECTORY, filename)
+        with open(path, 'r') as fp:
+            return fp.read()
+
+
+class TestCnxml2Html(BaseTestCase):
 
     @property
     def target(self):
         from cnxdb.triggers.transforms.converters import cnxml_to_full_html
         return cnxml_to_full_html
-
-    def call_target(self, *args, **kwargs):
-        return self.target(*args, **kwargs)
-
-    # FIXME (2017-10-12) deps-on-cnx-archive: Depends on cnx-archive
-    def get_file(self, filename):
-        path = os.path.join(TEST_DATA_DIRECTORY, filename)
-        with open(path, 'r') as fp:
-            return fp.read()
 
     def test_dev_ctoh_version(self):
         import rhaptos.cnxmlutils
@@ -43,7 +46,7 @@ class Cnxml2HtmlTests(unittest.TestCase):
         cnxml = self.get_file('m42033-1.3.cnxml')
         content = self.call_target(cnxml)
 
-        self.assertNotIn('0+unknown', content)
+        assert '0+unknown' not in content
 
     def test_success(self):
         # Case to test the transformation of cnxml to html.
@@ -51,23 +54,12 @@ class Cnxml2HtmlTests(unittest.TestCase):
 
         content = self.call_target(cnxml)
 
-        self.assertIn('<html', content)
-        self.assertIn('<body', content)
+        assert '<html' in content
+        assert '<body' in content
 
         # Check for ctoh version
         import rhaptos.cnxmlutils
-        self.assertIn(rhaptos.cnxmlutils.__version__, content)
-
-    @unittest.skip("the DTD files are not externally available")
-    def test_module_transform_entity_expansion(self):
-        # Case to test that a document's internal entities have been
-        #   deref'ed from the DTD and expanded
-        cnxml = self.get_file('m10761-2.3.cnxml')
-
-        content = self.call_target(cnxml)
-
-        # &#995; is expansion of &lambda;
-        self.assertTrue(content.find('&#955;') >= 0)
+        assert rhaptos.cnxmlutils.__version__ in content
 
     # FIXME This test belongs in rhaptos.cnxmlutils
     def test_module_transform_image_with_print_width(self):
@@ -77,28 +69,18 @@ class Cnxml2HtmlTests(unittest.TestCase):
 
         # Assert <img> tag is generated
         img = re.search('(<img [^>]*>)', content)
-        self.assertTrue(img is not None)
+        assert img is not None
         img = img.group(1)
-        self.assertTrue('src="graphics1.jpg"' in img)
-        self.assertTrue('data-print-width="6.5in"' in img)
+        assert 'src="graphics1.jpg"' in img
+        assert 'data-print-width="6.5in"' in img
 
 
-class Html2CnxmlTests(unittest.TestCase):
-
-    maxDiff = None
+class TestHtml2Cnxml(BaseTestCase):
 
     @property
     def target(self):
         from cnxdb.triggers.transforms.converters import html_to_full_cnxml
         return html_to_full_cnxml
-
-    def call_target(self, *args, **kwargs):
-        return self.target(*args, **kwargs)
-
-    def get_file(self, filename):
-        path = os.path.join(TEST_DATA_DIRECTORY, filename)
-        with open(path, 'r') as fp:
-            return fp.read()
 
     def test_success(self):
         # Case to test the transformation of cnxml to html.
@@ -108,4 +90,4 @@ class Html2CnxmlTests(unittest.TestCase):
 
         # Check for partial conversion.
         # rhaptos.cnxmlutils has tests to ensure full conversion.
-        self.assertIn('<document', content)
+        assert '<document' in content
