@@ -90,4 +90,4 @@ class TestHtml2Cnxml(BaseTestCase):
 
         # Check for partial conversion.
         # rhaptos.cnxmlutils has tests to ensure full conversion.
-        assert '<document' in content
+        assert b'<document' in content

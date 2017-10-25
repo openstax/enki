@@ -8,6 +8,7 @@
 """CNXML <-> HTML conversion code."""
 
 import os
+import sys
 from io import BytesIO
 try:
     from importlib import reload
@@ -18,7 +19,7 @@ import rhaptos.cnxmlutils
 from lxml import etree
 
 __all__ = (
-    'DEFAULT_XMLPARSER',
+    'DEFAULT_XMLPARSER', 'ensure_bytes',
     'cnxml_to_html', 'cnxml_to_full_html',
     'html_to_cnxml', 'html_to_full_cnxml',
 )
@@ -87,10 +88,16 @@ def _transform_cnxml_to_html_metadata(xml):
     return CNXML_TO_HTML_METADATA_XSL(xml)
 
 
+def ensure_bytes(text):
+    if sys.version_info > (3,) and isinstance(text, str):
+        text = text.encode('utf-8')
+    return text
+
+
 def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     """Transform raw cnxml content to html (body content only)."""
     if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
-        cnxml = etree.parse(BytesIO(cnxml), xml_parser)
+        cnxml = etree.parse(BytesIO(ensure_bytes(cnxml)), xml_parser)
 
     # Transform the content to html.
     content = _transform_cnxml_to_html_body(cnxml)
@@ -100,7 +107,7 @@ def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     """Transform raw cnxml content to a full html."""
     if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
-        cnxml = etree.parse(BytesIO(cnxml), xml_parser)
+        cnxml = etree.parse(BytesIO(ensure_bytes(cnxml)), xml_parser)
 
     # Transform the content to html.
     content = cnxml_to_html(cnxml)
@@ -119,7 +126,7 @@ def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 def html_to_cnxml(html, xml_parser=DEFAULT_XMLPARSER):
     """Transform html content to cnxml."""
     if not isinstance(html, (etree._ElementTree, etree._Element,)):
-        html = etree.parse(BytesIO(html), xml_parser).getroot()
+        html = etree.parse(BytesIO(ensure_bytes(html)), xml_parser).getroot()
     elif isinstance(html, etree._ElementTree):
         html = html.getroot()
 
