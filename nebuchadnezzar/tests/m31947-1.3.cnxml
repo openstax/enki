@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" id="id1170347945209" module-id="m12345" cnxml-version="0.6">
+  <title>Project Initiation</title>
+  <metadata xmlns:md="http://cnx.rice.edu/mdml/0.4">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:content-id>m31947</md:content-id>
+  <md:title>Project Initiation</md:title>
+  <md:version>1.3</md:version>
+  <md:created>2009/09/10 15:07:43 GMT-5</md:created>
+  <md:revised>2009/10/14 11:58:52.447 GMT-5</md:revised>
+  <md:authorlist>
+    <md:author id="mxphin">
+        <md:firstname>Merrie</md:firstname>
+        <md:surname>Phinney</md:surname>
+        <md:fullname>Merrie Phinney</md:fullname>
+        <md:email>merrie_phinney@administaff.com</md:email>
+    </md:author>
+    <md:author id="arb">
+        <md:firstname>Andrew</md:firstname>
+        <md:othername>R</md:othername>
+        <md:surname>Barron</md:surname>
+        <md:fullname>Andrew R. Barron</md:fullname>
+        <md:email>arb@rice.edu</md:email>
+    </md:author>
+  </md:authorlist>
+  <md:maintainerlist>
+    <md:maintainer id="mxphin">
+        <md:firstname>Merrie</md:firstname>
+        <md:surname>Phinney</md:surname>
+        <md:fullname>Merrie Phinney</md:fullname>
+        <md:email>merrie_phinney@administaff.com</md:email>
+    </md:maintainer>
+    <md:maintainer id="arb">
+        <md:firstname>Andrew</md:firstname>
+        <md:othername>R</md:othername>
+        <md:surname>Barron</md:surname>
+        <md:fullname>Andrew R. Barron</md:fullname>
+        <md:email>arb@rice.edu</md:email>
+    </md:maintainer>
+  </md:maintainerlist>
+  <md:license href="http://creativecommons.org/licenses/by/3.0/"/>
+  <md:licensorlist>
+    <md:licensor id="mxphin">
+        <md:firstname>Merrie</md:firstname>
+        <md:surname>Phinney</md:surname>
+        <md:fullname>Merrie Phinney</md:fullname>
+        <md:email>merrie_phinney@administaff.com</md:email>
+    </md:licensor>
+    <md:licensor id="arb">
+        <md:firstname>Andrew</md:firstname>
+        <md:othername>R</md:othername>
+        <md:surname>Barron</md:surname>
+        <md:fullname>Andrew R. Barron</md:fullname>
+        <md:email>arb@rice.edu</md:email>
+    </md:licensor>
+  </md:licensorlist>
+  <md:keywordlist>
+    <md:keyword>business case</md:keyword>
+    <md:keyword>Button</md:keyword>
+    <md:keyword>feasibility</md:keyword>
+    <md:keyword>Grand Prix</md:keyword>
+    <md:keyword>initiation</md:keyword>
+    <md:keyword>manager</md:keyword>
+    <md:keyword>Monaco</md:keyword>
+    <md:keyword>opportunity</md:keyword>
+    <md:keyword>problem</md:keyword>
+    <md:keyword>project</md:keyword>
+    <md:keyword>Schumacher</md:keyword>
+    <md:keyword>team</md:keyword>
+    <md:keyword>Trulli</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Business</md:subject>
+  </md:subjectlist>
+  <md:abstract></md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+    <para id="id1170343913546">The project <emphasis effect="italics">initiation phase</emphasis> is the first phase within the project management life cycle, as it involves starting up a new project. Within the initiation phase, the business problem or opportunity is identified, a solution is defined, a project is formed, and a project team is appointed to build and deliver the solution to the customer. A business case is created to define the problem or opportunity in detail and identify a preferred solution for implementation. The business case includes: </para>
+    <list id="id1170343818320" list-type="bulleted">
+      <item>A detailed description of the problem or opportunity</item>
+      <item>A list of the alternative solutions available</item>
+      <item>An analysis of the business benefits, costs, risks and issues</item>
+      <item>A description of the preferred solution</item>
+      <item>A summarized plan for implementation</item>
+    </list>
+    <para id="id1170342391665">The project sponsor then approves the business case, and the required funding is allocated to proceed with a <emphasis effect="italics">feasibility </emphasis><emphasis effect="italics">study</emphasis>. It is up to the project sponsor to determine if the project is worth undertaking and whether the project will be profitable to the organization. The completion and approval of the feasibility study triggers the beginning of the <emphasis effect="italics">planning phase</emphasis>. The feasibility study may also show that the project is not worth pursuing and the project is terminated; thus the next phase never begins.</para>
+    <para id="id1170343724696">All projects are created for a reason. Someone identifies a need and devises a project to address that need. How well the project ultimately addresses that need defines the project’s success or failure.</para>
+    <para id="id1170343812179">The success of your project depends on the clarity and accuracy of your business case and whether people believe they can achieve it. Whenever you consider past experience, your business case is more realistic; and whenever you involve people in the business case’s development, you encourage their commitment to achieving it.</para>
+    <para id="id1170347841625">Often the pressure to get results encourages people to go right into identifying possible solutions without fully understanding the need; what the project is trying to accomplish. This strategy can create a lot of immediate activity but it also creates significant chances for waste and mistakes if the wrong need is addressed. One of the best ways to gain approval for a project is to clearly identify the project’s objectives and describe the need or problem for which the project will provide a solution. </para>
+    <para id="id1170343905123">For most of us, being misunderstood is a common occurrence, something that happens on a daily basis. At the restaurant the waiter brings us our dinner and we note that the baked potato is filled with sour cream, even though we expressly requested “no sour cream”. Projects are filled with misunderstandings between customers and project staff. What the customer’s order (or more accurately what they think they order) is often not what they get. This is illustrated in a popular cartoon (<link target-id="id1170343358770"/>) called “I know that’s what I said, but it’s not what I meant!” The cartoon demonstrates the importance of establishing clear objectives. </para>
+
+      <figure id="id1170343358770"><media id="id1170343358770_media" alt="">
+          <image mime-type="image/jpg" src="graphics1.jpg" id="id1170343358770__onlineimage" width="650" print-width="6.5in"/>
+        </media>
+      <caption>I know that’s what I said, but it’s not what I meant! </caption></figure>
+    
+    <para id="id1170342386511">The need for establishing clear project objectives cannot be overstated. An objective or goal lacks clarity if, when shown to five people, it is interpreted in multiple ways. Ideally, if an objective is clear, you can show it to five people who, after reviewing it, hold a single view about its meaning. The best way to make an objective clear is to state it such a way that it can be verified. Building in measures can do this. It is important to provide quantifiable definitions to qualitative terms. </para>
+    <para id="id1170343656143">For example, an objective of the team principle (project manager) of a Formula 1 racing team may be that their star driver, “finish the lap as fast as possible.” That objective is filled with ambiguity. </para>
+    <list id="id1170343368895" list-type="bulleted"><item>How fast is “fast as possible?” Does that mean the fastest lap time (the time to complete one lap) or does it mean the fastest speed as the car crosses the start/finish line (that is at the finish of the lap)? </item>
+      <item>By when should the driver be able to achieve the objective? It is no use having the fastest lap after the race has finished, and equally the fastest lap does not count for qualifying, and therefore grid (starting) position, if it is performed during a practice session. </item>
+    </list>
+    <para id="id1170342783520">The ambiguity of this objective can be seen from the following example. The <emphasis effect="italics">race</emphasis> lap record at the Circuit de Monaco of 1 min 14.439 sec was achieved by Ferrari’s Michael Schumacher in 2004 (<link target-id="id6781984"/>). However, he achieved this on lap 23 of the race, but crashed on lap 45 of a 77 lap race! So while he achieved a fastest lap and therefore met the specific project goal of “finish the lap as fast as possible”, it did not result in winning the race, clearly a different project goal. In contrast, the fastest <emphasis effect="italics">qualifying</emphasis> time at the same event was by Renault’s Jarno Trulli (1 min 13.985 sec), which gained him pole position for the race, in which he went on to win (<link target-id="id4699392"/>). In his case he also achieved the specific project goal of “finish the lap as fast as possible”, but also the larger goal of winning the race! </para>
+    <figure id="id6781984"><media id="id6781984_media" alt="">
+        <image mime-type="image/jpg" src="graphics2.jpg" id="id6781984__onlineimage" width="400" print-width="3in"/>
+      </media>
+    <caption>Despite achieving the project goal of the “finish the lap as fast as possible” Ferrari’s Michael Schumacher crashed 21 laps later and did not finish the race. </caption></figure>
+    
+    <figure id="id4699392"><media id="id4699392_media" alt="">
+        <image mime-type="image/jpg" src="graphics3.jpg" id="id4699392__onlineimage" width="400" print-width="3in"/>
+      </media>
+    <caption>Renault’s Jarno Trulli celebrating his win at the 2004 Monaco Grand Prix. </caption></figure>
+    
+    <para id="id3761220">The objective can be strengthened considerably if it is stated as follows: “To be able to finish the 3.340 km lap at the Circuit de Monaco at the Monaco Grand Prix in 1 min 14.902 sec or less, during qualifying on 23<sup>th</sup> May, 2009. This was the project objective achieved by Brawn GP’s Jenson Button (<link target-id="id8050016"/>). </para>
+      <figure id="id8050016"><media id="id8050016_media" alt="">
+          <image mime-type="image/jpg" src="graphics4.jpg" id="id8050016__onlineimage" width="400" print-width="3in"/>
+        </media>
+      <caption>Jenson Button took his Brawn GP car to pole position at the Monaco Grand Prix with a lap time of 1 min 14.902 sec. He also went on to with the race, even though he did not achieve that lap time during the race. </caption></figure>
+    
+    <para id="id1170341324074">There is still some ambiguity in this objective; for example, it assumes the star driver will be driving the team’s race car and not a rental car from Hertz! However, it clarifies the team principal’s intent quite nicely. It should be noted that a clear goal is not enough. It must also be achievable. The team principal’s goal becomes unachievable, for example, if he changes it to require his star driver finish the 3.340 km lap in 30 seconds or less. </para>
+    <para id="id3728661">To ensure the project’s objectives are achievable and realistic, they must be determined jointly by managers and those who perform the work. Realism is introduced because the people who will do the work have a good sense of what it takes to accomplish a particular task. In addition, this process assures some level of commitment on all sides; management expresses its commitment to support the work effort and worker demonstrate their wiliness to do the work.</para>
+    <para id="id4331859">Imagine you are an office manager and you have contracted a painter to paint your office. Your goal or objective is to have the office painted a pleasing blue color. Consider the following conversation that occurs after the job was finished: </para>
+    <figure id="id1170343803563"><media id="id1170343803563_media" alt="">
+        <image mime-type="image/jpg" src="Fig4.jpg" id="id1170343803563__onlineimage" width="450" print-width="4in"/>
+      </media>
+    <caption>The consequence of not making your objective clear. </caption></figure>
+    <para id="id5763110">This conversation captures in a nutshell the essence of a major source of misunderstandings on projects: The importance of setting clear objectives. The office manager’s description of how he wanted the room painted meant one thing to him and another to the painter. As a consequence, the room was not painted to the office manager’s satisfaction. Had his objective been more clearly defined, he probably would have had what he wanted.</para><exercise id="eip-702"><problem id="eip-69">
+  <para id="eip-681">
+   How could you make the objective for painting a room clear such that the office manager gets what he wanted? 
+  </para>
+</problem>
+
+<solution id="eip-413">
+  <para id="eip-762">
+   The floor and all furniture will be covered by drop cloths prior to painting each of the 4 office walls, not including the door, base-boards, crown molding, window frames, windows, light switches, or power outlets that will be masked with painters tape. The walls should be painted using Behr paint in Sapphire Berry #550C-2 in the semi-gloss sheen, using a nylon/polyester 3” inch wide brush using a vertical brush stroke, applying two coats of paint, allowing 16 hours between coats, and be completed by Friday, November 7 including removal of all protective tape and drop cloths.
+  </para>
+
+<para id="eip-6669"><emphasis effect="italics">Of course this assumes the contractor knows which office to paint! But you get the idea.</emphasis> </para>
+</solution>
+</exercise>
+  </content>
+</document>
