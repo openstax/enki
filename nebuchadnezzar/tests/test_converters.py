@@ -52,19 +52,6 @@ class TestCnxml2Html(BaseTestCase):
         import rhaptos.cnxmlutils
         assert rhaptos.cnxmlutils.__version__ in content
 
-    # FIXME This test belongs in rhaptos.cnxmlutils
-    def test_module_transform_image_with_print_width(self):
-        cnxml = self.get_file('m31947-1.3.cnxml')
-
-        content = cnxml_to_full_html(cnxml)
-
-        # Assert <img> tag is generated
-        img = re.search('(<img [^>]*>)', content)
-        assert img is not None
-        img = img.group(1)
-        assert 'src="graphics1.jpg"' in img
-        assert 'data-print-width="6.5in"' in img
-
 
 class TestHtml2Cnxml(BaseTestCase):
 
