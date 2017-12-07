@@ -41,6 +41,11 @@ Developer Run
 
    - `neb --help` for help with the various commands
 
+Configuring an Editor
+=====================
+
+See https://github.com/Connexions/cnxml#editvalidate-files-using-atomio for details.
+
 License
 -------
 
