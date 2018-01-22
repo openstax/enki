@@ -2,20 +2,9 @@ language: python
 python:
   - "3.5"
 before_install:
-  - pip install flake8
-  - python -m flake8 .
-
-  - pip install --upgrade setuptools
-  - pip install --upgrade pip
-  # Install the coverage tool
-  - pip install pytest-cov
-install:
-  # Install test requirements
-  - pip -r requirements/test.txt
-  # Now install it as a standalone distribution
-  - pip install .
+  - make lint
 script:
-  - py.test -v --cov-config .coveragerc --cov=nebu
+  - make test
 after_success:
   # Report test coverage
   - bash <(curl -s https://codecov.io/bash)
