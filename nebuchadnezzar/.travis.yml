@@ -11,9 +11,8 @@ before_install:
   - pip install pytest-cov
 install:
   # Install test requirements
-  - pip install -e ".[test]"
+  - pip -r requirements/test.txt
   # Now install it as a standalone distribution
-  - pip uninstall -y .
   - pip install .
 script:
   - py.test -v --cov-config .coveragerc --cov=nebu

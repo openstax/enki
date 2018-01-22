@@ -2,18 +2,21 @@
 from setuptools import setup, find_packages
 
 
+def parse_requirements(req_file):
+    """Parse a requirements.txt file to a list of requirements"""
+    with open(req_file, 'r') as fb:
+        reqs = [
+            req for req in fb.readlines()
+            if req.strip() and not req.startswith('#')
+        ]
+    return list(reqs)
+
+
 setup_requires = (
     'pytest-runner',
     )
-install_requires = (
-    'click',
-    'cnx-litezip',
-    'requests',
-    )
-tests_require = [
-    'pytest',
-    'requests-mock',
-    ]
+install_requires = parse_requirements('requirements/main.txt')
+tests_require = parse_requirements('requirements/test.txt')
 extras_require = {
     'test': tests_require,
     }
