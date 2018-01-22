@@ -187,9 +187,11 @@ def test_validate_cmd_with_invalid_content(datadir, monkeypatch, invoker):
     assert result.exit_code == 0
 
     expected_output = (
-        'collection.xml:114:13 -- error: element "para" from namespace "http://cnx.rice.edu/cnxml" not allowed in this context',
+        ('collection.xml:114:13 -- error: element "para" from '
+         'namespace "http://cnx.rice.edu/cnxml" not allowed in this context'),
         'mux:mux is not a valid identifier',
-        'mux/index.cnxml:61:10 -- error: unknown element "foo" from namespace "http://cnx.rice.edu/cnxml"',
+        ('mux/index.cnxml:61:10 -- error: unknown element "foo" from '
+         'namespace "http://cnx.rice.edu/cnxml"'),
     )
     for line in expected_output:
         assert line in result.output

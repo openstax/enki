@@ -2,9 +2,8 @@ language: python
 python:
   - "3.5"
 before_install:
-  - pip install pep8
-  - pep8 --exclude=tests *.py nebu
-  - pep8 --max-line-length=200 nebu/tests
+  - pip install flake8
+  - python -m flake8 .
 
   - pip install --upgrade setuptools
   - pip install --upgrade pip
