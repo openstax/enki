@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import versioneer
 from setuptools import setup, find_packages
 
 
@@ -26,7 +27,7 @@ with open('README.rst', 'r') as readme:
 
 setup(
     name='nebuchadnezzar',
-    version='1.0.0',
+    version=versioneer.get_version(),
     author='Connexions team',
     author_email='info@cnx.org',
     url="https://github.com/connexions/nebuchadnezzar",
@@ -43,6 +44,7 @@ setup(
     package_data={
         'nebu.tests': ['data/**/*.*'],
         },
+    cmdclass=versioneer.get_cmdclass(),
     entry_points="""\
     [console_scripts]
     neb = nebu.cli.main:cli
