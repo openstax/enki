@@ -200,8 +200,9 @@ def _publish(struct, message):
     # Send it!
     # FIXME We need to be able to build urls to multiple services.
     #       For now we'll use an environment variable
+    scheme = os.environ.get('XXX_SCHEME', 'https')
     host = os.environ.get('XXX_HOST', 'cnx.org')
-    url = 'https://{}/api/v3/publish'.format(host)
+    url = '{}://{}/api/v3/publish'.format(scheme, host)
     # FIXME We don't have nor want explicit setting of the publisher.
     #       The publisher will come through as part of the authentication
     #       information, which will be in a later implementation.
