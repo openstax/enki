@@ -160,7 +160,7 @@ def test_main_with_verbosity(invoker):
 
 def test_get_cmd(datadir, tmpcwd, requests_mocker, invoker):
     col_id = 'col11405'
-    url = 'http://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
+    url = 'https://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
 
     complete_zip = datadir / 'complete.zip'
     content_size = complete_zip.stat().st_size
@@ -200,7 +200,7 @@ def test_get_cmd_with_existing_output_dir(tmpcwd, capsys, invoker):
 
 def test_get_cmd_with_failed_request(requests_mocker, invoker):
     col_id = 'col00000'
-    url = 'http://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
+    url = 'https://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
 
     requests_mocker.register_uri('GET', url, status_code=404)
 

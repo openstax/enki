@@ -96,8 +96,14 @@ def cli(verbose):
 @click.argument('col_version', default='latest')
 def get(col_id, col_version, output_dir):
     """download and expand the completezip to the current working directory"""
-    url = 'http://legacy.cnx.org/content/{}/{}/complete'.format(
-        col_id, col_version)
+    # FIXME We need to be able to build urls to multiple services.
+    #       For now we'll use an environment variable
+    scheme = os.environ.get('XXX_SCHEME', 'https')
+    host = os.environ.get('XXX_HOST', 'cnx.org')
+    sep = len(host.split('.')) > 2 and '-' or '.'
+    url = '{}://legacy{}{}/content/{}/{}/complete'.format(
+        scheme, sep, host, col_id, col_version)
+    # / FIXME
 
     tmp_dir = Path(tempfile.mkdtemp())
     zip_filepath = tmp_dir / 'complete.zip'

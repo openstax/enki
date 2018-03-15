@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+?.?.?
+-----
+
+- Fix to allow the 'get' command to use the temporary environment
+  variables to modify the url for acquiring the content.
+
 1.1.1
 -----
 
