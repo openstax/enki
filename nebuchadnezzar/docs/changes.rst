@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-?.?.?
+1.1.2
 -----
 
 - Fix to allow the 'get' command to use the temporary environment
