@@ -17,6 +17,7 @@ from litezip import (
     validate_litezip,
 )
 
+from nebu import __version__
 from ..logger import configure_logging, logger
 
 
@@ -84,8 +85,19 @@ def set_verbosity(verbose):
     configure_logging(config)
 
 
+def _version_callback(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    working_version = __version__
+    click.echo('Nebuchadnezzar {}'.format(working_version))
+    ctx.exit()
+
+
 @click.group()
 @click.option('-v', '--verbose', is_flag=True, help='enable verbosity')
+@click.option('--version', callback=_version_callback, is_flag=True,
+              expose_value=False, is_eager=True,
+              help='Show the version and exit')
 def cli(verbose):
     set_verbosity(verbose)
 

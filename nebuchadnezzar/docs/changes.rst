@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+?.?.?
+-----
+
+- Add a '--version' option to show the currently installed version.
+
 1.2.0
 -----
 

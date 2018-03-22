@@ -1,3 +1,5 @@
 click
 cnx-litezip
+pip
 requests
+setuptools
