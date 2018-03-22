@@ -9,6 +9,7 @@ from pathlib import Path
 
 import click
 import requests
+import pkg_resources
 from litezip import (
     Collection,
     convert_completezip,
@@ -266,3 +267,55 @@ def publish(content_dir, publication_message):
     else:
         logger.info("We've got problems... :(")
         sys.exit(1)
+
+
+_comfirmation_prompt = 'This could overwrite your config... continue?'
+_ATOM_CONFIG_TEMPLATE = """\
+"*":
+  core:
+    customFileTypes:
+
+      # Add this to the bottom of the customFileTypes area.
+      # Note: Indentation is important!
+      "text.xml": [
+        "index.cnxml"
+      ]
+
+
+  # And then this to the bottom of the file
+  # 1. Make sure "linter-autocomplete-jing" only occurs once in this file!
+  # 1. make sure it is indented by 2 spaces just like it is in this example.
+
+  "linter-autocomplete-jing":
+    displaySchemaWarnings: true
+    rules: [
+      {
+        priority: 1
+        test:
+          pathRegex: ".cnxml$"
+        outcome:
+          schemaProps: [
+            {
+              lang: "rng"
+              path: "%s"
+            }
+          ]
+      }
+    ]
+"""
+
+
+@cli.command(name='config-atom')
+@click.confirmation_option(prompt=_comfirmation_prompt)
+def config_atom():
+    filepath = Path.home() / '.atom/config.cson'
+    if not filepath.parent.exists():
+        filepath.parent.mkdir()
+
+    cnxml_jing_rng = pkg_resources.resource_filename(
+        'cnxml',
+        'cnxml/xml/cnxml/schema/rng/0.7/cnxml-jing.rng')
+    with filepath.open('w') as fb:
+        fb.write(_ATOM_CONFIG_TEMPLATE % cnxml_jing_rng)
+
+    logger.info("Wrote {}".format(filepath.resolve()))

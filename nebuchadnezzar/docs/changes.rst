@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+?.?.?
+-----
+
+- Add a 'config-atom' command to configure the atom text editor.
+
 1.1.2
 -----
 
