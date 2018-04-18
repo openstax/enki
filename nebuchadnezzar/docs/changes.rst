@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+?.X.?
+-----
+
+- Modify 'config-atom' command to make a backup of the existing config.
+
 1.3.0
 -----
 

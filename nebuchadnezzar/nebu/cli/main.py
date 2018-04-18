@@ -281,7 +281,10 @@ def publish(content_dir, publication_message):
         sys.exit(1)
 
 
-_comfirmation_prompt = 'This could overwrite your config... continue?'
+_confirmation_prompt = (
+    'A backup of your atom-config will be created.\n'
+    'However, this will overwrite your config... continue?'
+)
 _ATOM_CONFIG_TEMPLATE = """\
 "*":
   core:
@@ -318,11 +321,15 @@ _ATOM_CONFIG_TEMPLATE = """\
 
 
 @cli.command(name='config-atom')
-@click.confirmation_option(prompt=_comfirmation_prompt)
+@click.confirmation_option(prompt=_confirmation_prompt)
 def config_atom():
     filepath = Path.home() / '.atom/config.cson'
     if not filepath.parent.exists():
         filepath.parent.mkdir()
+    if filepath.exists():
+        backup_filepath = filepath.parent / 'config.cson.bak'
+        filepath.rename(backup_filepath)
+        logger.info("Wrote backup to {}".format(backup_filepath.resolve()))
 
     cnxml_jing_rng = pkg_resources.resource_filename(
         'cnxml',

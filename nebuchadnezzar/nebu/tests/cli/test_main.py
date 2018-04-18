@@ -464,6 +464,7 @@ class TestConfigAtomCmd:
 
     def test_with_exiting_config(self, monkeypatch, invoker):
         filepath = self.tmpdir / '.atom/config.cson'
+        backup_filepath = filepath.parent / (filepath.name + '.bak')
         filepath.parent.mkdir()
         with filepath.open('w') as fb:
             fb.write('baz')
@@ -472,3 +473,27 @@ class TestConfigAtomCmd:
         args = ['config-atom', '--yes']
         result = invoker(cli, args)
         self.check(result)
+
+        # Check for backup file creation
+        assert 'Wrote backup to ' in result.output
+        with backup_filepath.open('r') as fb:
+            assert 'baz' in fb.read()
+
+    def test_with_exiting_config_and_backup(self, monkeypatch, invoker):
+        filepath = self.tmpdir / '.atom/config.cson'
+        backup_filepath = filepath.parent / (filepath.name + '.bak')
+        filepath.parent.mkdir()
+        with filepath.open('w') as fb:
+            fb.write('baz')
+        with backup_filepath.open('w') as fb:
+            fb.write('raz')
+
+        from nebu.cli.main import cli
+        args = ['config-atom', '--yes']
+        result = invoker(cli, args)
+        self.check(result)
+
+        # Check for backup file is overwritten
+        assert 'Wrote backup to ' in result.output
+        with backup_filepath.open('r') as fb:
+            assert 'baz' in fb.read()
