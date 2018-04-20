@@ -48,8 +48,8 @@ Preparation
 
 #. Install https://atom.io
 
-Install
--------
+Install (with automatic Atom config)
+------------------------------------
 
 #. Start up Atom
 #. Install the ``linter-autocomplete-jing`` package
@@ -60,10 +60,47 @@ Install
    #. Enter ``linter-autocomplete-jing`` and click **Install**
    #. **Alternative:** run ``apm install linter-autocomplete-jing`` from the commandline
 
-#. Run ``neb atom-config``
+#. Run ``neb atom-config`` (**NOTE:** *This will overwrite your Atom config file. If you'd prefer updating the config file yourself, see `Manual Atom config`_ below.*)
 #. Restart Atom
 #. Open an unzipped complete-zip. (I run ``atom ~/Downloads/col1234_complete`` **From a terminal**)
 #. Verify by opening an ``index.cnxml`` file and typing in ``<figure>`` somewhere in the file. If it is a valid location then it should auto-add ``id=""`` for you
+
+Manual Atom config
+------------------
+
+Add the following to your Atom configuration by clicking **Atom**, **Config** in the menu bar and copying and pasting the below (**NOTE**: indentation is important)::
+
+    "*":
+      core:
+        customFileTypes:
+
+          # Add this to the bottom of the customFileTypes area.
+          # Note: Indentation is important!
+          "text.xml": [
+            "index.cnxml"
+          ]
+
+
+      # And then this to the bottom of the file
+      # 1. Make sure "linter-autocomplete-jing" only occurs once in this file!
+      # 1. make sure it is indented by 2 spaces just like it is in this example.
+
+      "linter-autocomplete-jing":
+        displaySchemaWarnings: true
+        rules: [
+          {
+            priority: 1
+            test:
+              pathRegex: ".cnxml$"
+            outcome:
+              schemaProps: [
+                {
+                  lang: "rng"
+                  path: "~/.neb/cnxml-validation/cnxml/xml/cnxml/schema/rng/0.7/cnxml-jing.rng"
+                }
+              ]
+          }
+        ]
 
 License
 -------
