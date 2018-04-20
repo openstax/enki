@@ -60,13 +60,15 @@ Install (with automatic Atom config)
    #. Enter ``linter-autocomplete-jing`` and click **Install**
    #. **Alternative:** run ``apm install linter-autocomplete-jing`` from the commandline
 
-#. Run ``neb atom-config`` (**NOTE:** *This will overwrite your Atom config file. If you'd prefer updating the config file yourself, see `Manual Atom config`_ below.*)
+#. Run ``neb atom-config`` (**NOTE:** *This will overwrite your Atom config file. If you'd prefer updating the config file yourself, see 'Manual Atom config' below.*)
 #. Restart Atom
 #. Open an unzipped complete-zip. (I run ``atom ~/Downloads/col1234_complete`` **From a terminal**)
 #. Verify by opening an ``index.cnxml`` file and typing in ``<figure>`` somewhere in the file. If it is a valid location then it should auto-add ``id=""`` for you
 
 Manual Atom config
 ------------------
+
+This step is only necessary if you didn't run ``neb atom-config`` above. After completing this step, resume the instructions above from the 'Restart Atom' step.
 
 Add the following to your Atom configuration by clicking **Atom**, **Config** in the menu bar and copying and pasting the below (**NOTE**: indentation is important)::
 
