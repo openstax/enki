@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+1.4.2
+-----
+
+- Update the README with instructions that use the 'atom-config' command.
+
 1.4.1
 -----
 
