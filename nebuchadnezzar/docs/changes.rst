@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+1.4.1
+-----
+
+- Fix atom config filepath to RNG file.
+  See https://github.com/Connexions/nebuchadnezzar/issues/18.
+
 1.4.0
 -----
 

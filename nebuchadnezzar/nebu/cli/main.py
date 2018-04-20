@@ -332,8 +332,8 @@ def config_atom():
         logger.info("Wrote backup to {}".format(backup_filepath.resolve()))
 
     cnxml_jing_rng = pkg_resources.resource_filename(
-        'cnxml',
-        'cnxml/xml/cnxml/schema/rng/0.7/cnxml-jing.rng')
+        'cnxml',  # find by package name
+        'xml/cnxml/schema/rng/0.7/cnxml-jing.rng')
     with filepath.open('w') as fb:
         fb.write(_ATOM_CONFIG_TEMPLATE % cnxml_jing_rng)
 
