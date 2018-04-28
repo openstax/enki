@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+X.?.?
+-----
+
+- Add the ability to define individual environments via a configuration file.
+
 1.4.2
 -----
 

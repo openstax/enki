@@ -1,3 +1,4 @@
+pretend
 pytest
 pytest-cov
 pytest-runner
