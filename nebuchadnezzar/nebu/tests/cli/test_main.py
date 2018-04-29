@@ -173,267 +173,273 @@ def test_for_version(monkeypatch, invoker):
     assert result.output == expected_output
 
 
-def test_get_cmd(datadir, tmpcwd, requests_mocker, invoker):
-    col_id = 'col11405'
-    url = 'https://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
+class TestGetCmd:
 
-    complete_zip = datadir / 'complete.zip'
-    content_size = complete_zip.stat().st_size
-    with complete_zip.open('rb') as fb:
-        headers = {'Content-Length': str(content_size)}
-        requests_mocker.get(url, content=fb.read(), headers=headers)
+    def test(self, datadir, tmpcwd, requests_mocker, invoker):
+        col_id = 'col11405'
+        url = ('https://legacy.cnx.org/content/{}/latest/complete'
+               .format(col_id))
 
-    from nebu.cli.main import cli
-    args = ['get', col_id]
-    result = invoker(cli, args)
+        complete_zip = datadir / 'complete.zip'
+        content_size = complete_zip.stat().st_size
+        with complete_zip.open('rb') as fb:
+            headers = {'Content-Length': str(content_size)}
+            requests_mocker.get(url, content=fb.read(), headers=headers)
 
-    assert result.exit_code == 0
+        from nebu.cli.main import cli
+        args = ['get', col_id]
+        result = invoker(cli, args)
 
-    dir = tmpcwd / col_id
-    expected = datadir / 'collection'
+        assert result.exit_code == 0
 
-    def _rel(p, b): return p.relative_to(b)
+        dir = tmpcwd / col_id
+        expected = datadir / 'collection'
 
-    relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
-    relative_expected = map(partial(_rel, b=expected), pathlib_walk(expected))
-    assert sorted(relative_dir) == sorted(relative_expected)
+        def _rel(p, b):
+            return p.relative_to(b)
 
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
 
-def test_get_cmd_with_existing_output_dir(tmpcwd, capsys, invoker):
-    col_id = 'col00000'
+    def test_with_existing_output_dir(self, tmpcwd, capsys, invoker):
+        col_id = 'col00000'
 
-    (tmpcwd / col_id).mkdir()
+        (tmpcwd / col_id).mkdir()
 
-    from nebu.cli.main import cli
-    args = ['get', col_id]
-    result = invoker(cli, args)
+        from nebu.cli.main import cli
+        args = ['get', col_id]
+        result = invoker(cli, args)
 
-    assert result.exit_code == 3
+        assert result.exit_code == 3
 
-    assert 'output directory cannot exist:' in result.output
+        assert 'output directory cannot exist:' in result.output
 
+    def test_with_failed_request(self, requests_mocker, invoker):
+        col_id = 'col00000'
+        url = ('https://legacy.cnx.org/content/{}/latest/complete'
+               .format(col_id))
 
-def test_get_cmd_with_failed_request(requests_mocker, invoker):
-    col_id = 'col00000'
-    url = 'https://legacy.cnx.org/content/{}/latest/complete'.format(col_id)
+        requests_mocker.register_uri('GET', url, status_code=404)
 
-    requests_mocker.register_uri('GET', url, status_code=404)
+        from nebu.cli.main import cli
+        args = ['get', col_id]
+        result = invoker(cli, args)
 
-    from nebu.cli.main import cli
-    args = ['get', col_id]
-    result = invoker(cli, args)
+        assert result.exit_code == 4
 
-    assert result.exit_code == 4
-
-    msg = "content unavailable for '{}/latest'".format(col_id)
-    assert msg in result.output
-
-
-def test_validate_cmd_in_cwd(datadir, monkeypatch, invoker):
-    id = 'collection'
-    monkeypatch.chdir(str(datadir / id))
-
-    from nebu.cli.main import cli
-    args = ['validate']  # using Current Working Directory (CWD)
-    result = invoker(cli, args)
-
-    assert result.exit_code == 0
-    assert result.output == 'All good! :)\n'
+        msg = "content unavailable for '{}/latest'".format(col_id)
+        assert msg in result.output
 
 
-def test_validate_cmd_outside_cwd(datadir, invoker):
-    path = datadir / 'collection'
+class TestValidateCmd:
 
-    from nebu.cli.main import cli
-    args = ['validate', str(path)]
-    result = invoker(cli, args)
+    def test_in_cwd(self, datadir, monkeypatch, invoker):
+        id = 'collection'
+        monkeypatch.chdir(str(datadir / id))
 
-    assert result.exit_code == 0
-    assert result.output == 'All good! :)\n'
+        from nebu.cli.main import cli
+        args = ['validate']  # using Current Working Directory (CWD)
+        result = invoker(cli, args)
 
+        assert result.exit_code == 0
+        assert result.output == 'All good! :)\n'
 
-def test_validate_cmd_with_invalid_content(datadir, monkeypatch, invoker):
-    id = 'invalid_collection'
-    monkeypatch.chdir(str(datadir / id))
+    def test_outside_cwd(self, datadir, invoker):
+        path = datadir / 'collection'
 
-    from nebu.cli.main import cli
-    args = ['validate']  # using Current Working Directory (CWD)
-    result = invoker(cli, args)
+        from nebu.cli.main import cli
+        args = ['validate', str(path)]
+        result = invoker(cli, args)
 
-    assert result.exit_code == 0
+        assert result.exit_code == 0
+        assert result.output == 'All good! :)\n'
 
-    expected_output = (
-        ('collection.xml:114:13 -- error: element "para" from '
-         'namespace "http://cnx.rice.edu/cnxml" not allowed in this context'),
-        'mux:mux is not a valid identifier',
-        ('mux/index.cnxml:61:10 -- error: unknown element "foo" from '
-         'namespace "http://cnx.rice.edu/cnxml"'),
-    )
-    for line in expected_output:
-        assert line in result.output
+    def test_with_invalid_content(self, datadir, monkeypatch, invoker):
+        id = 'invalid_collection'
+        monkeypatch.chdir(str(datadir / id))
 
-    assert "We've got problems... :(" in result.output
+        from nebu.cli.main import cli
+        args = ['validate']  # using Current Working Directory (CWD)
+        result = invoker(cli, args)
 
+        assert result.exit_code == 0
 
-def test_publish_cmd_in_cwd(datadir, monkeypatch, requests_mocker, invoker):
-    id = 'collection'
-    publisher = 'CollegeStax'
-    message = 'mEssAgE'
-    monkeypatch.chdir(str(datadir / id))
-    monkeypatch.setenv('XXX_PUBLISHER', publisher)
+        expected_output = (
+            ('collection.xml:114:13 -- error: element "para" from '
+             'namespace "http://cnx.rice.edu/cnxml" not allowed in '
+             'this context'),
+            'mux:mux is not a valid identifier',
+            ('mux/index.cnxml:61:10 -- error: unknown element "foo" from '
+             'namespace "http://cnx.rice.edu/cnxml"'),
+        )
+        for line in expected_output:
+            assert line in result.output
 
-    # Mock the publishing request
-    url = 'https://cnx.org/api/v3/publish'
-    resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
-    requests_mocker.register_uri('POST', url, status_code=200,
-                                 text=resp_callback)
-
-    from nebu.cli.main import cli
-    # Use Current Working Directory (CWD)
-    args = ['publish', '.', message]
-    result = invoker(cli, args)
-
-    # Check the results
-    if result.exception:
-        raise result.exception
-    assert result.exit_code == 0
-    expected_output = (
-        'Great work!!! =D\n'
-    )
-    # FIXME Ignoring temporary formatting of output, just check for
-    #       the last line so we know we got to the correct place.
-    # assert result.output == expected_output
-    assert expected_output in result.output
-
-    # Check the sent contents
-    request_data = resp_callback.captured_request._request.body
-    # Discover the multipart/form-data boundry
-    boundary = request_data.split(b'\r\n')[0][2:]
-    form = parse_multipart(io.BytesIO(request_data), {'boundary': boundary})
-    assert form['publisher'][0] == publisher.encode('utf8')
-    assert form['message'][0] == message.encode('utf8')
-    # Check the zipfile for contents
-    with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
-        included_files = zb.namelist()
-    expected_files = [
-        'col11405/collection.xml',
-        'col11405/m37154/index.cnxml',
-        'col11405/m37217/index.cnxml',
-        'col11405/m37386/index.cnxml',
-        'col11405/m40645/index.cnxml',
-        'col11405/m40646/index.cnxml',
-        'col11405/m42303/index.cnxml',
-        'col11405/m42304/index.cnxml',
-    ]
-    assert included_files == expected_files
+        assert "We've got problems... :(" in result.output
 
 
-def test_publish_cmd_outside_cwd(datadir, monkeypatch,
-                                 requests_mocker, invoker):
-    id = 'collection'
-    publisher = 'CollegeStax'
-    message = 'mEssAgE'
-    monkeypatch.setenv('XXX_PUBLISHER', publisher)
+class TestPublishCmd:
 
-    # Mock the publishing request
-    url = 'https://cnx.org/api/v3/publish'
-    resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
-    requests_mocker.register_uri('POST', url, status_code=200,
-                                 text=resp_callback)
+    def test_in_cwd(self, datadir, monkeypatch, requests_mocker, invoker):
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.chdir(str(datadir / id))
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
-    from nebu.cli.main import cli
-    # Use Current Working Directory (CWD)
-    args = ['publish', str(datadir / id), message]
-    result = invoker(cli, args)
+        # Mock the publishing request
+        url = 'https://cnx.org/api/v3/publish'
+        resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
+        requests_mocker.register_uri('POST', url, status_code=200,
+                                     text=resp_callback)
 
-    # Check the results
-    if result.exception:
-        raise result.exception
-    assert result.exit_code == 0
-    expected_output = (
-        'Great work!!! =D\n'
-    )
-    # FIXME Ignoring temporary formatting of output, just check for
-    #       the last line so we know we got to the correct place.
-    # assert result.output == expected_output
-    assert expected_output in result.output
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', '.', message]
+        result = invoker(cli, args)
 
-    # Check the sent contents
-    request_data = resp_callback.captured_request._request.body
-    # Discover the multipart/form-data boundry
-    boundary = request_data.split(b'\r\n')[0][2:]
-    form = parse_multipart(io.BytesIO(request_data), {'boundary': boundary})
-    assert form['publisher'][0] == publisher.encode('utf8')
-    assert form['message'][0] == message.encode('utf8')
-    # Check the zipfile for contents
-    with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
-        included_files = zb.namelist()
-    expected_files = [
-        'col11405/collection.xml',
-        'col11405/m37154/index.cnxml',
-        'col11405/m37217/index.cnxml',
-        'col11405/m37386/index.cnxml',
-        'col11405/m40645/index.cnxml',
-        'col11405/m40646/index.cnxml',
-        'col11405/m42303/index.cnxml',
-        'col11405/m42304/index.cnxml',
-    ]
-    assert included_files == expected_files
+        # Check the results
+        if result.exception:
+            raise result.exception
+        assert result.exit_code == 0
+        expected_output = (
+            'Great work!!! =D\n'
+        )
+        # FIXME Ignoring temporary formatting of output, just check for
+        #       the last line so we know we got to the correct place.
+        # assert result.output == expected_output
+        assert expected_output in result.output
 
+        # Check the sent contents
+        request_data = resp_callback.captured_request._request.body
+        # Discover the multipart/form-data boundry
+        boundary = request_data.split(b'\r\n')[0][2:]
+        form = parse_multipart(io.BytesIO(request_data),
+                               {'boundary': boundary})
+        assert form['publisher'][0] == publisher.encode('utf8')
+        assert form['message'][0] == message.encode('utf8')
+        # Check the zipfile for contents
+        with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
+            included_files = zb.namelist()
+        expected_files = [
+            'col11405/collection.xml',
+            'col11405/m37154/index.cnxml',
+            'col11405/m37217/index.cnxml',
+            'col11405/m37386/index.cnxml',
+            'col11405/m40645/index.cnxml',
+            'col11405/m40646/index.cnxml',
+            'col11405/m42303/index.cnxml',
+            'col11405/m42304/index.cnxml',
+        ]
+        assert included_files == expected_files
 
-def test_publish_cmd_with_invalid_content(datadir, monkeypatch,
-                                          requests_mocker, invoker):
-    id = 'invalid_collection'
-    publisher = 'CollegeStax'
-    message = 'mEssAgE'
-    monkeypatch.setenv('XXX_PUBLISHER', publisher)
+    def test_outside_cwd(self, datadir, monkeypatch,
+                         requests_mocker, invoker):
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
-    from nebu.cli.main import cli
-    # Use Current Working Directory (CWD)
-    args = ['publish', str(datadir / id), message]
-    result = invoker(cli, args)
+        # Mock the publishing request
+        url = 'https://cnx.org/api/v3/publish'
+        resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
+        requests_mocker.register_uri('POST', url, status_code=200,
+                                     text=resp_callback)
 
-    # Check the results
-    if result.exception and not isinstance(result.exception, SystemExit):
-        raise result.exception
-    assert result.exit_code == 1
-    # Check for the expected failure marker message.
-    expected_output = (
-        "We've got problems... :(\n"
-    )
-    assert expected_output in result.output
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', str(datadir / id), message]
+        result = invoker(cli, args)
 
+        # Check the results
+        if result.exception:
+            raise result.exception
+        assert result.exit_code == 0
+        expected_output = (
+            'Great work!!! =D\n'
+        )
+        # FIXME Ignoring temporary formatting of output, just check for
+        #       the last line so we know we got to the correct place.
+        # assert result.output == expected_output
+        assert expected_output in result.output
 
-def test_publish_cmd_with_errors(datadir, monkeypatch,
-                                 requests_mocker, invoker):
-    id = 'collection'
-    publisher = 'CollegeStax'
-    message = 'mEssAgE'
-    monkeypatch.setenv('XXX_PUBLISHER', publisher)
+        # Check the sent contents
+        request_data = resp_callback.captured_request._request.body
+        # Discover the multipart/form-data boundry
+        boundary = request_data.split(b'\r\n')[0][2:]
+        form = parse_multipart(io.BytesIO(request_data),
+                               {'boundary': boundary})
+        assert form['publisher'][0] == publisher.encode('utf8')
+        assert form['message'][0] == message.encode('utf8')
+        # Check the zipfile for contents
+        with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
+            included_files = zb.namelist()
+        expected_files = [
+            'col11405/collection.xml',
+            'col11405/m37154/index.cnxml',
+            'col11405/m37217/index.cnxml',
+            'col11405/m37386/index.cnxml',
+            'col11405/m40645/index.cnxml',
+            'col11405/m40646/index.cnxml',
+            'col11405/m42303/index.cnxml',
+            'col11405/m42304/index.cnxml',
+        ]
+        assert included_files == expected_files
 
-    # Mock the publishing request
-    url = 'https://cnx.org/api/v3/publish'
-    requests_mocker.register_uri('POST', url, status_code=400,
-                                 text='400')
+    def test_with_invalid_content(self, datadir, monkeypatch,
+                                  requests_mocker, invoker):
+        id = 'invalid_collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
-    from nebu.cli.main import cli
-    # Use Current Working Directory (CWD)
-    args = ['publish', str(datadir / id), message]
-    result = invoker(cli, args)
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', str(datadir / id), message]
+        result = invoker(cli, args)
 
-    # Check the results
-    if result.exception and not isinstance(result.exception, SystemExit):
-        raise result.exception
-    assert result.exit_code == 1
-    # Check for the expected failure output.
-    assert 'ERROR: ' in result.output
-    expected_output = (
-        'Stop the Press!!! =()\n'
-    )
-    # FIXME Ignoring temporary formatting of output, just check for
-    #       the last line so we know we got to the correct place.
-    # assert result.output == expected_output
-    assert expected_output in result.output
+        # Check the results
+        if result.exception and not isinstance(result.exception, SystemExit):
+            raise result.exception
+        assert result.exit_code == 1
+        # Check for the expected failure marker message.
+        expected_output = (
+            "We've got problems... :(\n"
+        )
+        assert expected_output in result.output
+
+    def test_with_errors(self, datadir, monkeypatch,
+                         requests_mocker, invoker):
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
+
+        # Mock the publishing request
+        url = 'https://cnx.org/api/v3/publish'
+        requests_mocker.register_uri('POST', url, status_code=400,
+                                     text='400')
+
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', str(datadir / id), message]
+        result = invoker(cli, args)
+
+        # Check the results
+        if result.exception and not isinstance(result.exception, SystemExit):
+            raise result.exception
+        assert result.exit_code == 1
+        # Check for the expected failure output.
+        assert 'ERROR: ' in result.output
+        expected_output = (
+            'Stop the Press!!! =()\n'
+        )
+        # FIXME Ignoring temporary formatting of output, just check for
+        #       the last line so we know we got to the correct place.
+        # assert result.output == expected_output
+        assert expected_output in result.output
 
 
 class TestConfigAtomCmd:
