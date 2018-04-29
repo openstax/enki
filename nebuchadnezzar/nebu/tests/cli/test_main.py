@@ -56,6 +56,8 @@ COLLECTION_PUBLISH_PRESS_RESP_DATA = [
      },
 ]
 
+CONFIG_FILEPATH = Path(__file__).parent / 'config.ini'
+
 
 ###
 # Helpers
@@ -86,6 +88,12 @@ class ResponseCallback:
 ###
 # Fixtures
 ###
+
+@pytest.fixture(autouse=True)
+def monekypatch_config(monkeypatch):
+    """Point at the testing configuration file"""
+    monkeypatch.setenv('NEB_CONFIG', str(CONFIG_FILEPATH))
+
 
 @pytest.fixture
 def faux_cmd(monkeypatch):
@@ -187,7 +195,7 @@ class TestGetCmd:
             requests_mocker.get(url, content=fb.read(), headers=headers)
 
         from nebu.cli.main import cli
-        args = ['get', col_id]
+        args = ['get', 'test-env', col_id]
         result = invoker(cli, args)
 
         assert result.exit_code == 0
@@ -209,7 +217,7 @@ class TestGetCmd:
         (tmpcwd / col_id).mkdir()
 
         from nebu.cli.main import cli
-        args = ['get', col_id]
+        args = ['get', 'test-env', col_id]
         result = invoker(cli, args)
 
         assert result.exit_code == 3
@@ -224,7 +232,7 @@ class TestGetCmd:
         requests_mocker.register_uri('GET', url, status_code=404)
 
         from nebu.cli.main import cli
-        args = ['get', col_id]
+        args = ['get', 'test-env', col_id]
         result = invoker(cli, args)
 
         assert result.exit_code == 4
@@ -297,7 +305,7 @@ class TestPublishCmd:
 
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
-        args = ['publish', '.', message]
+        args = ['publish', 'test-env', '.', message]
         result = invoker(cli, args)
 
         # Check the results
@@ -350,7 +358,7 @@ class TestPublishCmd:
 
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
-        args = ['publish', str(datadir / id), message]
+        args = ['publish', 'test-env', str(datadir / id), message]
         result = invoker(cli, args)
 
         # Check the results
@@ -397,7 +405,7 @@ class TestPublishCmd:
 
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
-        args = ['publish', str(datadir / id), message]
+        args = ['publish', 'test-env', str(datadir / id), message]
         result = invoker(cli, args)
 
         # Check the results
@@ -424,7 +432,7 @@ class TestPublishCmd:
 
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
-        args = ['publish', str(datadir / id), message]
+        args = ['publish', 'test-env', str(datadir / id), message]
         result = invoker(cli, args)
 
         # Check the results

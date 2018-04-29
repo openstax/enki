@@ -6,6 +6,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 import click
 import requests
@@ -19,6 +20,7 @@ from litezip import (
 
 from nebu import __version__
 from ..logger import configure_logging, logger
+from ..config import prepare
 
 
 __all__ = ('cli',)
@@ -75,6 +77,14 @@ class MissingContent(click.ClickException):
         super(MissingContent, self).__init__(message)
 
 
+class UnknownEnvironment(click.ClickException):
+    exit_code = 5
+
+    def __init__(self, environ_name):
+        message = "unknown environment '{}'".format(environ_name)
+        super(UnknownEnvironment, self).__init__(message)
+
+
 def set_verbosity(verbose):
     config = console_logging_config.copy()
     if verbose:
@@ -83,6 +93,13 @@ def set_verbosity(verbose):
         level = 'INFO'
     config['loggers']['nebuchadnezzar']['level'] = level
     configure_logging(config)
+
+
+def get_base_url(context, environ_name):
+    try:
+        return context.obj['settings']['environs'][environ_name]['url']
+    except KeyError:
+        raise UnknownEnvironment(environ_name)
 
 
 def _version_callback(ctx, param, value):
@@ -98,25 +115,33 @@ def _version_callback(ctx, param, value):
 @click.option('--version', callback=_version_callback, is_flag=True,
               expose_value=False, is_eager=True,
               help='Show the version and exit')
-def cli(verbose):
+@click.pass_context
+def cli(ctx, verbose):
+    env = prepare()
+    ctx.obj = env
     set_verbosity(verbose)
+    logger.debug('Using the configuration file at {}'
+                 .format(env['settings']['_config_file']))
 
 
 @cli.command()
 @click.option('-d', '--output-dir', type=click.Path(),
               help="output directory name (can't previously exist)")
+@click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version', default='latest')
-def get(col_id, col_version, output_dir):
+@click.pass_context
+def get(ctx, env, col_id, col_version, output_dir):
     """download and expand the completezip to the current working directory"""
-    # FIXME We need to be able to build urls to multiple services.
-    #       For now we'll use an environment variable
-    scheme = os.environ.get('XXX_SCHEME', 'https')
-    host = os.environ.get('XXX_HOST', 'cnx.org')
-    sep = len(host.split('.')) > 2 and '-' or '.'
-    url = '{}://legacy{}{}/content/{}/{}/complete'.format(
-        scheme, sep, host, col_id, col_version)
-    # / FIXME
+    base_url = get_base_url(ctx, env)
+    parsed_url = urlparse(base_url)
+    sep = len(parsed_url.netloc.split('.')) > 2 and '-' or '.'
+    url_parts = [
+        parsed_url.scheme,
+        'legacy{}{}'.format(sep, parsed_url.netloc),
+    ] + list(parsed_url[2:])
+    base_url = urlunparse(url_parts)
+    url = '{}/content/{}/{}/complete'.format(base_url, col_id, col_version)
 
     tmp_dir = Path(tempfile.mkdtemp())
     zip_filepath = tmp_dir / 'complete.zip'
@@ -194,7 +219,7 @@ def validate(content_dir):
         logger.info("We've got problems... :(")
 
 
-def _publish(struct, message):
+def _publish(base_url, struct, message):
     """Publish the struct to a repository"""
     collection_id = struct[0].id
     # Base encapsulating directory within the zipfile
@@ -217,11 +242,7 @@ def _publish(struct, message):
             # TODO Include resource files
 
     # Send it!
-    # FIXME We need to be able to build urls to multiple services.
-    #       For now we'll use an environment variable
-    scheme = os.environ.get('XXX_SCHEME', 'https')
-    host = os.environ.get('XXX_HOST', 'cnx.org')
-    url = '{}://{}/api/v3/publish'.format(scheme, host)
+    url = '{}/api/v3/publish'.format(base_url)
     # FIXME We don't have nor want explicit setting of the publisher.
     #       The publisher will come through as part of the authentication
     #       information, which will be in a later implementation.
@@ -262,15 +283,19 @@ def _publish(struct, message):
 
 
 @cli.command()
+@click.argument('env')
 @click.argument('content_dir',
                 type=click.Path(exists=True, file_okay=False))
 @click.argument('publication_message', type=str)
-def publish(content_dir, publication_message):
+@click.pass_context
+def publish(ctx, env, content_dir, publication_message):
+    base_url = get_base_url(ctx, env)
+
     content_dir = Path(content_dir).resolve()
     struct = parse_litezip(content_dir)
 
     if is_valid(struct):
-        has_published = _publish(struct, publication_message)
+        has_published = _publish(base_url, struct, publication_message)
         if has_published:
             logger.info("Great work!!! =D")
         else:
