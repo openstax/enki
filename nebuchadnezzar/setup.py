@@ -15,12 +15,12 @@ def parse_requirements(req_file):
 
 setup_requires = (
     'pytest-runner',
-    )
+)
 install_requires = parse_requirements('requirements/main.txt')
 tests_require = parse_requirements('requirements/test.txt')
 extras_require = {
     'test': tests_require,
-    }
+}
 description = "Connexions Nebu publishing utility"
 with open('README.rst', 'r') as readme:
     long_description = readme.read()
@@ -43,10 +43,10 @@ setup(
     include_package_data=True,
     package_data={
         'nebu.tests': ['data/**/*.*'],
-        },
+    },
     cmdclass=versioneer.get_cmdclass(),
     entry_points="""\
     [console_scripts]
     neb = nebu.cli.main:cli
     """,
-    )
+)

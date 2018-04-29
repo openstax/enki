@@ -29,7 +29,7 @@ console_logging_config = {
     'formatters': {
         'cli': {
             'format': '%(message)s',
-            },
+        },
     },
     'filters': {},
     'handlers': {
