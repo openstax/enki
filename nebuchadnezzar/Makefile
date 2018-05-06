@@ -83,7 +83,7 @@ help-test :
 	@echo "    (see also setup.cfg's pytest configuration)"
 
 test : $(STATEDIR)/env/pyvenv.cfg
-	$(BINDIR)/python -m pytest --cov=nebu $(TEST_EXTRA_ARGS) $(TEST)
+	$(BINDIR)/python -m pytest --cov=nebu --cov-report=html --cov-report=term $(TEST_EXTRA_ARGS) $(TEST)
 
 # /Test
 
