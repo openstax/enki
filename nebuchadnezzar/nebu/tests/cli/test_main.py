@@ -4,12 +4,17 @@ import zipfile
 from cgi import parse_multipart
 from copy import deepcopy
 from functools import partial
-from pathlib import Path
 from os import scandir
+from pathlib import Path
 
+import pretend
 import pytest
 import requests_mock
 
+from nebu.cli.main import (
+    get_base_url,
+    UnknownEnvironment,
+)
 
 # This is the response that would come out of Press given
 # the data in data/collection.
@@ -164,6 +169,30 @@ def test_main_with_verbosity(invoker):
     assert "InfO" in out
     assert "dEbUg" in out
     assert "ErrOr" in out
+
+
+class TestGetBaseUrl:
+
+    def test_success(self):
+        env_name = 'foo'
+        url = 'http://foo.com'
+        settings = {
+            'settings': {'environs': {env_name: {'url': url}}},
+        }
+        ctx = pretend.stub(obj=settings)
+        resulting_url = get_base_url(ctx, env_name)
+        assert resulting_url == url
+
+    def test_raises(self):
+        env_name = 'foo'
+        settings = {
+            'settings': {'environs': {}},
+        }
+        ctx = pretend.stub(obj=settings)
+        with pytest.raises(UnknownEnvironment) as exc_info:
+            get_base_url(ctx, env_name)
+        message = exc_info.value.message
+        assert message == "unknown environment '{}'".format(env_name)
 
 
 def test_for_version(monkeypatch, invoker):
