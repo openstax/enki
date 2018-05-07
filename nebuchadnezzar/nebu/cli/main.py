@@ -219,6 +219,20 @@ def validate(content_dir):
         logger.info("We've got problems... :(")
 
 
+@cli.command()
+@click.pass_context
+def list(context):
+    """List of valid environment names from config.
+
+    Names are required for get and publish"""
+    envs = context.obj['settings']['environs']
+    lines = []
+    for env, val in envs.items():
+        lines.append('{}\t {url}'.format(env, **val))
+    lines.sort()
+    logger.info('\n'.join(lines))
+
+
 def _publish(base_url, struct, message):
     """Publish the struct to a repository"""
     collection_id = struct[0].id
