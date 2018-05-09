@@ -359,8 +359,8 @@ class TestPublishCmd:
         assert form['message'][0] == message.encode('utf8')
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
-            included_files = zb.namelist()
-        expected_files = [
+            included_files = set(zb.namelist())
+        expected_files = set((
             'col11405/collection.xml',
             'col11405/m37154/index.cnxml',
             'col11405/m37217/index.cnxml',
@@ -369,7 +369,7 @@ class TestPublishCmd:
             'col11405/m40646/index.cnxml',
             'col11405/m42303/index.cnxml',
             'col11405/m42304/index.cnxml',
-        ]
+        ))
         assert included_files == expected_files
 
     def test_outside_cwd(self, datadir, monkeypatch,
@@ -412,8 +412,8 @@ class TestPublishCmd:
         assert form['message'][0] == message.encode('utf8')
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
-            included_files = zb.namelist()
-        expected_files = [
+            included_files = set(zb.namelist())
+        expected_files = set((
             'col11405/collection.xml',
             'col11405/m37154/index.cnxml',
             'col11405/m37217/index.cnxml',
@@ -422,7 +422,7 @@ class TestPublishCmd:
             'col11405/m40646/index.cnxml',
             'col11405/m42303/index.cnxml',
             'col11405/m42304/index.cnxml',
-        ]
+        ))
         assert included_files == expected_files
 
     def test_with_invalid_content(self, datadir, monkeypatch,
