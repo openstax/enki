@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+?X.Y.Z
+-----
+
+- Add `list` command, to list individual environments defined in configuration.
+
 2.0.1
 -----
 
