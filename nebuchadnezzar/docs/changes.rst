@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+2.0.1
+-----
+
+- Clarify the error message produced when attempting to get content
+  that is already downloaded. This clarification is for when ``neb get``
+  would colide with an existing directory of the same name.
+
 2.0.0
 -----
 
