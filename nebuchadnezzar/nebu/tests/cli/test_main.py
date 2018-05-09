@@ -251,7 +251,7 @@ class TestGetCmd:
 
         assert result.exit_code == 3
 
-        assert 'output directory cannot exist:' in result.output
+        assert 'directory already exists:' in result.output
 
     def test_with_failed_request(self, requests_mocker, invoker):
         col_id = 'col00000'

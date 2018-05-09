@@ -65,7 +65,7 @@ class ExistingOutputDir(click.ClickException):
     exit_code = 3
 
     def __init__(self, output_dir):
-        message = "output directory cannot exist:  {}".format(output_dir)
+        message = "directory already exists:  {}".format(output_dir)
         super(ExistingOutputDir, self).__init__(message)
 
 
