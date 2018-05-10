@@ -338,7 +338,7 @@ class TestPublishCmd:
         monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
         # Mock the publishing request
-        url = 'https://cnx.org/api/v3/publish'
+        url = 'https://cnx.org/api/publish-litezip'
         resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
         requests_mocker.register_uri('POST', url, status_code=200,
                                      text=resp_callback)
@@ -391,7 +391,7 @@ class TestPublishCmd:
         monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
         # Mock the publishing request
-        url = 'https://cnx.org/api/v3/publish'
+        url = 'https://cnx.org/api/publish-litezip'
         resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
         requests_mocker.register_uri('POST', url, status_code=200,
                                      text=resp_callback)
@@ -466,7 +466,7 @@ class TestPublishCmd:
         monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
         # Mock the publishing request
-        url = 'https://cnx.org/api/v3/publish'
+        url = 'https://cnx.org/api/publish-litezip'
         requests_mocker.register_uri('POST', url, status_code=400,
                                      text='400')
 

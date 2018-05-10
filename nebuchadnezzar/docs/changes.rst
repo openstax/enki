@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+3.0.0
+-----
+
+- Adjusted the publication api point in response to the api change in Press.
+
 2.1.0
 -----
 

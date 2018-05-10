@@ -256,11 +256,12 @@ def _publish(base_url, struct, message):
             # TODO Include resource files
 
     # Send it!
-    url = '{}/api/v3/publish'.format(base_url)
+    url = '{}/api/publish-litezip'.format(base_url)
     # FIXME We don't have nor want explicit setting of the publisher.
     #       The publisher will come through as part of the authentication
     #       information, which will be in a later implementation.
     #       For now, pull it out of a environment variable.
+    headers = {'X-API-Version': '3'}
     data = {
         'publisher': os.environ.get('XXX_PUBLISHER', 'OpenStaxCollege'),
         'message': message,
@@ -268,7 +269,7 @@ def _publish(base_url, struct, message):
     files = {
         'file': ('contents.zip', zip_file.open('rb'),),
     }
-    resp = requests.post(url, data=data, files=files)
+    resp = requests.post(url, data=data, files=files, headers=headers)
 
     # Clean up!
     zip_file.unlink()
