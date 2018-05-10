@@ -219,9 +219,9 @@ def validate(content_dir):
         logger.info("We've got problems... :(")
 
 
-@cli.command()
+@cli.command(name='list')
 @click.pass_context
-def list(context):
+def environments(context):
     """List of valid environment names from config.
 
     Names are required for get and publish"""
