@@ -210,6 +210,17 @@ def test_for_version(monkeypatch, invoker):
     assert result.output == expected_output
 
 
+def test_for_list(monkeypatch, invoker):
+
+    from nebu.cli.main import cli
+    args = ['list']
+    result = invoker(cli, args)
+    assert result.exit_code == 0
+
+    expected_output = 'test-env\t https://cnx.org\n'
+    assert result.output == expected_output
+
+
 class TestGetCmd:
 
     def test(self, datadir, tmpcwd, requests_mocker, invoker):
