@@ -63,7 +63,7 @@ Install (with automatic Atom config)
 #. Run ``neb atom-config`` (**NOTE:** *This will overwrite your Atom config file. If you'd prefer updating the config file yourself, see 'Manual Atom config' below.*)
 #. Restart Atom
 #. Open an unzipped complete-zip. (I run ``atom ~/Downloads/col1234_complete`` **From a terminal**)
-#. Verify by opening an ``index.cnxml`` file and typing in ``<figure>`` somewhere in the file. If it is a valid location then it should auto-add ``id=""`` for you
+#. Verify by opening an ``index.cnxml`` file and typing in ``<figure>`` somewhere in the file. You should see a red flag near the tag that says ``RNG: element "figure" missing required attribute "id"``.
 
 Manual Atom config
 ------------------
