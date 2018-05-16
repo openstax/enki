@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+3.0.1
+-----
+
+- Fix 'get' issue where the content exists but the completezip is not
+  available for download.
+  See https://github.com/Connexions/nebuchadnezzar/issues/28
+
 3.0.0
 -----
 

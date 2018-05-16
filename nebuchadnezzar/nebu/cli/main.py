@@ -159,6 +159,9 @@ def get(ctx, env, col_id, col_version, output_dir):
     if not resp:
         logger.debug("Response code is {}".format(resp.status_code))
         raise MissingContent(col_id, col_version)
+    elif resp.status_code == 204:
+        logger.info("The content exists, but the completezip is missing")
+        raise MissingContent(col_id, col_version)
 
     content_size = int(resp.headers['Content-Length'].strip())
     label = 'Downloading {}'.format(col_id)

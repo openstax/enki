@@ -280,6 +280,27 @@ class TestGetCmd:
         msg = "content unavailable for '{}/latest'".format(col_id)
         assert msg in result.output
 
+    def test_unavailable_completezip(self, requests_mocker, invoker):
+        # This case is possible when the content exists, but the completezip
+        # has not been produced.
+        col_id = 'col00000'
+        url = ('https://legacy.cnx.org/content/{}/latest/complete'
+               .format(col_id))
+
+        requests_mocker.register_uri('GET', url, status_code=204)
+
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 4
+
+        msg = "The content exists, but the completezip is missing"
+        assert msg in result.output
+
+        msg = "content unavailable for '{}/latest'".format(col_id)
+        assert msg in result.output
+
 
 class TestValidateCmd:
 
