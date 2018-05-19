@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+?.?.?
+-----
+
+- Fix the 'get' command to request a specific version of the completezip,
+  rather than rely on the 'latest' specifier, which has the issue of
+  requesting a cached completezip.
+  See https://github.com/Connexions/nebuchadnezzar/issues/44
+
 3.0.1
 -----
 

@@ -225,14 +225,24 @@ class TestGetCmd:
 
     def test(self, datadir, tmpcwd, requests_mocker, invoker):
         col_id = 'col11405'
-        url = ('https://legacy.cnx.org/content/{}/latest/complete'
-               .format(col_id))
+        col_version = '1.19'
+        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
+        get_version_url = '{}/latest/getVersion'.format(base_url)
+        completezip_url = '{}/{}/complete'.format(base_url, col_version)
 
+        # Register the getVersion request
+        requests_mocker.get(get_version_url, text=col_version)
+
+        # Register the completezip request
         complete_zip = datadir / 'complete.zip'
         content_size = complete_zip.stat().st_size
         with complete_zip.open('rb') as fb:
             headers = {'Content-Length': str(content_size)}
-            requests_mocker.get(url, content=fb.read(), headers=headers)
+            requests_mocker.get(
+                completezip_url,
+                content=fb.read(),
+                headers=headers,
+            )
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id]
@@ -264,12 +274,12 @@ class TestGetCmd:
 
         assert 'directory already exists:' in result.output
 
-    def test_with_failed_request(self, requests_mocker, invoker):
+    def test_failed_request_using_latest(self, requests_mocker, invoker):
         col_id = 'col00000'
-        url = ('https://legacy.cnx.org/content/{}/latest/complete'
-               .format(col_id))
+        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
+        get_version_url = '{}/latest/getVersion'.format(base_url)
 
-        requests_mocker.register_uri('GET', url, status_code=404)
+        requests_mocker.register_uri('GET', get_version_url, status_code=404)
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id]
@@ -280,14 +290,36 @@ class TestGetCmd:
         msg = "content unavailable for '{}/latest'".format(col_id)
         assert msg in result.output
 
+    def test_failed_request_using_version(self, requests_mocker, invoker):
+        col_id = 'col00000'
+        col_version = '1.19'
+        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
+        completezip_url = '{}/{}/complete'.format(base_url, col_version)
+
+        requests_mocker.get(completezip_url, status_code=404)
+
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 4
+
+        msg = "content unavailable for '{}/{}'".format(col_id, col_version)
+        assert msg in result.output
+
     def test_unavailable_completezip(self, requests_mocker, invoker):
         # This case is possible when the content exists, but the completezip
         # has not been produced.
         col_id = 'col00000'
-        url = ('https://legacy.cnx.org/content/{}/latest/complete'
-               .format(col_id))
+        col_version = '1.19'
+        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
+        get_version_url = '{}/latest/getVersion'.format(base_url)
+        completezip_url = '{}/{}/complete'.format(base_url, col_version)
 
-        requests_mocker.register_uri('GET', url, status_code=204)
+        # Register the getVersion request
+        requests_mocker.get(get_version_url, text=col_version)
+
+        requests_mocker.get(completezip_url, status_code=204)
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id]
@@ -298,7 +330,7 @@ class TestGetCmd:
         msg = "The content exists, but the completezip is missing"
         assert msg in result.output
 
-        msg = "content unavailable for '{}/latest'".format(col_id)
+        msg = "content unavailable for '{}/{}'".format(col_id, col_version)
         assert msg in result.output
 
 
