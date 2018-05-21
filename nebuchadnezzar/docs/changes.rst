@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-?.?.?
+3.1.0
 -----
 
 - Fix the 'get' command to request a specific version of the completezip,
