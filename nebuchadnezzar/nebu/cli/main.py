@@ -5,6 +5,7 @@ import shutil
 import sys
 import tempfile
 import zipfile
+from functools import wraps
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
@@ -110,21 +111,30 @@ def _version_callback(ctx, param, value):
     ctx.exit()
 
 
+def common_params(func):
+    @click.option('-v', '--verbose', is_flag=True, help='enable verbosity')
+    @click.pass_context
+    @wraps(func)
+    def wrapper(ctx, verbose, *args, **kwargs):
+        set_verbosity(verbose)
+        logger.debug('Using the configuration file at {}'
+                     .format(ctx.obj['settings']['_config_file']))
+        return func(*args, **kwargs)
+    return wrapper
+
+
 @click.group()
-@click.option('-v', '--verbose', is_flag=True, help='enable verbosity')
 @click.option('--version', callback=_version_callback, is_flag=True,
               expose_value=False, is_eager=True,
               help='Show the version and exit')
 @click.pass_context
-def cli(ctx, verbose):
+def cli(ctx):
     env = prepare()
     ctx.obj = env
-    set_verbosity(verbose)
-    logger.debug('Using the configuration file at {}'
-                 .format(env['settings']['_config_file']))
 
 
 @cli.command()
+@common_params
 @click.option('-d', '--output-dir', type=click.Path(),
               help="output directory name (can't previously exist)")
 @click.argument('env')
@@ -224,6 +234,7 @@ def is_valid(struct):
 
 
 @cli.command()
+@common_params
 @click.argument('content_dir', default='.',
                 type=click.Path(exists=True, file_okay=False))
 def validate(content_dir):
@@ -237,6 +248,7 @@ def validate(content_dir):
 
 
 @cli.command(name='list')
+@common_params
 @click.pass_context
 def environments(context):
     """List of valid environment names from config.
@@ -315,6 +327,7 @@ def _publish(base_url, struct, message):
 
 
 @cli.command()
+@common_params
 @click.argument('env')
 @click.argument('content_dir',
                 type=click.Path(exists=True, file_okay=False))
@@ -378,6 +391,7 @@ _ATOM_CONFIG_TEMPLATE = """\
 
 
 @cli.command(name='config-atom')
+@common_params
 @click.confirmation_option(prompt=_confirmation_prompt)
 def config_atom():
     filepath = Path.home() / '.atom/config.cson'

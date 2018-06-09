@@ -103,11 +103,13 @@ def monekypatch_config(monkeypatch):
 @pytest.fixture
 def faux_cmd(monkeypatch):
     from nebu.cli import main as module
+    from nebu.cli.main import common_params
     cmd_grp = deepcopy(module.cli)
 
     monkeypatch.setattr(module, 'cli', cmd_grp)
 
     @cmd_grp.command()
+    @common_params
     def test():
         from nebu.logger import logger
         logger.info("InfO")
@@ -161,7 +163,7 @@ def test_main(invoker):
 @pytest.mark.usefixtures('faux_cmd')
 def test_main_with_verbosity(invoker):
     from nebu.cli.main import cli
-    args = ['-v', 'test']
+    args = ['test', '-v']
     result = invoker(cli, args)
     assert result.exit_code == 0
 

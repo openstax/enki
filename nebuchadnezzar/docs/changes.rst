@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+?.?.?
+-----
+
+- Move all subcommand common options to the subcommands.
+  ``neb [OPTIONS] get [OPTIONS] ...`` becomes ``neb get [OPTIONS``.
+  For example, ``neb -v get ...`` becomes ``neb get -v ...``.
+  See https://github.com/Connexions/nebuchadnezzar/issues/48
+
 3.1.0
 -----
 
