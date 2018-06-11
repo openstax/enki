@@ -117,6 +117,6 @@ help-lint :
 	@echo "Usage: make lint"
 
 lint : $(STATEDIR)/env/pyvenv.cfg setup.cfg
-	$(BINDIR)/python -m flake8 .
+	$(BINDIR)/python -m flake8 nebu
 
 # /Lint

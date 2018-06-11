@@ -160,12 +160,44 @@ def get(ctx, env, col_id, col_version, output_dir):
     sep = len(parsed_url.netloc.split('.')) > 2 and '-' or '.'
     url_parts = [
         parsed_url.scheme,
-        'legacy{}{}'.format(sep, parsed_url.netloc),
+        'archive{}{}'.format(sep, parsed_url.netloc),
     ] + list(parsed_url[2:])
     base_url = urlunparse(url_parts)
 
-    # Build the url to the completezip
-    url = '{}/content/{}/{}/complete'.format(base_url, col_id, col_version)
+    col_hash = '{}/{}'.format(col_id, col_version)
+    # Fetch metadata
+    url = '{}/content/{}'.format(base_url, col_hash)
+    resp = requests.get(url)
+    if resp.status_code >= 400:
+        raise MissingContent(col_id, col_version)
+    col_metadata = resp.json()
+    uuid = col_metadata['id']
+    version = col_metadata['version']
+
+    # Fetch extras (includes head and downloadable file info)
+    url = '{}/extras/{}@{}'.format(base_url, uuid, version)
+    resp = requests.get(url)
+    if resp.status_code >= 400:
+        logger.info("The content exists, but the extras failed")
+        raise MissingContent(col_id, col_version)
+
+    if col_version == 'latest':
+        version = resp.json()['headVersion']
+        url = '{}/extras/{}@{}'.format(base_url, uuid, version)
+        resp = requests.get(url)
+
+    col_extras = resp.json()
+
+    # Get zip url from downloads
+    zipinfo = [d for d in col_extras['downloads']
+               if d['format'] == 'Offline ZIP'][0]
+
+    if zipinfo['state'] != 'good':
+        logger.info("The content exists,"
+                    " but the zip state is {}".format(zipinfo['state']))
+        raise MissingContent(col_id, col_version)
+
+    url = '{}{}'.format(base_url, zipinfo['path'])
 
     logger.debug('Request sent to {} ...'.format(url))
     resp = requests.get(url, stream=True)
