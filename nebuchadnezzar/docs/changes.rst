@@ -4,6 +4,9 @@ Change Log
 
 ?.?.?
 -----
+- Make the collectiom version required for 
+  ``neb get [env] [colid] [col_version]``
+  See https://github.com/Connexions/nebuchadnezzar/issues/54
 
 - Move all subcommand common options to the subcommands.
   ``neb [OPTIONS] get [OPTIONS] ...`` becomes ``neb get [OPTIONS``.

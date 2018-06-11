@@ -139,7 +139,7 @@ def cli(ctx):
               help="output directory name (can't previously exist)")
 @click.argument('env')
 @click.argument('col_id')
-@click.argument('col_version', default='latest')
+@click.argument('col_version')
 @click.pass_context
 def get(ctx, env, col_id, col_version, output_dir):
     """download and expand the completezip to the current working directory"""

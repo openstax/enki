@@ -247,7 +247,7 @@ class TestGetCmd:
             )
 
         from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id]
+        args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
         assert result.exit_code == 0
@@ -269,14 +269,14 @@ class TestGetCmd:
         (tmpcwd / col_id).mkdir()
 
         from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id]
+        args = ['get', 'test-env', col_id, '1.1']
         result = invoker(cli, args)
 
         assert result.exit_code == 3
 
         assert 'directory already exists:' in result.output
 
-    def test_failed_request_using_latest(self, requests_mocker, invoker):
+    def test_failed_request_omitting_version(self, requests_mocker, invoker):
         col_id = 'col00000'
         base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
         get_version_url = '{}/latest/getVersion'.format(base_url)
@@ -287,10 +287,9 @@ class TestGetCmd:
         args = ['get', 'test-env', col_id]
         result = invoker(cli, args)
 
-        assert result.exit_code == 4
+        assert result.exit_code == 2
 
-        msg = "content unavailable for '{}/latest'".format(col_id)
-        assert msg in result.output
+        assert 'Missing argument "col_version"' in result.output
 
     def test_failed_request_using_version(self, requests_mocker, invoker):
         col_id = 'col00000'
@@ -324,7 +323,7 @@ class TestGetCmd:
         requests_mocker.get(completezip_url, status_code=204)
 
         from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id]
+        args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
         assert result.exit_code == 4
