@@ -164,16 +164,6 @@ def get(ctx, env, col_id, col_version, output_dir):
     ] + list(parsed_url[2:])
     base_url = urlunparse(url_parts)
 
-    if col_version == 'latest':
-        # See https://github.com/Connexions/nebuchadnezzar/issues/44
-        # Acquire the specific version of the completezip
-        logger.debug("Requesting a specific version for {}".format(col_id))
-        url = '{}/content/{}/latest/getVersion'.format(base_url, col_id)
-        resp = requests.get(url)
-        if resp.status_code >= 400:
-            raise MissingContent(col_id, col_version)
-        col_version = resp.text.strip()
-
     # Build the url to the completezip
     url = '{}/content/{}/{}/complete'.format(base_url, col_id, col_version)
 
