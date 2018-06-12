@@ -76,6 +76,18 @@ def pathlib_walk(dir):
                 yield Path(ee)
 
 
+def register_data_file(requests_mocker, datadir, filename, url):
+        datafile = datadir / filename
+        content_size = datafile.stat().st_size
+        with datafile.open('rb') as fb:
+            headers = {'Content-Length': str(content_size)}
+            requests_mocker.get(
+                url,
+                content=fb.read(),
+                headers=headers,
+            )
+
+
 class ResponseCallback:
     """A response callback to be used with requests_mocker"""
 
@@ -223,28 +235,150 @@ def test_for_list(monkeypatch, invoker):
     assert result.output == expected_output
 
 
+def test_confirm(monkeypatch):
+
+    from nebu.cli.main import confirm
+    monkeypatch.setattr('builtins.input', lambda x: "y")
+    result = confirm()
+
+    assert result is True
+
+    monkeypatch.setattr('builtins.input', lambda x: "n")
+    result = confirm()
+
+    assert result is False
+
+
 class TestGetCmd:
 
     def test(self, datadir, tmpcwd, requests_mocker, invoker):
         col_id = 'col11405'
-        col_version = '1.19'
-        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
-        get_version_url = '{}/latest/getVersion'.format(base_url)
-        completezip_url = '{}/{}/complete'.format(base_url, col_version)
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        completezip_url = ('{}/exports'
+                           '/b699648f-405b-429f-bf11-37bad4246e7c@2.1.zip'
+                           '/intro-to-computational-engineering'
+                           '-elec-220-labs-2.1.zip'.format(base_url)
+                           )
 
-        # Register the getVersion request
-        requests_mocker.get(get_version_url, text=col_version)
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ('complete.zip', completezip_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
 
-        # Register the completezip request
-        complete_zip = datadir / 'complete.zip'
-        content_size = complete_zip.stat().st_size
-        with complete_zip.open('rb') as fb:
-            headers = {'Content-Length': str(content_size)}
-            requests_mocker.get(
-                completezip_url,
-                content=fb.read(),
-                headers=headers,
-            )
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 0
+
+        dir = tmpcwd / col_id
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
+    def test_not_latest(self, datadir, tmpcwd, requests_mocker,
+                        monkeypatch, invoker):
+        col_id = 'col11405'
+        col_version = '1.1'
+        col_latest = '2.1'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '1.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        latest_url = '{}/extras/{}@{}'.format(base_url, col_uuid, col_latest)
+        completezip_url = ('{}/exports'
+                           '/b699648f-405b-429f-bf11-37bad4246e7c@1.1.zip'
+                           '/intro-to-computational-engineering'
+                           '-elec-220-labs-1.1.zip'.format(base_url)
+                           )
+
+        # Register the data urls
+        for fname, url in (('contents_old.json', metadata_url),
+                           ('extras_old.json', extras_url),
+                           ('extras.json', latest_url),
+                           ('complete.zip', completezip_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
+
+        # patch input to return 'y'
+        monkeypatch.setattr('builtins.input', lambda x: "y")
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', '-v', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 0
+
+        dir = tmpcwd / col_id
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
+    def test_not_latest_abort(self, datadir, tmpcwd, requests_mocker,
+                              monkeypatch, invoker):
+        col_id = 'col11405'
+        col_version = '1.1'
+        col_latest = '2.1'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '1.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        latest_url = '{}/extras/{}@{}'.format(base_url, col_uuid, col_latest)
+
+        # Register the data urls
+        for fname, url in (('contents_old.json', metadata_url),
+                           ('extras_old.json', extras_url),
+                           ('extras.json', latest_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
+
+        # patch input to return 'y'
+        monkeypatch.setattr('builtins.input', lambda x: "n")
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 6
+
+        msg = "Non-latest version requested"
+        assert msg in result.output
+
+    def test_latest(self, datadir, tmpcwd, requests_mocker, invoker):
+        col_id = 'col11405'
+        col_version = 'latest'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        completezip_url = ('{}/exports'
+                           '/b699648f-405b-429f-bf11-37bad4246e7c@2.1.zip'
+                           '/intro-to-computational-engineering'
+                           '-elec-220-labs-2.1.zip'.format(base_url)
+                           )
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ('complete.zip', completezip_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id, col_version]
@@ -276,12 +410,8 @@ class TestGetCmd:
 
         assert 'directory already exists:' in result.output
 
-    def test_failed_request_omitting_version(self, requests_mocker, invoker):
+    def test_failed_request_omitting_version(self, invoker):
         col_id = 'col00000'
-        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
-        get_version_url = '{}/latest/getVersion'.format(base_url)
-
-        requests_mocker.register_uri('GET', get_version_url, status_code=404)
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id]
@@ -293,34 +423,36 @@ class TestGetCmd:
 
     def test_failed_request_using_version(self, requests_mocker, invoker):
         col_id = 'col00000'
-        col_version = '1.19'
-        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
-        completezip_url = '{}/{}/complete'.format(base_url, col_version)
+        col_ver = '1.19'
+        content_url = 'https://archive.cnx.org/content/{}/{}'.format(col_id,
+                                                                     col_ver)
 
-        requests_mocker.get(completezip_url, status_code=404)
+        requests_mocker.get(content_url, status_code=404)
 
         from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id, col_version]
+        args = ['get', 'test-env', col_id, col_ver]
         result = invoker(cli, args)
 
         assert result.exit_code == 4
 
-        msg = "content unavailable for '{}/{}'".format(col_id, col_version)
+        msg = "content unavailable for '{}/{}'".format(col_id, col_ver)
         assert msg in result.output
 
-    def test_unavailable_completezip(self, requests_mocker, invoker):
+    def test_unavailable_completezip(self, datadir, requests_mocker, invoker):
         # This case is possible when the content exists, but the completezip
         # has not been produced.
-        col_id = 'col00000'
-        col_version = '1.19'
-        base_url = 'https://legacy.cnx.org/content/{}'.format(col_id)
-        get_version_url = '{}/latest/getVersion'.format(base_url)
-        completezip_url = '{}/{}/complete'.format(base_url, col_version)
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
 
-        # Register the getVersion request
-        requests_mocker.get(get_version_url, text=col_version)
-
-        requests_mocker.get(completezip_url, status_code=204)
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('missing_zip.json', extras_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id, col_version]
@@ -332,6 +464,36 @@ class TestGetCmd:
         assert msg in result.output
 
         msg = "content unavailable for '{}/{}'".format(col_id, col_version)
+        assert msg in result.output
+
+    def test_empty_zip(self, datadir, tmpcwd, requests_mocker, invoker):
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        completezip_url = ('{}/exports'
+                           '/b699648f-405b-429f-bf11-37bad4246e7c@2.1.zip'
+                           '/intro-to-computational-engineering'
+                           '-elec-220-labs-2.1.zip'.format(base_url)
+                           )
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
+
+        requests_mocker.get(completezip_url, status_code=204)
+
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 4
+
+        msg = "The content exists, but the completezip is missing"
         assert msg in result.output
 
 

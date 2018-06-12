@@ -4,6 +4,9 @@ Change Log
 
 ?.?.?
 -----
+
+- Retrieve content from archive, rather than legacy
+
 - Make the collectiom version required for 
   ``neb get [env] [colid] [col_version]``
   See https://github.com/Connexions/nebuchadnezzar/issues/54

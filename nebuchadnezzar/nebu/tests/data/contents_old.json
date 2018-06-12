@@ -1,0 +1,155 @@
+{
+   "parent" : {
+      "id" : null,
+      "authors" : [],
+      "shortId" : null,
+      "title" : null,
+      "version" : ""
+   },
+   "googleAnalytics" : null,
+   "authors" : [
+      {
+         "firstname" : "Matthew",
+         "suffix" : "",
+         "surname" : "Johnson",
+         "fullname" : "Matthew Johnson",
+         "id" : "mwjhnsn",
+         "title" : ""
+      },
+      {
+         "firstname" : "Chris",
+         "suffix" : "",
+         "surname" : "Stevenson",
+         "fullname" : "Chris Stevenson",
+         "id" : "jedifan42",
+         "title" : ""
+      }
+   ],
+   "stateid" : 1,
+   "language" : "en",
+   "parentTitle" : null,
+   "parentAuthors" : [],
+   "legacy_id" : "col11405",
+   "legacy_version" : "1.1",
+   "publishers" : [
+      {
+         "firstname" : "Matthew",
+         "suffix" : "",
+         "surname" : "Johnson",
+         "id" : "mwjhnsn",
+         "fullname" : "Matthew Johnson",
+         "title" : ""
+      },
+      {
+         "fullname" : "Joseph Cavallaro",
+         "id" : "cavallar",
+         "surname" : "Cavallaro",
+         "title" : "Prof.",
+         "firstname" : "Joseph",
+         "suffix" : ""
+      },
+      {
+         "firstname" : "Chris",
+         "suffix" : "",
+         "surname" : "Stevenson",
+         "id" : "jedifan42",
+         "fullname" : "Chris Stevenson",
+         "title" : ""
+      }
+   ],
+   "tree" : null,
+   "parentVersion" : "",
+   "collated" : false,
+   "title" : "Intro to Computational Engineering: Elec 220 Labs",
+   "created" : "2011-05-24T15:31:56Z",
+   "submitter" : {
+      "firstname" : "Chris",
+      "suffix" : "",
+      "surname" : "Stevenson",
+      "fullname" : "Chris Stevenson",
+      "id" : "jedifan42",
+      "title" : ""
+   },
+   "history" : [
+      {
+         "version" : "1.1",
+         "changes" : "Initial version",
+         "revised" : "2012-01-20T04:23:06Z",
+         "publisher" : {
+            "firstname" : "Chris",
+            "suffix" : "",
+            "fullname" : "Chris Stevenson",
+            "id" : "jedifan42",
+            "surname" : "Stevenson",
+            "title" : ""
+         }
+      }
+   ],
+   "roles" : null,
+   "submitlog" : "Initial version",
+   "printStyle" : null,
+   "keywords" : [
+      "Calculator",
+      "Cavallaro",
+      "Elec 220",
+      "Gate",
+      "Interrupt",
+      "LC-3",
+      "Loop",
+      "Microcontroller",
+      "MSP 430",
+      "Rice"
+   ],
+   "subjects" : [
+      "Science and Technology"
+   ],
+   "shortId" : "tplkj0Bb",
+   "abstract" : "<div xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:md=\"http://cnx.rice.edu/mdml\" xmlns:c=\"http://cnx.rice.edu/cnxml\" xmlns:html=\"http://www.w3.org/1999/xhtml\" xmlns:qml=\"http://cnx.rice.edu/qml/1.0\" xmlns:data=\"http://dev.w3.org/html5/spec/#custom\" xmlns:bib=\"http://bibtexml.sf.net/\" xmlns:mod=\"http://cnx.rice.edu/#moduleIds\">This collection houses all the documentation for the lab component of Rice Universities Elec 220 lab component.  The labs cover topics such as gates, simulation, basic digital I/O, interrupt driven embedded programming, C language programming, and finally a/d interfacing and touch sensors.</div>",
+   "mediaType" : "application/vnd.org.cnx.collection",
+   "baked" : null,
+   "resources" : [
+      {
+         "filename" : "collection.xml",
+         "id" : "22853aa5473d760a6afac2770be79af8d7f07f08",
+         "media_type" : "text/xml"
+      }
+   ],
+   "doctype" : "",
+   "version" : "1.1",
+   "id" : "b699648f-405b-429f-bf11-37bad4246e7c",
+   "revised" : "2012-01-20T04:23:06Z",
+   "licensors" : [
+      {
+         "firstname" : "Matthew",
+         "suffix" : "",
+         "surname" : "Johnson",
+         "fullname" : "Matthew Johnson",
+         "id" : "mwjhnsn",
+         "title" : ""
+      },
+      {
+         "title" : "Prof.",
+         "surname" : "Cavallaro",
+         "id" : "cavallar",
+         "fullname" : "Joseph Cavallaro",
+         "suffix" : "",
+         "firstname" : "Joseph"
+      },
+      {
+         "surname" : "Stevenson",
+         "id" : "jedifan42",
+         "fullname" : "Chris Stevenson",
+         "title" : "",
+         "firstname" : "Chris",
+         "suffix" : ""
+      }
+   ],
+   "parentId" : null,
+   "license" : {
+      "url" : "http://creativecommons.org/licenses/by/3.0/",
+      "name" : "Creative Commons Attribution License",
+      "code" : "by",
+      "version" : "3.0"
+   },
+   "buyLink" : null
+}

@@ -86,6 +86,14 @@ class UnknownEnvironment(click.ClickException):
         super(UnknownEnvironment, self).__init__(message)
 
 
+class OldContent(click.ClickException):
+    exit_code = 6
+
+    def __init__(self):
+        message = "Non-latest version requested"
+        super(OldContent, self).__init__(message)
+
+
 def set_verbosity(verbose):
     config = console_logging_config.copy()
     if verbose:
@@ -101,6 +109,17 @@ def get_base_url(context, environ_name):
         return context.obj['settings']['environs'][environ_name]['url']
     except KeyError:
         raise UnknownEnvironment(environ_name)
+
+
+def confirm(prompt="OK to continue? [Y/N] "):
+    """
+    Ask for Y/N answer.
+    returns bool
+    """
+    answer = ""
+    while answer not in ["y", "n"]:
+        answer = input(prompt).lower()
+    return answer == "y"
 
 
 def _version_callback(ctx, param, value):
@@ -177,9 +196,6 @@ def get(ctx, env, col_id, col_version, output_dir):
     # Fetch extras (includes head and downloadable file info)
     url = '{}/extras/{}@{}'.format(base_url, uuid, version)
     resp = requests.get(url)
-    if resp.status_code >= 400:
-        logger.info("The content exists, but the extras failed")
-        raise MissingContent(col_id, col_version)
 
     if col_version == 'latest':
         version = resp.json()['headVersion']
@@ -188,13 +204,22 @@ def get(ctx, env, col_id, col_version, output_dir):
 
     col_extras = resp.json()
 
+    if version != col_extras['headVersion']:
+        logger.warning("Fetching non-head version of {}."
+                       "\n    Head: {},"
+                       " requested {}".format(col_id,
+                                              col_extras['headVersion'],
+                                              version))
+        if not(confirm("Fetch anyway? [y/n] ")):
+            raise OldContent()
+
     # Get zip url from downloads
     zipinfo = [d for d in col_extras['downloads']
                if d['format'] == 'Offline ZIP'][0]
 
     if zipinfo['state'] != 'good':
         logger.info("The content exists,"
-                    " but the zip state is {}".format(zipinfo['state']))
+                    " but the completezip is {}".format(zipinfo['state']))
         raise MissingContent(col_id, col_version)
 
     url = '{}{}'.format(base_url, zipinfo['path'])

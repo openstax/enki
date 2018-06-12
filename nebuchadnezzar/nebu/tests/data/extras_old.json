@@ -1,0 +1,41 @@
+{
+   "downloads" : [
+      {
+         "created" : null,
+         "details" : "PDF file, for viewing content offline and printing.",
+         "size" : 0,
+         "state" : "missing",
+         "path" : "/exports/b699648f-405b-429f-bf11-37bad4246e7c@1.1.pdf/intro-to-computational-engineering-elec-220-labs-1.1.pdf",
+         "filename" : "intro-to-computational-engineering-elec-220-labs-1.1.pdf",
+         "format" : "PDF"
+      },
+      {
+         "path" : "/exports/b699648f-405b-429f-bf11-37bad4246e7c@1.1.epub/intro-to-computational-engineering-elec-220-labs-1.1.epub",
+         "filename" : "intro-to-computational-engineering-elec-220-labs-1.1.epub",
+         "format" : "EPUB",
+         "created" : null,
+         "details" : "Electronic book format file, for viewing on mobile devices.",
+         "size" : 0,
+         "state" : "missing"
+      },
+      {
+         "format" : "Offline ZIP",
+         "filename" : "intro-to-computational-engineering-elec-220-labs-1.1.zip",
+         "path" : "/exports/b699648f-405b-429f-bf11-37bad4246e7c@1.1.zip/intro-to-computational-engineering-elec-220-labs-1.1.zip",
+         "state" : "good",
+         "size" : 0,
+         "created" : null,
+         "details" : "An offline HTML copy of the content.  Also includes XML, included media files, and other support files."
+      }
+   ],
+   "headVersion" : "2.1",
+   "state" : "current",
+   "isLatest" : false,
+   "books" : [],
+   "canPublish" : [
+      "cavallar",
+      "jedifan42",
+      "mwjhnsn"
+   ],
+   "latestVersion" : "2.1"
+}
