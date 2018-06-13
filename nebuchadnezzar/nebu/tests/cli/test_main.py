@@ -315,12 +315,12 @@ class TestGetCmd:
         # patch input to return 'y'
         monkeypatch.setattr('builtins.input', lambda x: "y")
         from nebu.cli.main import cli
-        args = ['get', 'test-env', '-v', col_id, col_version]
+        args = ['get', 'test-env', '-d', 'mydir', col_id, col_version]
         result = invoker(cli, args)
 
         assert result.exit_code == 0
 
-        dir = tmpcwd / col_id
+        dir = tmpcwd / 'mydir'
         expected = datadir / 'collection'
 
         def _rel(p, b):
@@ -494,6 +494,36 @@ class TestGetCmd:
         assert result.exit_code == 4
 
         msg = "The content exists, but the completezip is missing"
+        assert msg in result.output
+
+    def test_404_completezip(self, datadir, tmpcwd, requests_mocker, invoker):
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+        completezip_url = ('{}/exports'
+                           '/b699648f-405b-429f-bf11-37bad4246e7c@2.1.zip'
+                           '/intro-to-computational-engineering'
+                           '-elec-220-labs-2.1.zip'.format(base_url)
+                           )
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url)):
+            register_data_file(requests_mocker, datadir, fname, url)
+
+        requests_mocker.get(completezip_url, status_code=404)
+
+        from nebu.cli.main import cli
+        args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 4
+
+        msg = "content unavailable for '{}/{}'".format(col_id, col_version)
         assert msg in result.output
 
 
