@@ -85,20 +85,21 @@ def _publish(base_url, struct, message):
 @click.argument('content_dir',
                 type=click.Path(exists=True, file_okay=False))
 @click.argument('publication_message', type=str)
+@click.option('--skip-validation', is_flag=True)
 @click.pass_context
-def publish(ctx, env, content_dir, publication_message):
+def publish(ctx, env, content_dir, publication_message, skip_validation):
     base_url = get_base_url(ctx, env)
 
     content_dir = Path(content_dir).resolve()
     struct = parse_litezip(content_dir)
 
-    if is_valid(struct):
-        has_published = _publish(base_url, struct, publication_message)
-        if has_published:
-            logger.info("Great work!!! =D")
-        else:
-            logger.info("Stop the Press!!! =()")
-            sys.exit(1)
-    else:
+    if not skip_validation and not is_valid(struct):
         logger.info("We've got problems... :(")
+        sys.exit(1)
+
+    has_published = _publish(base_url, struct, publication_message)
+    if has_published:
+        logger.info("Great work!!! =D")
+    else:
+        logger.info("Stop the Press!!! =()")
         sys.exit(1)

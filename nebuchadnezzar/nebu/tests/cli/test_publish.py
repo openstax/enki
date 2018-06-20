@@ -1,6 +1,9 @@
+
 import io
 import zipfile
 from cgi import parse_multipart
+
+import pretend
 
 
 class ResponseCallback:
@@ -235,3 +238,41 @@ class TestPublishCmd:
         #       the last line so we know we got to the correct place.
         # assert result.output == expected_output
         assert expected_output in result.output
+
+    def test_skip_validation(self, datadir, monkeypatch, requests_mock,
+                             invoker):
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.chdir(str(datadir / id))
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
+
+        # Mock the publishing request
+        url = 'https://cnx.org/api/publish-litezip'
+        resp_callback = ResponseCallback(COLLECTION_PUBLISH_PRESS_RESP_DATA)
+        requests_mock.register_uri(
+            'POST',
+            url,
+            status_code=200,
+            text=resp_callback,
+        )
+
+        # Stub the call for validation
+        is_valid = pretend.call_recorder(lambda s: False)
+        from nebu.cli import publish
+        monkeypatch.setattr(publish, 'is_valid', is_valid)
+
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', '--skip-validation', 'test-env', '.', message]
+        result = invoker(cli, args)
+
+        # Check the results
+        if result.exception:
+            raise result.exception
+        assert result.exit_code == 0
+        expected_output = (
+            'Great work!!! =D\n'
+        )
+        assert expected_output in result.output
+        assert is_valid.calls == []

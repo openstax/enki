@@ -6,6 +6,7 @@ Change Log
 -----
 
 - Split the cli module into submodules, one for each subcommmand.
+- Add a skip-validation option flag to the publish command.
 
 4.0.0
 -----
