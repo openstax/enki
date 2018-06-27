@@ -2,15 +2,18 @@
 Change Log
 ==========
 
-?.?.?
+5.0.0
 -----
 
 - Split the cli module into submodules, one for each subcommmand.
+
 - Add a skip-validation option flag to the publish command.
+
 - Suggest a newer version of Neb to install on ``--version`` when
   it is determined that the user's version is older than the last
   release.
   See https://github.com/Connexions/nebuchadnezzar/issues/16
+
 - Resource/image files will no longer be copied into the working
   directory when using ``neb get``.
   See https://github.com/Connexions/nebuchadnezzar/issues/61
