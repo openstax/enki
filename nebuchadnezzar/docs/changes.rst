@@ -7,6 +7,10 @@ Change Log
 
 - Split the cli module into submodules, one for each subcommmand.
 - Add a skip-validation option flag to the publish command.
+- Suggest a newer version of Neb to install on ``--version`` when
+  it is determined that the user's version is older than the last
+  release.
+  See https://github.com/Connexions/nebuchadnezzar/issues/16
 
 4.0.0
 -----
