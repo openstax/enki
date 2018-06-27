@@ -3,6 +3,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
+import os
+import imghdr
 
 import click
 import requests
@@ -120,6 +122,14 @@ def get(ctx, env, col_id, col_version, output_dir):
     logger.debug(
         "Converting completezip at '{}' to litezip".format(extracted_dir))
     convert_completezip(extracted_dir)
+
+    logger.debug(
+        "Removing resource files in {}".format(extracted_dir))
+    for dirpath, dirnames, filenames in os.walk(str(extracted_dir)):
+        for name in filenames:
+            full_path = os.path.join(dirpath, name)
+            if imghdr.what(full_path):
+                os.remove(full_path)
 
     logger.debug(
         "Cleaning up extraction data at '{}'".format(tmp_dir))
