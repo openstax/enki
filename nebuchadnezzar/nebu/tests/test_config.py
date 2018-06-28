@@ -80,6 +80,27 @@ class TestDiscoverSettings:
         with loc.open('r') as fb:
             assert fb.read() == INITIAL_DEFAULT_CONFIG
 
+    def test_missing_config_and_parent_directory(self, tmpdir, monkeypatch):
+        loc = Path(str(tmpdir)) / '.config' / 'config.ini'
+        monkeypatch.setattr('nebu.config.CONFIG_FILE_LOC', loc)
+        monkeypatch.setattr('os.environ', {})
+
+        settings = discover_settings()
+
+        expected_settings = {
+            '_config_file': loc,
+            'environs': {
+                'dev': {'url': 'https://dev.cnx.org'},
+                'qa': {'url': 'https://qa.cnx.org'},
+                'staging': {'url': 'https://staging.cnx.org'},
+                'prod': {'url': 'https://cnx.org'},
+            },
+        }
+        assert settings == expected_settings
+
+        with loc.open('r') as fb:
+            assert fb.read() == INITIAL_DEFAULT_CONFIG
+
 
 class TestPrepare:
 

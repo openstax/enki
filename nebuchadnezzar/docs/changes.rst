@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+5.0.1
+-----
+
+- Fix ``FileNotFoundError`` raised on on user's first run of Nebuchadnezzar.
+  This was caused by the parent directory not existing, so the default
+  behavior of writing the default config failed with this error.
+  See https://github.com/Connexions/nebuchadnezzar/issues/66
+
 5.0.0
 -----
 

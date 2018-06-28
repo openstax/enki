@@ -28,6 +28,7 @@ url = https://cnx.org
 
 def _write_default_config_file():
     """Writes the default config file to the filesystem."""
+    CONFIG_FILE_LOC.parent.mkdir(exist_ok=True)  # create ~/.config
     with CONFIG_FILE_LOC.open('w') as fb:
         fb.write(INITIAL_DEFAULT_CONFIG)
 
@@ -82,7 +83,7 @@ def prepare():
     # Get the settings
     settings = discover_settings()
 
-    def closer():
+    def closer():  # pragma: no cover
         pass
 
     return {'closer': closer, 'settings': settings}
