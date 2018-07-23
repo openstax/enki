@@ -73,6 +73,11 @@ class TestDiscoverSettings:
                 'qa': {'url': 'https://qa.cnx.org'},
                 'staging': {'url': 'https://staging.cnx.org'},
                 'prod': {'url': 'https://cnx.org'},
+                'content01': {'url': 'https://content01.cnx.org'},
+                'content02': {'url': 'https://content02.cnx.org'},
+                'content03': {'url': 'https://content03.cnx.org'},
+                'content04': {'url': 'https://content04.cnx.org'},
+                'content05': {'url': 'https://content05.cnx.org'},
             },
         }
         assert settings == expected_settings
@@ -94,6 +99,11 @@ class TestDiscoverSettings:
                 'qa': {'url': 'https://qa.cnx.org'},
                 'staging': {'url': 'https://staging.cnx.org'},
                 'prod': {'url': 'https://cnx.org'},
+                'content01': {'url': 'https://content01.cnx.org'},
+                'content02': {'url': 'https://content02.cnx.org'},
+                'content03': {'url': 'https://content03.cnx.org'},
+                'content04': {'url': 'https://content04.cnx.org'},
+                'content05': {'url': 'https://content05.cnx.org'},
             },
         }
         assert settings == expected_settings

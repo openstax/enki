@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+5.0.2
+-----
+
+- Add content*.cnx.org environments to the default configuration file.
+
 5.0.1
 -----
 
@@ -31,7 +36,7 @@ Change Log
 
 - Retrieve content from archive, rather than legacy.
 
-- Make the collectiom version required for 
+- Make the collectiom version required for
   ``neb get [env] [colid] [col_version]``.
   See https://github.com/Connexions/nebuchadnezzar/issues/54
 

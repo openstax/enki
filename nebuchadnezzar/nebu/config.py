@@ -23,6 +23,21 @@ url = https://staging.cnx.org
 
 [environ-prod]
 url = https://cnx.org
+
+[environ-content01]
+url = https://content01.cnx.org
+
+[environ-content02]
+url = https://content02.cnx.org
+
+[environ-content03]
+url = https://content03.cnx.org
+
+[environ-content04]
+url = https://content04.cnx.org
+
+[environ-content05]
+url = https://content05.cnx.org
 """
 
 
