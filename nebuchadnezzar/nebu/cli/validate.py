@@ -20,7 +20,13 @@ def is_valid(struct):
     cwd = Path('.').resolve()
     for filepath, error_msg in validate_litezip(struct):
         has_errors = True
-        filepath = filepath.relative_to(cwd)
+        try:
+            filepath = filepath.relative_to(cwd)
+        except ValueError as err:
+            if 'does not start with' in str(err):
+                pass
+            else:
+                raise
         logger.error('{}:{}'.format(filepath, error_msg))
     return not has_errors
 

@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+5.0.3
+-----
+
+- Update tests to match new error messages from cnxml v2.2.0
+
 5.0.2
 -----
 
