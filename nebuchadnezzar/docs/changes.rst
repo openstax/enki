@@ -2,6 +2,15 @@
 Change Log
 ==========
 
+5.1.0
+-----
+
+- Update cnxml for >=2.2.0 (#74)
+      
+- allow non-descendent path to xml in error output
+
+- update expected test output for new jing
+
 5.0.3
 -----
 
