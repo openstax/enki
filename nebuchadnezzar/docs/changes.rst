@@ -2,10 +2,10 @@
 Change Log
 ==========
 
-5.2.0
+6.0.0
 -----
 
-- Add optional Basic Auth authentication to publish
+- Add Basic Auth authentication to publish
 
 5.1.0
 -----
