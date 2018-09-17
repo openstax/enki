@@ -3,6 +3,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+from base64 import b64encode
 
 import click
 import requests
@@ -15,7 +16,7 @@ from ._common import common_params, get_base_url, logger
 from .validate import is_valid
 
 
-def _publish(base_url, struct, message):
+def _publish(base_url, struct, message, username, password):
     """Publish the struct to a repository"""
     collection_id = struct[0].id
     # Base encapsulating directory within the zipfile
@@ -37,13 +38,14 @@ def _publish(base_url, struct, message):
             zb.write(str(file), str(rel_file_path))
             # TODO Include resource files
 
-    # Send it!
     url = '{}/api/publish-litezip'.format(base_url)
+    cred = b64encode('{}:{}'.format(username, password).encode())
+    headers = {'X-API-Version': '3', 'Authorization': 'Basic {}'.format(cred)}
+
     # FIXME We don't have nor want explicit setting of the publisher.
     #       The publisher will come through as part of the authentication
     #       information, which will be in a later implementation.
     #       For now, pull it out of a environment variable.
-    headers = {'X-API-Version': '3'}
     data = {
         'publisher': os.environ.get('XXX_PUBLISHER', 'OpenStaxCollege'),
         'message': message,
@@ -51,6 +53,7 @@ def _publish(base_url, struct, message):
     files = {
         'file': ('contents.zip', zip_file.open('rb'),),
     }
+    # Send it!
     resp = requests.post(url, data=data, files=files, headers=headers)
 
     # Clean up!
@@ -71,6 +74,10 @@ def _publish(base_url, struct, message):
         logger.debug('Temporary raw output...')
         logger.error('ERROR: \n{}'.format(resp.content))
         return False
+    elif resp.status_code == 401:
+        logger.debug('Temporary raw output...')
+        logger.error('Bad credentials: \n{}'.format(resp.content))
+        return False
     else:  # pragma: no cover
         logger.error("unknown response:\n  status: {}\n  contents: {}"
                      .format(resp.status_code, resp.text))
@@ -84,10 +91,14 @@ def _publish(base_url, struct, message):
 @click.argument('env')
 @click.argument('content_dir',
                 type=click.Path(exists=True, file_okay=False))
-@click.argument('publication_message', type=str)
+@click.option('-m', '--message', type=str,
+              prompt='Publication message')
+@click.option('-u', '--username', type=str, prompt=True)
+@click.option('-p', '--password', type=str, prompt=True, hide_input=True)
 @click.option('--skip-validation', is_flag=True)
 @click.pass_context
-def publish(ctx, env, content_dir, publication_message, skip_validation):
+def publish(ctx, env, content_dir, message, username, password,
+            skip_validation):
     base_url = get_base_url(ctx, env)
 
     content_dir = Path(content_dir).resolve()
@@ -97,7 +108,7 @@ def publish(ctx, env, content_dir, publication_message, skip_validation):
         logger.info("We've got problems... :(")
         sys.exit(1)
 
-    has_published = _publish(base_url, struct, publication_message)
+    has_published = _publish(base_url, struct, message, username, password)
     if has_published:
         logger.info("Great work!!! =D")
     else:
