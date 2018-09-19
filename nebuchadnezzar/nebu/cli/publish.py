@@ -3,10 +3,10 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from base64 import b64encode
 
 import click
 import requests
+from requests.auth import HTTPBasicAuth
 from litezip import (
     parse_litezip,
     Collection,
@@ -39,8 +39,8 @@ def _publish(base_url, struct, message, username, password):
             # TODO Include resource files
 
     url = '{}/api/publish-litezip'.format(base_url)
-    cred = b64encode('{}:{}'.format(username, password).encode())
-    headers = {'X-API-Version': '3', 'Authorization': 'Basic {}'.format(cred)}
+    headers = {'X-API-Version': '3'}
+    auth = HTTPBasicAuth(username, password)
 
     # FIXME We don't have nor want explicit setting of the publisher.
     #       The publisher will come through as part of the authentication
@@ -54,7 +54,7 @@ def _publish(base_url, struct, message, username, password):
         'file': ('contents.zip', zip_file.open('rb'),),
     }
     # Send it!
-    resp = requests.post(url, data=data, files=files, headers=headers)
+    resp = requests.post(url, data=data, files=files, auth=auth, headers=headers)
 
     # Clean up!
     zip_file.unlink()
