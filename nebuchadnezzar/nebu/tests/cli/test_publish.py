@@ -2,9 +2,14 @@
 import io
 import zipfile
 from cgi import parse_multipart
-from base64 import b64encode
+from requests.auth import HTTPBasicAuth
 
 import pretend
+
+
+class MockRequest:
+    def __init__(self):
+        self.headers = {}
 
 
 class ResponseCallback:
@@ -217,7 +222,11 @@ class TestPublishCmd:
 
         # Mock the publishing request
         url = 'https://cnx.org/api/publish-litezip'
-        cred = b64encode('{}:{}'.format('username', 'password').encode())
+
+        auth = HTTPBasicAuth('username', 'password')
+        mock_request = MockRequest()
+        auth(mock_request)
+
         requests_mock.register_uri(
             'POST',
             url,
@@ -229,7 +238,7 @@ class TestPublishCmd:
             url,
             status_code=200,
             text='200',
-            request_headers={'Authorization': 'Basic {}'.format(cred)}
+            request_headers=mock_request.headers
         )
 
         from nebu.cli.main import cli
@@ -263,8 +272,10 @@ class TestPublishCmd:
 
         # Mock the publishing request
         url = 'https://cnx.org/api/publish-litezip'
-        cred = b64encode('{}:{}'.format('someusername', 'somepassword')
-                         .encode())
+        auth = HTTPBasicAuth('someusername', 'somepassword')
+        mock_request = MockRequest()
+        auth(mock_request)
+
         requests_mock.register_uri(
             'POST',
             url,
@@ -276,7 +287,7 @@ class TestPublishCmd:
             url,
             status_code=200,
             text='200',
-            request_headers={'Authorization': 'Basic {}'.format(cred)}
+            request_headers=mock_request.headers
         )
 
         from nebu.cli.main import cli
