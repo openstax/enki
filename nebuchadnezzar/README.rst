@@ -25,6 +25,7 @@ Install
 -------
 
 1. Install ``python3`` (on OSX you can run ``brew install python3``)
+#. Install ``virtualenv`` (on OSX you can run ``pip3 install virtualenv``)
 #. Initialize the python virtual environment:
 
    a. ``virtualenv ./venv/ --python=python3.5``
