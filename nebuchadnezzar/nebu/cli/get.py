@@ -102,7 +102,7 @@ def get(ctx, env, col_id, col_version, output_dir):
         raise MissingContent(col_id, col_version)
 
     content_size = int(resp.headers['Content-Length'].strip())
-    label = 'Downloading {}'.format(col_id)
+    label = 'Downloading {}'.format(output_dir)
     progressbar = click.progressbar(label=label, length=content_size)
     with progressbar as pbar, zip_filepath.open('wb') as fb:
         for buffer_ in resp.iter_content(1024):
@@ -110,7 +110,7 @@ def get(ctx, env, col_id, col_version, output_dir):
                 fb.write(buffer_)
                 pbar.update(len(buffer_))
 
-    label = 'Extracting {}'.format(col_id)
+    label = 'Extracting {}'.format(output_dir)
     with zipfile.ZipFile(str(zip_filepath), 'r') as zip:
         progressbar = click.progressbar(iterable=zip.infolist(),
                                         label=label,
