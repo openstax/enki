@@ -11,8 +11,9 @@ class TestValidateCmd:
         assert result.exit_code == 0
         assert result.output == 'All good! :)\n'
 
-    def test_outside_cwd(self, datadir, invoker):
+    def test_outside_cwd(self, datadir, monkeypatch, invoker):
         path = datadir / 'collection'
+        monkeypatch.chdir('/tmp')
 
         from nebu.cli.main import cli
         args = ['validate', str(path)]
@@ -52,6 +53,7 @@ class TestValidateCmd:
 
     def test_outside_cwd_invalid_content(self, datadir, monkeypatch, invoker):
         path = datadir / 'invalid_collection'
+        monkeypatch.chdir('/tmp')
 
         from nebu.cli.main import cli
         args = ['validate', str(path)]

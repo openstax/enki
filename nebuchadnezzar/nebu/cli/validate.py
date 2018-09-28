@@ -23,10 +23,8 @@ def is_valid(struct):
         try:
             filepath = filepath.relative_to(cwd)
         except ValueError as err:
-            if 'does not start with' in str(err):
-                pass
-            else:
-                raise
+            # Raised when filepath is not a child of cwd
+            pass
         logger.error('{}:{}'.format(filepath, error_msg))
     return not has_errors
 

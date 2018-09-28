@@ -54,7 +54,8 @@ def _publish(base_url, struct, message, username, password):
         'file': ('contents.zip', zip_file.open('rb'),),
     }
     # Send it!
-    resp = requests.post(url, data=data, files=files, auth=auth, headers=headers)
+    resp = requests.post(url, data=data, files=files, auth=auth,
+                         headers=headers)
 
     # Clean up!
     zip_file.unlink()

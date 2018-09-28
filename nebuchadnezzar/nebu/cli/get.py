@@ -30,13 +30,6 @@ def get(ctx, env, col_id, col_version, output_dir):
     # Determine the output directory
     tmp_dir = Path(tempfile.mkdtemp())
     zip_filepath = tmp_dir / 'complete.zip'
-    if output_dir is None:
-        output_dir = Path.cwd() / col_id
-    else:
-        output_dir = Path(output_dir)
-
-    if output_dir.exists():
-        raise ExistingOutputDir(output_dir)
 
     # Build the base url
     base_url = get_base_url(ctx, env)
@@ -57,6 +50,15 @@ def get(ctx, env, col_id, col_version, output_dir):
     col_metadata = resp.json()
     uuid = col_metadata['id']
     version = col_metadata['version']
+
+    # Generate full output dir as soon as we have the version
+    if output_dir is None:
+        output_dir = Path.cwd() / '{}_1.{}'.format(col_id, version)
+    else:
+        output_dir = Path(output_dir)
+    # ... and check if it's already been downloaded
+    if output_dir.exists():
+        raise ExistingOutputDir(output_dir)
 
     # Fetch extras (includes head and downloadable file info)
     url = '{}/extras/{}@{}'.format(base_url, uuid, version)

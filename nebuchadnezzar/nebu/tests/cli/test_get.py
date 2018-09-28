@@ -51,7 +51,7 @@ class TestGetCmd:
 
         assert result.exit_code == 0
 
-        dir = tmpcwd / col_id
+        dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
         expected = datadir / 'collection'
 
         def _rel(p, b):
@@ -160,7 +160,7 @@ class TestGetCmd:
 
         assert result.exit_code == 0
 
-        dir = tmpcwd / col_id
+        dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
         expected = datadir / 'collection'
 
         def _rel(p, b):
@@ -171,13 +171,21 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_with_existing_output_dir(self, tmpcwd, capsys, invoker):
+    def test_with_existing_output_dir(self, tmpcwd, invoker, requests_mock,
+                                      datadir):
         col_id = 'col00000'
+        col_version = '2.1'
+        base_url = 'https://archive.cnx.org'
+        url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
 
-        (tmpcwd / col_id).mkdir()
+        # Register the metadata url
+        register_data_file(requests_mock, datadir, 'contents.json', url)
+
+        expected_output_dir = '{}_1.{}'.format(col_id, col_version)
+        (tmpcwd / expected_output_dir).mkdir()
 
         from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id, '1.1']
+        args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
         assert result.exit_code == 3
@@ -193,7 +201,7 @@ class TestGetCmd:
 
         assert result.exit_code == 2
 
-        assert 'Missing argument "col_version"' in result.output
+        assert 'Missing argument "COL_VERSION"' in result.output
 
     def test_failed_request_using_version(self, requests_mock, invoker):
         col_id = 'col00000'
