@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+6.1.0
+-----
+
+- Append version number to checkout folder - col1234_1.X.Y
+
 6.0.1
 -----
 
