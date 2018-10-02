@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+7.0.0
+-----
+
+- Publish resources!
+
 6.1.0
 -----
 

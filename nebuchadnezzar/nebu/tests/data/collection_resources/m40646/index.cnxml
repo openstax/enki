@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" id="new" cnxml-version="0.7" module-id="new">
+
+<title>Using C and the ADC for "Real World" Applications with the MSP430</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m40646/latest</md:content-url>
+  <md:content-id>m40646</md:content-id>
+  <md:title>Using C and the ADC for "Real World" Applications with the MSP430</md:title>
+  <md:version>1.1</md:version>
+  <md:created>2011/06/07 16:32:13 -0500</md:created>
+  <md:revised>2011/08/16 14:08:21 -0500</md:revised>
+  <md:actors>
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn</md:role>
+    <md:role type="maintainer">mwjhnsn</md:role>
+    <md:role type="licensor">mwjhnsn</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>ADC</md:keyword>
+    <md:keyword>Cavallaro</md:keyword>
+    <md:keyword>C programming</md:keyword>
+    <md:keyword>Elec 220</md:keyword>
+    <md:keyword>microcontroller</md:keyword>
+    <md:keyword>MSP430</md:keyword>
+    <md:keyword>photodiode</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>This lab assignment explains the principles of calibration, and then lays out an assignment for the last in class Elec 220 lab.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+<section id="eip-951"><title>A Real World Situation</title><para id="eip-607">On some level, every signal and every interface starts out analog.  In this lab you will learn a simple two point calibration routine and how to use it to get accurate data from the physical world. This assignment is less about new programming principals and more about applying what you already know.  You have one main task:</para><list id="eip-id1169204825736" list-type="enumerated" number-style="arabic"><item>
+Using Code Composer Studio 4, write a C language program to drive a precise 3 digit volt meter.  Use the ADC to read the voltage and display back the actual voltage value.  Write an interrupt driven calibration routine for your volt meter and an output routine that will allow you to display the three output digits. <link target-id="eip-528">Assignment Details</link>
+</item>
+</list></section><section id="eip-116"><title>Analog Signals Background</title><section id="eip-119"><title>Simple Analog Sensing</title><para id="eip-571">The analog voltmeter may seem simple, but the ability to measure and quantify an analog voltage allows the MSP430 to interface with a whole range of analog sensors.  Ultimately, any real world signal starts out analog, so at the heart of every interface lies some kind of analog system..</para>
+
+<para id="eip-id1169764555380">Analog sensors use the physical properties of some electronic device (or a system of many devices) to modify an analog voltage or current signal.  The MSP430's ADC allows it to use that signal in computations (as long as the signal's maximum frequency is less than 100khz- the nyquist sampling frequency of the 200khz ADC).  In simple terms, the ADC can't accurately measure signals that change too quickly for it to see.  Not only that, but the ADC can pickup unwanted distortion from those higher frequency signal components, making even the low frequency parts inaccurate.
+</para>
+
+<example id="eip-819"><title>A simple analog device</title><para id="eip-id1169764555386">
+A <emphasis> photodiode </emphasis> is just one of many such devices.  When kept in reverse voltage bias, the photodiode allows an amount of current through it proportional to the amount of light shining onto it.  By attaching a photodiode in series with a resistor, we can examine the voltage across the resistor to find that current (v=i*R), and therefore the relative amount of light!
+</para>
+
+<definition id="eip-id1172696464133"><term>Photodiode</term>
+<meaning id="eip-id1172692218044">
+A P-N diode specifically constructed to allow a large amount of light to enter the diode's depletion region.  This excess light generates free electron and hole pairs in the depletion region, allowing current to flow.  Photodiodes are surprisingly linear, meaning the light flux is almost 1:1 proportional to the amount of current output.  To learn more about photodiodes and electronic devices in general, look forward to ELEC 305.
+</meaning>
+</definition>
+</example>
+
+<figure id="eip-id1169869475319"><title>A Simple Photodiode Circuit</title><media id="eip-id1169863690621" alt="Series circuit diagram of a photodiode and a resistor.">
+<image mime-type="image/png" src="Photodiode.png" width="800"/>
+</media>
+</figure></section><section id="eip-767"><title>Our Simple Circuit</title><para id="eip-881">For simplicity, we're going to <emphasis>continue using the voltage sources in the lab to simulate an analog device.</emphasis>  As you continue to take more courses and learn more about analog electronics, you will be able to design your own analog circuits to capture and condition the information you want.</para><para id="eip-152">In this last lab you'll be using the full repertoire of I/O options available to you.  You'll use the ADC to read an analog voltage, the pushbuttons and interrupts to control a calibration routine, and the 7-segment display to output one digit of a measured number at a time.</para></section><section id="eip-866"><title>Calibration</title><para id="eip-5">Like anything in the real world, your sensors and devices won't necessarily work perfectly all the time.  Many analog semiconductor devices are light, temperature, and pressure sensitive, so your actual readings can vary depending on outside conditions.  Also, while sensors are usually manufactured to within pretty tight tolerances, every sensor has some finite error that you will need to account for to get maximum performance.   </para><para id="eip-95">Some kind of calibration routine can help alleviate many of these concerns.  By calibrating your sensors against a trusted source, you can correct a lot of the skew caused by outside conditions.  Calibration will also eliminate any steady state error caused by the device itself.  </para><para id="eip-326">A calibration routine collects a set of known data points and scales the input signal to fit the calibration data.  Since we are calibrating a linear ADC, we only need two data points to determine its operating curve.  To get the most out of the calibration, you should use two data points that are as far from each other as possible.  <emphasis>In the case of the MSP430 G2231, that is 0v and 3.3v</emphasis>.</para><code id="eip-98" display="block"><title>Calibration Routine Pseudocode (NOT IN C SYNTAX)</title>flag=0;
+interrupt function: calibrate()
+returns:  lowMeasured, highMeasured
+{
+	if flag=0:
+	set low and set flag=1
+
+	if flag=1:
+	set high
+
+	return
+}
+
+</code></section><section id="eip-467"><title>Interrupts in C</title><para id="eip-624">Code Composer Studio has a special way of handling interrupts in C.  It uses "compiler directives" (special instructions to the compiler, assembler, and linker) to specify which functions should go in the interrupt vector table.  ISRs in C are written like any other function, except that they can take and return no values.  This fits with the convention that ISRs don't interfere with or depend on the code around them.
+</para><code id="eip-946" display="block"><title>Formatting an Interrupt in Code Composer C</title>#pragma vector=PORT1_VECTOR
+     //compiler directive saying that this function should correspond with the port1 interrupt vector
+__interrupt void interruptHandle()
+{
+	//your ISR CODE
+}
+
+
+void main()
+{
+... all setup
+
+__enable_interrupt();
+	//Enables general maskable interrupts
+
+... the rest of your program
+}
+</code><para id="eip-578"><title>Other Concerns</title>Even though interrupts should work in isolation, you often need to get or modify data inside them.  This can be done using volatile global variables.  A global variable simply means a variable that any function in your code can see and modify.  Using global variables is generally discouraged (they can be easily abused and lead to problems if you repeat common variable names), but in this case they allow you to interface with your ISR.
+Volatile is a directive that tells the processor to never cache the variable's value.  When dealing with ISRs, cached variables could lead to problems if the ISR updates the cached data while another function is using it.  Be careful using the volatile keyword excessively though-- the lack of caching slows down performance.  </para></section></section><section id="eip-528"><title>Full Range Voltmeter Assignment Details</title><para id="eip-560">Using Code Composer Studio 4, write a C language program to drive a precise 3 digit volt meter.  Use the ADC to read the voltage and display back the actual voltage value.  Write a calibration routine for your volt meter and an output routine that will allow you to display each of the output digits.</para><list id="eip-33"><title>Your program should include:</title><item>A setup section to setup the GPIO, configure the ADC, and enable interrupts
+</item>
+
+<item>An ISR that runs the calibration routine and keeps track of what has been calibrated so far (so it will only run once)
+</item>
+
+<item>A main loop that continuously samples, filters, and scales the ADC input to the 0-3.3 volt range as determined by your calibration.
+</item></list></section>
+</content>
+
+</document>
