@@ -35,14 +35,16 @@ def _publish(base_url, struct, message, username, password):
                 rel_file_path = base_file_path / model.file.name
                 files.append((file, rel_file_path))
                 for resource in model.resources:
-                    files.append((resource, base_file_path / resource.name))
+                    files.append((resource.data,
+                                  base_file_path / resource.filename))
             else:  # Module
                 file = model.file
                 rel_file_path = base_file_path / model.id / model.file.name
                 files.append((file, rel_file_path))
                 for resource in model.resources:
-                    files.append((resource,
-                                  base_file_path / model.id / resource.name))
+                    files.append((resource.data,
+                                  base_file_path /
+                                  model.id / resource.filename))
 
             for file, rel_file_path in files:
                 zb.write(str(file), str(rel_file_path))

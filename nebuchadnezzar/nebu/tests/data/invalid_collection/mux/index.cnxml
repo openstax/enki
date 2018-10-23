@@ -7,7 +7,7 @@
        Changes to the metadata section in the source will not be saved. -->
   <md:repository>http://cnx.org/content</md:repository>
   <md:content-url>http://cnx.org/content/m42304/latest</md:content-url>
-  <md:content-id>m42304</md:content-id>
+  <md:content-id>mux</md:content-id>
   <md:title>Lab 1-1: 4-Bit Mux and all NAND/NOR Mux</md:title>
   <md:version>1.3</md:version>
   <md:created>2012/01/19 22:11:40 -0600</md:created>
