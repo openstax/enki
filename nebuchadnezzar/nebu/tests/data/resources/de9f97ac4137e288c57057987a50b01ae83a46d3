@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" id="id1165037135379" module-id="m12345" cnxml-version="0.7">
+  <title>A Student to Student Intro to IDE Programming and CCS4</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m37154/latest/</md:content-url>
+  <md:content-id>m37154</md:content-id>
+  <md:title>A Student to Student Intro to IDE Programming and CCS4</md:title>
+  <md:version>1.2</md:version>
+  <md:created>2010/08/09 14:25:38 GMT-5</md:created>
+  <md:revised>2011/03/08 18:15:12.687 US/Central</md:revised>
+  <md:actors>
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+    <md:person userid="ww2">
+      <md:firstname>Weiwei</md:firstname>
+      <md:surname>Wu</md:surname>
+      <md:fullname>Weiwei Wu</md:fullname>
+      <md:email>ww2@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn ww2</md:role>
+    <md:role type="maintainer">mwjhnsn ww2</md:role>
+    <md:role type="licensor">mwjhnsn ww2</md:role>
+    <md:role type="editor">ww2</md:role>
+    <md:role type="translator">ww2</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>CCSv4</md:keyword>
+    <md:keyword>Code Composer Studio</md:keyword>
+    <md:keyword>ELEC 220</md:keyword>
+    <md:keyword>IDE</md:keyword>
+    <md:keyword>MSP 430</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>A basic introduction to how to write and debug programs in Code Composer Studio V4.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+      <para id="id1165051615591">Firstly, this is by no means a comprehensive guide, but a few basics for students who have not been exposed to working in an IDE before. To look more closely at CCS4, see the help docs on ti.com (<link url="http://processors.wiki.ti.com/index.php/Category:Code_Composer_Studio_v4">http://processors.wiki.ti.com/index.php/Category:Code_Composer_Studio_v4</link>)</para>
+      <section id="id1165048214931">
+        <title>What is an IDE:</title>
+        <para id="id1165034487698">IDE stands for “Integrated Development Environment,” and the philosophy behind creating an IDE is to combine all of the separate tools you would need to write, debug, and deploy code into one consistent program. Basically, CCS4 allows you to write code (in C, C++, or assembly) and push a single button to compile, assemble, link, and upload your code to the device (in our case the MSP430). CCS4 also has a built in debugger that launches when you run in debug mode, interfacing in real time with the hardware (through JTAG) and allowing you to see if your code does what you think it should do. Ultimately though, a sophisticated IDE is only a tool that allows you to write clean code more quickly—it will not code for you and relies on you the programmer to use it and take advantage of its potential.</para>
+        <section id="id1165044796062">
+          <title>CCS4 and Eclipse:</title>
+          <para id="id1165042209139">CCS4 is TI’s embedded specialty version of the eclipse framework. The eclipse IDE was developed open source for Java, and you will most likely see it again if you pursue higher level programming courses. Code Composer takes the framework given by Eclipse and tailors it to TI’s embedded processors and the real time needs of DSP. The things you learn about working in an Eclipse based work environment (or any sophisticated IDE) should help you efficiently write and debug code in the future. Eclipse is <emphasis effect="underline">highly</emphasis><emphasis effect="underline">customizable</emphasis>. You can create different <emphasis effect="bold">perspectives</emphasis> (see control buttons upper right hand corner) with different information views. Check out the “view” and “window” menus to explore different panes you can use.</para>
+        </section>
+        <section id="eip-572"><title>Licenses</title><para id="eip-772">When you first open CCS4 on a computer, you will have to add the license server information (if you are a student using a university network license) or specify the location of the individual license file.
+</para></section><section id="id1165027671275">
+          <title>Workspaces and Projects:</title>
+          <para id="id1165045770469">When you first start up CCS4, it will ask you to specify a <emphasis effect="bold">workspace</emphasis>. This file directory is where CCS4 will save all of your raw C and asm files, as well as the compiled and linked executables before uploading them to the hardware. Inside your workspace, the Eclipse environment divides your files into projects. Each project has its own independent source files and configuration properties. In general, each lab you will complete for this class will be setup as a new project. One project at a time can be set as the “Active project” (by default it is the most recently created one. You can view and edit files from any project at any time, but pressing the debug button will compile and load the code for the active project, not necessarily what you think you are working on!). </para>
+        </section>
+        <section id="id1165035147870">
+          <title>Setting up a new project:</title>
+          <para id="id1165043911254">To start setting up a new project, go to the New project wizard (file→ new → CCS Project). The first step asks you for a project <emphasis effect="bold">name</emphasis>—enter one you like! In the next window, it asks to select a project type. In this lab we will be using the <emphasis effect="bold">MSP430</emphasis>, so select it from the drop down menu and click next. (Don’t worry about the build configurations, <emphasis effect="bold">the defaults are fine</emphasis>). The next window asks about project dependencies… in other words, does your project need to reference functions and files already in another project. Most likely for this class you won’t have any, so again<emphasis effect="bold">, leave this as is</emphasis> and click next. Now you have arrived at the most important section. This page configures the device specific compiler and assembler. For the “Device Variant,” select our chip, the <emphasis effect="bold">MSP430G2231. </emphasis>  Lastly, If you are working on one of the earlier labs with only assembly code, <emphasis>be sure to continue to the next menu and select the "Empty Assembly Only Project" template. </emphasis>  This tells the IDE not to invoke the compiler and skip straight to assembling and linking. If you forget to set this option, the compiler will throw an error that it cannot find the required c function “void main()” in your assembly code. Don’t worry— if you mess something up, you can create a new project and just copy your code straight over.</para>
+        </section>
+      </section>
+      <section id="id1165037880582">
+        <title>The code perspective and writing code</title>
+        <para id="id1165043699024"> Code Composer supports assembly code, “classic” C, and C++. For this class we will focus on assembly code and standard C. Most of your coding will happen in the coding perspective, a view where the screen is dominated by a massive text editing window. Code Composer’s editor can be setup in a range from straight forward wyswig to auto-tabbing, auto-highlighting, and auto-completing. Again, explore the options (window→preferences) and find what works best for you and your lab partner.</para>
+        <section id="id1165027637927">
+          <title>Writing Assembly:</title>
+          <para id="id1165032467775">To write assembly in Code Composer, you first need to create a new project following the steps above (be sure to select “<emphasis effect="bold">Empty Assembly-only Project</emphasis>”!). Once you have your empty project, insert a new file (file → new → file). When you input the file name, <emphasis effect="underline">be sure</emphasis> to give it an “<emphasis effect="bold">.asm</emphasis>” extension. Now that you have your freshly created asm file, you can start writing code in the code window (the big blank white space in the middle of the screen). In assembly mode, code composer parses the column most left as labels, so any non-label code must be indented at least one tab (and conversely labels cannot be indented). You will learn more about the specific components required for a functional assembly file in your specific labs, but in general, you need five common lines. The first, “.cdecls C, LIST, “msp430g2231.h”” defines all of your programming constants (such as P1IN, WDTCTL, etc.). The second “.text” tells the assembler where your actual code begins. The label “RESET” goes at the start of your program so the hardware knows where to begin code execution after a power reset. At the end of your code, you need to leave the memory address of your reset label. To do this, use the command [.sect “.reset”] to tell the compiler you are in the reset section, and then [.word RESET] to place the address of the RESET label into memory. </para>
+        </section>
+        <section id="id1165040112593">
+          <title>Writing C:</title>
+          <para id="id1165042267919"> Code composer really shines writing C and C++. Like in assembly, you will need to create a new project for your new program. This time leave “treat as an assembly-only project” unchecked. Now you will create a new “c source file” (file→ new → source file). When you input the file name this time, be sure to give it a “<emphasis effect="bold">.c</emphasis>” extension. In c mode, you don’t have to worry about line spacing or tabbing for the functionality of the program, just your own sanity and code readability. To include the file you used in the .asm projects that defined all the hardware constants, put the line “<emphasis effect="bold">#include “msp430g2231.h” </emphasis>” at the top of your code. You won’t have to worry about the reset vector or anything like that—the c compiler will take care of it all for you. The only thing actually required in your c program is the function “ <emphasis effect="bold">void main() {…</emphasis><emphasis effect="italics">YOUR CODE…</emphasis><emphasis effect="bold">} </emphasis>”. Other more advanced operations (like interrupts) require special c syntax, but you will cover that in the specific labs when it comes up.</para>
+        </section>
+        <section id="id1165027554145">
+          <title>Debug Mode, Stepping, Breakpoints, and Watches</title>
+          <para id="id1165041782964">Debug mode differentiates an IDE like CCS4 from simpler command line tools. For better or for worse, simply pressing the debug button magically translates your source code into a running program on your attached MSP430. You will notice that after the debugger finally starts up though, your code will not actually be running. This is because the debugger starts in <emphasis effect="bold">step</emphasis> mode with the first line of your code highlighted. In other words, the hardware is waiting for you to let it execute that one line of code, so your slow human reflexes can process and verify what it can do in a fraction of a second. Stepping through your code one line at a time helps you find subtle errors and see exactly where a program goes off track. Yes, as you can imagine, simply stepping through a real world multi-thousand line program (or the larger programs you will write later in this course) is inefficient and unfeasible. <emphasis effect="bold">Breakpoints</emphasis> allow you to tell the debugger to stop if/when the processor gets to a certain point in your code, letting you run quickly through the code you trust and only stop at certain problematic sections you want to look into more closely. You can set several breakpoints at once, and once the program has broken, you will be able to actively see all register and memory values and step through line by line just as if you had started step mode at your break point. <emphasis effect="bold">Watches</emphasis> are a little bit more abstract and more useful for larger programs, but they allow you to set a watch on a particular variable (in c) or memory location/register (in asm) and only break the program when it tries to change that particular value. This can help you find where exactly where and when a value changes into an erroneous state. </para>
+          <para id="id1165049219562">Using a combination of breakpoints, watches, and careful stepping, you can pick apart any complicated program to hunt down errors and really understand what goes on during the program’s execution. </para>
+          
+        </section>
+      </section>
+  </content>
+</document>

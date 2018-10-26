@@ -1,236 +1,236 @@
 {
-   "licensors" : [
-      {
-         "surname" : "Johnson",
-         "suffix" : "",
-         "firstname" : "Matthew",
-         "id" : "mwjhnsn",
-         "title" : "",
-         "fullname" : "Matthew Johnson"
-      },
-      {
-         "surname" : "Stevenson",
-         "suffix" : "",
-         "firstname" : "Chris",
-         "fullname" : "Chris Stevenson",
-         "id" : "jedifan42",
-         "title" : ""
-      },
-      {
-         "firstname" : "Joseph",
-         "suffix" : "",
-         "id" : "cavallar",
-         "title" : "Prof.",
-         "fullname" : "Joseph Cavallaro",
-         "surname" : "Cavallaro"
-      }
-   ],
-   "stateid" : 1,
-   "resources" : [
-      {
-         "media_type" : "text/xml",
-         "filename" : "collection.xml",
-         "id" : "1c60491e03d8a9fbbb700b81d2218fac9fa50fc0"
-      }
-   ],
-   "authors" : [
-      {
-         "surname" : "Johnson",
-         "suffix" : "",
-         "firstname" : "Matthew",
-         "fullname" : "Matthew Johnson",
-         "id" : "mwjhnsn",
-         "title" : ""
-      },
-      {
-         "title" : "",
-         "id" : "jedifan42",
-         "fullname" : "Chris Stevenson",
-         "suffix" : "",
-         "firstname" : "Chris",
-         "surname" : "Stevenson"
-      }
-   ],
-   "mediaType" : "application/vnd.org.cnx.collection",
-   "buyLink" : null,
-   "collated" : false,
-   "printStyle" : null,
-   "shortId" : "tplkj0Bb",
-   "googleAnalytics" : null,
-   "roles" : null,
-   "history" : [
-      {
-         "publisher" : {
-            "surname" : "Johnson",
-            "suffix" : "",
-            "firstname" : "Matthew",
-            "fullname" : "Matthew Johnson",
-            "id" : "mwjhnsn",
-            "title" : ""
-         },
-         "changes" : "Fixed modules to use non-ESCAPE platform version for the public",
-         "revised" : "2013-03-12T03:52:33Z",
-         "version" : "2.1"
-      },
-      {
-         "version" : "1.1",
-         "publisher" : {
-            "surname" : "Stevenson",
-            "title" : "",
-            "id" : "jedifan42",
-            "fullname" : "Chris Stevenson",
-            "suffix" : "",
-            "firstname" : "Chris"
-         },
-         "revised" : "2012-01-20T04:23:06Z",
-         "changes" : "Initial version"
-      }
-   ],
-   "language" : "en",
-   "parentAuthors" : [],
-   "license" : {
-      "url" : "http://creativecommons.org/licenses/by/3.0/",
-      "version" : "3.0",
-      "name" : "Creative Commons Attribution License",
-      "code" : "by"
-   },
-   "tree" : {
-      "contents" : [
-         {
-            "id" : "077dba20-bbf5-4cf4-9f3c-a6eb0d6c17eb@1",
-            "title" : "Introduction to Quartus and Circuit Diagram Design",
-            "shortId" : "B326ILv1@1"
-         },
-         {
-            "shortId" : "Z_VPmSWZ@3",
-            "title" : "A Quartus Project from Start to Finish: 2 Bit Mux Tutorial",
-            "id" : "67f54f99-2599-4cbb-b226-4eee7ef80cde@3"
-         },
-         {
-            "shortId" : "V5GJSAUN@3",
-            "id" : "57918948-050d-45a8-bfea-1c894cc312ee@3",
-            "title" : "Lab 1-1: 4-Bit Mux and all NAND/NOR Mux"
-         },
-         {
-            "title" : "Lab 3-1 Basic MSP430 Assembly from Roots in LC-3",
-            "id" : "06ca2321-54e8-4f28-8516-f38c8e39cac7@5",
-            "shortId" : "BsojIVTo@5"
-         },
-         {
-            "shortId" : "5TfAmkBs@1",
-            "id" : "e537c09a-406c-47a7-bfc8-fc34ff9c878b@1",
-            "title" : "Lab 3-2 Digital Input and Output with the MSP430"
-         },
-         {
-            "title" : "Lab 4-1 Interrupt Driven Programming in MSP430 Assembly",
-            "id" : "5f50d5b5-ccef-4fd0-959b-2fa90bf01a53@2",
-            "shortId" : "X1DVtczv@2"
-         },
-         {
-            "shortId" : "KepnGUk2@1",
-            "title" : "Lab 4-2 Putting It All Together",
-            "id" : "29ea6719-4936-419b-9195-6da12e47b417@1"
-         },
-         {
-            "shortId" : "jA312JKx@3",
-            "id" : "8c0df5d8-92b1-4607-8435-a9e6046dfbdf@3",
-            "title" : "Lab 5-1 C Language Programming through the ADC and the MSP430"
-         },
-         {
-            "shortId" : "KK9CoCdw@1",
-            "title" : "Lab 5-2 Using C and the ADC for \"Real World\" Applications with the MSP430",
-            "id" : "28af42a0-2770-46ab-8411-ca00335d6cdc@1"
-         },
-         {
-            "contents" : [
-               {
-                  "shortId" : "82I3bfAy@3",
-                  "title" : "MSP430 LaunchPad Test Circuit Breadboarding Instructions",
-                  "id" : "f362376d-f032-481a-b848-5047ede49372@3"
-               },
-               {
-                  "shortId" : "IbgX2PzV@2",
-                  "id" : "21b817d8-fcd5-4d57-9c93-0faad87d51bf@2",
-                  "title" : "A Student to Student Intro to IDE Programming and CCS4"
-               }
-            ],
-            "title" : "Helpful General Information",
-            "id" : "8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1",
-            "shortId" : "jd_I3lFk@2.1"
-         }
-      ],
-      "shortId" : "tplkj0Bb@2.1",
-      "title" : "Intro to Computational Engineering: Elec 220 Labs",
-      "id" : "b699648f-405b-429f-bf11-37bad4246e7c@2.1"
-   },
-   "submitter" : {
-      "suffix" : "",
-      "firstname" : "Matthew",
-      "id" : "mwjhnsn",
-      "fullname" : "Matthew Johnson",
-      "title" : "",
-      "surname" : "Johnson"
-   },
-   "version" : "2.1",
-   "legacy_id" : "col11405",
-   "baked" : null,
-   "submitlog" : "Fixed modules to use non-ESCAPE platform version for the public",
-   "revised" : "2013-03-12T03:52:33Z",
-   "abstract" : "<div xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:md=\"http://cnx.rice.edu/mdml\" xmlns:c=\"http://cnx.rice.edu/cnxml\" xmlns:html=\"http://www.w3.org/1999/xhtml\" xmlns:qml=\"http://cnx.rice.edu/qml/1.0\" xmlns:data=\"http://dev.w3.org/html5/spec/#custom\" xmlns:bib=\"http://bibtexml.sf.net/\" xmlns:mod=\"http://cnx.rice.edu/#moduleIds\">This collection houses all the documentation for the lab component of Rice Universities Elec 220 lab component.  The labs cover topics such as gates, simulation, basic digital I/O, interrupt driven embedded programming, C language programming, and finally a/d interfacing and touch sensors.</div>",
-   "parentId" : null,
-   "keywords" : [
-      "Calculator",
-      "Cavallaro",
-      "Elec 220",
-      "Gate",
-      "Interrupt",
-      "LC-3",
-      "Loop",
-      "Microcontroller",
-      "MSP 430",
-      "Rice"
-   ],
-   "id" : "b699648f-405b-429f-bf11-37bad4246e7c",
-   "title" : "Intro to Computational Engineering: Elec 220 Labs",
-   "legacy_version" : "1.2",
-   "parentTitle" : null,
-   "subjects" : [
-      "Science and Technology"
-   ],
-   "publishers" : [
-      {
-         "id" : "mwjhnsn",
-         "fullname" : "Matthew Johnson",
-         "title" : "",
-         "suffix" : "",
-         "firstname" : "Matthew",
-         "surname" : "Johnson"
-      },
-      {
-         "surname" : "Stevenson",
-         "firstname" : "Chris",
-         "suffix" : "",
-         "id" : "jedifan42",
-         "fullname" : "Chris Stevenson",
-         "title" : ""
-      },
-      {
-         "fullname" : "Joseph Cavallaro",
-         "id" : "cavallar",
-         "title" : "Prof.",
-         "firstname" : "Joseph",
-         "suffix" : "",
-         "surname" : "Cavallaro"
-      }
-   ],
-   "doctype" : "",
-   "parent" : {
-      "shortId" : null,
-      "version" : "",
-      "authors" : [],
-      "title" : null,
-      "id" : null
-   },
-   "parentVersion" : "",
-   "created" : "2011-05-24T15:31:56Z"
+    "abstract": "<div xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:md=\"http://cnx.rice.edu/mdml\" xmlns:c=\"http://cnx.rice.edu/cnxml\" xmlns:html=\"http://www.w3.org/1999/xhtml\" xmlns:qml=\"http://cnx.rice.edu/qml/1.0\" xmlns:data=\"http://dev.w3.org/html5/spec/#custom\" xmlns:bib=\"http://bibtexml.sf.net/\" xmlns:mod=\"http://cnx.rice.edu/#moduleIds\">This collection houses all the documentation for the lab component of Rice Universities Elec 220 lab component.  The labs cover topics such as gates, simulation, basic digital I/O, interrupt driven embedded programming, C language programming, and finally a/d interfacing and touch sensors.</div>",
+    "authors": [
+        {
+            "firstname": "Matthew",
+            "fullname": "Matthew Johnson",
+            "id": "mwjhnsn",
+            "suffix": "",
+            "surname": "Johnson",
+            "title": ""
+        },
+        {
+            "firstname": "Chris",
+            "fullname": "Chris Stevenson",
+            "id": "jedifan42",
+            "suffix": "",
+            "surname": "Stevenson",
+            "title": ""
+        }
+    ],
+    "baked": null,
+    "buyLink": null,
+    "collated": true,
+    "created": "2011-05-24T15:31:56Z",
+    "doctype": "",
+    "googleAnalytics": null,
+    "history": [
+        {
+            "changes": "Fixed modules to use non-ESCAPE platform version for the public",
+            "publisher": {
+                "firstname": "Matthew",
+                "fullname": "Matthew Johnson",
+                "id": "mwjhnsn",
+                "suffix": "",
+                "surname": "Johnson",
+                "title": ""
+            },
+            "revised": "2013-03-12T03:52:33Z",
+            "version": "2.1"
+        },
+        {
+            "changes": "Initial version",
+            "publisher": {
+                "firstname": "Chris",
+                "fullname": "Chris Stevenson",
+                "id": "jedifan42",
+                "suffix": "",
+                "surname": "Stevenson",
+                "title": ""
+            },
+            "revised": "2012-01-20T04:23:06Z",
+            "version": "1.1"
+        }
+    ],
+    "id": "b699648f-405b-429f-bf11-37bad4246e7c",
+    "keywords": [
+        "Calculator",
+        "Cavallaro",
+        "Elec 220",
+        "Gate",
+        "Interrupt",
+        "LC-3",
+        "Loop",
+        "Microcontroller",
+        "MSP 430",
+        "Rice"
+    ],
+    "language": "en",
+    "legacy_id": "col11405",
+    "legacy_version": "1.2",
+    "license": {
+        "code": "by",
+        "name": "Creative Commons Attribution License",
+        "url": "http://creativecommons.org/licenses/by/3.0/",
+        "version": "3.0"
+    },
+    "licensors": [
+        {
+            "firstname": "Matthew",
+            "fullname": "Matthew Johnson",
+            "id": "mwjhnsn",
+            "suffix": "",
+            "surname": "Johnson",
+            "title": ""
+        },
+        {
+            "firstname": "Chris",
+            "fullname": "Chris Stevenson",
+            "id": "jedifan42",
+            "suffix": "",
+            "surname": "Stevenson",
+            "title": ""
+        },
+        {
+            "firstname": "Joseph",
+            "fullname": "Joseph Cavallaro",
+            "id": "cavallar",
+            "suffix": "",
+            "surname": "Cavallaro",
+            "title": "Prof."
+        }
+    ],
+    "mediaType": "application/vnd.org.cnx.collection",
+    "parent": {
+        "authors": [],
+        "id": null,
+        "shortId": null,
+        "title": null,
+        "version": ""
+    },
+    "parentAuthors": [],
+    "parentId": null,
+    "parentTitle": null,
+    "parentVersion": "",
+    "printStyle": null,
+    "publishers": [
+        {
+            "firstname": "Matthew",
+            "fullname": "Matthew Johnson",
+            "id": "mwjhnsn",
+            "suffix": "",
+            "surname": "Johnson",
+            "title": ""
+        },
+        {
+            "firstname": "Chris",
+            "fullname": "Chris Stevenson",
+            "id": "jedifan42",
+            "suffix": "",
+            "surname": "Stevenson",
+            "title": ""
+        },
+        {
+            "firstname": "Joseph",
+            "fullname": "Joseph Cavallaro",
+            "id": "cavallar",
+            "suffix": "",
+            "surname": "Cavallaro",
+            "title": "Prof."
+        }
+    ],
+    "resources": [
+        {
+            "filename": "collection.xml",
+            "id": "1c60491e03d8a9fbbb700b81d2218fac9fa50fc0",
+            "media_type": "text/xml"
+        }
+    ],
+    "revised": "2013-03-12T03:52:33Z",
+    "roles": null,
+    "shortId": "tplkj0Bb",
+    "stateid": 1,
+    "subjects": [
+        "Science and Technology"
+    ],
+    "submitlog": "Fixed modules to use non-ESCAPE platform version for the public",
+    "submitter": {
+        "firstname": "Matthew",
+        "fullname": "Matthew Johnson",
+        "id": "mwjhnsn",
+        "suffix": "",
+        "surname": "Johnson",
+        "title": ""
+    },
+    "title": "Intro to Computational Engineering: Elec 220 Labs",
+    "tree": {
+        "contents": [
+            {
+                "id": "077dba20-bbf5-4cf4-9f3c-a6eb0d6c17eb@1",
+                "shortId": "B326ILv1@1",
+                "title": "Introduction to Quartus and Circuit Diagram Design"
+            },
+            {
+                "id": "67f54f99-2599-4cbb-b226-4eee7ef80cde@3",
+                "shortId": "Z_VPmSWZ@3",
+                "title": "A Quartus Project from Start to Finish: 2 Bit Mux Tutorial"
+            },
+            {
+                "id": "57918948-050d-45a8-bfea-1c894cc312ee@3",
+                "shortId": "V5GJSAUN@3",
+                "title": "Lab 1-1: 4-Bit Mux and all NAND/NOR Mux"
+            },
+            {
+                "id": "06ca2321-54e8-4f28-8516-f38c8e39cac7@5",
+                "shortId": "BsojIVTo@5",
+                "title": "Lab 3-1 Basic MSP430 Assembly from Roots in LC-3"
+            },
+            {
+                "id": "e537c09a-406c-47a7-bfc8-fc34ff9c878b@1",
+                "shortId": "5TfAmkBs@1",
+                "title": "Lab 3-2 Digital Input and Output with the MSP430"
+            },
+            {
+                "id": "5f50d5b5-ccef-4fd0-959b-2fa90bf01a53@2",
+                "shortId": "X1DVtczv@2",
+                "title": "Lab 4-1 Interrupt Driven Programming in MSP430 Assembly"
+            },
+            {
+                "id": "29ea6719-4936-419b-9195-6da12e47b417@1",
+                "shortId": "KepnGUk2@1",
+                "title": "Lab 4-2 Putting It All Together"
+            },
+            {
+                "id": "8c0df5d8-92b1-4607-8435-a9e6046dfbdf@3",
+                "shortId": "jA312JKx@3",
+                "title": "Lab 5-1 C Language Programming through the ADC and the MSP430"
+            },
+            {
+                "id": "28af42a0-2770-46ab-8411-ca00335d6cdc@1",
+                "shortId": "KK9CoCdw@1",
+                "title": "Lab 5-2 Using C and the ADC for \"Real World\" Applications with the MSP430"
+            },
+            {
+                "contents": [
+                    {
+                        "id": "f362376d-f032-481a-b848-5047ede49372@3",
+                        "shortId": "82I3bfAy@3",
+                        "title": "MSP430 LaunchPad Test Circuit Breadboarding Instructions"
+                    },
+                    {
+                        "id": "21b817d8-fcd5-4d57-9c93-0faad87d51bf@2",
+                        "shortId": "IbgX2PzV@2",
+                        "title": "A Student to Student Intro to IDE Programming and CCS4"
+                    }
+                ],
+                "id": "8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1",
+                "shortId": "jd_I3lFk@2.1",
+                "title": "Helpful General Information"
+            }
+        ],
+        "id": "b699648f-405b-429f-bf11-37bad4246e7c@2.1",
+        "shortId": "tplkj0Bb@2.1",
+        "title": "Intro to Computational Engineering: Elec 220 Labs"
+    },
+    "version": "2.1"
 }

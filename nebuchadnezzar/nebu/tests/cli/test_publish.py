@@ -122,13 +122,17 @@ class TestPublishCmd:
             included_files = set(zb.namelist())
         expected_files = set((
             'col11405/collection.xml',
+            'col11405/m37151/index.cnxml',
+            'col11405/m37152/index.cnxml',
             'col11405/m37154/index.cnxml',
             'col11405/m37217/index.cnxml',
             'col11405/m37386/index.cnxml',
+            'col11405/m40643/index.cnxml',
             'col11405/m40645/index.cnxml',
             'col11405/m40646/index.cnxml',
+            'col11405/m42302/index.cnxml',
             'col11405/m42303/index.cnxml',
-            'col11405/m42304/index.cnxml',
+            'col11405/m42304/index.cnxml'
         ))
         assert included_files == expected_files
 
@@ -240,13 +244,17 @@ class TestPublishCmd:
             included_files = set(zb.namelist())
         expected_files = set((
             'col11405/collection.xml',
+            'col11405/m37151/index.cnxml',
+            'col11405/m37152/index.cnxml',
             'col11405/m37154/index.cnxml',
             'col11405/m37217/index.cnxml',
             'col11405/m37386/index.cnxml',
+            'col11405/m40643/index.cnxml',
             'col11405/m40645/index.cnxml',
             'col11405/m40646/index.cnxml',
+            'col11405/m42302/index.cnxml',
             'col11405/m42303/index.cnxml',
-            'col11405/m42304/index.cnxml',
+            'col11405/m42304/index.cnxml'
         ))
         assert included_files == expected_files
 

@@ -8,12 +8,24 @@ import click
 import requests
 from requests.auth import HTTPBasicAuth
 from litezip import (
-    parse_litezip,
+    parse_collection,
+    parse_module,
     Collection,
 )
 
 from ._common import common_params, get_base_url, logger
 from .validate import is_valid
+
+
+def parse_book_tree(bookdir):
+    """Converts filesystem booktree back to a struct"""
+    struct = []
+    for dirname, subdirs, filenames in os.walk(str(bookdir)):
+        if 'collection.xml' in filenames:
+            struct.append(parse_collection(Path(dirname)))
+        elif 'index.cnxml' in filenames:
+            struct.append(parse_module(Path(dirname)))
+    return struct
 
 
 def _publish(base_url, struct, message, username, password):
@@ -114,7 +126,7 @@ def publish(ctx, env, content_dir, message, username, password,
     base_url = get_base_url(ctx, env)
 
     content_dir = Path(content_dir).resolve()
-    struct = parse_litezip(content_dir)
+    struct = parse_book_tree(content_dir)
 
     if not skip_validation and not is_valid(struct):
         logger.info("We've got problems... :(")

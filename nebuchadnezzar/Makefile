@@ -83,7 +83,7 @@ help-test :
 	@echo "    (see also setup.cfg's pytest configuration)"
 
 test : $(STATEDIR)/env/pyvenv.cfg
-	$(BINDIR)/python -m pytest --cov=nebu --cov-report=html --cov-report=term $(TEST_EXTRA_ARGS) $(TEST)
+	$(BINDIR)/python -m pytest --cov=nebu --cov-report=html --cov-report=term  $(filter-out $@, $(MAKECMDGOALS)) $(TEST_EXTRA_ARGS) $(TEST)
 
 # /Test
 
@@ -120,3 +120,11 @@ lint : $(STATEDIR)/env/pyvenv.cfg setup.cfg
 	$(BINDIR)/python -m flake8 nebu
 
 # /Lint
+
+# ###
+#  Catch-all to avoid errors when passing args to make test
+# ###
+
+%:
+	@:
+# /Catch-all

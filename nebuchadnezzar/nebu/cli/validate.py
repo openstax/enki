@@ -22,8 +22,8 @@ def is_valid(struct):
         has_errors = True
         try:
             filepath = filepath.relative_to(cwd)
-        except ValueError as err:
-            # Raised when filepath is not a child of cwd
+        except ValueError:
+            # Raised ONLY when filepath is not a child of cwd
             pass
         logger.error('{}:{}'.format(filepath, error_msg))
     return not has_errors

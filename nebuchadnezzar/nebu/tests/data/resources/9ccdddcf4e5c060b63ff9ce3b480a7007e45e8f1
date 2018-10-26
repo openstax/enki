@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" id="new" cnxml-version="0.7" module-id="new">
+
+<title>Interrupt Driven Programming in MSP430 Assembly</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m37217/latest/</md:content-url>
+  <md:content-id>m37217</md:content-id>
+  <md:title>Interrupt Driven Programming in MSP430 Assembly</md:title>
+  <md:version>1.2</md:version>
+  <md:created>2010/12/15 10:58:00 US/Central</md:created>
+  <md:revised>2011/08/16 13:55:25.412 GMT-5</md:revised>
+  <md:actors>
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn</md:role>
+    <md:role type="maintainer">mwjhnsn</md:role>
+    <md:role type="licensor">mwjhnsn</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>Assembly language</md:keyword>
+    <md:keyword>ECE</md:keyword>
+    <md:keyword>Elec 220</md:keyword>
+    <md:keyword>Interrupt</md:keyword>
+    <md:keyword>Lab</md:keyword>
+    <md:keyword>MSP430</md:keyword>
+    <md:keyword>Rice</md:keyword>
+    <md:keyword>Subroutine</md:keyword>
+    <md:keyword>Vector Table</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>This module contains the Elec 220 lab 4, which covers basic interrupt usage on the TI MSP430 microcontroller at the assembly language level.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+  <section id="eip-338"><title>MSP430 Interrupts and Subroutines: Your Tasks</title><para id="eip-467">This week you will learn more about the philosophy of interrupt driven programming and specifically how interrupts work on the MSP430.  To test out your knowledge, you'll write another simple I/O echo program that builds off the code from the last lab.
+</para>
+
+<para id="eip-466">
+<list id="tasks_list" type="Enumerated" list-type="enumerated" number-style="arabic"><item>  Coding in MSP430 Assembly, <emphasis>create an interrupt driven I/O echo program</emphasis>. The program should read the values of the input pins when pin 4 (P1.3) triggers an interrupt, and then output the read value to the 7 segment display. <link target-id="eip-101">Details</link>
+</item>
+
+</list>
+</para>
+</section><section id="eip-776"><title>Background Information</title><section id="eip-267"><title>A Few More Instructions</title><para id="eip-43">Like you saw in the <link document="40643">GPIO Lab</link>, the MSP430 (even though it's a RISC <emphasis>R</emphasis>educed <emphasis>I</emphasis>nstruction <emphasis>S</emphasis>et <emphasis>C</emphasis>omputing processor) has a fair number of instructions in addition to those you learned for the LC-3.  The extra instructions help programmers simplify code readability and streamline program execution.
+</para>
+
+<para id="eip-id1170988177462">You've already seen how the MSP430 uses memory access modifiers and the general purpose <code display="inline">mov</code> instruction to implement all the functionality of the LC-3's plethora of load and store instructions.  Two other very useful MSP430 instructions are <code display="inline">bis</code> (<emphasis>Bi</emphasis>t <emphasis>S</emphasis>et) and <code display="inline">bic</code> (<emphasis>Bi</emphasis>t <emphasis>C</emphasis>lear).  These instructions take an operand with "1"s in the bits you wish to set or clear, and then a destination upon which to do the operation.  This comes in handy when you need to modify a few specific configuration bits out of a whole register (like the GIE bit in the SR for interrupts... see below!).  The header file has pre-defined masks you can use with <code display="inline">bic</code> and <code display="inline">bis</code> to make bit operations much more readable.
+</para>
+
+<note id="eip-id1170988196857">
+<para id="eip-id1170988827159">The <code display="inline">bis</code> and <code display="inline">bic</code> instructions actually emulate functionality you already had with <code display="inline">and</code>, <code display="inline">inv</code>, and <code display="inline">or</code>.
+</para>
+<para id="eip-930">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</para><para id="eip-id1171001563395"><code display="inline">bis op1, op2</code> corresponds to 
+<code id="eip-id1170990662240" display="block">or op1, op2</code>
+</para>
+<para id="eip-518">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</para><para id="eip-id1171000934045">
+<code display="inline">bic op1, op2</code> corresponds to 
+<code id="eip-id1171001853253" display="block">
+inv op1
+and op1, op2
+</code>
+</para>
+</note><section id="eip-315"><title>Directives</title><para id="eip-847">
+Assembler and Compiler Directives sound intimidating, but they are nothing more than bits of code intended for the assembler/compiler itself.  Directives allow you to specify how the assembler/compiler handles your code and how it all finally comes together into the executable binary file.  
+</para>
+
+<para id="eip-id1165593377571">
+The skeleton file has included several directives all along-- <code display="inline">.cdecls C,LIST, "msp430g2231.h"</code> tells your .asm file to include the c code header aliases from the generic MSP430G2231 configuration file.  <code display="inline">.text</code> tells the assembler to place your program in the main flash memory section, and <code display="inline">.sect "reset"</code> defines where to start the program after a processor restart.
+</para><para id="eip-697">In this lab, you'll have to use directives to <link target-id="eip-id3675214">place your ISR vectors into the vector table.</link></para></section>
+</section><section id="eip-541"><title>Basic Interrupts</title>
+
+<list id="eip-292" list-type="bulleted" bullet-style="none"><item>
+
+<list id="eip-252" list-type="bulleted" bullet-style="none"><title>Problems with polling</title><item>Continuously polling a pin for input wastes useful CPU cycles and consequently uses more power</item>
+<item>
+The CPU must check the pin often enough to detect a change-- when trying to catch a rapidly changing digital signal (a small pulse or transient, etc.), polling may not be sufficient.
+</item>
+<item><emphasis>
+In conclusion, polling is easy to understand and implement, but is generally inefficient.</emphasis>
+</item>
+</list>
+
+</item>
+
+<item>
+
+<list id="eip-571" list-type="bulleted" bullet-style="none"><title>The solution... interrupts</title><item>
+Interrupts use dedicated hardware to detect input changes or hardware events (button pushes, timer intervals, etc...)
+</item>
+<item>
+When a change is detected, the interrupt logic interrupts the CPU execution.
+<list id="eip-id1171679021552">
+<item>
+The CPU stops what it is doing and calls a special section of code determined beforehand in the interrupt vector table.  This section of code is known as the <emphasis>I</emphasis>nterrupt <emphasis>S</emphasis>ervice <emphasis>R</emphasis>outine, or ISR for short.
+</item>
+<item>
+Once the interrupt has been serviced and the ISR is complete, the CPU returns to what it was doing before.
+</item>
+</list>
+</item>
+
+<item>
+The way the main program pauses execution and then branches to a new section of code works in a similar way to the LC3's Traps.
+</item></list>
+</item>
+
+
+
+<item><list id="eip-53" list-type="bulleted" bullet-style="none"><title>Advantages to Interrupts</title><item>Interrupts will catch quickly changing inputs (within reason) that polling might have missed.</item>
+<item>The CPU is allowed a level of freedom to multitask without needing to "worry" about explicitly catching input changes.  The CPU can do other tasks safely while waiting for an interrupt to fire.</item>
+<item><note id="eip-id1167657997860" type="note">Programs can be "interrupt driven," meaning that the program is just a collection of different interrupt service routines for different tasks.
+<list id="eip-id1171690247630"><item>
+The CPU is only active while servicing an ISR, allowing it to go into low power mode between interrupts.  Programs that spend a large percentage of their run time waiting on outside events can be made <emphasis>much more power efficient</emphasis>.
+</item>
+</list></note></item>
+</list>
+</item>
+
+<item><list id="eip-8" list-type="bulleted" bullet-style="none"><title>Basic Interrupt Implementation</title><item>Discrete hardware detects interrupt conditions and then triggers the appropriate interrupt in the CPU if it is high enough priority.</item>
+
+<item>The interrupt vector table maps each interrupt to the memory address of its interrupt service routine.  Like with traps, the CPU first goes to this table to find the address of the ISR and then jumps to the actual ISR code.</item>
+
+<item>CPUs contain several different interrupts to handle different external events uniquely.</item>
+</list>
+<figure id="msp430InterruptFlow"><title>MSP430 Interrupt Call Procedure</title><media id="eip-id1168128488365" alt="Interrupt calling chart-- showing how the MSP430 saves its state before executing the ISR">
+<image mime-type="image/png" src="MSP430 Interrupt Execution.png"/>
+</media>
+</figure>
+</item>
+
+<item><list id="eip-109" list-type="bulleted" bullet-style="none"><title>Interrupts on the MSP430</title><item>
+On the MSP430, there are two types of interrupts: maskable and non-maskable.  <definition id="eip-id1169803925616"><term>
+Maskable Interrupt
+</term>
+<meaning id="eip-id1169799039656">
+Most interrupts are maskable.  Maskable interrupts can be enabled or disabled as a group by setting the GIE (<emphasis>G</emphasis>eneral <emphasis>I</emphasis>neterrupt <emphasis>E</emphasis>nable) bit in the status register.  The interrupts must also be enabled individually, but masking allows delicate code (For example, if you are running a precisely timed output routine that must execute all at once) to run in a near interrupt free state by disabling only one bit.  <code id="eip-id1169796318664" display="block"><title>Enabling All Maskable Interrupts</title>bis.w    #GIE, SR</code>
+</meaning></definition>
+<definition id="eip-id1163915435880"><term>
+Non-Maskable Interrupt
+</term>
+<meaning id="eip-id1163911694123">
+Non-Maskable interrupts will trigger an interrupt at any point in code execution-- they cannot be enabled or disabled on a line by line basis, and they will execute even if the processor is "stuck".  Non-maskable interrupts mainly deal with recovering from errors and resets (illegal memory accesses, memory faults, watchdog expiration, or a hardware reset will trigger non-maskable interrupts).
+</meaning>
+</definition>
+</item>
+
+
+<item>
+<emphasis>In the MSP430, GPIO interrupt capability must be enabled at the masking level as well as the individual pin enable level.</emphasis>
+</item>
+
+<item>
+Interrupts should be enabled during the program initialization (before the main code loop or entering low power mode), but after any initialization steps vital to the ISR 
+</item>
+
+<item>
+<list id="eip-id1167674470555" type="bulleted"><title>There are four main steps to enabling interrupts on the MSP430's GPIO pins.</title><item>
+Enable interrupts on the individual input pin (in this example pin P1.4) using the port's interrupt enable register.
+<code id="eip-id1167108769684" display="block">bis.b #010h, &amp;P1IE
+</code>
+P1IE= <emphasis>P</emphasis>ort <emphasis>One</emphasis> <emphasis>I</emphasis>nterrupt <emphasis>E</emphasis>nable
+</item>
+<item>
+Select whether the interrupt triggers on a transition from low-&gt;high ("0") or high-&gt;low ("1") using the port's edge select register
+<code id="eip-id1167102429526" display="block">bis.b #010h, &amp;P1IES
+</code>
+P1IES=<emphasis>P</emphasis>ort <emphasis>One</emphasis> <emphasis>I</emphasis>nterrupt <emphasis>E</emphasis>dge <emphasis>S</emphasis>elect
+</item>
+<item>
+Clear the interrupt flag on the pin in the port's interrupt flag register.
+<code id="eip-id1167107393266" display="block">bic.b #010h, &amp;P1IFG
+</code>
+P1IFG=<emphasis>P</emphasis>ort <emphasis>One</emphasis> <emphasis>I</emphasis>nterrupt <emphasis>F</emphasis>la<emphasis>G</emphasis>
+
+<note id="eip-id1167650383787">Flags are important.  For one, if you forget to clear the flag at the end of your ISR, you will just trigger another interrupt as soon as you return.  Also, all of the GPIO pins trigger the same port one ISR.  If you have multiple interrupt triggering pins, flags can allow you to determine which pins triggered the interrupt.
+</note>
+</item>
+<item>
+And lastly, only after all of your other important setup, enable all the maskable interrupts in the overall CPU status register.
+<code id="eip-id1167111825679" display="block">bis.w #GIE, SR
+</code>
+</item>
+</list><list id="eip-27" list-type="bulleted" bullet-style="none"><title>Writing an MSP430 Interrupt Service Routine</title><item>The ISR needs to be a section of code outside of the normal main loop.</item>
+<item>Your ISR must begin with a label and end with a 
+<code display="inline">reti</code> instruction.
+<code id="eip-id1165384597404" display="block">
+Pin1_ISR  
+          &lt;YOUR ISR CODE&gt;
+          bic.b #001h, &amp;P1IFG
+          reti
+</code>
+</item>
+
+<item>At the end of your .asm program, you need to tell the assembler to write the starting address of your ISR to the correct section of the interrupt vector table.  The label at the beginning of your ISR allows you to find this address.</item>
+<item><note id="eip-id1170106234647" type="aside">CCS4 uses a separate file to define different sections of your controller's memory.  This extra layer of abstraction makes it easier to port code between different microcontrollers, but means that you the programmer can't write directly to a specific memory address in your program.  To fill your vector table, you'll need to use the following syntax:
+
+<code id="eip-id1163859760104" display="block">.sect MEMORYSECTION
+.word DATATOPLACE/LABEL
+</code>
+
+</note></item> 
+<item>
+The port one interrupt vector for the MSP430 G2231 is defined as 0xFFE4.  If you look in the file "Lnk_msp430g2231.cmd" (in the file browser for your lab 4 project), you will see that address 0xFFE4 has been assigned to INT02.  In the second half of the linker file, the section .int02 has been assigned to memory addresses &gt; INT02.  <emphasis>When you want to write to the GPIO entry of the interrupt vector table, you need write to code section ".int02" in your assembly file.</emphasis>
+
+<code id="eip-id3675214" display="block">
+<title>Setting the GPIO vector in the interrupt vector table</title>
+.sect ".int02"
+.word Pin1_ISR
+</code>
+</item>
+<item>
+The <code display="inline">.sect</code> instruction directs the linker to put the code that follows into a specific code section.  (You have been using this all along, just putting your code into the main program ".text" section.)
+</item>
+<item>
+The <code display="inline">.word</code> instruction directs the linker to write a word length data value into memory.
+</item> </list>
+</item>
+
+
+
+</list></item></list><para id="eip-630">For more information on interrupts, see the <link document="m12321" window="new">Interrupt section of TI's Microcontroller and Embedded Systems Laboratory.</link></para>
+</section><section id="eip-240"><title>Subroutines</title><list id="eip-id1168378776699" list-type="bulleted" bullet-style="none"><title>Subroutine Basics</title><item>Subroutines have a lot in common with interrupt service routines (in fact, many programmers use ISR interchangably between <emphasis>I</emphasis>nterrupt <emphasis>S</emphasis>ub <emphasis>R</emphasis>outine and interrupt service routine).</item>
+<item>Subroutines are sections of code you use repeatedly during a program-- they allow you to keep repetitive program sizes smaller by re-using the same code section instead of repeating it everywhere you need it.</item>
+<item>To go to a subroutine, use the <code display="inline">call #SubroutineLabel</code> instruction.  <code display="inline">call</code> is analogous to triggering an interrupt.  Call works in practice a lot like just jumping to the label, but it also pushes the PC onto the stack (like an ISR) so you can return to wherever you may have left off (since multiple places in code can call the same subroutine).</item>
+<item>At the end of your subroutine, use a <code display="inline">ret</code> (<emphasis>ret</emphasis>urn) instruction to pop the PC off the stack and go back to the original execution point of the main program.  This is analogous to the <code display="inline">reti</code> instruction at the end of an ISR.</item>
+<item><note id="eip-id1170113671825" type="warning">Calling a subroutine on the MSP430 <emphasis>ONLY</emphasis> saves the PC, not the status register like an ISR.  You can use subroutines to encapsulate complicated logic, and then examine the conditions afterwords in your main program.</note></item>
+
+<item>There is a <emphasis>slight</emphasis> performance trade off when using subroutines from the overhead involved with storing the PC and moving to a new section in memory, so use them intelligently.</item>
+
+<item>A simple subroutine to demonstrate call and return:
+<code id="eip-id1165377336376" display="block">&lt;Your Other Code...&gt;
+    call #Sub220
+    &lt;Your Other Other Code...&gt;
+
+Sub220  add R4, R5
+        inv R5
+        ret
+</code>
+</item></list></section></section><section id="eip-101"><title>Interrupt Assignment Detail</title><para id="eip-676">Your task is to create a simple MSP430 assembly program using CCS4 and the MSP430 LaunchPad to output a stored value to the 7-segment display. Your program should be <emphasis>interrupt driven</emphasis>, and triggering an interrupt on switch 4 (Pin 1.3/LaunchPad Pushbutton S2) should store and output a new output value corresponding to the state of switches 1-3. Changing switches 1-3 should <emphasis>not effect the output until toggling switch 4</emphasis>.  Your program should consist of:
+<list id="eip-id1171674061743"><item>
+A setup section that configures the GPIO pins and enables interrupts.
+</item>
+<item>
+An infinite main loop that does nothing (the <emphasis>N</emphasis>o <emphasis>Op</emphasis>eration instruction <code display="inline">nop</code> could come in handy).
+</item>
+<item>
+An ISR that takes the new inputs and writes them to the output before returning to the main loop.
+</item>
+</list></para>
+
+
+</section><para id="eip-253">Interrupt Diagrams Courtesy of TI document slau144e, "MSP430 User's Guide."</para>
+</content>
+
+
+</document>

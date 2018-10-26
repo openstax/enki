@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+7.1.0
+-----
+
+- Support book tree for both `get` and `publish`
+
 7.0.1
 -----
 

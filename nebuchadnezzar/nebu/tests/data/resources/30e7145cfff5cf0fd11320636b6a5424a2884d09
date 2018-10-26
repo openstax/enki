@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" id="new" cnxml-version="0.7" module-id="new">
+
+<title>Putting It All Together: An Interrupt Driven MSP430 Project</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m40645/latest/</md:content-url>
+  <md:content-id>m40645</md:content-id>
+  <md:title>Putting It All Together: An Interrupt Driven MSP430 Project</md:title>
+  <md:version>1.1</md:version>
+  <md:created>2011/05/24 16:09:14.679 GMT-5</md:created>
+  <md:revised>2011/08/16 14:01:14.609 GMT-5</md:revised>
+  <md:actors>
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn</md:role>
+    <md:role type="maintainer">mwjhnsn</md:role>
+    <md:role type="licensor">mwjhnsn</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>Cavallaro</md:keyword>
+    <md:keyword>Cycle</md:keyword>
+    <md:keyword>Display</md:keyword>
+    <md:keyword>Elec 220</md:keyword>
+    <md:keyword>GPIO</md:keyword>
+    <md:keyword>Interrupt</md:keyword>
+    <md:keyword>MSP430</md:keyword>
+    <md:keyword>Project</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>This Lab Module has the project outline for a simple assembly display program.  The program is interrupt driven and combines GPIO, polling, and interrupt concepts.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+  
+<section id="eip-345"><title>A More Complicated Assembly Program</title><para id="eip-606">By now you already have all of the tools you need to complete this assignment.  Remember what you have learned about <link document="m37151" window="new"> MSP430 assembly language</link>, <link document="m40643" window="new">setting up GPIO</link>, and <link document="m37217" window="new">using interrupts</link>. 
+<list id="eip-id1166551859943" list-type="enumerated" number-style="arabic"><item>
+Coding in MSP430 assembly, <emphasis>implement an interrupt driven number sequence recorder</emphasis>.  You will use the same input configuration from last week (get data from pins 1-3 on an interrupt from pin 4), but now will output a readable loop of the last 5 received numbers in order.  <link target-id="eip-872">Assignment Details</link>
+</item>
+</list>
+</para></section><section id="eip-872"><title>Part II Assignment Detail</title><para id="eip-32">Your task is to write an assembly program to display a programmable sequence of 5 numbers on the MSP430 LaunchPad.  
+<list id="eip-id1167920060578" list-type="bulleted" bullet-style="none"><item>You should use five slots to store the input numbers.</item>
+<item>Since our simple LaunchPad setup only has one display, you will have to rotate through each of the five numbers after a "short" (in human terms) delay.</item>
+<item>Use an ISR to store a new number in the "next" slot. (Next not necessarily meaning what is currently being displayed).  The input should go from slot 1 to 2 to 3... etc. regardless of which slot is currently being output.</item>
+<item>The program should only display a slot after a number has been input into it.  You will need to keep track of which slots have been filled.</item>
+</list>
+
+<figure id="eip-id1164840801766"><media id="eip-id1164843348091" alt="Slot fill chart-- shows how the slots should be filled sequentially.">
+<image mime-type="image/png" src="Lab4 Fill Order.png"/>
+</media>
+<caption>Only grey boxes are output to the display.  Also, notice how after filling all five slots, the ISR loops back and starts filling from the beginning.</caption></figure>
+
+Your program should consist of:
+<list id="eip-id1170473653505"><item>A setup routine that readies all the components of your program.</item>
+<item>A main loop that displays the stored numbers one after the other with a readable delay in between.</item>
+<item>An ISR that stores each new input number to the appropriate slot.</item>
+
+</list></para><list id="eip-847" list-type="bulleted" bullet-style="none"><title>A Few Hints:</title><item>The MSP430 operates at ~13MHz, which may seem slow in terms of computers, but is much too fast for the human eye to process (~30Hz).  You will have to implement a very significant delay in between number changes.</item>
+<item>One way to generate a naive delay is a long loop which does nothing.  You may even need to use a nested loop depending on how long of a delay you need.
+<para id="eip-id1164839715520">Nested Loop Example in C:</para>
+<code id="eip-id1165354492760" display="block">
+int i=0;
+int j=0;
+for (i=0; i&lt;bigNumber; i=i+1)
+{
+   for(j=bigNumber; j&gt;0; j=j-1)
+   {
+       &lt;!--This code will run ixj times--&gt;;
+    }
+}
+</code>
+
+</item>
+<item>You may find it convenient to put your five slots in RAM instead of using registers. You can then store a memory address in the register, and then increment it or set it as needed.  You will need to use indirect addressing mode though.
+<code id="eip-id1167123602847" display="block">
+mov R4, 0(R15); moves the contents of R4 to the address in R15
+
+</code>
+
+<code id="eip-id1167099051671" display="block">
+mov 0(R15), R4; moves the contents of the address in R15 into R4
+mov &amp;0x0200, R4; moves the contents of memory address 0x0200 into R4
+</code>
+</item>
+<item>Consider where it may be useful to implement parts of your program in subroutines</item></list></section><section id="eip-397"><title>Wrapup</title><para id="eip-802">Congratulations on completing lab 4!  Your program sophistication has dramatically increased.  You understand the basics of <emphasis>interrupt driven programming</emphasis>, and know how to use assembly level <emphasis>subroutines</emphasis>.  You have had to keep track of <emphasis>data</emphasis> as well as design a responsive I/O interface to the outside world. Keep up the good work!</para></section><para id="eip-198">Labs based on the original Elec 220 labs maintained by Michael Wu.</para><para id="eip-427">Images from original lab documents by Yang Sun. Modified by Matt Johnson.</para>
+</content>
+
+</document>
