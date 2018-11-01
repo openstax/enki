@@ -1,6 +1,10 @@
 ==========
 Change Log
 ==========
+7.1.1
+-----
+
+- Correct numbering for 'Introduction' pages.
 
 7.1.0
 -----

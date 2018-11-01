@@ -169,8 +169,9 @@ def _write_node(node, base_url, out_dir, book_tree=False,
         if lvl == depth:  # Reset counter for bottom-most level: pages
             pos[lvl] = 0
         for child in node['contents']:
-            #  HACK - the silly don't number Preface logic - let's use 00
-            if lvl == 1 and pos[1] == 0 and 'Preface' in child['title']:
+            #  HACK - the silly don't number Preface/Introduction logic
+            if ((lvl == 1 and pos[1] == 0 and 'Preface' in child['title']) or
+                    (pos[lvl] == 0 and child['title'] == 'Introduction')):
                 pos[lvl] = 0
             else:
                 pos[lvl] += 1
