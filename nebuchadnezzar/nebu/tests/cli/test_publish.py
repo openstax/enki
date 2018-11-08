@@ -26,6 +26,17 @@ class ResponseCallback:
         return json.dumps(self.data)
 
 
+def mock_successful_ping(ping_route, requests_mock):
+    url = 'https://cnx.org/api{}'.format(ping_route)
+
+    requests_mock.register_uri(
+        'POST',
+        url,
+        status_code=200,
+        text='200',
+    )
+
+
 # This is the response that would come out of Press given
 # the data in data/collection.
 COLLECTION_PUBLISH_PRESS_RESP_DATA = [
@@ -75,6 +86,9 @@ COLLECTION_PUBLISH_PRESS_RESP_DATA = [
 class TestPublishCmd:
 
     def test_in_cwd(self, datadir, monkeypatch, requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -137,6 +151,9 @@ class TestPublishCmd:
         assert included_files == expected_files
 
     def test_with_resource(self, datadir, monkeypatch, requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection_resources'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -198,6 +215,9 @@ class TestPublishCmd:
 
     def test_outside_cwd(self, datadir, monkeypatch,
                          requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -260,6 +280,9 @@ class TestPublishCmd:
 
     def test_with_invalid_content(self, datadir, monkeypatch,
                                   requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'invalid_collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -281,38 +304,28 @@ class TestPublishCmd:
         )
         assert expected_output in result.output
 
-    def test_with_auth_error(self, datadir, monkeypatch,
-                             requests_mock, invoker):
+    def test_with_publish_auth_error(self, datadir, monkeypatch,
+                                     requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+
+        # Mock unsuccessful publish ping
+        publish_ping_url = 'https://cnx.org/api/publish-ping'
+        requests_mock.register_uri(
+            'POST',
+            publish_ping_url,
+            status_code=401,
+            text='401',
+        )
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
         monkeypatch.setenv('XXX_PUBLISHER', publisher)
 
-        # Mock the publishing request
-        url = 'https://cnx.org/api/publish-litezip'
-
-        auth = HTTPBasicAuth('username', 'password')
-        mock_request = MockRequest()
-        auth(mock_request)
-
-        requests_mock.register_uri(
-            'POST',
-            url,
-            status_code=401,
-            text='401',
-        )
-        requests_mock.register_uri(
-            'POST',
-            url,
-            status_code=200,
-            text='200',
-            request_headers=mock_request.headers
-        )
-
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
         args = ['publish', 'test-env', str(datadir / id), '-m', message,
-                '--username', 'someusername', '--password', 'somepassword']
+                '--username', 'username', '--password', 'password']
         result = invoker(cli, args)
 
         # Check the results
@@ -320,7 +333,7 @@ class TestPublishCmd:
             raise result.exception
         assert result.exit_code == 1
         # Check for the expected failure output.
-        assert 'Bad credentials: ' in result.output
+        assert 'Publishing not allowed: ' in result.output
         expected_output = (
             'Stop the Press!!! =()\n'
         )
@@ -329,10 +342,13 @@ class TestPublishCmd:
         # assert result.output == expected_output
         assert expected_output in result.output
 
-    def test_auth_good_credentials(self, datadir, monkeypatch,
-                                   requests_mock, invoker):
+    def test_auth_good_credentials_and_can_publish(self, datadir, monkeypatch,
+                                                   requests_mock, invoker):
         """Test that the options are accepted when publishing.
         """
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -340,16 +356,10 @@ class TestPublishCmd:
 
         # Mock the publishing request
         url = 'https://cnx.org/api/publish-litezip'
-        auth = HTTPBasicAuth('someusername', 'somepassword')
+        auth = HTTPBasicAuth('username', 'password')
         mock_request = MockRequest()
         auth(mock_request)
 
-        requests_mock.register_uri(
-            'POST',
-            url,
-            status_code=401,
-            text='401',
-        )
         requests_mock.register_uri(
             'POST',
             url,
@@ -361,7 +371,7 @@ class TestPublishCmd:
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
         args = ['publish', 'test-env', str(datadir / id), '-m', message,
-                '--username', 'someusername', '--password', 'somepassword']
+                '--username', 'username', '--password', 'password']
         result = invoker(cli, args)
 
         # Check the results
@@ -376,8 +386,49 @@ class TestPublishCmd:
         # assert result.output == expected_output
         assert expected_output in result.output
 
+    def test_auth_no_permission_to_publish(self, datadir, monkeypatch,
+                                           requests_mock, invoker):
+        """
+        Test what happens when user has good credentials but
+        no permission to publish.
+        """
+        mock_successful_ping('/auth-ping', requests_mock)
+
+        # Mock the unsuccessful publishing request
+        publish_ping_url = 'https://cnx.org/api/publish-ping'
+        requests_mock.register_uri(
+            'POST',
+            publish_ping_url,
+            status_code=401,
+            text='401'
+        )
+
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
+
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', 'test-env', str(datadir / id), '-m', message,
+                '--username', 'username', '--password', 'password']
+        result = invoker(cli, args)
+
+        # Check the results
+        if result.exception and not isinstance(result.exception, SystemExit):
+            raise result.exception
+        assert result.exit_code == 1
+        # FIXME Ignoring temporary formatting of output, just check for
+        #       the last line so we know we got to the correct place.
+        # assert result.output == expected_output
+        assert 'Publishing not allowed: ' in result.output
+        assert 'Stop the Press!!! =()\n' in result.output
+
     def test_with_errors(self, datadir, monkeypatch,
                          requests_mock, invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -395,7 +446,7 @@ class TestPublishCmd:
         from nebu.cli.main import cli
         # Use Current Working Directory (CWD)
         args = ['publish', 'test-env', str(datadir / id), '-m', message,
-                '--username', 'someusername', '--password', 'somepassword']
+                '--username', 'username', '--password', 'password']
         result = invoker(cli, args)
 
         # Check the results
@@ -414,6 +465,9 @@ class TestPublishCmd:
 
     def test_skip_validation(self, datadir, monkeypatch, requests_mock,
                              invoker):
+        mock_successful_ping('/auth-ping', requests_mock)
+        mock_successful_ping('/publish-ping', requests_mock)
+
         id = 'collection'
         publisher = 'CollegeStax'
         message = 'mEssAgE'
@@ -450,3 +504,39 @@ class TestPublishCmd:
         )
         assert expected_output in result.output
         assert is_valid.calls == []
+
+    def test_auth_bad_credentials(self, datadir, monkeypatch,
+                                  requests_mock, invoker):
+        # Mock unsuccessful auth ping
+        auth_ping_url = 'https://cnx.org/api/auth-ping'
+        requests_mock.register_uri(
+            'POST',
+            auth_ping_url,
+            status_code=401,
+            text='401',
+        )
+
+        id = 'collection'
+        publisher = 'CollegeStax'
+        message = 'mEssAgE'
+        monkeypatch.setenv('XXX_PUBLISHER', publisher)
+
+        from nebu.cli.main import cli
+        # Use Current Working Directory (CWD)
+        args = ['publish', 'test-env', str(datadir / id), '-m', message,
+                '--username', 'username', '--password', 'password']
+        result = invoker(cli, args)
+
+        # Check the results
+        if result.exception and not isinstance(result.exception, SystemExit):
+            raise result.exception
+        assert result.exit_code == 1
+        # Check for the expected failure output.
+        assert 'Bad credentials: ' in result.output
+        expected_output = (
+            'Stop the Press!!! =()\n'
+        )
+        # FIXME Ignoring temporary formatting of output, just check for
+        #       the last line so we know we got to the correct place.
+        # assert result.output == expected_output
+        assert expected_output in result.output

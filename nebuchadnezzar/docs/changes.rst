@@ -1,6 +1,11 @@
 ==========
 Change Log
 ==========
+7.1.2
+-----
+
+- Preemptively check for credentials
+
 7.1.1
 -----
 
@@ -14,7 +19,7 @@ Change Log
 7.0.1
 -----
 
-- fix litezip 1.5 compatability 
+- fix litezip 1.5 compatability
 
 7.0.0
 -----
@@ -40,7 +45,7 @@ Change Log
 -----
 
 - Update cnxml for >=2.2.0 (#74)
-      
+
 - allow non-descendent path to xml in error output
 
 - update expected test output for new jing
