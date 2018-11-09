@@ -82,6 +82,58 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
+    def test_outside_cwd(self, datadir, tmpcwd, monkeypatch, requests_mock,
+                         invoker):
+        monkeypatch.chdir('/var')
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        # Register the resources
+        resdir = datadir / 'resources'
+        for res in resdir.glob('*'):
+            url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
+            register_data_file(requests_mock, resdir, res, url)
+
+        # Register contents
+        condir = datadir / 'contents'
+        for con in condir.glob('*'):
+            url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
+            register_data_file(requests_mock, condir, con, url)
+
+        # Register subcollection/chapter as 404
+        register_404(requests_mock,
+                     'https://archive.cnx.org/contents/'
+                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+
+        outdir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
+        from nebu.cli.main import cli
+        args = ['get', '-d', str(outdir), 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 0
+
+        outdir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=outdir), pathlib_walk(outdir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
     def test_book_tree(self, datadir, tmpcwd, requests_mock, invoker):
         col_id = 'col11405'
         col_version = '1.2'

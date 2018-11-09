@@ -5,6 +5,7 @@ Change Log
 -----
 
 - Preemptively check for credentials
+- Allow outside of CWD `get` output dir.
 
 7.1.1
 -----

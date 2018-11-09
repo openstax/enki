@@ -87,7 +87,11 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree):
     os.mkdir(str(output_dir))
 
     num_pages = _count_leaves(tree) + 1  # Num. of xml files to fetch
-    label = 'Getting {}'.format(output_dir.relative_to(Path.cwd()))
+    try:
+        label = 'Getting {}'.format(output_dir.relative_to(Path.cwd()))
+    except ValueError:
+        # Raised ONLY when output_dir is not a child of cwd
+        label = 'Getting {}'.format(output_dir)
     with click.progressbar(length=num_pages,
                            label=label,
                            width=0,
