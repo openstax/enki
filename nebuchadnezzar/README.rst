@@ -6,6 +6,7 @@ This is a command-line interface for interacting with connexions content. The to
 This software requires:
 
 - Python >= 3.5
+- libmagic (libmagic1 on Linux)
 - JRE >= 6
 
 
@@ -14,6 +15,7 @@ Install
 
 1. Install ``python3`` (on OSX you can run ``brew install python3``)
 #. Run ``pip3 install --upgrade pip setuptools`` in a terminal to upgrade python tools
+#. Make sure libmagic is installed (default on Linux, on OSX use ``brew install libmagic``)
 #. Run ``pip3 install nebuchadnezzar`` in a terminal
 #. Run ``neb --help`` to verify the application is installed
 
@@ -25,13 +27,14 @@ Install
 -------
 
 1. Install ``python3`` (on OSX you can run ``brew install python3``)
+#. Make sure libmagic is installed (default on Linux, on OSX use ``brew install libmagic``)
 #. Install ``virtualenv`` (on OSX you can run ``pip3 install virtualenv``)
 #. Initialize the python virtual environment:
 
    a. ``virtualenv ./venv/ --python=python3.5``
    #. ``source ./venv/bin/activate``
    #. ``pip3 install --upgrade pip setuptools``
-   #. ``python setup.py develop``
+   #. ``python setup.py develop`` or  (preferably) ``pip3 install -e .``
 
 Developer Run
 -------------
