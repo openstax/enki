@@ -1,6 +1,12 @@
 ==========
 Change Log
 ==========
+
+7.2.0
+-----
+
+- Only publish content that has changed.
+
 7.1.2
 -----
 

@@ -13,22 +13,120 @@ from litezip import (
     Collection,
 )
 
-from ._common import common_params, get_base_url, logger
+from ._common import common_params, get_base_url, logger, calculate_sha1
 from .validate import is_valid
 
 
 def parse_book_tree(bookdir):
     """Converts filesystem booktree back to a struct"""
     struct = []
+    ex = [lambda filepath: '.sha1sum' in filepath.name]
     for dirname, subdirs, filenames in os.walk(str(bookdir)):
         if 'collection.xml' in filenames:
-            struct.append(parse_collection(Path(dirname)))
+            path = Path(dirname)
+            sha1s = get_sha1s_dict(path)
+            struct.append((parse_collection(path, excludes=ex), sha1s))
         elif 'index.cnxml' in filenames:
-            struct.append(parse_module(Path(dirname)))
+            path = Path(dirname)
+            sha1s = get_sha1s_dict(path)
+            struct.append((parse_module(path, excludes=ex), sha1s))
+
     return struct
 
 
+def get_sha1s_dict(path):
+    """Returns a dict of sha1-s by filename"""
+    try:
+        with (path / '.sha1sum').open('r') as sha_file:
+            return {line.split('  ')[1].strip(): line.split('  ')[0].strip()
+                    for line in sha_file if not line.startswith('#')}
+    except FileNotFoundError:
+        return {}
+
+
+def filter_what_changed(contents):
+    changed = []
+
+    collection, coll_sha1s_dict = contents.pop(0)
+
+    for model, sha1s_dict in contents:
+        new_mod_resources = []
+        for resource in model.resources:
+            cached_sha1 = sha1s_dict.get(resource.filename.strip())
+
+            if cached_sha1 is None or resource.sha1 != cached_sha1:
+                new_mod_resources.append(resource)
+
+        # if the model changed or any of its resources
+        mod_cached_sha1 = sha1s_dict.get(model.file.name.strip())
+        mod_actual_sha1 = calculate_sha1(model.file)
+        if mod_actual_sha1 != mod_cached_sha1 or len(new_mod_resources) > 0:
+            new_model = model._replace(resources=tuple(new_mod_resources))
+            changed.append(new_model)
+
+    """Now check the Collection and the Collection's resources"""
+    new_col_resources = []
+    for resource in collection.resources:
+        cached_sha1 = coll_sha1s_dict.get(resource.filename.strip())
+
+        if cached_sha1 is None or resource.sha1 != cached_sha1:
+            new_col_resources.append(resource)
+
+    coll_changed = False
+    new_coll = collection._replace(resources=tuple(new_col_resources))
+    if len(new_col_resources) > 0:
+        changed.insert(0, new_coll)  # because `_publish` will expect this
+        coll_changed = True
+
+    # If any modules changed, assume collection changed
+    cached_coll_sha1 = coll_sha1s_dict.get('collection.xml')
+    if len(changed) > 0 or coll_sha1s_dict.get('collection.xml') is None or \
+       cached_coll_sha1 != calculate_sha1(collection.file):
+        if not coll_changed:  # coll already in changed.
+            changed.insert(0, new_coll)
+        return changed
+    else:  # No changes at all
+        return []
+
+
+def gen_zip_file(base_file_path, struct):
+    # TODO Move this block of logic to litezip. Maybe?
+    _, zip_file = tempfile.mkstemp()
+    zip_file = Path(zip_file)
+
+    with zipfile.ZipFile(str(zip_file), 'w') as zb:
+        for model in struct:
+            files = []
+            # Write the content file into the zip.
+            if isinstance(model, Collection):
+                file = model.file
+                full_path = base_file_path / file.name
+                files.append((file, full_path))
+
+                for resource in model.resources:
+                    full_path = base_file_path / resource.filename
+                    files.append((resource.data, full_path))
+            else:  # Module
+                file = model.file
+                full_path = base_file_path / model.id / file.name
+                files.append((file, full_path))
+
+                for resource in model.resources:
+                    full_path = base_file_path / model.id / resource.filename
+                    files.append((resource.data, full_path))
+
+            for file, full_path in files:
+                zb.write(str(file), str(full_path))
+
+    return zip_file
+
+
 def _publish(base_url, struct, message, username, password):
+    if len(struct) == 0:
+        logger.debug('Temporary raw output...')
+        logger.error('Nothing changed, nothing to publish.\n')
+        return False
+
     auth = HTTPBasicAuth(username, password)
 
     """Check for good credentials"""
@@ -56,31 +154,7 @@ def _publish(base_url, struct, message, username, password):
     base_file_path = Path(collection_id)
 
     # Zip it up!
-    # TODO Move this block of logic to litezip. Maybe?
-    _, zip_file = tempfile.mkstemp()
-    zip_file = Path(zip_file)
-    with zipfile.ZipFile(str(zip_file), 'w') as zb:
-        for model in struct:
-            files = []
-            # Write the content file into the zip.
-            if isinstance(model, Collection):
-                file = model.file
-                rel_file_path = base_file_path / model.file.name
-                files.append((file, rel_file_path))
-                for resource in model.resources:
-                    files.append((resource.data,
-                                  base_file_path / resource.filename))
-            else:  # Module
-                file = model.file
-                rel_file_path = base_file_path / model.id / model.file.name
-                files.append((file, rel_file_path))
-                for resource in model.resources:
-                    files.append((resource.data,
-                                  base_file_path /
-                                  model.id / resource.filename))
-
-            for file, rel_file_path in files:
-                zb.write(str(file), str(rel_file_path))
+    zip_file = gen_zip_file(base_file_path, struct)
 
     url = '{}/api/publish-litezip'.format(base_url)
     headers = {'X-API-Version': '3'}
@@ -143,6 +217,9 @@ def publish(ctx, env, content_dir, message, username, password,
 
     content_dir = Path(content_dir).resolve()
     struct = parse_book_tree(content_dir)
+
+    struct = filter_what_changed(struct)
+    logger.info('{} file(s) have been added or modified.'.format(len(struct)))
 
     if not skip_validation and not is_valid(struct):
         logger.info("We've got problems... :(")

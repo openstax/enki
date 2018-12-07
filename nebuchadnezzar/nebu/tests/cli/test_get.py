@@ -5,7 +5,8 @@ from pathlib import Path
 
 def pathlib_walk(dir):
     for e in scandir(str(dir)):
-        yield Path(e.path)
+        if '.sha1sum' not in e.path:  # ignore .sha1sum files
+            yield Path(e.path)
         if e.is_dir():
             for ee in pathlib_walk(e.path):
                 yield Path(ee)

@@ -5,10 +5,9 @@ import requests
 
 from lxml import etree
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
 
 from ..logger import logger
-from ._common import common_params, confirm, get_base_url
+from ._common import common_params, confirm, build_archive_url
 from .exceptions import *  # noqa: F403
 
 
@@ -25,15 +24,7 @@ from .exceptions import *  # noqa: F403
 def get(ctx, env, col_id, col_version, output_dir, book_tree):
     """download and expand the completezip to the current working directory"""
 
-    # Build the base url
-    base_url = get_base_url(ctx, env)
-    parsed_url = urlparse(base_url)
-    sep = len(parsed_url.netloc.split('.')) > 2 and '-' or '.'
-    url_parts = [
-        parsed_url.scheme,
-        'archive{}{}'.format(sep, parsed_url.netloc),
-    ] + list(parsed_url[2:])
-    base_url = urlunparse(url_parts)
+    base_url = build_archive_url(ctx, env)
 
     col_hash = '{}/{}'.format(col_id, col_version)
     # Fetch metadata
@@ -121,6 +112,13 @@ def _safe_name(name):
     return name.replace('/', '∕').replace(':', '∶')
 
 
+def gen_resources_sha1_cache(write_dir, resources):
+    for resource in resources:
+        with (write_dir / '.sha1sum').open('a') as s:
+            # NOTE: the id is the sha1
+            s.write('{} {}\n'.format(resource['id'], resource['filename']))
+
+
 def _write_node(node, base_url, out_dir, book_tree=False,
                 pbar=None, depth=None, pos={0: 0}, lvl=0):
     """Recursively write out contents of a book
@@ -158,6 +156,10 @@ def _write_node(node, base_url, out_dir, book_tree=False,
             write_dir = write_dir / metadata['legacy_id']
             os.mkdir(str(write_dir))
         filepath = write_dir / filename
+
+        """Cache/store sha1-s for resources in a 'dot' file"""
+        gen_resources_sha1_cache(write_dir, metadata['resources'])
+
         # core files are XML - this parse/serialize removes numeric entities
         filepath.write_bytes(etree.tostring(etree.XML(file_resp.text),
                                             encoding='utf-8',

@@ -1,4 +1,6 @@
 from functools import wraps
+from urllib.parse import urlparse, urlunparse
+import hashlib
 
 import click
 
@@ -71,6 +73,19 @@ def get_base_url(context, environ_name):
         raise UnknownEnvironment(environ_name)
 
 
+def build_archive_url(context, environ_name):
+    # Build the archive base url
+    archive_url = get_base_url(context, environ_name)
+    parsed_url = urlparse(archive_url)
+    sep = len(parsed_url.netloc.split('.')) > 2 and '-' or '.'
+    url_parts = [
+        parsed_url.scheme,
+        'archive{}{}'.format(sep, parsed_url.netloc),
+    ] + list(parsed_url[2:])
+    archive_url = urlunparse(url_parts)
+    return archive_url
+
+
 def set_verbosity(verbose):
     config = console_logging_config.copy()
     if verbose:
@@ -79,3 +94,9 @@ def set_verbosity(verbose):
         level = 'INFO'
     config['loggers']['nebuchadnezzar']['level'] = level
     configure_logging(config)
+
+
+def calculate_sha1(fpath):
+    sha1 = hashlib.sha1()
+    sha1.update(fpath.open('rb').read())
+    return sha1.hexdigest()
