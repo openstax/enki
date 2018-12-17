@@ -78,6 +78,7 @@ class TestDiscoverSettings:
                 'content03': {'url': 'https://content03.cnx.org'},
                 'content04': {'url': 'https://content04.cnx.org'},
                 'content05': {'url': 'https://content05.cnx.org'},
+                'staged': {'url': 'https://staged.cnx.org'},
             },
         }
         assert settings == expected_settings
@@ -104,6 +105,7 @@ class TestDiscoverSettings:
                 'content03': {'url': 'https://content03.cnx.org'},
                 'content04': {'url': 'https://content04.cnx.org'},
                 'content05': {'url': 'https://content05.cnx.org'},
+                'staged': {'url': 'https://staged.cnx.org'},
             },
         }
         assert settings == expected_settings

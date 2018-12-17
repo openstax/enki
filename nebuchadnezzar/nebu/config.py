@@ -38,6 +38,9 @@ url = https://content04.cnx.org
 
 [environ-content05]
 url = https://content05.cnx.org
+
+[environ-staged]
+url = https://staged.cnx.org
 """
 
 

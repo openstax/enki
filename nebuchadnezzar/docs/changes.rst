@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+7.2.1
+-----
+
+- Add staged.cnx.org environments to the default configuration file.
+
 7.2.0
 -----
 
