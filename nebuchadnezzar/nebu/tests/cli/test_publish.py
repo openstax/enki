@@ -29,7 +29,7 @@ def mock_successful_ping(ping_route, requests_mock):
     url = 'https://cnx.org/api{}'.format(ping_route)
 
     requests_mock.register_uri(
-        'POST',
+        'GET',
         url,
         status_code=200,
         text='200',
@@ -313,7 +313,7 @@ class TestPublishCmd:
         # Mock unsuccessful publish ping
         publish_ping_url = 'https://cnx.org/api/publish-ping'
         requests_mock.register_uri(
-            'POST',
+            'GET',
             publish_ping_url,
             status_code=401,
             text='401',
@@ -399,7 +399,7 @@ class TestPublishCmd:
         # Mock the unsuccessful publishing request
         publish_ping_url = 'https://cnx.org/api/publish-ping'
         requests_mock.register_uri(
-            'POST',
+            'GET',
             publish_ping_url,
             status_code=401,
             text='401'
@@ -512,7 +512,7 @@ class TestPublishCmd:
         # Mock unsuccessful auth ping
         auth_ping_url = 'https://cnx.org/api/auth-ping'
         requests_mock.register_uri(
-            'POST',
+            'GET',
             auth_ping_url,
             status_code=401,
             text='401',

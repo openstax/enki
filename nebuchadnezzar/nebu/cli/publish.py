@@ -131,7 +131,7 @@ def _publish(base_url, struct, message, username, password):
 
     """Check for good credentials"""
     auth_ping_url = '{}/api/auth-ping'.format(base_url)
-    auth_ping_resp = requests.post(auth_ping_url, auth=auth)
+    auth_ping_resp = requests.get(auth_ping_url, auth=auth)
 
     if auth_ping_resp.status_code == 401:
         logger.debug('Temporary raw output...')
@@ -140,7 +140,7 @@ def _publish(base_url, struct, message, username, password):
 
     """Check for permission to publish"""
     publish_ping_url = '{}/api/publish-ping'.format(base_url)
-    publish_ping_resp = requests.post(publish_ping_url, auth=auth)
+    publish_ping_resp = requests.get(publish_ping_url, auth=auth)
 
     if publish_ping_resp.status_code == 401:
         logger.debug('Temporary raw output...')
