@@ -12,7 +12,7 @@ pipeline {
         release = getVersion()
       }
       steps {
-        sh "docker run --rm -e TWINE_USERNAME -e TWINE_PASSWORD -w /src -v ${WORKSPACE}:/src/:rw python3 /bin/bash -c \"pip install -q twine && python2 setup.py bdist_wheel && twine upload dist/*\""
+        sh "docker run --rm -e TWINE_USERNAME -e TWINE_PASSWORD -w /src -v ${WORKSPACE}:/src/:rw python:3 /bin/bash -c \"pip install -q twine && python3 setup.py bdist_wheel && twine upload dist/*\""
       }
     }
   }

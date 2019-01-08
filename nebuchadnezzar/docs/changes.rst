@@ -2,8 +2,14 @@
 Change Log
 ==========
 
+8.0.3
+-----
+
+- Fix pipeline stage for releasing the python package.
+
 8.0.2
 -----
+
 - Fix http verb to check credentials before publish.
 
 8.0.1
