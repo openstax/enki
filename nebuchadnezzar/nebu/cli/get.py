@@ -116,7 +116,7 @@ def gen_resources_sha1_cache(write_dir, resources):
     for resource in resources:
         with (write_dir / '.sha1sum').open('a') as s:
             # NOTE: the id is the sha1
-            s.write('{} {}\n'.format(resource['id'], resource['filename']))
+            s.write('{}  {}\n'.format(resource['id'], resource['filename']))
 
 
 def _write_node(node, base_url, out_dir, book_tree=False,

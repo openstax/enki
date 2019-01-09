@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+8.0.4
+-----
+
+- Fix spacing when generating sha1sum files on `get`.
+
 8.0.3
 -----
 
