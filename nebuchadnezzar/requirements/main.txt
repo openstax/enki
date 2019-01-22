@@ -1,5 +1,5 @@
 click
-cnx-litezip>=1.5.1
+cnx-litezip>=1.6.0
 pip
 requests
 setuptools

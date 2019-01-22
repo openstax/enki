@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+8.0.5
+-----
+
+- Update cnx-litezip for >= 1.6.0
+
 8.0.4
 -----
 
