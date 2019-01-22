@@ -162,8 +162,7 @@ def _write_node(node, base_url, out_dir, book_tree=False,
 
         # core files are XML - this parse/serialize removes numeric entities
         filepath.write_bytes(etree.tostring(etree.XML(file_resp.text),
-                                            encoding='utf-8',
-                                            xml_declaration=True))
+                                            encoding='utf-8'))
         if pbar is not None:
             pbar.update(1)
         # TODO Future - fetch all resources, if requested
