@@ -8,7 +8,10 @@ from pathlib import Path
 
 from ..logger import logger
 from ._common import common_params, confirm, build_archive_url
-from .exceptions import *  # noqa: F403
+from .exceptions import (MissingContent,
+                         ExistingOutputDir,
+                         OldContent,
+                         )
 
 
 @click.command()
@@ -26,18 +29,40 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree):
 
     base_url = build_archive_url(ctx, env)
 
+    version = None
+    req_version = col_version
+    if col_version.count('.') > 1:
+        full_version = col_version.split('.')
+        col_version = '.'.join(full_version[:2])
+        version = '.'.join(full_version[1:])
+
     col_hash = '{}/{}'.format(col_id, col_version)
     # Fetch metadata
     url = '{}/content/{}'.format(base_url, col_hash)
     resp = requests.get(url)
     if resp.status_code >= 400:
-        raise MissingContent(col_id, col_version)
+        raise MissingContent(col_id, req_version)
     col_metadata = resp.json()
     if col_metadata['collated']:
         url = resp.url + '?as_collated=False'
         resp = requests.get(url)
+        if resp.status_code >= 400:
+            # This should never happen - indicates that only baked exists?
+            raise MissingContent(col_id, req_version)
         col_metadata = resp.json()
     uuid = col_metadata['id']
+    # metadata fetch used legacy IDs, so will only have
+    # the latest minor version - if "version" is set, the
+    # user requested an explicit minor (3 part version: 1.X.Y)
+    # refetch metadata, using uuid and requested version
+    if version and version != col_metadata['version']:
+        url = '{}/contents/{}@{}'.format(base_url, uuid, version) + \
+              '?as_collated=False'
+        resp = requests.get(url)
+        if resp.status_code >= 400:  # Requested version doesn't exist
+            raise MissingContent(col_id, req_version)
+        col_metadata = resp.json()
+
     version = col_metadata['version']
 
     # Generate full output dir as soon as we have the version

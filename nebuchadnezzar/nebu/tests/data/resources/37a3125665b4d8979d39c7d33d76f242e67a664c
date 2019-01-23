@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" id="new" cnxml-version="0.7" module-id="new">
+
+<title>A "Real-World" Microprocessor: Basic MSP430 Assembly from Roots in LC-3</title>
+<metadata xmlns:md="http://cnx.rice.edu/mdml"
+          mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/m37151/latest/</md:content-url>
+  <md:content-id>m37151</md:content-id>
+  <md:title>A "Real-World" Microprocessor: Basic MSP430 Assembly from Roots in LC-3</md:title>
+  <md:version>1.4</md:version>
+  <md:created>2010/12/08 16:27:42 US/Central</md:created>
+  <md:revised>2011/08/16 13:45:28.053 GMT-5</md:revised>
+  <md:actors>
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn</md:role>
+    <md:role type="maintainer">mwjhnsn</md:role>
+    <md:role type="licensor">mwjhnsn</md:role>
+  </md:roles>
+  <md:license url="http://creativecommons.org/licenses/by/3.0/" />
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  <md:keywordlist>
+    <md:keyword>assembly</md:keyword>
+    <md:keyword>lab</md:keyword>
+    <md:keyword>loop</md:keyword>
+    <md:keyword>mov</md:keyword>
+    <md:keyword>MSP430</md:keyword>
+    <md:keyword>polling</md:keyword>
+    <md:keyword>str</md:keyword>
+  </md:keywordlist>
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+  <md:abstract>In this lab, students apply what they have learned to implement some basic assembly coding principals on real world hardware.  They take what they know from the educational LC-3 and apply the basic principals to a new hardware situation.</md:abstract>
+  <md:language>en</md:language>
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+<content>
+  <section id="eip-338"><title>An Intro to the MSP430 from the LC-3</title>
+
+<para id="eip-466">This week you will go over the basic differences between the MSP430's assembly ISA and the LC-3's, and learn how to write a basic assembly program for the MSP-430 using TI's Code Composer Studio.  You have two main tasks ahead of you:
+
+<list id="tasks_list" type="Enumerated" list-type="enumerated" number-style="arabic"><item>  Following the <link document="m37152">breadboard assembly instructions</link>, put together a basic I/O package for the MSP430 launchpad.  Once you have everything (hopefully) wired correctly, the pre-flashed test program should run correctly.  If it doesn't, work with the labbies to troubleshoot your board!
+</item>
+
+<item>  Coding in MSP430 Assembly, <emphasis>implement a Fibonacci sequence calculator</emphasis>. This should be done with a loop and run infinitely. Step through, explain, and demonstrate the code, using the CCS4 Debugger. Be sure to view the registers while stepping through the program. Observe the amount of CPU cycles each of the instructions takes to complete. <link target-id="eip-101"> Detailed Instructions</link>
+</item></list>
+</para>
+</section><section id="eip-776"><title>Some Background Information</title><section id="eip-541"><title>Main Differences Between MSP430 and LC-3</title>
+
+<list id="eip-292"><item>
+
+<list id="eip-252" list-type="bulleted" bullet-style="none"><title>The MSP430 has a larger assembly instruction set than the LC-3</title><item>MSP430 assembly includes some task specific instructions (Such as <code display="inline">inc</code> and <code display="inline">dec</code>) to simplify reading the language</item>
+<item>
+Some MSP430 assembly instructions are interpreted instructions (Such as <code display="inline">pop</code> and <code display="inline"> push</code>)
+<definition id="interpretedinstructionsdef"><term>Interpreted Instructions</term>
+<meaning id="eip-id1166780809260"> An instruction that is decomposed by the assembler into several smaller/ more basic fundamental instructions.</meaning>
+<example id="eip-id1166524617980">
+<para id="interpretedExample"><code display="inline">pop R3 </code> contains two implicit instructions: <code display="inline">mov @SP, R3</code> and <code display="inline"> add #0x02, SP</code>
+</para>
+</example></definition>
+</item>
+</list>
+
+</item>
+
+<item>
+
+<list id="eip-571" list-type="bulleted" bullet-style="none"><title>Math and logical instructions are similar, but do not have a specific destination.</title><item>MSP430 instructions come in two flavors, dual operand and single operand.  Neither type has an explicit destination register, rather, the last operand serves as the destination too.</item>
+<item>For Example:
+<code display="inline">add R4, R5 </code> in MSP430 assembly corresponds to <code display="inline">add R5, R4, R5</code> in LC-3</item>
+<item>
+<note id="eip-id1165606809719" type="warning">Be careful to not overwrite data you wish to keep!  If you need to preserve the values in both operand registers, you will need to save one of them first using a <code display="inline">mov</code> instruction.
+</note>
+</item></list>
+</item>
+
+<item><list id="eip-53" list-type="bulleted" bullet-style="none"><title>MSP430 Supports some byte as well as word instructions</title><item>Some MSP430 instructions allow you to address and write/read from a specific 8 bit byte in memory instead of the entire 16 bit word.  The MSP430 memory has byte level addressability, but word instructions only operate on even numbered memory addresses (implicitly modifying the next odd numbered memory byte too).  In many cases, especially when working with memory mapped I/O registers, you may need to operate on one specific byte only.  To do so, just add a <code display="inline">.b</code> onto the end of the assembly instruction</item>
+<item> For example: <code display="inline"> mov.b #0, &amp;P1DIR </code> sets 8 bit length P1DIR register to zero without accidentally modifying the registers around it.</item>
+<item><note id="eip-id1168120500903" type="aside">MSP430 assembly specifies <code display="inline">.w</code> for executing word length instructions as well as <code display="inline">.b</code> for bit length instructions.  The assembler by default assumes word length, so you the programmer don't have to explicitly write <code display="inline">mov.w R5, R14</code> although you should be conscious that <code display="inline">mov R5, R14</code> means the same thing.</note></item>
+</list>
+</item>
+
+<item><list id="eip-8" list-type="bulleted" bullet-style="none"><title>The MSP430 has 16 CPU registers</title><item>The MSP430 has twice as many CPU registers as the LC-3.  Like in the LC-3 though, some of the MSP430's registers are reserved for the MSP430 runtime environment.  Registers R0-R3 are reserved (Program Counter, Stack Pointer, Status Register, and a Constant Generation Register respectively), leaving registers R4 through R15 available for general purpose use as defined by the programmer.</item>
+<item>In your assembly programs you have 12 general purpose registers at your disposal, but you also must manage and keep track of the additional options.</item>
+<item>
+
+<figure id="msp430RegisterDiagram">
+<title>MSP430 Register Usage Diagram </title>
+<media id="eip-id1171202278830" alt="MSP430 Register Diagram">
+<image mime-type="image/png" height="600" src="MSP430 Register Diagram.png"/>
+</media>
+</figure>
+</item>
+</list></item>
+
+<item><list id="eip-109" list-type="bulleted" bullet-style="none"><title>Indirect, relative, and absolute addressing occurs differently</title><item>
+
+Instead of different indirect and direct load and store instructions (<code display="inline">LD, LEA, LDI</code>, etc...), the MSP430 uses one versatile <code display="inline"> mov</code> instruction with different operand addressing modes.
+</item>
+<item>
+<code display="inline">mov </code> can both read and write from memory-- it acts like both a load and store.  (<code display="inline">mov R4, &amp;0x0200</code> corresponds to a <code display="inline">ST</code> while <code display="inline">mov &amp;0x0200, R4</code> corresponds to a <code display="inline">LD</code>)  Be careful though, unlike in LC-3, <code display="inline">mov</code> <emphasis>does NOT update the condition register.</emphasis>
+</item>
+
+<item>Differentiate between the various direct and indirect modes by using special syntax to specify the type of operand you want.  This allows you to mix addressing types (read indirect and store direct, etc...) even though everything is in one mov instruction.<list id="eip-394"><item>Direct register access:  Rn (where n is the number of a general purpose register) Example: <code display="inline"> R4 </code> refers directly to R4</item>
+
+<item>Immediate Values: #x (where X is an immediate numerical value or label) Example: <code display="inline">#02h </code> refers to the literal hex number 2  </item>
+
+<item>Indirect Access From a Register: @Rn (where n is the number of a general purpose register) Example: <code display="inline"> @R6 </code> refers indirectly to the data stored in the memory location in R6</item>
+
+<item>Indirect Offset Access: x(Rn) (where n is the number of a general purpose register and x is either an literal offset or a label) Example: <code display="inline"> 0(R7) </code> refers to the data stored in the location in memory pointed to by R7 
+<note id="eip-id1169842939319">This has the same end result as <code display="inline"> @R7</code>.  By TI code convention though, @Rn cannot be used to specify the destination of an operation, so if you wish to store a result indirectly, you must use the 0(Rn) syntax.</note>
+<note id="eip-id1169842082128" type="tip">In this example R7 essentially contained the address while the literal offset was a small number.  Offset Access can be very powerful when looked at the other way: where the literal contains a starting location in memory (potentially a label) and the register contains a small offset value incremented to access a series of locations in memory.</note>
+<figure id="msp430AddressingModes"><title>MSP430 Addressing Modes</title><media id="eip-id1168128488365" alt="modes chart">
+<image mime-type="image/png" width="600" src="MSP430 Addressing Modes.png"/>
+</media>
+</figure>
+</item></list></item>
+
+<item>You can also perform indirect or relative operand addressing with operations other than loads and stores 
+<example id="eip-id1168121410819"><para id="indirectExample">
+<code display="inline"> add @R4, R5 </code> takes the data stored in the address pointed to by R4 and adds it with R5, storing the result in R5.
+</para></example>
+</item>
+<item> For more information, see the summary chart <link target-id="msp430AddressingModes"/> or the comprehensive <link resource="MSP430 User Guide-slau144e.pdf"> MSP430 users guide</link> section 3.3.0 through 3.3.7</item></list></item>
+
+<item>
+<list id="eip-303" list-type="bulleted" bullet-style="none"><title>The MSP430 has two types of memory</title><item>The MSP430 has both traditional RAM and non-volatile Flash memory.  On a power reset, all values in RAM are cleared, so your program will be stored in Flash.  The Flash write process is fairly involved, so we won't be writing to it in this class during run time (Code Composer will take care of loading your programs).  In a nutshell, your program must store any temporary or changing values to RAM memory, although it can read your instructions and any preset constants from flash</item>
+<item>
+Important Memory Locations:
+<list id="importantMemoryLocations" list-type="bulleted" bullet-style="none"><item>0x0200 : The Lowest Address in RAM</item>
+<item>0x0280 : The Highest Address in RAM</item>
+<item>0xF800 : The Beginning of Flash Memory</item>
+<item>0xFFE0 : The Beginning of the Interrupt Vector Table</item>
+
+
+</list>
+</item>
+<item>
+<figure id="msp430MemoryMap"><title>MSP430 Memory Map</title><media id="eip-id1171199741625" alt="MSP430 Memory Map">
+<image mime-type="image/png" height="400" src="MSP430 Memory Map.png"/>
+</media> 
+</figure>
+</item></list><list id="eip-661"><title>The MSP430 Uses Memory Mapped I/O Peripherals</title><item>These devices function independently of the main processor, and use memory mapped registers to communicate with the program executing on the main CPU.  </item>
+<item>Peripherals free up CPU resources and also allow more usage of low power CPU suspend modes.  You'll learn more about peripherals in Lab 5</item>
+</list>
+<figure id="msp430Architecture">
+<title>MSP430 Architecture Block Diagram</title>
+<media id="eip-id1171200550937" alt="MSP430 Von Neumann Architecture Block Diagram">
+<image mime-type="image/png" width="400" src="MSP430 Architecture Block Diagram.png"/>
+</media>
+</figure>
+</item></list>
+</section><section id="eip-240"><title>Example Code Translations</title><table id="eip-932" summary="A comparison between LC-3 style assembly instructions and their MSP430 assembly equivalents.">
+<tgroup cols="4"><thead>
+	  <row>
+		<entry align="center">LC-3 Assembly</entry>
+		<entry align="center">LC-3 Pseudocode</entry>
+		<entry align="center">MSP430 Assembly</entry>
+		<entry align="center">MSP430 Pseudocode</entry>
+	  </row>
+  </thead>
+<tbody>  
+  <row>
+    <entry>
+		<list id="lc3assemblydemo1" list-type="bulleted" bullet-style="none">
+			<item><code display="inline"> AND R4,R5,R6; </code></item>
+		</list>
+	</entry>
+    <entry>
+		<list id="lc3pseudocode1" list-type="bulleted" bullet-style="none">
+			<item>R4 &lt;- R5 &amp; R6 </item>
+		</list>
+	</entry>
+    <entry>
+    <list id="msp430assemblydemo1" list-type="bulleted" bullet-style="none"><item><code display="inline"> mov.w R5,R4; </code></item>
+<item><code display="inline">and.w R6,R4; </code></item>
+    </list>
+    </entry>
+    <entry>
+		<list id="msp430pseudocode1" list-type="bulleted" bullet-style="none"><item> R4 &lt;- R5 </item>
+			<item>R4 &lt;- R4 &amp; R6</item>
+		</list>
+	</entry>
+  </row>
+ <!-- begin next row~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+  <row>
+    <entry>
+		<list id="lc3assemblydemo2" list-type="bulleted" bullet-style="none">
+			<item><code display="inline"> BRz R4,Loop; </code></item>
+		</list>
+	</entry>
+    <entry>
+		<list id="lc3pseudocode2" list-type="bulleted" bullet-style="none">
+			<item>if R4 == 0, branch to label "Loop" </item>
+		</list>
+	</entry>
+    <entry>
+    <list id="msp430assemblydemo2" list-type="bulleted" bullet-style="none"><item><code display="inline"> tst R4; </code></item>
+<item><code display="inline">jz Loop; </code></item>
+    </list>
+    </entry>
+    <entry>
+		<list id="msp430pseudocode2" list-type="bulleted" bullet-style="none"><item> load the attributes of R4 into the SR </item>
+			<item>jump to label "Loop" if the zero bit is flagged </item>
+		</list>
+	</entry>
+  </row>
+</tbody>
+</tgroup>
+</table></section><section id="eip-798"><title>Other Useful Information</title><para id="eip-336">The code composer debugger actually runs on the real MSP430 hardware through a JTAG interface.  To debug code, <emphasis>you have to have the launchpad board plugged into the computer</emphasis>.
+</para>
+<para id="eip-id1168005680438">
+The debugger controls the CPU's clock (and therefore can monitor it).  <emphasis>To see how many clock cycles something takes, go to Target -&gt; Clock -&gt; Enable, and look in the bottom right corner of the screen for a small counter with a clock next to it.</emphasis>
+</para></section></section><section id="eip-101"><title>Part I Assignment Detail</title><para id="eip-676">Your task is to create a simple MSP430 assembly program using CCS4 and the MSP430 launchPad to calculate a Fibonacci sequence. You do not need to explicitly display the sequence, but rather use the Code Composer register view tools to watch the sequence progress as you step through your program.</para>
+<para id="eip-39">To view the registers in Code Composer Studio v4, first start a debug session.  Once you are in the debug perspective, you can go to View--&gt; Registers to open the register dialog.  From there, expand the section "Core Registers" to see your CPU registers, or the section "Port_1_2" to see the raw data from the input pins.</para><para id="eip-459">Enable the clock cycle monitor (Target--&gt;Clock--&gt;Enable) and you will see a yellow clock icon at the very bottom of your screen.  This tells you how many actual CPU clock cycles have passed since you enabled it.  Observe the different amounts of time that different instructions take.</para><definition id="FibonacciSequence"><term>The Fibonacci Sequence</term>
+<meaning id="eip-id1164207014462">The sequence of numbers starting with 0 , 1 in which N= (N-1) + (N-2)  <para id="fibex">0, 1, 1, 2, 3, 5, 8, 13, 21, 34...</para></meaning>
+</definition>
+
+<note id="eip-472" type="aside">The Fibonacci sequence plays an important role in the natural world.  It appears in many biological sequences, and is fundamentally linked to the famed "golden ratio."  For more "fun" info about Leonardo Fibonacci, see <link url="http://en.wikipedia.org/wiki/Fibonacci"> the ever reliable Wikipedia </link></note></section>
+
+<para id="eip-768">Diagrams courtesy of TI document slau144e "MSP430 User's Guide"</para><para id="eip-785">The LC-3 was developed by Yale N. Patt (University of Texas at Austin) and Sanjay J. Patel (University of Illinois at Urbana-Champaign) and is used in their book <cite>Introduction to Computing Systems</cite>.</para>
+</content>
+
+</document>
