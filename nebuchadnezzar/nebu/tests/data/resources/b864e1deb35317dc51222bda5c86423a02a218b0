@@ -1,0 +1,246 @@
+<?xml version='1.0' encoding='utf-8'?>
+<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:cnx="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:md="http://cnx.rice.edu/mdml" xmlns:col="http://cnx.rice.edu/collxml" xmlns:cnxml="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:bib="http://bibtexml.sf.net/" xmlns:cc="http://web.resource.org/cc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xml:lang="en">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+  <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+       Changes to the metadata section in the source will not be saved. -->
+
+  <md:repository>http://cnx.org/content</md:repository>
+  <md:content-url>http://cnx.org/content/col11405/1.2</md:content-url>
+  <md:content-id>col11405</md:content-id>
+  <md:title>Intro to Computational Engineering: Elec 220 Labs</md:title>
+  
+  
+  <md:version>1.2</md:version>
+  <md:created>2011/05/24 10:31:56.888 GMT-5</md:created>
+  <md:revised>2013/03/11 22:52:33.244 GMT-5</md:revised>
+
+  <md:actors>
+    
+    
+    <md:person userid="cavallar">
+      <md:firstname>Joseph</md:firstname>
+      <md:surname>Cavallaro</md:surname>
+      <md:fullname>Joseph Cavallaro</md:fullname>
+      <md:email>cavallar@rice.edu</md:email>
+    </md:person>
+    
+    
+    
+    <md:person userid="mwjhnsn">
+      <md:firstname>Matthew</md:firstname>
+      <md:surname>Johnson</md:surname>
+      <md:fullname>Matthew Johnson</md:fullname>
+      <md:email>mwj1@rice.edu</md:email>
+    </md:person>
+    
+    
+    
+    <md:person userid="jedifan42">
+      <md:firstname>Chris</md:firstname>
+      <md:surname>Stevenson</md:surname>
+      <md:fullname>Chris Stevenson</md:fullname>
+      <md:email>cms11@rice.edu</md:email>
+    </md:person>
+    
+  </md:actors>
+  <md:roles>
+    <md:role type="author">mwjhnsn jedifan42</md:role>
+    <md:role type="maintainer">mwjhnsn jedifan42 cavallar</md:role>
+    <md:role type="licensor">mwjhnsn jedifan42 cavallar</md:role>
+    
+    
+  </md:roles>
+
+  <md:license url="http://creativecommons.org/licenses/by/3.0/"/>
+  <!-- For information on license requirements for use or modification, see license url in the
+       above <md:license> element.
+       For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+       where CONTENT_URL is the value provided above in the <md:content-url> element.
+  -->
+  
+  
+  
+  
+
+  
+
+  <md:keywordlist>
+    <md:keyword>Calculator</md:keyword>
+    <md:keyword>Cavallaro</md:keyword>
+    <md:keyword>Elec 220</md:keyword>
+    <md:keyword>Gate</md:keyword>
+    <md:keyword>Interrupt</md:keyword>
+    <md:keyword>LC-3</md:keyword>
+    <md:keyword>Loop</md:keyword>
+    <md:keyword>Microcontroller</md:keyword>
+    <md:keyword>MSP 430</md:keyword>
+    <md:keyword>Rice</md:keyword>
+  </md:keywordlist>
+
+  <md:subjectlist>
+    <md:subject>Science and Technology</md:subject>
+  </md:subjectlist>
+
+  <md:abstract>This collection houses all the documentation for the lab component of Rice Universities Elec 220 lab component.  The labs cover topics such as gates, simulation, basic digital I/O, interrupt driven embedded programming, C language programming, and finally a/d interfacing and touch sensors.</md:abstract>
+
+  <md:language>en</md:language>
+
+  
+
+  
+  
+  <md:institution>Rice University</md:institution>
+  <md:course-code>Elec 220</md:course-code>
+  
+
+  <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+       Changes to the metadata section in the source will not be saved. -->
+</metadata>
+
+  <col:parameters>
+    <col:param name="real-imaginary-notation" value="font"/>
+    <col:param name="and-or-notation" value="propositional-logic"/>
+    <col:param name="gradient-notation" value="text"/>
+    <col:param name="mean-notation" value="bar"/>
+    <col:param name="remainder-notation" value="text"/>
+    <col:param name="conjugate-notation" value="bar"/>
+    <col:param name="imaginary-i-notation" value="i"/>
+    <col:param name="scalar-product-notation" value="angle-bracket"/>
+    <col:param name="print-font-size" value="10pt"/>
+    <col:param name="curl-notation" value="text"/>
+    <col:param name="for-all-equation-layout" value="symbolic"/>
+    <col:param name="vector-notation" value="bold"/>
+    <col:param name="print-paper-size" value="8.5x11"/>
+    <col:param name="print-font" value="computer-modern"/>
+    <col:param name="print-style" value=""/>
+    <col:param name="print-paragraph-spacing" value="compact"/>
+  </col:parameters>
+  
+  <col:content>
+    
+      <col:module document="m42303" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.1">
+        <md:title>Introduction to Quartus and Circuit Diagram Design</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m42302" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.3">
+        <md:title>A Quartus Project from Start to Finish: 2 Bit Mux Tutorial</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m42304" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.3">
+        <md:title>Lab 1-1: 4-Bit Mux and all NAND/NOR Mux</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m37151" version="1.4" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.5">
+        <md:title>Lab 3-1 Basic MSP430 Assembly from Roots in LC-3</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m40643" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.1">
+        <md:title>Lab 3-2 Digital Input and Output with the MSP430</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m37217" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.2">
+        <md:title>Lab 4-1 Interrupt Driven Programming in MSP430 Assembly</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m40645" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.1">
+        <md:title>Lab 4-2 Putting It All Together</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m37386" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.3">
+        <md:title>Lab 5-1 C Language Programming through the ADC and the MSP430</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m40646" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.1">
+        <md:title>Lab 5-2 Using C and the ADC for "Real World" Applications with the MSP430</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      
+        
+      <col:subcollection>
+        <md:title>Helpful General Information</md:title>
+        
+        
+        
+
+        <col:content>
+          
+    
+      <col:module document="m37152" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.3">
+        <md:title>MSP430 LaunchPad Test Circuit Breadboarding Instructions</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+    
+      <col:module document="m37154" version="latest" repository="http://cnx.org/content" cnxorg:version-at-this-collection-version="1.2">
+        <md:title>A Student to Student Intro to IDE Programming and CCS4</md:title>
+        
+        
+        
+      </col:module>
+        
+      
+    
+        </col:content>
+      </col:subcollection>
+    
+  </col:content>
+</col:collection>

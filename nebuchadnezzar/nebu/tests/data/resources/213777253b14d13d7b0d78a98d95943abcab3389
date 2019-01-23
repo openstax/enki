@@ -1,0 +1,166 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml"><title>A Quartus Project from Start to Finish: 2 Bit Mux Tutorial</title><meta name="created-time" content="2011/07/26 14:17:43 GMT-5"/><meta name="revised-time" content="2012/01/23 22:19:45.908 US/Central"/><meta name="license" content="http://creativecommons.org/licenses/by/3.0/"/><meta name="keywords" content="Altera, FPGA, multiplexor, mux, Quartus"/><meta name="subject" content="Science and Technology"/></head>
+
+<body xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:qml="http://cnx.rice.edu/qml/1.0" xmlns:mod="http://cnx.rice.edu/#moduleIds" xmlns:bib="http://bibtexml.sf.net/" xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" data-cnxml-to-html-ver="1.3.2"><div data-type="document-title">A Quartus Project from Start to Finish: 2 Bit Mux Tutorial</div><div data-type="abstract">Describes the creation of a project using Altera's Quartus II 11.0, simulating with the Altera University Program Simulator, and programming the DE0 board from Terasic.</div>
+    <section data-depth="1" id="id1170251849722"><h3 data-type="title">Building Projects in Quartus</h3>
+      <p id="id2246548"> This section is intended to provide an in-depth introduction to creating projects in Quartus, laying out a circuit diagram, simulating the circuit, and finally using the project to configure an FPGA through an example project showcasing a 2-bit MUX. Altera has made a very nice tutorial for Quartus as well which you can find <a href="ftp://ftp.altera.com/up/pub/Tutorials/DE2/Digital_Logic/tut_quartus_intro_schem.pdf">here</a>. Altera&#8217;s tutorial is meant for a different board than the DE0 we will be using so make sure to account for that. Also, they have a slightly different method for connecting inputs and outputs to the FPGA. Either method works and you can use whichever one you prefer, however, the method set forth in this section will likely be more straightforward and user-friendly. Additionally, you can access another tutorial from within Quartus at any time by clicking on Tutorial in the Help menu.</p>
+      <section data-depth="2" id="id1170237320746"><h4 data-type="title">Starting a Quartus Project</h4>
+        <p id="id1170250943255"> A Quartus project acts as a support structure for a collection of design files. It serves to bring them together in a common working environment, define their relationships both within the project to each other and to the FPGA, and define common characteristics. All work in Quartus starts with a project.</p>
+        <ul id="id1170250964390">
+          <li>Begin by opening Quartus II Web Edition. A screen titled &#8220;Getting Started with Quartus II Software&#8221; should open from which you can select Create a New Project. Otherwise select File-&gt;New Project Wizard. Make sure you select this and not simply New, which would instead create a new file.</li>
+          <li>In the working directory field specify the folder,&#8221;My_Quartus_Projects&#8221; for the purpose of this example, to save your project in. While you can make this folder on your U: drive, Quartus will generally run faster if working on projects in the C: drive. It is recommended to make temporary folder on the C: drive to put your projects in and transfer them to your U: drive for safe keeping. Note that Quartus will not create a folder for the project files in this location, it will merely save the files here so make sure the lowest level folder is somewhere set aside for this particular project. This will make it easier to locate files in the project and to transfer the project between different computers. Finally, enter the desired name for your project, the final field for the top level design file name will fill itself in as you name the project. It is recommended for simplicities sake that the project and the folder it&#8217;s in have the same name. Also note that Quartus will not let you use spaces in your naming, underscores or dashes are recommended instead. The name &#8220;2_bit_mux&#8221; will be used for the purposes of this example.</li>
+        </ul>
+        <figure id="id2324181"><figcaption>Specifiying a Project Location and Name</figcaption>
+            <span data-type="media" id="id2324181_media" data-alt="">
+              <img src="/resources/7c2e84c289e87a62fdb23d6649092b01e3b937f1/graphics1.jpg" data-media-type="image/jpg" alt="" id="id2324181__onlineimage" height="467" width="600"/>
+            </span>
+            
+          </figure>
+        <ul id="id9024967">
+          <li>Next you will see the Add Files screen. All of the labs and projects you will be working on will either have all necessary files included or be started from scratch so we won&#8217;t be using this feature for now. It is also possible to add files whenever you open a file or save as and we will want to do this during this tutorial in order to ensure our project works as expected.</li>
+        </ul>
+        <ul id="id1170237194425">
+          <li>After this you will have to specify your target FPGA. The FPGA in the DE0 board we will be using is a <strong data-effect="bold">Cyclone III EP3C16F484C6</strong>. You can also find this information by looking at the specification printed on the chip itself.</li>
+        </ul>
+        <figure id="id1170248783019"><figcaption>Selecting the correct FPGA </figcaption>
+            <span data-type="media" id="id1170248783019_media" data-alt="">
+              <img src="/resources/cbb648b88d12aa2535c2f7cb8bf923c2b2865fed/graphics2.jpg" data-media-type="image/jpg" alt="" id="id1170248783019__onlineimage" height="465" width="600"/>
+            </span>
+            
+          </figure>
+        <ul id="id8098427">
+          <li>The next screen allows you to specify other programs to use with this project in addition to Quartus. We won&#8217;t be using any of these so just click next. After reviewing everything on the final screen to make sure it&#8217;s set up as you want it and you&#8217;re ready to begin laying out your circuit.</li>
+        </ul>
+      </section>
+      <section data-depth="2" id="id1170250741852"><h4 data-type="title">Building a Circuit in Quartus</h4>
+        <ul id="id4209150">
+          <li>Although we specified a name for our top level design file, we still need to create it. Go to File-&gt;New or hit Ctrl+N and select Block Diagram/Schematic File under Design Files. Once it&#8217;s open go ahead and Save As, Quartus should automatically give it the same title as the project. Make sure that the box titled &#8220;Add file to current project&#8221; is checked before saving and that the file is being saved into the project folder.</li>
+        </ul>
+        <ul id="id1170237695841">
+          <li>You should now see a grid of dots and just at the top of it a toolbar. This is where most of our work in Quartus will take place.</li>
+        </ul>
+        <figure id="id6319593"><figcaption>The toolbar and some of the tools which will be frequently used.</figcaption>
+            <span data-type="media" id="id6319593_media" data-alt="">
+              <img src="/resources/3f423750773a459db77f9bf217bcdc2326d0bc1d/graphics3.jpg" data-media-type="image/jpg" alt="" id="id6319593__onlineimage" height="172" width="599"/>
+            </span>
+            
+          </figure>
+        <ul id="id1170248699562">
+          <li>In the upper left corner of the window is the project navigator. Since we only have one file in our project, there&#8217;s not much to see here, but if we had more we would be able to easily keep track of the hierarchy of all the files within the project. Additionally, we can easily open up files associated with this project by double clicking them within this box.</li>
+          <li>We&#8217;ll start by adding symbols to our schematic. Normally you would want to first plan out your circuit design by using Karnaugh maps to write logical functions for the operation of your circuit, however, we&#8217;ll proceed as though this step has already been completed.</li>
+          <li>Click on the place symbol tool to open up the library of available symbols. This can include the default symbols included with Quartus as well as any user created symbols. Within the Quartus library, the majority of the symbols we&#8217;ll be using will come from the &#8220;primitives&#8221; folder. Start by finding a two input AND gate. You can either navigate to the &#8220;logic&#8221; folder under primitives and find the gate labeled &#8220;and2&#8221; or simply search for this symbol using the name box below the browser. Note that the name typed here has to exactly match the symbol name for Quartus to find it. Before you click okay, make sure that the box labeled repeat-insert mode is checked as shown below.</li>
+        </ul>
+        <figure id="id1170251045790"><figcaption>The Quartus symbol browser</figcaption>
+            <span data-type="media" id="id1170251045790_media" data-alt="">
+              <img src="/resources/bbaff77480bb44e0fe2ca2af1918d7125eb3e2ea/graphics4.jpg" data-media-type="image/jpg" alt="" id="id1170251045790__onlineimage" height="351" width="599"/>
+            </span>
+            
+          </figure>
+        <ul id="id4031841">
+          <li>Place two AND gates onto the grid. Although their relative position isn&#8217;t that important since we can remotely connect symbols, it always helps to have a neat circuit layout so for now place them relatively close together. Once you&#8217;re done, hit escape to exit from placement mode.</li>
+          <li>Continuing on, go back to the symbol browser and select an &#8220;or2&#8221; gate, also located in primitives-&gt;logic. Place one of these gates to the right of your two AND gates.</li>
+          <li>Next we&#8217;ll add an inverter to implement the select logic for the MUX. In the symbol browser find the &#8220;not&#8221; gate. Place this close to the input of one of the AND gates. Note that it shouldn&#8217;t be a problem at this point, but if you ever find yourself running out of room on the grid, drag a component to the edge of the screen to expand the available area.</li>
+          <li>Now we&#8217;ll add in I/O pins. This is where signals will enter and leave the schematic. They can be connected to other schematics in the project or connected to inputs and outputs on the board, though we&#8217;ll define these connections later. For now, go to the drop-down menu on the Pin Tool and choose input. Again, you can place your pins anywhere due to remote wiring, but for now, place two pins to the left of your logic gates for the inputs to the MUX and one above them for the select signal. Go back to the symbol tool, select output, and place one output pin to the right of your circuit for the output of the MUX. Right click on your I/O pins and select properties. From here give each pin a representative name, which will help out in the later I/O assignment phase.</li>
+        </ul>
+        <figure id="id1170252788971"><figcaption>One possible way to layout your gates and pins on the grid</figcaption>
+            <span data-type="media" id="id1170252788971_media" data-alt="">
+              <img src="/resources/bff4232739f50d01c4c55c6308b492ce9e27848c/graphics5.jpg" data-media-type="image/jpg" alt="" id="id1170252788971__onlineimage" height="298" width="600"/>
+            </span>
+            
+          </figure>
+        <ul id="id1170242888078">
+          <li>The final step will be to connect all our components together. As previously mentioned, we can run wires directly between components or make wireless connections. </li>
+          <li>To make a wired connection, either select the orthogonal node tool or move your mouse over one of the ports on a symbol, the pointer should change to the look like the node tool. Then click and drag from the origin port to the port you wish to reach and release. Be careful not to intersect any other ports as this will cause them to be joined to the wire, although crossing over other wires will not create a connection. You can tell if a wire is connected to something by the large dot, the typical indicator of connections in circuit diagrams. Go ahead and connect up the inputs to the two AND gates so that they will function as the beginning of a MUX.</li>
+        </ul>
+        <figure id="id5931863"><figcaption>Possible circuit wiring for the first stage of the MUX</figcaption>
+            <span data-type="media" id="id5931863_media" data-alt="">
+              <img src="/resources/c2dcfc19be0728956ddab9c4dca8d8eadeca812d/graphics6.jpg" data-media-type="image/jpg" alt="" id="id5931863__onlineimage" height="394" width="468"/>
+            </span>
+            
+          </figure>
+        <ul id="id3852199">
+          <li>While this method is fairly straightforward, it has its disadvantages such as possible unintended connections and vast webs of wiring on more complicated circuits. We can simplify the process with wireless connections.</li>
+          <li>Unfortunately, you cannot directly name ports. Instead we will connect a small piece of wire to the ports and name this wire. Any wires on the grid which share the same name are connected together.</li>
+          <li>Begin by placing short bits of wire at all the remaining ports in the circuit. A length of one on the grid is sufficient though a length of two may be easier to work with. Once placed, right click on the wire and select properties.</li>
+          <li>Under the General tab you can enter a name for the selected wire. As with project names, Quartus won&#8217;t allow for spaces so either remove them or use underscores. To connect any other wire with this named one, simply repeat the procedure. Using this wireless method, connect the remainder of the MUX together.</li>
+        </ul>
+        <figure id="id1170252922546"><figcaption>Example wireless connections</figcaption>
+            <span data-type="media" id="id1170252922546_media" data-alt="">
+              <img src="/resources/c0ca0a273ae2805944e17774be295b6c8a48cb5a/graphics7.jpg" data-media-type="image/jpg" alt="" id="id1170252922546__onlineimage" height="217" width="599"/>
+            </span>
+            
+          </figure>
+        <ul id="id2342023">
+          <li>The final step before we get to pin connections is to make sure our circuit is functional. On the left side of the screen is the Tasks menu where we can find a variety of commands to create a finished design file. Eventually we will want to compile our whole design, though for now we can simply go through the Anaylsis &amp; Synthesis step. Double click on Analysis &amp; Synthesis for Quartus to check over the circuit for any potential issues such as unconnected ports. If Quartus finds something wrong it will halt the process and display the error in the message box at the bottom of the screen.</li>
+        </ul>
+        <figure id="id3784340"><figcaption>An unsuccessful analysis &amp; synthesis process due to an unconnected port</figcaption>
+          <span data-type="media" id="id3784340_media" data-alt="">
+            <img src="/resources/393968c0e9ea355dd033b8cfc19624271d158e6a/graphics8.jpg" data-media-type="image/jpg" alt="" id="id3784340__onlineimage" height="217" width="600"/>
+          </span>
+          
+        </figure>
+      </section>
+      <section data-depth="2" id="id1170250966748"><h4 data-type="title">Defining I/O Connections</h4>
+        <ul id="id6209968">
+          <li>Once we&#8217;ve successfully performed Analysis &amp; Synthesis we are ready to move on to defining pin connections. In order to do this we first need to know the pin addresses of the input and output devices on our DE0 board. These can be found in the <a href="http://www.terasic.com.tw/cgi-bin/page/archive_download.pl?Language=English&amp;No=364&amp;FID=0c266381d75ef92a8291c5bbdd5b07eb">DE0 User Manual</a> on pages 24-29, pages 27-32 of the PDF. For now we will only be looking at the switch and LED pin assignments.</li>
+          <li>For each entry in the assignment table, the signal name corresponds to the identifier printed on the board next to the relavent device and the pin name tells us where we should connect to in order to access that device.</li>
+          <li>To specify these connections we will use the Pin Planner located under Assignments-&gt;Pin Planner. By performing Analysis and Synthesis earlier, we gave Quartus information on how many I/O pins we had on our circuit diagram and what their names were. Now we just need to connect these with pins on the board. By putting in the name of a physical pin under the Location column in the Pin Planner, we tie that point on our board to the specified point on our circuit. </li>
+          <li>Although we&#8217;ll be using a particular pin layout here, you can setup your pin assignments in whatever way you feel works best for you. On future labs/projects pin layouts will already be setup so the labbies and in particular the project graders will be expecting a particular board setup and you should leave assignments as they are.</li>
+          <li>For this example we&#8217;ll use the rightmost slider switch, SW[0], for our select signal. Since we can see in the user manual that SW[0] is tied to PIN_J6, we simply type this, or even just J6 and it will fill in the name, into the Location column next to the &#8220;select&#8221; listing under the Node Name column. We&#8217;ll continue in this fashion, assigning &#8220;data1&#8221; to SW[1] at PIN_H5, &#8220;data2&#8221; to SW[2] at PN_H6, and assigning &#8220;out&#8221; to the rightmost LED, LEDG[0] at PIN_J1.</li>
+        </ul>
+        <figure id="id1170236844463"><figcaption>Example pin assignments in the Pin Planner</figcaption>
+          <span data-type="media" id="id1170236844463_media" data-alt="">
+            <img src="/resources/9a1d62bfe102d369f6f172d707a982b689de9653/graphics9.jpg" data-media-type="image/jpg" alt="" id="id1170236844463__onlineimage" height="469" width="599"/>
+          </span>
+          
+        </figure>
+        <ul id="id1170236844490">
+          <li>Now that we have finished assigning pins, we can go back and run the complete compilation process. Double click on Compile Design in the Tasks menu of the Project Navigator to run all of the sub tasks. Inevitably, you will get warnings about some features not being available without a subscription and there not being a clock, since we didn&#8217;t need one. Also, you will get critical warnings telling you that a specific design file is needed for the Timing Analyzer. These extra features are not required and these warnings can be ignored.</li>
+        </ul>
+      </section>
+      <section data-depth="2" id="id8684920"><h4 data-type="title">Waveform Simulation</h4>
+        <ul id="id3941429">
+          <li>Before actually programming the FPGA on the board, it is a good idea to simulate a variety of inputs to our circuit and check the responses. Although the ability to simulate inputs to circuits was removed from Quartus II beginning with version 10.0 , these features can still be used with the <a href="http://www.altera.com/education/univ/software/qsim/unv-qsim.html">Altera University Program Simulator</a>.</li>
+          <li>Opening the Altera U.P. Simulator should open two windows, the U.P simulator and Qsim. Go to Qsim, select File-&gt;Open Project, and select your .qpf project file for the 2 bit mux. Next go to File-&gt;New Simulation Input File to open up the Simulation Waveform Editor.</li>
+          <li>Right click in the white space under the Name heading and select Insert Node or Bus. From this window click the Node Finder button. Finally, click the List button to have the Waveform Editor import the I/O ports from the project file. Move all of these nodes over to the Selected Nodes box and return to the Waveform Editor Window which should now list these I/O ports along the left side. By clicking and dragging the name of a signal you can rearrange the order they are displayed in, useful for separating the input and output signals. Go ahead and save the waveform file in the project folder for the 2 bit mux.</li>
+        </ul>
+        <figure id="id1170236844522"><figcaption>Simulation Waveform Editor Window</figcaption>
+          <span data-type="media" id="id1170236844522_media" data-alt="">
+            <img src="/resources/504afc66fe4176c61d2ed9dd34e9d73f681ee2bc/graphics10.jpg" data-media-type="image/jpg" alt="" id="id1170236844522__onlineimage" height="266" width="600"/>
+          </span>
+          
+        </figure>
+        <ul id="id1170251361885">
+          <li>To begin with, all inputs are set to a constant value of 0 and the output is undefined since we have not yet run the simulation. Note the timing intervals displayed along the top. These are not as important now, but will be very useful once we start building project with clocks.</li>
+          <li>To change the value of an input, click and drag along a waveform to select one or more intervals. Once selected, you can change the highlighted interval with buttons in the toolbar to set intervals low, high, undefined, opposite of their current value and several other options. For the purposes of testing all possible input combinations, we can either manually set the intervals or use the &#8220;Overwrite Clock&#8221; button to set up several alternating signals of differing periods.</li>
+          <li>For starters select the entire data1 signal by clicking the name and then click the Overwrite Clock button. The Waveform Editor should have defaulted to a total time of 1000ns so set the period of this signal to be 250ns. Select the data2 signal and give it a signal with a period of 500ns and then a signal with period of 1000ns for select. Over the 1000ns of the simulation, this will test all the possible input combinations. Once finished save this waveform file and return to Qsim.</li>
+        </ul>
+        <figure id="id1573066"><figcaption>Waveforms to test all input combinations</figcaption>
+          <span data-type="media" id="id1573066_media" data-alt="">
+            <img src="/resources/c8b12c8ce1c30bd728ac97beeb4dd245e69b3991/graphics11.jpg" data-media-type="image/jpg" alt="" id="id1573066__onlineimage" height="230" width="599"/>
+          </span>
+          
+        </figure>
+        <ul id="id1170246432825">
+          <li>Go to Assign-&gt;Simulation Settings. The Waveform Simulator supports two modes: Functional, where only the logic of the system is tested and timing is not considered, and Timing, where delays and other timing constraints are taken into account. In order to perfom Functional simulation you must first go to Processing-&gt;Generate Simulation Netlist, but for now we&#8217;ll just do a Timing simulation. In the Simulation Settings box make sure Timing is selected and then browse for the waveform file you created.</li>
+          <li>Finally go to Processing-&gt;Start Simulation or click the blue arrow over the waveform. The simulator will run and once finished it will open up waveform window containing your specified input waveforms and the resulting output. Once you are satisfied with the results or have made the necessary changes, we can move to the final step, programming the board.</li>
+        </ul>
+        <figure id="id1170237321822"><figcaption>Simulation Output</figcaption>
+            <span data-type="media" id="id1170237321822_media" data-alt="">
+              <img src="/resources/7e587ab3d9de304efecb218de75ebe761c130c23/graphics12.jpg" data-media-type="image/jpg" alt="" id="id1170237321822__onlineimage" height="217" width="599"/>
+            </span>
+            
+          </figure>
+      </section>
+      <section data-depth="2" id="id1170237321850"><h4 data-type="title">Programming the Board</h4>
+        <ul id="id1170237321857">
+          <li>Now that we are certain our project will function as intended, we can program our FPGA. Make sure that the DE0 board is plugged into the computer and powered on. The DE0 offers two modes of programming: one which retains the program in volatile memory only as long as the board is powered on and another which stores the program in non-volatile memory to be retrieved when the board is powered on. For our purposes the volatile memory storage will be sufficient. To set the board for this programming method, make sure the switch next to the 7 segment display is set to RUN.</li>
+          <li>In the Tasks menu below the Analysis &amp; Synthesis and Compile Design commands we used earlier, click on Program Device. Next to Hardware Setup should be listed USB-Blaster [USB-0]. If not, click on Hardware Setup and select USB Blaster from the drop down menu. Make sure that Mode is set to JTAG and that the Program/Configure box next to the .sof file is checked.</li>
+          <li>Once ready click Start and wait for the board to be programmed. You can see the state of the programming process in the message bar where it will inform you once it&#8217;s finished. If you followed the same structure as the tutorial, SW0 should serve as the select switch with SW1 and SW2 toggling the two data inputs high or low. With select in a low state, the mux will take the value from SW1 and in a high state the value from SW2, either of which will be output on LEDG0.</li>
+          <li>This concludes the tutorial on Quartus projects. It should now be a simple matter to create a 4-bit mux and move on to the rest of the projects.</li>
+        </ul>
+      </section>
+    </section>
+  </body>
+
+</html>

@@ -2,6 +2,7 @@
 Change Log
 ==========
 
+- Add switch to fetch all associated resources (images).
 - Allow specifying minor version for `get`, with three-part version `1.X.Y`.
 
 8.0.5

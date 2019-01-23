@@ -1,0 +1,125 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml"><title>C Language Programming through the ADC and the MSP430</title><meta name="created-time" content="2011/01/17 21:22:35 US/Central"/><meta name="revised-time" content="2011/08/16 14:05:55.751 GMT-5"/><meta name="author" content="mwjhnsn"/><meta name="acl-list" content="mwjhnsn"/><meta name="licensor" content="mwjhnsn"/><meta name="license" content="http://creativecommons.org/licenses/by/3.0/"/><meta name="keywords" content="ADC, C, Elec 220, filtering, MSP430, Rice, Voltmeter"/><meta name="subject" content="Science and Technology"/></head>
+
+<body xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:qml="http://cnx.rice.edu/qml/1.0" xmlns:mod="http://cnx.rice.edu/#moduleIds" xmlns:bib="http://bibtexml.sf.net/" xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" data-cnxml-to-html-ver="1.3.2"><div data-type="document-title">C Language Programming through the ADC and the MSP430</div>
+  <section data-depth="1" id="eip-714"><h3 data-type="title">The C Language and Analog Interfacing: Your Task</h3><p id="eip-297">This lab covers the basic principals behind Analog to Digital Conversion, as well as the basics of programming in C.  You are expected to have some background in C from class, but if you are confused, see this <a href="/contents/968ad0d8-196f-470d-a6bf-fe98d68ddbed" target="_window">basic reference</a>.  </p><ol id="eip-id1171680401890" data-element-type="enumerated" type="1"><li>
+Using Code Composer Studio 4, write a C language program turning your MSP430 LaunchPad into a simple 10 level voltmeter.  Your program should divide the 0-3.3V input range of the ADC into 10 zones, and then output from a 0 to a 9 on the LED display depending on the input voltage.  <strong>DO NOT EXCEED AN INPUT VOLTAGE OF 3.3V</strong>.  You will damage your circuits and destroy your MSP430.  <a href="#eip-262">Assignment Details</a>
+</li>
+</ol>
+
+
+</section><section data-depth="1" id="eip-427"><h3 data-type="title">The ADC and "C" Through a Practical Example</h3><section data-depth="2" id="eip-156"><h4 data-type="title">Interfacing with the Analog World: The ADC</h4><p id="eip-545">ADC's play an incredibly important role in digital electronics and DSP.  ADC stands for <strong>A</strong>nalog to <strong>D</strong>igital <strong>C</strong>onverter, and it does exactly what you would expect it to.  It samples an external voltage, and then converts that voltage to a binary number compared to the reference voltage range from Vdd to Vss.  (In plain English terms, the ADC samples what fraction the input is of some maximum allowed reference voltage.)  The ADC's result gets written to a memory mapped register, where the programmer can access it and use it in his or her code.
+</p><p id="eip-518">An ADC has a <strong>finite voltage range it can safely convert</strong> (usually related to its power supply range, but not always).  The precision of the converted sample is related to the number of bits used by the ADC.  <strong>More bits means more precision</strong> (more finite "slots" into which the infinitely variable analog single can be quantized) and a lower "quantization error."  To learn more about error and ADC, see this except from the <a href="/contents/bf483620-7240-4f43-8551-d95696257711">Introduction to Electrical Engineering course notes</a>.  ADC's also have a <strong>maximum sampling rate specification</strong> (how frequently the ADC can make a conversion), but in this course we will be sampling very low frequency signals, so we won't need to worry about it.</p></section><section data-depth="2" id="eip-678"><h4 data-type="title">The MSP430 ADC</h4><p id="eip-981">The MSP430 G2231 has one 12 channel 10 bit 200Khz ADC.  ADC channels allow the single ADC to select between several different signals (such as two different analog inputs on different GPIO pins) like an analog multiplexer.  In the G2231, channels 1-8 are connected to the 8 P1 GPIO pins, and channel 10 is connected to the chip's internal temperature sensor.  You can select which channel to convert by setting the <code data-display="inline"> ADC10CTL1</code> register's (<strong>10</strong> bit <strong>ADC</strong> <strong>C</strong>on<strong>t</strong>ro<strong>l</strong> <strong>1</strong>) <code data-display="inline">INCH</code> property (<strong>In</strong>put <strong>Ch</strong>annel).
+</p><p id="eip-53">For this lab, we will configure the ADC to use the internal 3.3 Vdd as the reference voltage.  
+</p><ul id="eip-id1165369379639"><li>A voltage of 3.3V would result in the ADC register holding 11 1111 1111 (0x03FF)</li>
+<li>A voltage of 0.0V would result in the ADC register reading 00 0000 0000 (0x0000)</li>
+<li>A voltage of 1.65V would result in the ADC register reading 01 1111 1111 (0x01FF)
+</li>
+<li>The ADC will have a sample resolution of 3.3V/1024  [Voltage Range/2<sup>#Bits</sup>], or .0032 Volts.</li>
+</ul>
+<p id="eip-id1170142707219">The ADC is a peripheral device, so it operates independently from the CPU.  It has several operation modes (configured by writing to its control registers).
+<dl id="eip-id1170135964060"><dt>Peripheral</dt>
+<dd id="eip-id1170132148623">A device that can operate independently from direct CPU support and control.  Peripherals often rely on interrupts to notify the CPU when they have completed some given task or need attention, and use independent control registers for configuration.  The ADC 10 is a peripheral, as well as the MSP430's UART (serial controller) and timers.
+</dd>
+</dl>
+</p><div data-type="list" id="eip-id7364016"><div data-type="title">ADC10 Operation Modes</div><ul><li>Single Sample and Hold-- the ADC10 will start a conversion when triggered by the CPU.  After that conversion, it will hold the converted value in the ADC10MEM register and automatically go into sleep mode until signaled to begin another conversion.  We will mostly use this mode.</li>
+<li>Sequence of Channels Sample and Hold-- the ADC10 will convert a series of different channels once, and store the result to ADC10MEM.</li>
+<li>Repeat Single Channel Mode-- it will continuously sample on channel, continuously updating the ADC10MEM register.</li>
+<li>Repeat Sequence of Channels Mode-- the ADC will continuously sample through a series of channels.</li>
+</ul></div><p>
+The MSP430's ADC 10 also has a built in memory controller.  We won't be using it, but it becomes important when using the repeat modes.  The memory controller can automatically write the ADC data into main memory as conversions finish, bypassing the CPU.  
+</p><p id="eip-539">The G2231's ADC can run off of one of several available clock signals of varying speeds. The ADC10 also has a clock divider that can further slow the conversion speed by up to a factor of 8.  Once a sample has been captured, it is held ready in the ADC10MEM register for a defined number of clock cycles.  Since we are concerned with a low frequency signal, we will want to slow down the ADC10 as much as possible.  (Students who have had Elec241 will notice some fundamental flaws in the assumptions made regarding high-frequency noise, but in practice this has very little effect on the final results).  Even in its slowest mode, the ADC10 will still sample too quickly, so the use of some kind of moving average will help stabilize its DC readings.</p></section><section data-depth="2" id="eip-725"><h4 data-type="title">Controlling the ADC10 in C</h4><section data-depth="3" id="eip-id1167078535992"><h5 data-type="title">C Basics</h5>
+
+<p id="eip-id1165699118731">
+Your C program will be structured similarly to its assembly language counterparts, but with a much different syntax.  Like before, the register names are all pre-defined in the <code data-display="inline">"msp430x20x2.h"</code> header file.  To set a register, now just use an equals sign and set it like any other variable.  For example, you will want to disable the watchdog timer in the first line of your program. <code data-display="inline">WDTCTL=WDTPW+WDTHOLD;</code>  The compiler will execute the <code data-display="inline">void main(void)</code> function first.  From that function, you can call any other functions or run any loops that you would like.  
+</p>
+<p id="eip-id1165712981865"><span data-type="title">C Skeleton Program</span>
+<code id="eip-id8409575" data-display="block">
+#include  "msp430x20x2.h"
+
+//Global Variable Declarations
+
+//Global Function Declarations
+
+void main(void)
+{
+   WDTCTL = WDTPW + WDTHOLD; // Stop WDT
+   //Other Setup
+
+   //Your Program Here
+   //Can call other helper functions, loops, etc.
+}
+
+</code>
+</p>
+
+
+</section><section data-depth="3" id="eip-743"><h5 data-type="title">Configuring the ADC10</h5><p id="eip-693">The ADC10 has two main control registers <code data-display="inline">ADC10CTL0</code> and <code data-display="inline"> ADC10CTL1</code>, and two analog input enable registers <code data-display="inline">ADC10AE0</code> and <code data-display="inline">ADC10AE1</code> (<strong>10</strong>bit <strong>ADC</strong> <strong>A</strong>nalog <strong>E</strong>nable <strong>0/1</strong>).  These registers control all the timing and conversion aspects of the ADC.
+</p>
+
+<figure id="ADC10CTL0"><div data-type="title">ADC10CTL0</div><span data-type="media" id="eip-id1170497323386" data-alt="Register diagram of the ADC10CTL0 register.">
+<img src="/resources/d09bfc6499fcb48e6c6228771b2e0ddabf9ea7b3/MSP430 ADC10CTL0.png" data-media-type="image/png" alt="Register diagram of the ADC10CTL0 register."/>
+</span>
+</figure>
+
+<p id="eip-id1171698068930">In the first control register (<code data-display="inline">ADC10CTL0</code>), we only need to change two parameters,
+</p><ul id="eip-id1171672622306"><li>
+ADC10SHTx--<strong>10</strong>bit <strong>ADC</strong> <strong>S</strong>ample <strong>H</strong>old <strong>T</strong>ime-- a higher value means each sample will be held for a longer period of time.  We want to set this at the max value of <code data-display="inline">ADC10SHT_3</code> . 
+</li>
+<li>
+ADC10ON--<strong>10</strong>bit <strong>ADC</strong> <strong>ON</strong>/OFF--setting this bit to "1" (denoted by the label <code data-display="inline">ADC10ON</code>) turns on the ADC, a vital step to performing any conversion!
+</li>
+</ul><p>
+
+To actually do this in C, just use addition and an equals sign:
+<code id="eip-id6703722" data-display="block">
+ADC10CTL0 = ADC10SHT_3 + ADC10ON ; 
+</code></p>
+
+<figure id="ADC10CTL1"><div data-type="title">ADC10CTL1</div><span data-type="media" id="eip-id1170497353481" data-alt="Register diagram of the ADC10CTL1 register.">
+<img src="/resources/e2714e6841100d51336e9868d8d49502a09b9673/MSP430 ADC10CTL1.png" data-media-type="image/png" alt="Register diagram of the ADC10CTL1 register."/>
+</span>
+</figure>
+
+<p id="eip-268">In the second control register (<code data-display="inline">ADC10CTL1</code>), we want to again set two parameters, but we will need to use 4 alias labels instead of just two.
+</p><ul id="eip-id1165702901540"><li>ADC10DIVx--<strong>10</strong>bit <strong>ADC</strong> clock <strong>Div</strong>ider bit <strong>x</strong>-- for "more flexibility", you set each bit individually in the three bit ADC10DIVx section of the register.  Since we want the maximum divider, we will set all the bits.
+<div data-type="note" id="eip-id1167921165676" data-label="aside" data-element-type="aside">Since some of the bit labeling is inconsistent (ADC10DIV is bit-wise while ADC10SHT is not), it is always good to examine the header file for a controller to see how its aliases are defined before using them in your code.
+</div> 
+</li>
+<li>INCHx--<strong>In</strong>put <strong>Ch</strong>annel <strong>#</strong>-- this 4 bit section determines which of the possible input channels the ADC will actually convert in single convert mode.  In series mode, this determines the highest channel to be converted in the series (all channels below this number will also be converted).
+</li>
+</ul><p>
+<code id="eip-id2513529" data-display="block">ADC10CTL1 = ADC10DIV0 + ADC10DIV1 + ADC10DIV2 + INCH_X; 
+</code>
+
+</p><p id="eip-642">Lastly, the ADC10 has the ADC10AE0/1 registers that enable analog input on the different pins.  These act as gates to prevent leakage current from flowing from a pin set as an output through the ADC to ground-- a substantial waste of power.  To enable the ADC for your desired GPIO pin, just set the corresponding bit in <code data-display="inline"> ADC10AE0 </code> to "1".
+<code id="eip-id1168495733386" data-display="block">ADC10AE0 |= BIT#;
+</code>
+</p><p id="eip-277">For more info about the ADC10's configuration options, see the MSP430 manual starting on page 609.</p></section><section data-depth="3" id="eip-891"><h5 data-type="title">Using the ADC</h5><p id="eip-205">To read a sample from the ADC, just read from the ADC10MEM register after the sample has completed.
+<code id="eip-id1167644744878" data-display="block">
+my_var= ADC10MEM;
+</code>
+Remember that we have setup the ADC for single conversion and hold, so if you want another value, you will have to tell it to sample and convert again.  You do so by modifying two values in ADC10CTL0:
+</p><ul id="eip-id1167659757751"><li> ENC--<strong>En</strong>able <strong>C</strong>onversion-- locks in the ADC settings and stabilizes it for conversion.
+</li>
+<li>
+ADC10SC--<strong>10</strong>bit <strong>ADC</strong> <strong>S</strong>tart <strong>C</strong>onversion-- setting this bit to one actually triggers the ADC's conversion cycle.  
+</li>
+</ul><p>
+<code id="eip-id1167651460432" data-display="block">
+ADC10CTL0 |= ENC + ADC10SC;
+</code>
+</p><div data-type="note" id="eip-id1167664272350">
+Be sure to use OR equal (|=) so that the configuration bits you set before don't get overridden.
+</div><div data-type="note" id="eip-id1167420598884">Also, don't forget to configure P1 as usual.  You will need to set the pins you wish to use as ADC inputs to input mode at the <code data-display="inline"> P1DIR</code> register as well as the <code data-display="inline">ADC10AE0</code> register.  You can configure the P1 registers using aliases and variable assignments just like with the ADC registers.
+</div></section></section></section><section data-depth="1" id="eip-262"><h3 data-type="title">Assignment Details</h3><p id="eip-650">Using Code Composer Studio 4, write a C language program turning your MSP430 LaunchPad into a simple 10 level voltmeter.  Your program should divide the 0-3.3V input range of the ADC into 10 zones, and then output from a 0 to a 9 on the LED display depending on the input voltage.  Don't worry about a value landing on the boundary between two zones, just deal with it consistently.  Test your volt meter by attaching it to some of the variable power supplies around the room.  <strong>DO NOT EXCEED AN INPUT VOLTAGE OF 3.3V</strong>.  You will damage your circuits and destroy your MSP430.
+</p><p id="eip-920">Your Program should consist of:
+</p><ul id="eip-id1167393983939">
+<li>A "void main(void)" function that drives your program</li>
+<li>A successful setup routine that properly configures the ADC10</li>
+<li>An output routine that successfully re-scales the 1024 ADC possibilities to 10 zones</li>
+
+</ul></section>
+</body>
+
+</html>

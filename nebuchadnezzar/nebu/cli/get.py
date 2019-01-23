@@ -20,11 +20,13 @@ from .exceptions import (MissingContent,
               help="output directory name (can't previously exist)")
 @click.option('-t', '--book-tree', is_flag=True,
               help="create human-friendly book-tree")
+@click.option('-r', '--get-resources', is_flag=True, default=False,
+              help="Also get all resources (images)")
 @click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version')
 @click.pass_context
-def get(ctx, env, col_id, col_version, output_dir, book_tree):
+def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
     """download and expand the completezip to the current working directory"""
 
     base_url = build_archive_url(ctx, env)
@@ -112,7 +114,7 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree):
                            label=label,
                            width=0,
                            show_pos=True) as pbar:
-        _write_node(tree, base_url, output_dir, book_tree, pbar)
+        _write_node(tree, base_url, output_dir, book_tree, get_resources, pbar)
 
 
 def _count_leaves(node):
@@ -144,7 +146,7 @@ def gen_resources_sha1_cache(write_dir, resources):
             s.write('{}  {}\n'.format(resource['id'], resource['filename']))
 
 
-def _write_node(node, base_url, out_dir, book_tree=False,
+def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
                 pbar=None, depth=None, pos={0: 0}, lvl=0):
     """Recursively write out contents of a book
        Arguments are:
@@ -188,9 +190,17 @@ def _write_node(node, base_url, out_dir, book_tree=False,
         # core files are XML - this parse/serialize removes numeric entities
         filepath.write_bytes(etree.tostring(etree.XML(file_resp.text),
                                             encoding='utf-8'))
+        if get_resources:
+            for res in resources:  # Dict keyed by resource filename
+                if res != filename:
+                    filepath = write_dir / res
+                    url = '{}/resources/{}'.format(base_url,
+                                                   resources[res]['id'])
+                    file_resp = requests.get(url)
+                    filepath.write_bytes(file_resp.content)
+
         if pbar is not None:
             pbar.update(1)
-        # TODO Future - fetch all resources, if requested
 
     if 'contents' in node:  # Top-level or subcollection - recurse
         lvl += 1
@@ -205,5 +215,5 @@ def _write_node(node, base_url, out_dir, book_tree=False,
                 pos[lvl] = 0
             else:
                 pos[lvl] += 1
-            _write_node(child, base_url, out_dir, book_tree, pbar, depth,
-                        pos, lvl)
+            _write_node(child, base_url, out_dir, book_tree, get_resources,
+                        pbar, depth, pos, lvl)
