@@ -140,7 +140,7 @@ def _safe_name(name):
 
 
 def gen_resources_sha1_cache(write_dir, resources):
-    for resource in resources:
+    for resource in resources.values():
         with (write_dir / '.sha1sum').open('a') as s:
             # NOTE: the id is the sha1
             s.write('{}  {}\n'.format(resource['id'], resource['filename']))
@@ -175,7 +175,16 @@ def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
     resp = requests.get('{}/contents/{}'.format(base_url, node['id']))
     if resp:  # Subcollections cannot (yet) be fetched directly
         metadata = resp.json()
-        resources = {r['filename']: r for r in metadata['resources']}
+
+        """index.cnxml.html files should not be edited nor published (they are
+        generated and regenerated in-place in the database), so let's just
+        not consider them as resources (or download them) at all.
+        """
+        # skip index.cnxml.html
+        resources = {res['filename']: res for res in metadata['resources']
+                     if res['filename'] != 'index.cnxml.html'}
+
+        # Deal with core XML file and output directory
         filename = filename_by_type[metadata['mediaType']]
         url = '{}/resources/{}'.format(base_url, resources[filename]['id'])
         file_resp = requests.get(url)
@@ -184,14 +193,16 @@ def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
             os.mkdir(str(write_dir))
         filepath = write_dir / filename
 
-        """Cache/store sha1-s for resources in a 'dot' file"""
-        gen_resources_sha1_cache(write_dir, metadata['resources'])
+        # Cache/store sha1-s for resources in a 'dot' file
+        gen_resources_sha1_cache(write_dir, resources)
 
         # core files are XML - this parse/serialize removes numeric entities
         filepath.write_bytes(etree.tostring(etree.XML(file_resp.text),
                                             encoding='utf-8'))
+
         if get_resources:
             for res in resources:  # Dict keyed by resource filename
+                #  Exclude core file, already written out, above
                 if res != filename:
                     filepath = write_dir / res
                     url = '{}/resources/{}'.format(base_url,

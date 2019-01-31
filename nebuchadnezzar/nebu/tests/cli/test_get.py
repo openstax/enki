@@ -13,23 +13,23 @@ def pathlib_walk(dir):
 
 
 def register_data_file(requests_mock, datadir, filename, url):
-        datafile = datadir / filename
-        content_size = datafile.stat().st_size
-        with datafile.open('rb') as fb:
-            headers = {'Content-Length': str(content_size)}
-            requests_mock.get(
-                url,
-                content=fb.read(),
-                headers=headers,
-            )
+    datafile = datadir / filename
+    content_size = datafile.stat().st_size
+    with datafile.open('rb') as fb:
+        headers = {'Content-Length': str(content_size)}
+        requests_mock.get(
+            url,
+            content=fb.read(),
+            headers=headers,
+        )
 
 
 def register_404(requests_mock, url):
-            requests_mock.get(
-                url,
-                text='Not Found',
-                status_code=404,
-            )
+    requests_mock.get(
+        url,
+        text='Not Found',
+        status_code=404,
+    )
 
 
 class TestGetCmd:

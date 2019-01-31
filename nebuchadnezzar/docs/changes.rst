@@ -2,8 +2,14 @@
 Change Log
 ==========
 
+9.0.1
+-----
+
+- Do not fetch auto-generated HTML file 
+
 9.0.0
 -----
+
 - Add switch to fetch all associated resources (images).
 - Allow specifying minor version for `get`, with three-part version `1.X.Y`.
 
