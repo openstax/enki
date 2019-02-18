@@ -15,7 +15,7 @@ except ImportError:
 
 from lxml import etree
 
-from cnxdb.triggers.transforms.converters import (
+from cnxtransforms.converters import (
     DEFAULT_XMLPARSER,
     cnxml_to_full_html,
     html_to_full_cnxml,
