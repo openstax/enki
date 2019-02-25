@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.1.0
+-----
+
+- Add ``cnxml-to-html`` command to transform index.cnxml to html.
+
 9.0.1
 -----
 

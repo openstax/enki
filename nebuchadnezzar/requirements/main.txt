@@ -1,5 +1,6 @@
 click
 cnx-litezip>=1.6.0
+cnx-transforms
 pip
 requests
 setuptools
