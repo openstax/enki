@@ -44,6 +44,12 @@ Developer Run
 #. Now you can run various commands:
 
    - ``neb --help`` for help with the various commands
+   
+Testing
+-------------
+To run all tests: ``make test``
+
+To run a single test called ``test_main``: ``make test -- -k test_main``
 
 Configuring an Editor
 =====================
