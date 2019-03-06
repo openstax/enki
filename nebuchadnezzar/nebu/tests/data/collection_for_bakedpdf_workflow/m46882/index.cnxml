@@ -60,6 +60,18 @@
     <image mime-type="image/jpg" src="CNX_Stats_C01_M10_003.jpg"/>
   </media>
   </figure>
+  <figure id="eip-idp53333999">
+    <media id="id9955bb01a" alt="Links to a non-existent resource">
+      <image src="foobar.png" mime-type="image/png"/>
+    </media>
+  </figure>
+  <para id="linkexample">
+    There are many ways to grill
+    <link document="m10275" version="2.1">a good 
+    steak</link>. My favorite can be found
+    <link url="http://en.wikibooks.org/" 
+          window="new">on Wikibooks</link>.
+  </para>
 
 </content>
 
