@@ -27,6 +27,7 @@ def test_parse(xml):
         ),
         'authors': ('OpenStaxCollege',),
         'created': '2012/01/23 13:03:30.293 US/Central',
+        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
         'keywords': (
             'ac circuits',
@@ -81,3 +82,32 @@ def test_parse_with_cnxml_abstract(xml):
     expected_abstract = 'FOO {} BAR'.format(abstract)
     # parse the metadata into a dict and check for the abstract.
     assert props['abstract'] == expected_abstract
+
+
+def test_parse_derived_from(xml):
+    uri = 'https://example.org/content/col12345/1.11'
+    title = 'Foo Bar'
+
+    derived_from = (
+        '<derived-from xmlns="{}" url="{}">'
+        '<title>{}</title>'
+        '</derived-from>'
+    ).format(NSMAP['md'], uri, title)
+
+    # Find and modify the metadata
+    elm = xml.xpath('//col:metadata', namespaces=NSMAP)[0]
+    # Create md:derive-from element and md:title sub-element
+    derived_from_elms = etree.fromstring(derived_from)
+    elm.append(derived_from_elms)
+
+    # Call the target
+    props = parse_metadata(xml)
+
+    # Verify properties
+    expected = {
+        'title': title,
+        'uri': uri,
+    }
+    assert props['derived_from'] == expected
+    # Verify we've discovered the correct title
+    assert props['title'] == 'College Physics'

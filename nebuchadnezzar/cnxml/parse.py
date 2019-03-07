@@ -93,5 +93,9 @@ def parse_metadata(elm_tree):
         'print_style': _maybe(
             xpath('//col:param[@name="print-style"]/@value'),
         ),
+        'derived_from': {
+            'uri': _maybe(xpath('//md:derived-from/@url')),
+            'title': _maybe(xpath('//md:derived-from/md:title/text()')),
+        },
     }
     return props
