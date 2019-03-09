@@ -13,7 +13,7 @@ from cnxepub.models import (
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
 from cnxtransforms import cnxml_to_full_html
 
-from .utils import convert_to_model_compat_metadata
+from .utils import convert_to_model_compat_metadata, id_from_metadata
 
 # A list of filenames to ignore while attempting to discover
 # resources in a directory.
@@ -21,12 +21,6 @@ IGNORE_RESOURCES_BY_FILENAME = (
     '.sha1sum',
     'index.cnxml',
 )
-
-
-def _id_from_metadata(metadata):
-    """Given an item's metadata, discover the id."""
-    identifier = "cnx-archive-uri"
-    return metadata.get(identifier)
 
 
 class Document(BaseDocument):
@@ -67,7 +61,7 @@ class Document(BaseDocument):
         resources = []
         metadata = parse_cnxml_metadata(cnxml)
         metadata = convert_to_model_compat_metadata(metadata)
-        id = _id_from_metadata(metadata)
+        id = id_from_metadata(metadata)
 
         # Clean and sanatize the content
         content = cls._sanatize_content(html)
@@ -97,7 +91,7 @@ class Document(BaseDocument):
 
         resources = []
         metadata = parse_metadata(html)
-        id = _id_from_metadata(metadata)
+        id = id_from_metadata(metadata)
 
         # Clean and sanatize the content
         content = cls._sanatize_content(html)

@@ -1,5 +1,15 @@
 from copy import copy
 
+from cnxml.parse import parse_metadata as parse_cnxml_metadata
+from lxml import etree
+
+
+__all__ = (
+    'convert_to_model_compat_metadata',
+    'scan_for_id_mapping',
+    'id_from_metadata',
+)
+
 
 ACTORS_MAPPING_KEYS = (
     # (<litezip name>, <cnx-epub name>),
@@ -55,3 +65,34 @@ def convert_to_model_compat_metadata(metadata):
     md['summary'] = md['summary'] and md['summary'] or None
 
     return md
+
+
+def id_from_metadata(metadata):
+    """Given an model's metadata, discover the id."""
+    identifier = "cnx-archive-uri"
+    return metadata.get(identifier)
+
+
+def scan_for_id_mapping(start_dir):
+    """Collect a mapping of content ids to filepaths relative to the given
+    directory (as ``start_dir``).
+
+    This is necessary because the filesystem could be organized as
+    a `book-tree`, which is a hierarchy of directories that are labeled
+    by title rather than by id.
+
+    :param start_dir: a directory to start the scan from
+    :type start_dir: :class:`pathlib.Path`
+    :return: mapping of content ids to the content filepath
+    :rtype: {str: pathlib.Path, ...}
+
+    """
+    mapping = {}
+    for filepath in start_dir.glob('**/index.cnxml'):
+        with filepath.open('rb') as fb:
+            xml = etree.parse(fb)
+        md = convert_to_model_compat_metadata(parse_cnxml_metadata(xml))
+        id = id_from_metadata(md)
+        id = id.split('@')[0]
+        mapping[id] = filepath
+    return mapping
