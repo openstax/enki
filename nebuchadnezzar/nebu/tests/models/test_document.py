@@ -1,6 +1,5 @@
 from copy import copy
 
-import pytest
 from lxml import etree
 from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
 
@@ -38,18 +37,6 @@ M46882_METADATA = {
     'translators': [],
     'version': '1.17',
 }
-
-
-@pytest.fixture
-def collection_data(datadir):
-    """This data is the result of a ``neb get ...``"""
-    return datadir / 'collection_for_bakedpdf_workflow'
-
-
-@pytest.fixture
-def assembled_data(datadir):
-    """This data is the results of a ``neb assemble ...``"""
-    return datadir / 'assembled_collection_for_bakedpdf_workflow'
 
 
 def mock_reference_resolver(reference, resource):
