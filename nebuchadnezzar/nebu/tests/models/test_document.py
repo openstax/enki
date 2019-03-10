@@ -88,14 +88,6 @@ class TestDocument(object):
         assert sorted([r.id for r in resources]) == expected_filenames
         assert sorted([r.filename for r in resources]) == expected_filenames
 
-        # Ensure the resources are empty, because we don't need the data for
-        # our operation.
-        for r in resources:
-            with r.open() as open_r:
-                contents = open_r.read()
-            assert contents == b''
-            assert r.media_type == 'n/a'
-
     def test_from_index_cnxml(self, collection_data):
         filepath = collection_data / 'm46882' / 'index.cnxml'
 

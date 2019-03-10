@@ -1,4 +1,3 @@
-import io
 from pathlib import Path
 
 from lxml import etree
@@ -8,11 +7,11 @@ from cnxepub.html_parsers import (
 )
 from cnxepub.models import (
     Document as BaseDocument,
-    Resource,
 )
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
 from cnxtransforms import cnxml_to_full_html
 
+from .resource import FileSystemResource
 from .utils import convert_to_model_compat_metadata, id_from_metadata
 
 # A list of filenames to ignore while attempting to discover
@@ -141,16 +140,10 @@ class Document(BaseDocument):
 
         """
         resources = []
-        blank_data = io.BytesIO()
         for filepath in loc.glob('*'):
             if filepath.name in IGNORE_RESOURCES_BY_FILENAME:
                 continue
-            resources.append(
-                Resource(
-                    filepath.name, blank_data,
-                    media_type='n/a', filename=filepath.name,
-                )
-            )
+            resources.append(FileSystemResource(filepath))
         return resources
 
     def resolve_references(self):
