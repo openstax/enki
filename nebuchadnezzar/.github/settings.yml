@@ -19,11 +19,11 @@ repository:
 
   # Either `true` to allow merging pull requests with a merge commit, or `false`
   # to prevent merging pull requests with merge commits.
-  allow_merge_commit: false
+  allow_merge_commit: true
 
   # Either `true` to allow rebase-merging pull requests, or `false` to prevent
   # rebase-merging.
-  allow_rebase_merge: false
+  allow_rebase_merge: true
 
   # Either `true` to enable the wiki for this repository, `false` to disable it.
   has_wiki: true
