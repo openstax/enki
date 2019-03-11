@@ -2,10 +2,12 @@
 Change Log
 ==========
 
-9.1.0
------
+9.1.0b1
+-------
 
 - Add ``cnxml-to-html`` command to transform index.cnxml to html.
+- Add models for producing cnx-epub objects from litezip structured
+  data (#134)
 
 9.0.1
 -----
