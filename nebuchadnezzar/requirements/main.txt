@@ -4,4 +4,3 @@ cnx-transforms
 pip
 requests
 setuptools
-cnx-epub>=0.17.0
