@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from cnxepub import formatters
+from nebu.models.binder import Binder
 from nebu.models.document import Document
 from nebu.tests.models.test_document import mock_reference_resolver
 from nebu.utils import relative_path
@@ -12,6 +13,7 @@ output_dir = Path('.')
 
 
 def main():
+    # Transform the modules from cnxml to html
     for id in ('m46882', 'm46909', 'm46913'):
         filepath = input_dir / id / 'index.cnxml'
         doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
@@ -27,6 +29,11 @@ def main():
         link_to_source_dir.unlink()
         source_dir = input_dir / id
         link_to_source_dir.symlink_to(relative_path(source_dir, output_dir))
+
+    # Create the single-page-html
+    binder = Binder.from_collection_xml(input_dir / 'collection.xml')
+    with (output_dir / 'collection.assembled.xhtml').open('wb') as fb:
+        fb.write(bytes(formatters.SingleHTMLFormatter(binder)))
 
 
 if __name__ == '__main__':
