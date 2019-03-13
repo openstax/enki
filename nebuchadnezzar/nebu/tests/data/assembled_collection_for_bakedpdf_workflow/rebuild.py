@@ -1,17 +1,14 @@
 """ This script rebuilds the contents of this directory """
-import os.path
 from pathlib import Path
 
 from cnxepub import formatters
 from nebu.models.document import Document
 from nebu.tests.models.test_document import mock_reference_resolver
+from nebu.utils import relative_path
+
 
 input_dir = Path('../collection_for_bakedpdf_workflow')
 output_dir = Path('.')
-
-
-def relative_path(path, start=Path('.')):
-    return Path(os.path.relpath(str(path.resolve()), start=str(start)))
 
 
 def main():
