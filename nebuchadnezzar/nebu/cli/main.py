@@ -9,7 +9,6 @@ from ..config import prepare
 
 from .assemble import assemble
 from .atom import config_atom
-from .cnxml_to_html import cnxml_to_html
 from .get import get
 from .environment import list_environments
 from .mathify import mathify
@@ -97,7 +96,6 @@ def cli(ctx):
 
 
 cli.add_command(assemble)
-cli.add_command(cnxml_to_html)
 cli.add_command(config_atom)
 cli.add_command(get)
 cli.add_command(list_environments)
