@@ -1,5 +1,5 @@
 pretend
-pytest
+pytest>=4
 pytest-cov
 pytest-runner
 requests-mock
