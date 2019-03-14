@@ -8,6 +8,10 @@ Change Log
 - Add ``cnxml-to-html`` command to transform index.cnxml to html.
 - Add models for producing cnx-epub objects from litezip structured
   data (#134)
+- Add the ``assemble`` command for assembling litezip structured data into
+  a single-page-html file. (#136)
+- Add the ``mathify`` command to convert MathML to SVG or HTML+CSS using
+  MathJax. (#130)
 
 9.0.1
 -----
