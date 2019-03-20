@@ -17,16 +17,19 @@ from lxml import etree
 
 from cnxtransforms.converters import (
     DEFAULT_XMLPARSER,
+    cnxml_abstract_to_html,
     cnxml_to_full_html,
     html_to_full_cnxml,
 )
 
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+
+
 class BaseTestCase(object):
 
     def get_file(self, filename):
-        here = os.path.abspath(os.path.dirname(__file__))
-        path = os.path.join(here, filename)
+        path = os.path.join(HERE, filename)
         with open(path, 'r') as fp:
             return fp.read()
 
@@ -55,6 +58,24 @@ class TestCnxml2Html(BaseTestCase):
         content = cnxml_to_full_html(cnxml)
 
         assert '0+unknown' not in content
+
+
+def test_cnxml_abstract_to_html():
+    abstract = (
+        "In this section you will:<list><item>A</item><item>B</item>"
+        "<item><m:math><m:mi>x</m:mi></m:math></item>"
+        "<item><m:math><m:mi>y</m:mi></m:math></item></list>"
+    )
+
+    # Call the target
+    converted_abstract = cnxml_abstract_to_html(abstract)
+
+    with open(os.path.join(HERE, 'm51252-abstract.snippet.html'), 'r') as fb:
+        expected_abstract = fb.read().strip()
+    if sys.version_info >= (3,):
+        expected_abstract = expected_abstract.encode('utf-8')
+
+    assert converted_abstract == expected_abstract
 
 
 class TestHtml2Cnxml(BaseTestCase):

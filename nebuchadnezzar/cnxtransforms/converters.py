@@ -20,6 +20,7 @@ from lxml import etree
 
 __all__ = (
     'DEFAULT_XMLPARSER', 'ensure_bytes',
+    'cnxml_abstract_to_html',
     'cnxml_to_html', 'cnxml_to_full_html',
     'html_to_cnxml', 'html_to_full_cnxml',
 )
@@ -116,6 +117,27 @@ def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
     html = HTML_TEMPLATE_FOR_CNXML.format(metadata=metadata, content=content)
     return html
+
+
+def cnxml_abstract_to_html(abstract):
+    abstract = (
+        '<document xmlns="http://cnx.rice.edu/cnxml" '
+        'xmlns:m="http://www.w3.org/1998/Math/MathML" '
+        'xmlns:md="http://cnx.rice.edu/mdml/0.4" '
+        'xmlns:bib="http://bibtexml.sf.net/" '
+        'xmlns:q="http://cnx.rice.edu/qml/1.0" '
+        'cnxml-version="0.7"><content>{}</content></document>'
+    ).format(abstract)
+    # Does it have a wrapping tag?
+    abstract_html = ensure_bytes(cnxml_to_html(abstract))
+
+    # Rename the containing element, because the abstract is a snippet,
+    #   not a document.
+    abstract_html = etree.parse(BytesIO(abstract_html), DEFAULT_XMLPARSER)
+    container = abstract_html.xpath('/*')[0]  # a 'body' tag.
+    container.tag = 'div'
+
+    return etree.tostring(abstract_html)
 
 
 # ############### #
