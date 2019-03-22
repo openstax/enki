@@ -41,13 +41,21 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
     col_hash = '{}/{}'.format(col_id, col_version)
     # Fetch metadata
     url = '{}/content/{}'.format(base_url, col_hash)
-    resp = requests.get(url)
+
+    # Create a request session with retries if there's failed DNS lookups,
+    # socket connections and connection timeouts.
+    # See https://stackoverflow.com/questions/33895739/
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(max_retries=5)
+    session.mount('https://', adapter)
+
+    resp = session.get(url)
     if resp.status_code >= 400:
         raise MissingContent(col_id, req_version)
     col_metadata = resp.json()
     if col_metadata['collated']:
         url = resp.url + '?as_collated=False'
-        resp = requests.get(url)
+        resp = session.get(url)
         if resp.status_code >= 400:
             # This should never happen - indicates that only baked exists?
             raise MissingContent(col_id, req_version)
@@ -60,7 +68,7 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
     if version and version != col_metadata['version']:
         url = '{}/contents/{}@{}'.format(base_url, uuid, version) + \
               '?as_collated=False'
-        resp = requests.get(url)
+        resp = session.get(url)
         if resp.status_code >= 400:  # Requested version doesn't exist
             raise MissingContent(col_id, req_version)
         col_metadata = resp.json()
@@ -81,13 +89,13 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
 
     # Fetch extras (includes head and downloadable file info)
     url = '{}/extras/{}@{}'.format(base_url, uuid, version)
-    resp = requests.get(url)
+    resp = session.get(url)
 
     # Latest defaults to successfully baked - we need headVersion
     if col_version == 'latest':
         version = resp.json()['headVersion']
         url = '{}/extras/{}@{}'.format(base_url, uuid, version)
-        resp = requests.get(url)
+        resp = session.get(url)
 
     col_extras = resp.json()
 
