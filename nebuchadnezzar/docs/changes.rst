@@ -2,6 +2,15 @@
 Change Log
 ==========
 
+
+9.1.0b2
+-------
+
+- Fix to require cnxml >=3.0.1 for metadata parsing support
+- Remove the ``cnxml-to-html`` command from neb, as it has been superseded
+  by the functionality in the ``assemble`` command (#140)
+- Fix to transform the summary text during assembly (#141)
+
 9.1.0b1
 -------
 
