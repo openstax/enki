@@ -1,6 +1,8 @@
 from copy import copy
 
+from cnxepub.utils import squash_xml_to_text
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
+from cnxtransforms import cnxml_abstract_to_html
 from lxml import etree
 
 
@@ -63,7 +65,10 @@ def convert_to_model_compat_metadata(metadata):
 
     md['summary'] = md.pop('abstract')
     md['summary'] = md['summary'] and md['summary'] or None
-
+    if md['summary'] is not None:
+        s = cnxml_abstract_to_html(md['summary'])
+        s = etree.fromstring(s)
+        md['summary'] = squash_xml_to_text(s, remove_namespaces=True)
     return md
 
 
