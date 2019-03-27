@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+9.1.0b3
+-------
+
+- Fix to add retries to ``get`` by using a requests session (#142)
+- Fix to write content to disk as bytes during ``get`` (#144)
+- Change to always default to fetching the non-collated version (#143)
+- Change that will not require the output dir to not existing during
+  ``assemble`` (#145)
 
 9.1.0b2
 -------
