@@ -69,8 +69,7 @@ class TestAssembleCmd:
         expected_dir = (src_data / 'm46882').resolve()
         assert Path(str(m46882_dir.resolve())) == expected_dir
 
-    def test_output_dir_exists_proceed(self, tmp_path, src_data, result_data,
-                                       invoker):
+    def test_output_dir_exists(self, tmp_path, src_data, invoker):
         output_dir = tmp_path / 'build'
         output_dir.mkdir()
 
@@ -79,15 +78,31 @@ class TestAssembleCmd:
             'assemble',  # (target)
             str(src_data), str(output_dir),
         ]
+        result = invoker(cli, args)
+
+        # Verify the invocation output
+        assert result.exit_code == 0, result.output
+
+    def test_output_files_exists_proceed(self, tmp_path, src_data, invoker):
+        output_dir = tmp_path / 'build'
+        output_dir.mkdir()
+        (output_dir / 'collection.assembled.xhtml').touch()
+
+        from nebu.cli.main import cli
+        args = [
+            'assemble',  # (target)
+            str(src_data), str(output_dir),
+        ]
+        # This asks to replace the collection.assembled.xhtml file
         result = invoker(cli, args, input='y\n')  # 'y', proceed with removal
 
         # Verify the invocation output
         assert result.exit_code == 0, result.output
 
-    def test_output_dir_exists_abort(self, tmp_path, src_data, result_data,
-                                     invoker):
+    def test_output_file_exists_abort(self, tmp_path, src_data, invoker):
         output_dir = tmp_path / 'build'
         output_dir.mkdir()
+        (output_dir / 'collection.assembled.xhtml').touch()
 
         from nebu.cli.main import cli
         args = [
@@ -99,3 +114,32 @@ class TestAssembleCmd:
         # Verify the invocation output
         assert result.exit_code == 1, result.output
         assert 'Aborted!' in result.output
+
+    def test_supporting_output_files_exist(self, tmp_path, src_data, invoker):
+        output_dir = tmp_path / 'build'
+        output_dir.mkdir()
+        # clearly incorrect, but testable for the correct link
+        (output_dir / 'collection.xml').symlink_to(output_dir)
+        (output_dir / 'm46882').symlink_to(output_dir)
+        (output_dir / 'm46882.xhtml').touch()
+
+        from nebu.cli.main import cli
+        args = [
+            'assemble',  # (target)
+            str(src_data), str(output_dir),
+        ]
+        result = invoker(cli, args)
+
+        # Verify the invocation output
+        assert result.exit_code == 0, result.output
+
+        # Test the links are correct and not the previous existing links
+        assert (output_dir / 'collection.xml').is_symlink()
+        expected_filepath = (src_data / 'collection.xml')
+        output_filepath = Path(str(output_dir / 'collection.xml'))
+        assert output_filepath.resolve() == expected_filepath
+
+        assert (output_dir / 'm46882').is_symlink()
+        expected_filepath = (src_data / 'm46882')
+        output_filepath = Path(str(output_dir / 'm46882'))
+        assert output_filepath.resolve() == expected_filepath
