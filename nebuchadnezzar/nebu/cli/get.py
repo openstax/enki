@@ -205,7 +205,7 @@ def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
         gen_resources_sha1_cache(write_dir, resources)
 
         # core files are XML - this parse/serialize removes numeric entities
-        filepath.write_bytes(etree.tostring(etree.XML(file_resp.text),
+        filepath.write_bytes(etree.tostring(etree.XML(file_resp.content),
                                             encoding='utf-8'))
 
         if get_resources:

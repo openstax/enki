@@ -2,6 +2,8 @@ from functools import partial
 from os import scandir
 from pathlib import Path
 
+from nebu.cli.get import _write_node
+
 
 def pathlib_walk(dir):
     for e in scandir(str(dir)):
@@ -30,6 +32,50 @@ def register_404(requests_mock, url):
         text='Not Found',
         status_code=404,
     )
+
+
+# https://github.com/openstax/cnx/issues/291
+def test_utf8_content(tmpdir, requests_mock, datadir):
+    # This test is terribly written, but it's because the code...
+    out_dir = Path(str(tmpdir))
+    base_url = 'https://archive.cnx.org'
+    node = {'id': 'foo'}
+    legacy_id = 'm68234'
+    resource_id = '9d85db7'
+
+    # Mock the request for the json data
+    data = {
+        'legacy_id': legacy_id,
+        'mediaType': 'application/vnd.org.cnx.module',
+        'resources': [
+            {"filename": "index.cnxml.html",
+             "id": "9d575fa06166c707dcf4da7a91f45b89312220ce",
+             "media_type": "text/html"
+             },
+            {"filename": "index.cnxml",
+             # "id": "9d85db72dd58143a57da0e29abae3c76a55a09f3",
+             "id": resource_id,
+             "media_type": "application/octet-stream"
+             },
+        ],
+    }
+    url = '{}/contents/{}'.format(base_url, node['id'])
+    requests_mock.get(url, json=data)
+
+    # Mock the request for the cnxml resource
+    with (datadir / 'unicode.cnxml').open('rb') as fb:
+        cnxml = fb.read()
+    url = '{}/resources/{}'.format(base_url, resource_id)
+    requests_mock.get(url, content=cnxml)
+
+    # Call the target
+    _write_node(node, base_url, out_dir)
+
+    # Verify the content is as specified
+    with (datadir / 'unicode.cnxml').open('rb') as fb:
+        expected = fb.read()
+    with (out_dir / legacy_id / 'index.cnxml').open('rb') as fb:
+        assert fb.read() == expected
 
 
 class TestGetCmd:
