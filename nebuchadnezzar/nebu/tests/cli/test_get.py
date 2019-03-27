@@ -598,35 +598,3 @@ class TestGetCmd:
 
         msg = "content unavailable for '{}/{}'".format(col_id, col_ver)
         assert msg in result.output
-
-    def test_failed_request_no_raw(self, datadir, requests_mock, invoker):
-        col_id = 'col11405'
-        col_version = 'latest'
-        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
-        col_hash = '{}@{}'.format(col_uuid, '2.1')
-        base_url = 'https://archive.cnx.org'
-        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
-        extras_url = '{}/extras/{}'.format(base_url, col_hash)
-        contents_url = '{}/contents/{}'.format(base_url, col_hash)
-        raw_url = '{}/contents/{}?as_collated=False'.format(base_url, col_hash)
-
-        # Register the data urls
-        for fname, url in (('contents.json', contents_url),
-                           ('extras.json', extras_url),
-                           ):
-            register_data_file(requests_mock, datadir, fname, url)
-
-        requests_mock.get(metadata_url,
-                          status_code=301,
-                          headers={'location': contents_url})
-
-        register_404(requests_mock, raw_url)
-
-        from nebu.cli.main import cli
-        args = ['get', 'test-env', col_id, col_version]
-        result = invoker(cli, args)
-
-        assert result.exit_code == 4
-
-        msg = "content unavailable for '{}/{}'".format(col_id, col_version)
-        assert msg in result.output
