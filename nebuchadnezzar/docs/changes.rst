@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.1.0b4
+-------
+
+- Revert defaulting to using the non-collated version (#146)
+
 9.1.0b3
 -------
 
