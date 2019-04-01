@@ -1,3 +1,5 @@
+import re
+
 from lxml import etree
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
 from cnxepub.models import (
@@ -104,10 +106,16 @@ class Binder(BaseBinder):
     def _make_reference_resolver(id):
 
         def func(reference, resource):
-            reference.bind(
-                resource,
-                '{}/{{}}'.format(id),
-            )
+            if resource:
+                reference.bind(
+                    resource,
+                    '{}/{{}}'.format(id),
+                )
+            elif re.match('/m[0-9]+.*', reference.uri):
+                # SingleHTMLFormatter looks for links that start with
+                # "/contents/" for intra book links.  These links are important
+                # for baking to work.
+                reference.uri = '/contents{}'.format(reference.uri)
 
         return func
 

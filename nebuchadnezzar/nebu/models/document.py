@@ -166,6 +166,5 @@ class Document(BaseDocument):
                 # When resources are missing, the problem is pushed off
                 # to the rendering process, which will
                 # raise a missing reference exception when necessary.
-                pass
-            else:
-                self._reference_resolver(ref, resource)
+                resource = None
+            self._reference_resolver(ref, resource)

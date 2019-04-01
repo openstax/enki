@@ -41,7 +41,8 @@ M46882_METADATA = {
 
 def mock_reference_resolver(reference, resource):
     """Used for testing reference resolution during model tests"""
-    reference.bind(resource, '{}/{{}}'.format(REFERENCE_MARKER))
+    if resource:
+        reference.bind(resource, '{}/{{}}'.format(REFERENCE_MARKER))
 
 
 class TestDocument(object):
