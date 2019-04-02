@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.1.0b5
+-------
+
+- Fix internal reference links within the output of ``assemble`` (#147)
+
 9.1.0b4
 -------
 
