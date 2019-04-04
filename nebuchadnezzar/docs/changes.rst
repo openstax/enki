@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.1.0b6
+-------
+
+- Remove cascading call of ``assemble`` in ``mathify`` (#149)
+
 9.1.0b5
 -------
 
