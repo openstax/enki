@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -20,8 +19,8 @@ def mathify_cleanup(request, datadir):
     return _mathify_cleanup
 
 
-def create_collection_xhtml(datadir):
-    with (datadir / INPUT_FILE).open('w') as out:
+def create_collection_xhtml(datadir, filename=INPUT_FILE):
+    with (datadir / filename).open('w') as out:
         with (datadir / 'test_collection.xhtml').open('r') as in_:
             out.write(in_.read())
 
@@ -55,9 +54,7 @@ class TestMathifyCmd:
 
         from nebu.cli.main import cli
         args = ['mathify', str(datadir)]
-        with mock.patch('nebu.cli.mathify.assemble') as assemble:
-            result = invoker(cli, args)
-            assert not assemble.called
+        result = invoker(cli, args)
 
         assert docker_client.images.pull.called
         assert not docker_client.images.build.called
@@ -69,8 +66,25 @@ class TestMathifyCmd:
         assert result.exit_code == 0
         assert (datadir / OUTPUT_FILE).is_file()
 
-    def test_wo_collection_xhtml(self, datadir, invoker, mathify_cleanup,
-                                 mathify_docker_client, tmp_path):
+    def test_w_input_file(self, datadir, invoker, mathify_cleanup,
+                          mathify_docker_client):
+        docker_client = mathify_docker_client
+        mathify_cleanup()
+        create_collection_xhtml(datadir, filename='collection.xhtml')
+
+        from nebu.cli.main import cli
+        args = ['mathify', '-i', str(datadir / 'collection.xhtml'),
+                str(datadir)]
+        result = invoker(cli, args)
+
+        assert docker_client.containers.run.called
+        kwargs = docker_client.containers.run.call_args[1]
+        assert 'collection.xhtml' in kwargs['command']
+
+        assert result.exit_code == 0
+
+    def test_input_file_directory(self, datadir, invoker, mathify_cleanup,
+                                  mathify_docker_client, tmp_path):
         docker_client = mathify_docker_client
         mathify_cleanup()
 
@@ -83,19 +97,27 @@ class TestMathifyCmd:
         from nebu.cli.main import cli
         args = [
             'mathify',
-            '--source', str(source_dir),
+            '--input-file', str(source_dir),
             str(workspace)]
-        with mock.patch('nebu.cli.mathify.assemble') as assemble:
-            assemble.side_effect = lambda *args, **kwargs: \
-                create_collection_xhtml(datadir)
-            result = invoker(cli, args)
-            assert assemble.called
-            args, kwargs = assemble.call_args
-            assert kwargs['input_dir'] == Path(str(source_dir))
-            assert kwargs['output_dir'] == workspace
+        result = invoker(cli, args)
 
         assert result.exit_code == 1
-        assert docker_client.containers.run.called
+        assert 'Input file {} not found or is not a file.'.format(source_dir) \
+            == str(result.exception)
+        assert not docker_client.containers.run.called
+
+    def test_input_file_not_found(self, datadir, invoker, mathify_cleanup,
+                                  mathify_docker_client, tmp_path):
+        mathify_cleanup()
+
+        from nebu.cli.main import cli
+        args = ['mathify', '--input-file', str(tmp_path / 'does-not-exist'),
+                str(datadir)]
+        result = invoker(cli, args)
+
+        assert 'Path "{}" does not exist.'.format(
+            tmp_path / 'does-not-exist') in result.output
+        assert result.exit_code == 2
 
     def test_wo_collection_xhtml_or_source(self, datadir, invoker,
                                            mathify_cleanup):
@@ -106,7 +128,8 @@ class TestMathifyCmd:
         result = invoker(cli, args)
 
         assert result.exit_code == 1
-        assert 'Aborted!' in result.output
+        assert 'Input file {} not found or is not a file.'.format(
+            datadir / INPUT_FILE) == str(result.exception)
 
     def test_image_not_found(self, datadir, invoker, mathify_cleanup,
                              mathify_docker_client):

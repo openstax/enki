@@ -6,7 +6,6 @@ import docker
 
 from ..logger import logger
 from ._common import common_params
-from .assemble import assemble
 
 
 IMAGE_TAG = 'openstax/mathify'
@@ -22,25 +21,21 @@ MOUNT_POINT = '/out'
               help='The format that math should transform to')
 @click.option('--build', is_flag=True,
               help='Force build the baked-pdf image even if the image exists')
-@click.option('-i', '--source', type=click.Path(exists=True),
-              help=("Location of the collection's source (containing "
-                    "collection.xml)"))
+@click.option('-i', '--input-file', type=click.Path(exists=True),
+              help=("Location of the input file"))
 @click.argument('collection_path', type=click.Path())
 @click.pass_context
-def mathify(ctx, collection_path, build, source, format):
+def mathify(ctx, collection_path, build, input_file, format):
     """Transform math in COLLECTION_PATH to svg or html"""
     colpath = Path(collection_path)
-    input_file = colpath / INPUT_FILE
+    if input_file:
+        input_file = Path(input_file)
+    else:
+        input_file = colpath / INPUT_FILE
 
-    if not input_file.exists():
-        if not source:
-            logger.error('Could not find input source, try specifying an '
-                         'input source using the `--source` option')
-            ctx.abort()
-        # invoke neb assemble if input file is not found
-        logger.info('Input file {} not found, running neb assemble...'.format(
-            INPUT_FILE))
-        ctx.invoke(assemble, input_dir=Path(source), output_dir=colpath)
+    if not input_file.is_file():
+        raise ValueError('Input file {} not found or is not a file.'.format(
+            input_file))
 
     output_file = input_file.parent / OUTPUT_FILE
     # If input_file is
