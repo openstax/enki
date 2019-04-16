@@ -3,6 +3,7 @@ from os import scandir
 from pathlib import Path
 
 from nebu.cli.get import _write_node
+from nebu.cli._common import calculate_sha1
 
 
 def pathlib_walk(dir):
@@ -630,3 +631,66 @@ class TestGetCmd:
 
         msg = "content unavailable for '{}/{}'".format(col_id, col_version)
         assert msg in result.output
+
+    def test_sha1_with_non_utf8_content(self, requests_mock, datadir):
+        """At one point in time, modules which contained unicode characters
+         (used to) get ascii-encoded on dowload, and then we fixed it, but
+        this became an issue when detecting files that have changed because
+        the sha1 hash differs. This code tests that the hashing is done after
+        encoding.
+
+        See: https://github.com/openstax/cnx/issues/273
+        """
+        out_dir = Path(str(datadir))
+        base_url = 'https://archive.cnx.org'
+        node = {'id': 'foo'}
+        legacy_id = 'm68234'
+        resource_id = '9d85db7'
+
+        # Mock the request for the json data
+        metadata = {
+            'legacy_id': legacy_id,
+            'mediaType': 'application/vnd.org.cnx.module',
+            'resources': [
+                {
+                    "filename": "index.cnxml",
+                    "id": resource_id,
+                    "media_type": "application/octet-stream"
+                },
+            ],
+        }
+        url = '{}/contents/{}'.format(base_url, node['id'])
+        requests_mock.get(url, json=metadata)
+
+        with (datadir / 'mod_ascii_encoded.cnxml').open('rb') as fb:
+            mod_ascii_encoded = fb.read()
+
+        url = '{}/resources/{}'.format(base_url, resource_id)
+        # Downloads the ascii-encoded module
+        requests_mock.get(url, content=mod_ascii_encoded)
+
+        # Call the target
+        _write_node(node, base_url, out_dir)
+
+        """ Verify the sha1 is as expected """
+        downloaded_hash = get_sha1s_dict(out_dir / legacy_id)["index.cnxml"]
+        expected_utf8_encoded_hash = calculate_sha1(
+            datadir / "mod_utf8_encoded.cnxml"
+        )
+
+        # Expect the stored hash to be the one for the utf-8 encoded module
+        assert downloaded_hash == expected_utf8_encoded_hash
+
+        # clean up
+        import shutil
+        shutil.rmtree(str(datadir / legacy_id))
+
+
+def get_sha1s_dict(path):
+    """Returns a dict of sha1-s by filename"""
+    try:
+        with (path / '.sha1sum').open('r') as sha_file:
+            return {line.split('  ')[1].strip(): line.split('  ')[0].strip()
+                    for line in sha_file if not line.startswith('#')}
+    except FileNotFoundError:
+        return {}

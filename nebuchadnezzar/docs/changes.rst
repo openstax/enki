@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.0.2
+--------------
+
+- UTF-8 Encoding and Module versioning #273 - Disregard decoded chars when detecting what's changed (PR #148)
+
 9.1.0b6
 -------
 
@@ -48,7 +53,7 @@ Change Log
 9.0.1
 -----
 
-- Do not fetch auto-generated HTML file 
+- Do not fetch auto-generated HTML file
 
 9.0.0
 -----

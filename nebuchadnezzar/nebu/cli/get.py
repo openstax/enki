@@ -7,7 +7,7 @@ from lxml import etree
 from pathlib import Path
 
 from ..logger import logger
-from ._common import common_params, confirm, build_archive_url
+from ._common import common_params, confirm, build_archive_url, calculate_sha1
 from .exceptions import (MissingContent,
                          ExistingOutputDir,
                          OldContent,
@@ -153,11 +153,9 @@ def _safe_name(name):
     return name.replace('/', '∕').replace(':', '∶')
 
 
-def gen_resources_sha1_cache(write_dir, resources):
-    for resource in resources.values():
-        with (write_dir / '.sha1sum').open('a') as s:
-            # NOTE: the id is the sha1
-            s.write('{}  {}\n'.format(resource['id'], resource['filename']))
+def store_sha1(sha1, write_dir, filename):
+    with (write_dir / '.sha1sum').open('a') as s:
+        s.write('{}  {}\n'.format(sha1, filename))
 
 
 def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
@@ -207,12 +205,13 @@ def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
             os.mkdir(str(write_dir))
         filepath = write_dir / filename
 
-        # Cache/store sha1-s for resources in a 'dot' file
-        gen_resources_sha1_cache(write_dir, resources)
-
         # core files are XML - this parse/serialize removes numeric entities
         filepath.write_bytes(etree.tostring(etree.XML(file_resp.content),
                                             encoding='utf-8'))
+
+        # Cache the sha1 for this node
+        sha1 = calculate_sha1(write_dir / filename)
+        store_sha1(sha1, write_dir, filename)
 
         if get_resources:
             for res in resources:  # Dict keyed by resource filename
@@ -223,6 +222,8 @@ def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
                                                    resources[res]['id'])
                     file_resp = requests.get(url)
                     filepath.write_bytes(file_resp.content)
+                    # NOTE: the id is the sha1
+                    store_sha1(resources[res]['id'], write_dir, res)
 
         if pbar is not None:
             pbar.update(1)
