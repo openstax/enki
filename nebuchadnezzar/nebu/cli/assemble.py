@@ -54,7 +54,7 @@ def assemble(ctx, input_dir, output_dir):
 
     if collection_assembled_xhtml.exists():
         confirm_msg = (
-            "This will remove '{}', continue?"
+            "File '{}' already exists. Would you like to replace it?"
             .format(collection_assembled_xhtml)
         )
         click.confirm(confirm_msg, abort=True, err=True)
