@@ -2,6 +2,15 @@
 Change Log
 ==========
 
+9.1.0
+-----
+
+- Fix assemble when collection.xml doesn't use all modules (#150)
+- Remove mathify from nebuchadnezzar (#154)
+- Add Dockerfile for nebuchadnezzar (#153)
+- Improve message when file exists on assemble (#152)
+- Only publish feature: disregard non-utf8 chars decoding (#148)
+
 9.0.2
 --------------
 
