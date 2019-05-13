@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from lxml import etree
 import pytest
 
 from nebu.cli import assemble
@@ -14,6 +15,30 @@ def src_data(datadir):
 @pytest.fixture
 def result_data(datadir):
     return datadir / 'assembled_collection_for_bakedpdf_workflow'
+
+
+@pytest.fixture
+def edit_collection_xml(request):
+    def _edit_collection_xml(filepath):
+        filepath.rename(filepath.parent / 'collection.xml.bak')
+        with (filepath.parent / 'collection.xml.bak').open('r') as f:
+            root = etree.parse(f)
+
+        content = root.find('{http://cnx.rice.edu/collxml}content')
+        # remove the first module of the first subcollection
+        sc1 = content.find('{http://cnx.rice.edu/collxml}subcollection')
+        m1 = sc1.xpath('.//col:module',
+                       namespaces={'col': 'http://cnx.rice.edu/collxml'})[0]
+        m1.getparent().remove(m1)
+        with filepath.open('wb') as f:
+            f.write(etree.tostring(root))
+
+        def restore_collection_xml():
+            (filepath.parent / 'collection.xml.bak').replace(filepath)
+
+        request.addfinalizer(restore_collection_xml)
+
+    return _edit_collection_xml
 
 
 class FauxSingleHTMLFormatter(object):
@@ -143,3 +168,21 @@ class TestAssembleCmd:
         expected_filepath = (src_data / 'm46882')
         output_filepath = Path(str(output_dir / 'm46882'))
         assert output_filepath.resolve() == expected_filepath
+
+    def test_edited_collection_xml(self, tmp_path, src_data, invoker,
+                                   edit_collection_xml):
+        output_dir = tmp_path / 'build'
+        output_dir.mkdir()
+
+        edit_collection_xml(src_data / 'collection.xml')
+
+        from nebu.cli.main import cli
+        args = ['assemble', str(src_data), str(output_dir)]
+        result = invoker(cli, args)
+
+        assert result.exit_code == 0
+
+        # the first module in the first subcollection was removed
+        assert not (output_dir / 'm46913').is_symlink()
+        # the second module in the first subcollection should be there
+        assert (output_dir / 'm46909').is_symlink()

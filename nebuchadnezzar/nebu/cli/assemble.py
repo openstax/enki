@@ -27,13 +27,14 @@ def produce_collection_xhtml(binder, output_dir):
 def provide_supporting_files(input_dir, output_dir, binder):
     documents = {doc.id: doc for doc in flatten_to_documents(binder)}
     for id, filepath in scan_for_id_mapping(input_dir).items():
-        if (output_dir / id).exists():
-            (output_dir / id).unlink()
-        (output_dir / id).symlink_to(
-            relative_path(filepath.parent, output_dir)
-        )
-        with (output_dir / '{}.xhtml'.format(id)).open('wb') as fb:
-            fb.write(bytes(HTMLFormatter(documents[id])))
+        if id in documents:
+            if (output_dir / id).exists():
+                (output_dir / id).unlink()
+            (output_dir / id).symlink_to(
+                relative_path(filepath.parent, output_dir)
+            )
+            with (output_dir / '{}.xhtml'.format(id)).open('wb') as fb:
+                fb.write(bytes(HTMLFormatter(documents[id])))
 
 
 @click.command(name='assemble')
