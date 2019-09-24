@@ -5,6 +5,7 @@ before_install:
   - make lint
 script:
   - make test
+  - make check-dist
 after_success:
   # Report test coverage
   - bash <(curl -s https://codecov.io/bash)

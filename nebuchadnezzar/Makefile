@@ -5,6 +5,7 @@ BINDIR = $(STATEDIR)/env/bin
 _SHORT_DESC_LINT := "Run linting tools on the codebase"
 _SHORT_DESC_PYENV := "Set up the python environment"
 _SHORT_DESC_TEST := "Run the tests"
+_SHORT_DESC_CHECK_DIST := "Check the distribution files before uploading to pypi"
 
 default : help
 	@echo "You must specify a command"
@@ -44,6 +45,7 @@ help :
 	@echo "  * lint -- ${_SHORT_DESC_LINT}"
 	@echo "  * pyenv -- ${_SHORT_DESC_PYENV}"
 	@echo "  * test -- ${_SHORT_DESC_TEST}"
+	@echo "  * check-dist -- ${_SHORT_DESC_CHECK_DIST}"
 	@echo "  * version -- Print the version"
 	@echo ""
 	@echo "Where <VAR> can be:"  # alphbetical please
@@ -120,6 +122,20 @@ lint : $(STATEDIR)/env/pyvenv.cfg setup.cfg
 	$(BINDIR)/python -m flake8 nebu
 
 # /Lint
+
+# ###
+# Check dist
+# ###
+
+help-check-dist :
+	@echo "${_SHORT_DESC_CHECK_DIST}"
+	@echo "Usage: make check-dist"
+
+check-dist :
+	$(BINDIR)/python -m pip install twine
+	$(BINDIR)/python setup.py bdist_wheel -d check-dist
+	$(BINDIR)/python -m twine check check-dist/*
+	rm -rf check-dist/
 
 # ###
 #  Catch-all to avoid errors when passing args to make test
