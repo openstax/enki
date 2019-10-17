@@ -1,8 +1,10 @@
 """Commandline utility for publishing content"""
 import click
+import pkg_resources
 import sys
 import requests
 import re
+from collections import defaultdict
 
 from nebu import __version__
 from ..config import prepare
@@ -84,7 +86,58 @@ def _version_callback(ctx, param, value):
     ctx.exit()
 
 
-@click.group()
+class HelpSectionsGroup(click.Group):
+    def __init__(self, *args, **kwargs):
+        self.help_sections = {}
+        super().__init__(*args, **kwargs)
+
+    def format_get_commands(self, ctx):
+        commands = []
+        for subcommand in self.list_commands(ctx):
+            cmd = self.get_command(ctx, subcommand)
+            if cmd is None:
+                continue  # pragma: no cover
+            if cmd.hidden:
+                continue  # pragma: no cover
+
+            commands.append((subcommand, cmd))
+        return commands
+
+    def format_commands(self, ctx, formatter):
+        commands = self.format_get_commands(ctx)
+        if len(commands) == 0:
+            return
+
+        limit = formatter.width - 6 - max(len(cmd[0]) for cmd in commands)
+        section_rows = defaultdict(list)
+        for subcommand, cmd in commands:
+            help = cmd.get_short_help_str(limit)
+            row = section_rows[self.help_sections.get(subcommand, 'Other')]
+            row.append((subcommand, help))
+
+        with formatter.section('Commands'):
+            for section_name, rows in sorted(section_rows.items()):
+                formatter.write_text('[{}]'.format(section_name))
+                formatter.write_dl(rows)
+                formatter.write_text('')
+
+    def add_command(self, cmd, name=None, help_section='Other'):
+        super().add_command(cmd, name)
+        name = name or cmd.name
+        self.help_sections[name] = help_section
+
+    def command(self, *args, **kwargs):
+        help_section = kwargs.pop('help_section', 'Other')
+        group = super()
+
+        def decorator(f):
+            cmd = group.command(*args, **kwargs)(f)
+            self.help_sections[cmd.name] = help_section
+            return cmd
+        return decorator
+
+
+@click.group(cls=HelpSectionsGroup)
 @click.option('--version', callback=_version_callback, is_flag=True,
               expose_value=False, is_eager=True,
               help='Show the version and exit')
@@ -94,9 +147,12 @@ def cli(ctx):
     ctx.obj = env
 
 
-cli.add_command(assemble)
-cli.add_command(config_atom)
-cli.add_command(get)
-cli.add_command(list_environments)
-cli.add_command(publish)
-cli.add_command(validate)
+cli.add_command(assemble, help_section='Stock')
+cli.add_command(config_atom, help_section='Stock')
+cli.add_command(get, help_section='Stock')
+cli.add_command(list_environments, help_section='Stock')
+cli.add_command(publish, help_section='Stock')
+cli.add_command(validate, help_section='Stock')
+
+for entry_point in pkg_resources.iter_entry_points('neb.extension'):
+    entry_point.load()(cli)  # pragma: no cover
