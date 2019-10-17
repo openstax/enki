@@ -20,6 +20,7 @@ install_requires = parse_requirements('requirements/main.txt')
 tests_require = parse_requirements('requirements/test.txt')
 extras_require = {
     'test': tests_require,
+    'tasks': 'neb-tasks @ git+https://github.com/openstax/neb-tasks.git@master#egg=neb-tasks', # noqa
 }
 description = "OpenStax Nebu publishing utility"
 with open('README.rst', 'r') as readme:
