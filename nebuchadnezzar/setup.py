@@ -20,17 +20,18 @@ install_requires = parse_requirements('requirements/main.txt')
 tests_require = parse_requirements('requirements/test.txt')
 extras_require = {
     'test': tests_require,
+    'tasks': 'neb-tasks @ git+https://github.com/openstax/neb-tasks.git@master#egg=neb-tasks', # noqa
 }
-description = "Connexions Nebu publishing utility"
+description = "OpenStax Nebu publishing utility"
 with open('README.rst', 'r') as readme:
     long_description = readme.read()
 
 setup(
     name='nebuchadnezzar',
     version=versioneer.get_version(),
-    author='Connexions team',
+    author='OpenStax team',
     author_email='info@cnx.org',
-    url="https://github.com/connexions/nebuchadnezzar",
+    url="https://github.com/openstax/nebuchadnezzar",
     license='AGPL, See also LICENSE.txt',
     description=description,
     long_description=long_description,

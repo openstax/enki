@@ -56,3 +56,66 @@ def test_no_versions_found():
     def empty_version_list():
         return []
     assert get_latest_released_version(empty_version_list) == ""
+
+
+def test_help_formatter(invoker):
+    import textwrap
+    import click
+    from nebu.cli.main import HelpSectionsGroup
+
+    @click.group(cls=HelpSectionsGroup)
+    def cli(ctx):
+        pass
+
+    @cli.command(help_section='a')
+    def a():
+        pass
+
+    @cli.command(help_section='b')
+    def b():
+        pass
+
+    args = ['--help']
+    result = invoker(cli, args)
+
+    assert result.exit_code == 0
+
+    expected_output = textwrap.dedent("""
+    Usage: cli [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      --help  Show this message and exit.
+
+    Commands:
+      [a]
+      a
+
+      [b]
+      b
+    """)
+
+    assert ('\n' + result.output) == expected_output
+
+
+def test_help_formatter_no_cmd(invoker):
+    import textwrap
+    import click
+    from nebu.cli.main import HelpSectionsGroup
+
+    @click.group(cls=HelpSectionsGroup)
+    def cli(ctx):
+        pass
+
+    args = ['--help']
+    result = invoker(cli, args)
+
+    assert result.exit_code == 0
+
+    expected_output = textwrap.dedent("""
+    Usage: cli [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      --help  Show this message and exit.
+    """)
+
+    assert ('\n' + result.output) == expected_output
