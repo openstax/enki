@@ -2,6 +2,15 @@
 Change Log
 ==========
 
+9.2.0
+-----
+
+- Add twine check on travis (#155)
+- Change Connexions to OpenStax in setup.py
+- Add neb-tasks as an optional dependency from git repo
+- Add command help sections and relevant tests
+- Add "ping" command to check credentials and permissions (#158)
+
 9.1.0
 -----
 
