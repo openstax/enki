@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.2.1
+-----
+
+- Use PyPi distribution for neb-tasks (#161)
+
 9.2.0
 -----
 
