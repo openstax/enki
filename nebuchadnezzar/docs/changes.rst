@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.3.0
+-----
+
+- Fetch exercises during ``neb assemble`` (#160)
+
 9.2.1
 -----
 
