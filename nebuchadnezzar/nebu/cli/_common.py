@@ -35,6 +35,11 @@ console_logging_config = {
             'handlers': ['console'],
             'propagate': 0,
         },
+        'cnxepub': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagte': 0,
+        },
     },
     'root': {
         'level': 'NOTSET',

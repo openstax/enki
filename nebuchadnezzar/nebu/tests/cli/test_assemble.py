@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 from lxml import etree
 import pytest
@@ -39,6 +40,31 @@ def edit_collection_xml(request):
         request.addfinalizer(restore_collection_xml)
 
     return _edit_collection_xml
+
+
+@pytest.fixture
+def add_exercise(request):
+    def _add_exercise(filepath):
+        bakpath = filepath.parent / '{}.bak'.format(filepath.name)
+        filepath.rename(bakpath)
+
+        with bakpath.open('r') as f:
+            content = f.read()
+
+        # add an exercise to the first para
+        with filepath.open('w') as f:
+            f.write(content.replace(
+                '</para>',
+                '<link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/>'
+                '</para>',
+                1))
+
+        def restore_file():
+            bakpath.replace(filepath)
+
+        request.addfinalizer(restore_file)
+
+    return _add_exercise
 
 
 class FauxSingleHTMLFormatter(object):
@@ -186,3 +212,31 @@ class TestAssembleCmd:
         assert not (output_dir / 'm46913').is_symlink()
         # the second module in the first subcollection should be there
         assert (output_dir / 'm46909').is_symlink()
+
+
+class TestAssembleIntegration:
+    def test_exercises(self, tmp_path, src_data, add_exercise, requests_mock,
+                       invoker, datadir):
+        output_dir = tmp_path / 'build'
+        output_dir.mkdir()
+
+        add_exercise(src_data / 'm46882' / 'index.cnxml')
+
+        with (datadir / 'exercises.json').open('r') as f:
+            requests_mock.get(
+                'https://exercises.cnx.org/api/exercises?'
+                'q=tag:k12phys-ch01-ex008',
+                json=json.load(f))
+
+        from nebu.cli.main import cli
+        args = ('assemble', '--exercise-host', 'exercises.cnx.org',
+                str(src_data), str(output_dir))
+        result = invoker(cli, args)
+
+        assert result.exit_code == 0
+
+        # Find the exercise in the assembled html
+        with (output_dir / 'collection.assembled.xhtml').open('r') as f:
+            html = f.read()
+
+        assert 'Which statement best compares and contrasts' in html

@@ -4,6 +4,7 @@ import click
 from cnxepub.formatters import (
     HTMLFormatter,
     SingleHTMLFormatter,
+    exercise_callback_factory,
 )
 from cnxepub.models import flatten_to_documents
 
@@ -14,12 +15,14 @@ from ..utils import relative_path
 
 
 ASSEMBLED_FILENAME = 'collection.assembled.xhtml'
+DEFAULT_EXERCISES_HOST = 'exercises.openstax.org'
+DEFAULT_MATHMLCLOUD_URL = 'http://mathmlcloud.cnx.org:1337/equation/'
 
 
-def produce_collection_xhtml(binder, output_dir):
+def produce_collection_xhtml(binder, output_dir, includes):
     collection_xhtml = output_dir / ASSEMBLED_FILENAME
     with collection_xhtml.open('wb') as fb:
-        fb.write(bytes(SingleHTMLFormatter(binder)))
+        fb.write(bytes(SingleHTMLFormatter(binder, includes)))
 
     return collection_xhtml
 
@@ -41,8 +44,15 @@ def provide_supporting_files(input_dir, output_dir, binder):
 @common_params
 @click.argument('input-dir', type=click.Path(exists=True))
 @click.argument('output-dir', type=click.Path())
+@click.option('--exercise-token',
+              help='Token for including answers in exercises')
+@click.option('--exercise-host', default=DEFAULT_EXERCISES_HOST,
+              help='Default {}'.format(DEFAULT_EXERCISES_HOST))
+@click.option('--mathmlcloud-url', default=DEFAULT_MATHMLCLOUD_URL,
+              help='Default {}'.format(DEFAULT_MATHMLCLOUD_URL))
 @click.pass_context
-def assemble(ctx, input_dir, output_dir):
+def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host,
+             mathmlcloud_url):
     """Assembles litezip structure data into a single-page-html file.
 
     This also stores the intermediary results alongside the resulting
@@ -74,8 +84,18 @@ def assemble(ctx, input_dir, output_dir):
         relative_path(collection_xml, output_dir)
     )
 
+    # Fetch exercises as part of producing the collection xhtml
+    exercise_url = 'https://{}/api/exercises?q=tag:{{itemCode}}'.format(
+        exercise_host)
+    exercise_match = '#ost/api/ex/'
+    includes = [exercise_callback_factory(exercise_match,
+                                          exercise_url,
+                                          None,
+                                          exercise_token,
+                                          mathmlcloud_url)]
+
     # Write the binder out as a single-page-html
-    collection_xhtml = produce_collection_xhtml(binder, output_dir)
+    collection_xhtml = produce_collection_xhtml(binder, output_dir, includes)
     logger.debug('Wrote: {}'.format(str(collection_xhtml.resolve())))
 
     # Write the symbolic links for modules to the output directory
