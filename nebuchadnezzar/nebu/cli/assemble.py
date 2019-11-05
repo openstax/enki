@@ -85,14 +85,16 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host,
     )
 
     # Fetch exercises as part of producing the collection xhtml
-    exercise_url = 'https://{}/api/exercises?q=tag:{{itemCode}}'.format(
-        exercise_host)
-    exercise_match = '#ost/api/ex/'
-    includes = [exercise_callback_factory(exercise_match,
-                                          exercise_url,
-                                          None,
-                                          exercise_token,
-                                          mathmlcloud_url)]
+    exercise_match_urls = (
+        ('#ost/api/ex/',
+         'https://{}/api/exercises?q=tag:{{itemCode}}'.format(exercise_host)),
+        ('#exercise/',
+         'https://{}/api/exercises?q=nickname:{{itemCode}}'.format(
+             exercise_host)),
+    )
+    includes = [exercise_callback_factory(
+        exercise_match, exercise_url, None, exercise_token, mathmlcloud_url)
+        for exercise_match, exercise_url in exercise_match_urls]
 
     # Write the binder out as a single-page-html
     collection_xhtml = produce_collection_xhtml(binder, output_dir, includes)
