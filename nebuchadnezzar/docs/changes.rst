@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+9.4.0
+-----
+
+- Support exercise using nickname #exercise/XXXXX (#162)
+- Remove upload pypi step in Jenkinsfile (#163)
+
 9.3.0
 -----
 
