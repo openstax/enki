@@ -6,6 +6,14 @@ from requests.auth import HTTPBasicAuth
 import pretend
 
 
+def ensure_str(s):
+    """Ensure ``s`` is a str type"""
+    if isinstance(s, bytes):
+        return s.decode()
+    else:
+        return s
+
+
 class MockRequest:
     def __init__(self):
         self.headers = {}
@@ -127,9 +135,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             included_files = set(zb.namelist())
@@ -192,9 +202,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             included_files = set(zb.namelist())
@@ -258,9 +270,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             included_files = set(zb.namelist())
@@ -587,9 +601,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             actual_published = set(zb.namelist())
@@ -666,9 +682,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             actual_published = set(zb.namelist())
@@ -736,9 +754,11 @@ class TestPublishCmd:
         # Discover the multipart/form-data boundry
         boundary = request_data.split(b'\r\n')[0][2:]
         form = parse_multipart(io.BytesIO(request_data),
-                               {'boundary': boundary})
-        assert form['publisher'][0] == publisher.encode('utf8')
-        assert form['message'][0] == message.encode('utf8')
+                               {'boundary': boundary,
+                                'CONTENT-LENGTH': len(request_data),
+                                })
+        assert ensure_str(form['publisher'][0]) == publisher
+        assert ensure_str(form['message'][0]) == message
         # Check the zipfile for contents
         with zipfile.ZipFile(io.BytesIO(form['file'][0])) as zb:
             actual_published = set(zb.namelist())
