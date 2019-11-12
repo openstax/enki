@@ -11,7 +11,7 @@ from ._common import common_params, get_base_url, logger
 @common_params
 @click.argument('env')
 @click.option('-u', '--username', type=str, prompt=True)
-@click.option('-p', '--password', type=str, prompt=True)
+@click.option('-p', '--password', type=str, prompt=True, hide_input=True)
 @click.pass_context
 def ping(ctx, env, username, password):
     """Check credentials and permission to publish on server"""
