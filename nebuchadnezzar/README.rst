@@ -5,8 +5,8 @@ This is a command-line interface for interacting with connexions content. The to
 
 This software requires:
 
-- Python >= 3.5 <= 3.7
-- libmagic (libmagic1 on Linux)
+- Python >= 3.6 <= 3.8
+- libmagic(libmagic1 on Linux)
 - JRE >= 6
 
 
