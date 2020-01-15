@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.5.0
+-----
+
+- Use asyncio/aiohttp to speed up requests and improve performance of neb get (#166)
+
 9.4.0
 -----
 

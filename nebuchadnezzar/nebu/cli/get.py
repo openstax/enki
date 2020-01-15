@@ -1,10 +1,14 @@
-import os
+import asyncio
+from itertools import groupby
+from traceback import print_tb
+import sys
 
 import click
 import requests
 
 from lxml import etree
 from pathlib import Path
+from aiohttp import ClientSession, ClientTimeout
 
 from ..logger import logger
 from ._common import common_params, confirm, build_archive_url, calculate_sha1
@@ -82,14 +86,8 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
     version = col_metadata['version']
 
     # Generate full output dir as soon as we have the version
-    if output_dir is None:
-        output_dir = Path.cwd() / '{}_1.{}'.format(col_id, version)
-    else:
-        output_dir = Path(output_dir)
-        if not output_dir.is_absolute():
-            output_dir = Path.cwd() / output_dir
-
-    # ... and check if it's already been downloaded
+    output_dir = output_dir or f'{col_id}_1.{version}'
+    output_dir = Path(output_dir).resolve()
     if output_dir.exists():
         raise ExistingOutputDir(output_dir)
 
@@ -116,37 +114,63 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
 
     # Write tree
     tree = col_metadata['tree']
-    os.mkdir(str(output_dir))
 
-    num_pages = _count_leaves(tree) + 1  # Num. of xml files to fetch
+    num_pages = _count_nodes(tree)
     try:
-        label = 'Getting {}'.format(output_dir.relative_to(Path.cwd()))
+        label = f'Getting {output_dir.relative_to(Path.cwd())}'
     except ValueError:
-        # Raised ONLY when output_dir is not a child of cwd
-        label = 'Getting {}'.format(output_dir)
+        # Raised when output_dir is not a child of cwd
+        label = f'Getting {output_dir}'
     with click.progressbar(length=num_pages,
                            label=label,
                            width=0,
                            show_pos=True) as pbar:
-        _write_node(tree, base_url, output_dir, book_tree, get_resources, pbar)
+        loop = asyncio.get_event_loop()
+        loop.set_exception_handler(report_and_quit)
+        coro = _write_contents(tree,
+                               base_url,
+                               output_dir,
+                               book_tree,
+                               get_resources,
+                               pbar)
+        loop.run_until_complete(coro)
 
 
-def _count_leaves(node):
+def report_and_quit(loop, context):  # pragma: no cover
+    loop.default_exception_handler(context)
+
+    exception = context.get('exception')
+    print(type(exception), file=sys.stderr)
+    print_tb(exception.__traceback__)
+    print(str(exception), file=sys.stderr)
+    loop.stop()
+
+
+def _count_nodes(node):
     if 'contents' in node:
-        return sum([_count_leaves(child) for child in node['contents']])
+        return sum([_count_nodes(child) for child in node['contents']]) + 1
     else:
         return 1
 
 
-def _tree_depth(node):
-    if 'contents' in node:
-        return max([_tree_depth(child) for child in node['contents']]) + 1
-    else:
-        return 0
-
-
 filename_by_type = {'application/vnd.org.cnx.collection': 'collection.xml',
                     'application/vnd.org.cnx.module': 'index.cnxml'}
+filename_ignore = ['index.cnxml.html']
+
+
+def filename_to_resource_group(filename):
+    if filename in filename_ignore:
+        return 'ignore'
+    if filename in filename_by_type.values():
+        return 'content'
+    return 'extras'
+
+
+def collect_groupby(groupby_obj, group_func=list):
+    groups = {}
+    for key, group in groupby_obj:
+        groups[key] = group_func(group)
+    return groups
 
 
 def _safe_name(name):
@@ -158,88 +182,189 @@ def store_sha1(sha1, write_dir, filename):
         s.write('{}  {}\n'.format(sha1, filename))
 
 
-def _write_node(node, base_url, out_dir, book_tree=False, get_resources=False,
-                pbar=None, depth=None, pos={0: 0}, lvl=0):
-    """Recursively write out contents of a book
-       Arguments are:
-        root of the json tree, archive url to fetch from, existing directory
-       to write out to, format to write (book tree or flat) as well as a
-       click progress bar, if desired. Depth is height of tree, used to reset
-       the lowest level counter (pages) per chapter. All other levels (Chapter,
-       unit) count up for entire book. Remaining args are used for recursion"""
-    if depth is None:
-        depth = _tree_depth(node)
-        pos = {0: 0}
-        lvl = 0
-    if book_tree:
-        #  HACK Prepending zero-filled numbers to folders to fix the sort order
-        if lvl > 0:
-            dirname = '{:02d} {}'.format(pos[lvl], _safe_name(node['title']))
-        else:
-            dirname = _safe_name(node['title'])  # book name gets no number
+async def do_with_retried_request_while(session,
+                                        url,
+                                        condition,
+                                        max_retries,
+                                        do,
+                                        sleep_time=0.5):
+    retries = 0
+    while retries <= max_retries:
+        try:
+            async with session.get(
+                    url,
+                    timeout=ClientTimeout(total=15)) as response:
+                if not condition(response):
+                    return await do(response)
+        except asyncio.TimeoutError:  # pragma: no cover
+            pass
+        retries += 1
+        await asyncio.sleep(sleep_time)
+    raise Exception(f'Max retries exceeded: {url}')
 
-        out_dir = out_dir / dirname
-        os.mkdir(str(out_dir))
 
-    write_dir = out_dir  # Allows nesting only for book_tree case
+async def _write_contents(tree,
+                          base_url,
+                          out_dir,
+                          book_tree=False,
+                          get_resources=False,
+                          pbar=None):
+    async def fetch_content_meta_node(session,
+                                      node,
+                                      content_meta_url,
+                                      write_dir,
+                                      index_in_group=0):
+        async def get_metadata():
+            async def response_json(response):
+                if 500 > response.status >= 400:
+                    return {}
+                return await response.json()
 
-    # Fetch and store the core file for each node
-    resp = requests.get('{}/contents/{}'.format(base_url, node['id']))
-    if resp:  # Subcollections cannot (yet) be fetched directly
-        metadata = resp.json()
+            return await do_with_retried_request_while(
+                session=session,
+                url=content_meta_url,
+                condition=lambda resp: resp.status in (503, 504),
+                max_retries=4,
+                do=response_json)
 
-        """index.cnxml.html files should not be edited nor published (they are
-        generated and regenerated in-place in the database), so let's just
-        not consider them as resources (or download them) at all.
-        """
-        # skip index.cnxml.html
-        resources = {res['filename']: res for res in metadata['resources']
-                     if res['filename'] != 'index.cnxml.html'}
+        def get_resource_groups():
+            def key_func(tup):
+                return filename_to_resource_group(tup[0])
 
-        # Deal with core XML file and output directory
-        filename = filename_by_type[metadata['mediaType']]
-        url = '{}/resources/{}'.format(base_url, resources[filename]['id'])
-        file_resp = requests.get(url)
-        if not(book_tree) and filename == 'index.cnxml':
-            write_dir = write_dir / metadata['legacy_id']
-            os.mkdir(str(write_dir))
+            if metadata == {}:
+                return {}
+
+            by_filename = {res['filename']: res
+                           for res in metadata['resources']}
+            by_resource_group = collect_groupby(
+                groupby(sorted(list(by_filename.items()), key=key_func),
+                        key_func),
+                dict)
+            return by_resource_group
+
+        def enqueue_content():
+            if 'content' not in resource_groups:
+                return
+
+            content_id = resource_groups['content'][content_filename]['id']
+            content_url = f'{base_url}/resources/{content_id}'
+            content_coro = fetch_content_node(session,
+                                              content_url,
+                                              write_dir,
+                                              content_filename)
+            tasks.append(asyncio.ensure_future(content_coro))
+
+        def enqueue_extras():
+            if not get_resources:
+                return
+            if 'extras' not in resource_groups:
+                return
+
+            for filename, meta in resource_groups['extras'].items():
+                resource_id = meta['id']
+                resource_url = f'{base_url}/resources/{resource_id}'
+                resource_coro = fetch_resource_node(session,
+                                                    resource_url,
+                                                    write_dir,
+                                                    filename,
+                                                    resource_id)
+                tasks.append(asyncio.ensure_future(resource_coro))
+
+        def enqueue_children():
+            def is_preface(node):
+                return ("Preface" in node['title'])
+
+            if 'contents' not in node:
+                return
+
+            no_bump_index = is_preface(node['contents'][0])
+            for index, child in enumerate(node['contents']):
+                content_meta_url = f'{base_url}/contents/{child["id"]}'
+                content_meta_coro = fetch_content_meta_node(session,
+                                                            child,
+                                                            content_meta_url,
+                                                            write_dir,
+                                                            (index
+                                                             if no_bump_index
+                                                             else index + 1))
+                tasks.append(asyncio.ensure_future(content_meta_coro))
+
+        def get_scoped_directory():
+            is_module = content_filename == 'index.cnxml'
+            is_collection = content_filename == 'collection.xml'
+
+            node_title = node.get('title', '')
+            index_string = ('{:02d} '.format(index_in_group)
+                            if not is_collection
+                            else '')
+            tree_dirname = f'{index_string}{_safe_name(node_title)}'
+
+            if is_module and not book_tree and legacy_id is not None:
+                return legacy_id
+            if book_tree:
+                return tree_dirname
+            return ''
+
+        tasks = []
+        metadata = await get_metadata()
+        resource_groups = get_resource_groups()
+
+        media_type = metadata.get('mediaType')
+        content_filename = filename_by_type.get(media_type)
+        legacy_id = metadata.get('legacy_id')
+
+        scoped_directory = get_scoped_directory()
+        write_dir = write_dir / scoped_directory
+        write_dir.mkdir(parents=True, exist_ok=True)
+
+        enqueue_content()
+        enqueue_extras()
+        enqueue_children()
+
+        await asyncio.wait(tasks)
+        if pbar is not None:
+            pbar.update(1)
+        return
+
+    async def fetch_resource_node(session,
+                                  resource_url,
+                                  write_dir,
+                                  filename,
+                                  resource_id):
+        async def read_response(response):
+            return await response.read()
+        resp = await do_with_retried_request_while(
+            session=session,
+            url=resource_url,
+            condition=lambda resp: resp.status in (503, 504),
+            max_retries=4,
+            do=read_response)
         filepath = write_dir / filename
+        filepath.write_bytes(resp)
+        store_sha1(resource_id, write_dir, filename)
 
-        # core files are XML - this parse/serialize removes numeric entities
-        filepath.write_bytes(etree.tostring(etree.XML(file_resp.content),
+    async def fetch_content_node(session,
+                                 content_url,
+                                 write_dir,
+                                 filename):
+        async def read_response(response):
+            return await response.read()
+        resp = await do_with_retried_request_while(
+            session=session,
+            url=content_url,
+            condition=lambda resp: resp.status in (503, 504),
+            max_retries=4,
+            do=read_response)
+        filepath = write_dir / filename
+        filepath.write_bytes(etree.tostring(etree.XML(resp),
                                             encoding='utf-8'))
-
-        # Cache the sha1 for this node
         sha1 = calculate_sha1(write_dir / filename)
         store_sha1(sha1, write_dir, filename)
 
-        if get_resources:
-            for res in resources:  # Dict keyed by resource filename
-                #  Exclude core file, already written out, above
-                if res != filename:
-                    filepath = write_dir / res
-                    url = '{}/resources/{}'.format(base_url,
-                                                   resources[res]['id'])
-                    file_resp = requests.get(url)
-                    filepath.write_bytes(file_resp.content)
-                    # NOTE: the id is the sha1
-                    store_sha1(resources[res]['id'], write_dir, res)
+    initial_url = f'{base_url}/contents/{tree["id"]}'
 
-        if pbar is not None:
-            pbar.update(1)
+    session = ClientSession(headers={"Connection": "close"})
+    coro = fetch_content_meta_node(session, tree, initial_url, out_dir)
 
-    if 'contents' in node:  # Top-level or subcollection - recurse
-        lvl += 1
-        if lvl not in pos:
-            pos[lvl] = 0
-        if lvl == depth:  # Reset counter for bottom-most level: pages
-            pos[lvl] = 0
-        for child in node['contents']:
-            #  HACK - the silly don't number Preface/Introduction logic
-            if ((lvl == 1 and pos[1] == 0 and 'Preface' in child['title']) or
-                    (pos[lvl] == 0 and child['title'] == 'Introduction')):
-                pos[lvl] = 0
-            else:
-                pos[lvl] += 1
-            _write_node(child, base_url, out_dir, book_tree, get_resources,
-                        pbar, depth, pos, lvl)
+    await asyncio.ensure_future(coro)
+    await session.close()

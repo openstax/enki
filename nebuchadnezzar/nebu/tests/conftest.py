@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+from aioresponses import aioresponses
 from click.testing import CliRunner
 
 
@@ -29,6 +30,12 @@ def invoker():
     """
     runner = CliRunner()
     return runner.invoke
+
+
+@pytest.fixture
+def mock_aioresponses():
+    with aioresponses() as m:
+        yield m
 
 
 @pytest.fixture

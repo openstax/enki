@@ -1,8 +1,10 @@
 from functools import partial
 from os import scandir
 from pathlib import Path
+import traceback
+import asyncio
 
-from nebu.cli.get import _write_node
+from nebu.cli.get import _write_contents
 from nebu.cli._common import calculate_sha1
 
 
@@ -27,6 +29,28 @@ def register_data_file(requests_mock, datadir, filename, url):
         )
 
 
+def register_data_file_aio(mock_aioresponses, datadir, filename, url):
+    datafile = datadir / filename
+    content_size = datafile.stat().st_size
+    with datafile.open('rb') as fb:
+        headers = {'Content-Length': str(content_size)}
+        mock_aioresponses.get(
+            url,
+            body=fb.read(),
+            headers=headers,
+            repeat=True
+        )
+
+
+def register_404_aio(mock_aioresponses, url):
+    mock_aioresponses.get(
+        url,
+        body='Not Found',
+        status=404,
+        repeat=True
+    )
+
+
 def register_404(requests_mock, url):
     requests_mock.get(
         url,
@@ -35,8 +59,19 @@ def register_404(requests_mock, url):
     )
 
 
+def debug_result_exception(result):
+    if result.exception:
+        traceback.print_tb(result.exception.__traceback__)
+        print(type(result.exception))
+        print(str(result.exception))
+        print(result.stdout_bytes.decode('utf8'))
+
+
 # https://github.com/openstax/cnx/issues/291
-def test_utf8_content(tmpdir, requests_mock, datadir):
+def test_utf8_content(tmpdir,
+                      requests_mock,
+                      mock_aioresponses,
+                      datadir):
     # This test is terribly written, but it's because the code...
     out_dir = Path(str(tmpdir))
     base_url = 'https://archive.cnx.org'
@@ -61,16 +96,18 @@ def test_utf8_content(tmpdir, requests_mock, datadir):
         ],
     }
     url = '{}/contents/{}'.format(base_url, node['id'])
-    requests_mock.get(url, json=data)
+    mock_aioresponses.get(url, payload=data)
 
     # Mock the request for the cnxml resource
     with (datadir / 'unicode.cnxml').open('rb') as fb:
         cnxml = fb.read()
     url = '{}/resources/{}'.format(base_url, resource_id)
-    requests_mock.get(url, content=cnxml)
+    mock_aioresponses.get(url, body=cnxml)
 
     # Call the target
-    _write_node(node, base_url, out_dir)
+    loop = asyncio.get_event_loop()
+    coro = _write_contents(node, base_url, out_dir)
+    loop.run_until_complete(coro)
 
     # Verify the content is as specified
     with (datadir / 'unicode.cnxml').open('rb') as fb:
@@ -81,7 +118,12 @@ def test_utf8_content(tmpdir, requests_mock, datadir):
 
 class TestGetCmd:
 
-    def test(self, datadir, tmpcwd, requests_mock, invoker):
+    def test_general(self,
+                     datadir,
+                     tmpcwd,
+                     requests_mock,
+                     mock_aioresponses,
+                     invoker):
         col_id = 'col11405'
         col_version = '1.2'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -100,23 +142,25 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
@@ -130,7 +174,12 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_with_resources(self, datadir, tmpcwd, requests_mock, invoker):
+    def test_with_resources(self,
+                            datadir,
+                            tmpcwd,
+                            requests_mock,
+                            mock_aioresponses,
+                            invoker):
         col_id = 'col11405'
         col_version = '1.2'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -149,23 +198,25 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         from nebu.cli.main import cli
         args = ['get', '--get-resources', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
@@ -179,7 +230,12 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_three_part_vers(self, datadir, tmpcwd, monkeypatch, requests_mock,
+    def test_three_part_vers(self,
+                             datadir,
+                             tmpcwd,
+                             monkeypatch,
+                             requests_mock,
+                             mock_aioresponses,
                              invoker):
         col_id = 'col11405'
         col_version = '1.1'
@@ -202,18 +258,19 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@1.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@1.1')
 
         # patch input to return 'y' - getting not-head
         with monkeypatch.context() as m:
@@ -222,6 +279,7 @@ class TestGetCmd:
             args = ['get', 'test-env', col_id, trip_ver]
             result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '1.1')
@@ -235,8 +293,13 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_three_part_bad_ver(self, datadir, tmpcwd, monkeypatch,
-                                requests_mock, invoker):
+    def test_three_part_bad_ver(self,
+                                datadir,
+                                tmpcwd,
+                                monkeypatch,
+                                requests_mock,
+                                mock_aioresponses,
+                                invoker):
         col_id = 'col11405'
         col_version = '1.1'
         trip_ver = '1.1.5'
@@ -268,7 +331,12 @@ class TestGetCmd:
         msg = "content unavailable for '{}/{}'".format(col_id, trip_ver)
         assert msg in result.output
 
-    def test_outside_cwd(self, datadir, tmpcwd, monkeypatch, requests_mock,
+    def test_outside_cwd(self,
+                         datadir,
+                         tmpcwd,
+                         monkeypatch,
+                         requests_mock,
+                         mock_aioresponses,
                          invoker):
         monkeypatch.chdir('/var')
         col_id = 'col11405'
@@ -289,24 +357,26 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         outdir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
         from nebu.cli.main import cli
         args = ['get', '-d', str(outdir), 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         outdir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
@@ -320,7 +390,12 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_book_tree(self, datadir, tmpcwd, requests_mock, invoker):
+    def test_book_tree(self,
+                       datadir,
+                       tmpcwd,
+                       requests_mock,
+                       mock_aioresponses,
+                       invoker):
         col_id = 'col11405'
         col_version = '1.2'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -339,23 +414,25 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         from nebu.cli.main import cli
         args = ['get', '-t', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
@@ -369,8 +446,13 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_not_latest(self, datadir, tmpcwd, requests_mock,
-                        monkeypatch, invoker):
+    def test_not_latest(self,
+                        datadir,
+                        tmpcwd,
+                        requests_mock,
+                        mock_aioresponses,
+                        monkeypatch,
+                        invoker):
         col_id = 'col11405'
         col_version = '1.1'
         col_latest = '2.1'
@@ -392,13 +474,14 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # patch input to return 'y'
         with monkeypatch.context() as m:
@@ -407,6 +490,7 @@ class TestGetCmd:
             args = ['get', 'test-env', '-d', 'mydir', col_id, col_version]
             result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / 'mydir'
@@ -420,8 +504,13 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_not_latest_tree(self, datadir, tmpcwd, requests_mock,
-                             monkeypatch, invoker):
+    def test_not_latest_tree(self,
+                             datadir,
+                             tmpcwd,
+                             requests_mock,
+                             mock_aioresponses,
+                             monkeypatch,
+                             invoker):
         col_id = 'col11405'
         col_version = '1.1'
         col_latest = '2.1'
@@ -443,13 +532,14 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # patch input to return 'y'
         with monkeypatch.context() as m:
@@ -459,6 +549,7 @@ class TestGetCmd:
                     '-d', 'mydir', col_id, col_version]
             result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / 'mydir'
@@ -472,8 +563,13 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_not_latest_abort(self, datadir, tmpcwd, requests_mock,
-                              monkeypatch, invoker):
+    def test_not_latest_abort(self,
+                              datadir,
+                              tmpcwd,
+                              requests_mock,
+                              mock_aioresponses,
+                              monkeypatch,
+                              invoker):
         col_id = 'col11405'
         col_version = '1.1'
         col_latest = '2.1'
@@ -502,7 +598,12 @@ class TestGetCmd:
         msg = "Non-latest version requested"
         assert msg in result.output
 
-    def test_latest(self, datadir, tmpcwd, requests_mock, invoker):
+    def test_latest(self,
+                    datadir,
+                    tmpcwd,
+                    requests_mock,
+                    mock_aioresponses,
+                    invoker):
         col_id = 'col11405'
         col_version = 'latest'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -521,23 +622,25 @@ class TestGetCmd:
         resdir = datadir / 'resources'
         for res in resdir.glob('*'):
             url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
-            register_data_file(requests_mock, resdir, res, url)
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
 
         # Register contents
         condir = datadir / 'contents'
         for con in condir.glob('*'):
             url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
             register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
 
         # Register subcollection/chapter as 404
-        register_404(requests_mock,
-                     'https://archive.cnx.org/contents/'
-                     '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+        register_404_aio(mock_aioresponses,
+                         'https://archive.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
+        debug_result_exception(result)
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
@@ -551,7 +654,11 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_with_existing_output_dir(self, tmpcwd, invoker, requests_mock,
+    def test_with_existing_output_dir(self,
+                                      tmpcwd,
+                                      invoker,
+                                      requests_mock,
+                                      mock_aioresponses,
                                       datadir):
         col_id = 'col00000'
         col_version = '2.1'
@@ -583,7 +690,10 @@ class TestGetCmd:
 
         assert 'Missing argument "COL_VERSION"' in result.output
 
-    def test_failed_request_using_version(self, requests_mock, invoker):
+    def test_failed_request_using_version(self,
+                                          requests_mock,
+                                          mock_aioresponses,
+                                          invoker):
         col_id = 'col00000'
         col_ver = '1.19'
         content_url = 'https://archive.cnx.org/content/{}/{}'.format(col_id,
@@ -600,7 +710,11 @@ class TestGetCmd:
         msg = "content unavailable for '{}/{}'".format(col_id, col_ver)
         assert msg in result.output
 
-    def test_failed_request_no_raw(self, datadir, requests_mock, invoker):
+    def test_failed_request_no_raw(self,
+                                   datadir,
+                                   requests_mock,
+                                   mock_aioresponses,
+                                   invoker):
         col_id = 'col11405'
         col_version = 'latest'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -632,7 +746,11 @@ class TestGetCmd:
         msg = "content unavailable for '{}/{}'".format(col_id, col_version)
         assert msg in result.output
 
-    def test_sha1_with_non_utf8_content(self, requests_mock, datadir):
+    def test_internal_server_error(self,
+                                   capsys,
+                                   requests_mock,
+                                   mock_aioresponses,
+                                   datadir):
         """At one point in time, modules which contained unicode characters
          (used to) get ascii-encoded on dowload, and then we fixed it, but
         this became an issue when detecting files that have changed because
@@ -660,17 +778,69 @@ class TestGetCmd:
             ],
         }
         url = '{}/contents/{}'.format(base_url, node['id'])
-        requests_mock.get(url, json=metadata)
+        mock_aioresponses.get(url, payload=metadata)
+
+        url = '{}/resources/{}'.format(base_url, resource_id)
+        # Downloads the ascii-encoded module
+        mock_aioresponses.get(url,
+                              repeat=True,
+                              body='Internal Server Error',
+                              status=503)
+
+        # Call the target
+        try:
+            loop = asyncio.get_event_loop()
+            coro = _write_contents(node, base_url, out_dir)
+            loop.run_until_complete(coro)
+        except RuntimeError:
+            assert 'Max retries exceeded' in capsys.readouterr().err
+        else:
+            assert False
+
+    def test_sha1_with_non_utf8_content(self,
+                                        requests_mock,
+                                        mock_aioresponses,
+                                        datadir):
+        """At one point in time, modules which contained unicode characters
+         (used to) get ascii-encoded on dowload, and then we fixed it, but
+        this became an issue when detecting files that have changed because
+        the sha1 hash differs. This code tests that the hashing is done after
+        encoding.
+
+        See: https://github.com/openstax/cnx/issues/273
+        """
+        out_dir = Path(str(datadir))
+        base_url = 'https://archive.cnx.org'
+        node = {'id': 'foo'}
+        legacy_id = 'm68234'
+        resource_id = '9d85db7'
+
+        # Mock the request for the json data
+        metadata = {
+            'legacy_id': legacy_id,
+            'mediaType': 'application/vnd.org.cnx.module',
+            'resources': [
+                {
+                    "filename": "index.cnxml",
+                    "id": resource_id,
+                    "media_type": "application/octet-stream"
+                },
+            ],
+        }
+        url = '{}/contents/{}'.format(base_url, node['id'])
+        mock_aioresponses.get(url, payload=metadata)
 
         with (datadir / 'mod_ascii_encoded.cnxml').open('rb') as fb:
             mod_ascii_encoded = fb.read()
 
         url = '{}/resources/{}'.format(base_url, resource_id)
         # Downloads the ascii-encoded module
-        requests_mock.get(url, content=mod_ascii_encoded)
+        mock_aioresponses.get(url, body=mod_ascii_encoded)
 
         # Call the target
-        _write_node(node, base_url, out_dir)
+        loop = asyncio.get_event_loop()
+        coro = _write_contents(node, base_url, out_dir)
+        loop.run_until_complete(coro)
 
         """ Verify the sha1 is as expected """
         downloaded_hash = get_sha1s_dict(out_dir / legacy_id)["index.cnxml"]
