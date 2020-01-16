@@ -18,6 +18,9 @@ from .exceptions import (MissingContent,
                          )
 
 
+DEFAULT_REQUEST_LIMIT = 8
+
+
 @click.command()
 @common_params
 @click.option('-d', '--output-dir', type=click.Path(),
@@ -26,11 +29,14 @@ from .exceptions import (MissingContent,
               help="create human-friendly book-tree")
 @click.option('-r', '--get-resources', is_flag=True, default=False,
               help="Also get all resources (images)")
+@click.option('-l', '--request-limit', type=int, default=DEFAULT_REQUEST_LIMIT,
+              help="maximum number of concurrent requests to make")
 @click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version')
 @click.pass_context
-def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
+def get(ctx, env, col_id, col_version, output_dir, book_tree,
+        get_resources, request_limit):
     """download and expand the completezip to the current working directory"""
 
     base_url = build_archive_url(ctx, env)
@@ -126,12 +132,14 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree, get_resources):
                            width=0,
                            show_pos=True) as pbar:
         loop = asyncio.get_event_loop()
+
         loop.set_exception_handler(report_and_quit)
         coro = _write_contents(tree,
                                base_url,
                                output_dir,
                                book_tree,
                                get_resources,
+                               request_limit,
                                pbar)
         loop.run_until_complete(coro)
 
@@ -140,9 +148,10 @@ def report_and_quit(loop, context):  # pragma: no cover
     loop.default_exception_handler(context)
 
     exception = context.get('exception')
-    print(type(exception), file=sys.stderr)
-    print_tb(exception.__traceback__)
-    print(str(exception), file=sys.stderr)
+    if exception is not None:
+        print(type(exception), file=sys.stderr)
+        print_tb(exception.__traceback__)
+        print(str(exception), file=sys.stderr)
     loop.stop()
 
 
@@ -193,7 +202,7 @@ async def do_with_retried_request_while(session,
         try:
             async with session.get(
                     url,
-                    timeout=ClientTimeout(total=15)) as response:
+                    timeout=ClientTimeout(total=30, connect=10)) as response:
                 if not condition(response):
                     return await do(response)
         except asyncio.TimeoutError:  # pragma: no cover
@@ -208,6 +217,7 @@ async def _write_contents(tree,
                           out_dir,
                           book_tree=False,
                           get_resources=False,
+                          request_limit=DEFAULT_REQUEST_LIMIT,
                           pbar=None):
     async def fetch_content_meta_node(session,
                                       node,
@@ -306,7 +316,11 @@ async def _write_contents(tree,
             return ''
 
         tasks = []
+
+        await semaphore.acquire()
         metadata = await get_metadata()
+        semaphore.release()
+
         resource_groups = get_resource_groups()
 
         media_type = metadata.get('mediaType')
@@ -322,6 +336,7 @@ async def _write_contents(tree,
         enqueue_children()
 
         await asyncio.wait(tasks)
+
         if pbar is not None:
             pbar.update(1)
         return
@@ -331,6 +346,8 @@ async def _write_contents(tree,
                                   write_dir,
                                   filename,
                                   resource_id):
+        await semaphore.acquire()
+
         async def read_response(response):
             return await response.read()
         resp = await do_with_retried_request_while(
@@ -343,10 +360,14 @@ async def _write_contents(tree,
         filepath.write_bytes(resp)
         store_sha1(resource_id, write_dir, filename)
 
+        semaphore.release()
+
     async def fetch_content_node(session,
                                  content_url,
                                  write_dir,
                                  filename):
+        await semaphore.acquire()
+
         async def read_response(response):
             return await response.read()
         resp = await do_with_retried_request_while(
@@ -361,9 +382,12 @@ async def _write_contents(tree,
         sha1 = calculate_sha1(write_dir / filename)
         store_sha1(sha1, write_dir, filename)
 
+        semaphore.release()
+
     initial_url = f'{base_url}/contents/{tree["id"]}'
 
     session = ClientSession(headers={"Connection": "close"})
+    semaphore = asyncio.Semaphore(request_limit)
     coro = fetch_content_meta_node(session, tree, initial_url, out_dir)
 
     await asyncio.ensure_future(coro)

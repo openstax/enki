@@ -2,6 +2,12 @@
 Change Log
 ==========
 
+9.5.1
+-----
+
+- Allow a limit to be specified to the number of concurrent requests made (default 8) (#173)
+- Setting limit to 1 should yield synchronous-like behavior
+
 9.5.0
 -----
 
