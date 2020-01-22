@@ -21,7 +21,7 @@ DEFAULT_EXERCISES_HOST = 'exercises.openstax.org'
 def produce_collection_xhtml(binder, output_dir, includes):
     collection_xhtml = output_dir / ASSEMBLED_FILENAME
     with collection_xhtml.open('wb') as fb:
-        fb.write(bytes(SingleHTMLFormatter(binder, includes)))
+        fb.write(bytes(SingleHTMLFormatter(binder, includes, threads=20)))
 
     return collection_xhtml
 

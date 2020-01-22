@@ -17,10 +17,19 @@ def test_for_version(monkeypatch, invoker):
     assert result.output == expected_output
 
 
-def test_old_version(monkeypatch, invoker):
+def test_old_version(monkeypatch, invoker, requests_mock):
     version = '0.0.0'
 
     monkeypatch.setattr(nebu.cli.main, '__version__', version)
+
+    content = b'{"releases": {"0.0.0": [], "1.0.0": []}}'
+    content_size = len(content)
+    headers = {'Content-Length': str(content_size)}
+    requests_mock.get(
+        "https://pypi.org/pypi/nebuchadnezzar/json",
+        content=content,
+        headers=headers,
+    )
 
     from nebu.cli.main import cli
     args = ['--version']
@@ -36,16 +45,32 @@ def test_old_version(monkeypatch, invoker):
     assert output_no_version == expected_output
 
 
-def test_bad_remote_url():
+def test_bad_remote_url(requests_mock):
     from nebu.cli.main import get_remote_releases
     bad_url = "bad_url.!@#$%^&*()_+"
+
+    requests_mock.get(
+        bad_url,
+        text='Not Found',
+        status_code=404,
+    )
     path = []
     assert get_remote_releases(bad_url, path) == []
 
 
-def test_bad_remote_path():
+def test_bad_remote_path(requests_mock):
     from nebu.cli.main import get_remote_releases
     url = "https://pypi.org/pypi/nebuchadnezzar/json"
+
+    content = b'{"releases": {"0.0.0": [], "1.0.0": []}}'
+    content_size = len(content)
+    headers = {'Content-Length': str(content_size)}
+    requests_mock.get(
+        "https://pypi.org/pypi/nebuchadnezzar/json",
+        content=content,
+        headers=headers,
+    )
+
     bad_path = ["bad_path.!@#$%^&*()_+"]
     assert get_remote_releases(url, bad_path) == []
 

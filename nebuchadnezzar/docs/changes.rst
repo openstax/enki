@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.6.0
+-----
+
+- Neb assemble will now mutlithread exercise fetching (#172)
+
 9.5.1
 -----
 
