@@ -4,6 +4,7 @@ from pathlib import Path
 import traceback
 import asyncio
 import json
+import re
 
 from nebu.cli.get import _write_contents
 from nebu.cli._common import calculate_sha1
@@ -799,7 +800,8 @@ class TestGetCmd:
 
         assert result.exit_code == 2
 
-        assert 'Missing argument "COL_VERSION"' in result.output
+        expected_output = re.compile('Missing argument ["\']COL_VERSION["\']')
+        assert expected_output.search(result.output)
 
     def test_failed_request_using_version(self,
                                           requests_mock,
