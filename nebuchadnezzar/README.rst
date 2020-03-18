@@ -57,6 +57,9 @@ Preparation
 -----------
 
 #. Install https://atom.io
+#. Install Java
+
+    #. For macOS you can install Java by installing https://brew.sh and then running ``brew install java`` in a terminal.
 
 Install (with automatic Atom config)
 ------------------------------------
