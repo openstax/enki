@@ -5,6 +5,7 @@ import sys
 
 import click
 import requests
+import json
 
 from lxml import etree
 from pathlib import Path
@@ -31,26 +32,17 @@ DEFAULT_REQUEST_LIMIT = 8
               help="Also get all resources (images)")
 @click.option('-l', '--request-limit', type=int, default=DEFAULT_REQUEST_LIMIT,
               help="maximum number of concurrent requests to make")
+@click.option('-m', '--save-metadata', is_flag=True, default=False,
+              help="Save associated metadata as JSON file")
 @click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version')
 @click.pass_context
 def get(ctx, env, col_id, col_version, output_dir, book_tree,
-        get_resources, request_limit):
+        get_resources, request_limit, save_metadata):
     """download and expand the completezip to the current working directory"""
 
     base_url = build_archive_url(ctx, env)
-
-    version = None
-    req_version = col_version
-    if col_version.count('.') > 1:
-        full_version = col_version.split('.')
-        col_version = '.'.join(full_version[:2])
-        version = '.'.join(full_version[1:])
-
-    col_hash = '{}/{}'.format(col_id, col_version)
-    # Fetch metadata
-    url = '{}/content/{}'.format(base_url, col_hash)
 
     # Create a request session with retries if there's failed DNS lookups,
     # socket connections and connection timeouts.
@@ -59,36 +51,12 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
     adapter = requests.adapters.HTTPAdapter(max_retries=5)
     session.mount('https://', adapter)
 
-    # Request the collection's metadata by requests the legacy url,
-    # which is redirected to the metadata url.
-    resp = session.get(url)
-    if resp.status_code >= 400:
-        raise MissingContent(col_id, req_version)
-    col_metadata = resp.json()
-
-    # If the response is a collated (aka baked) version of the book,
-    # request the non-collated (aka raw) version instead.
-    if col_metadata['collated']:
-        url = resp.url + '?as_collated=False'
-        resp = session.get(url)
-        if resp.status_code >= 400:
-            # This should never happen - indicates that only baked exists?
-            raise MissingContent(col_id, req_version)
-        col_metadata = resp.json()
+    col_metadata = get_collection_metadata(session,
+                                           base_url,
+                                           col_id,
+                                           col_version)
 
     uuid = col_metadata['id']
-    # metadata fetch used legacy IDs, so will only have
-    # the latest minor version - if "version" is set, the
-    # user requested an explicit minor (3 part version: 1.X.Y)
-    # refetch metadata, using uuid and requested version
-    if version and version != col_metadata['version']:
-        url = '{}/contents/{}@{}'.format(base_url, uuid, version) + \
-              '?as_collated=False'
-        resp = session.get(url)
-        if resp.status_code >= 400:  # Requested version doesn't exist
-            raise MissingContent(col_id, req_version)
-        col_metadata = resp.json()
-
     version = col_metadata['version']
 
     # Generate full output dir as soon as we have the version
@@ -142,6 +110,58 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
                                request_limit,
                                pbar)
         loop.run_until_complete(coro)
+
+    if save_metadata:
+        with (output_dir / 'metadata.json').open('w') as metadata_file:
+            json.dump(col_metadata, metadata_file)
+
+
+def get_collection_metadata(session,
+                            base_url,
+                            col_id,
+                            col_version):
+    version = None
+    req_version = col_version
+    if col_version.count('.') > 1:
+        full_version = col_version.split('.')
+        col_version = '.'.join(full_version[:2])
+        version = '.'.join(full_version[1:])
+
+    col_hash = '{}/{}'.format(col_id, col_version)
+    # Fetch metadata
+    url = '{}/content/{}'.format(base_url, col_hash)
+
+    # Request the collection's metadata by requests the legacy url,
+    # which is redirected to the metadata url.
+    resp = session.get(url)
+    if resp.status_code >= 400:
+        raise MissingContent(col_id, req_version)
+    col_metadata = resp.json()
+
+    # If the response is a collated (aka baked) version of the book,
+    # request the non-collated (aka raw) version instead.
+    if col_metadata['collated']:
+        url = resp.url + '?as_collated=False'
+        resp = session.get(url)
+        if resp.status_code >= 400:
+            # This should never happen - indicates that only baked exists?
+            raise MissingContent(col_id, req_version)
+        col_metadata = resp.json()
+
+    uuid = col_metadata['id']
+    # metadata fetch used legacy IDs, so will only have
+    # the latest minor version - if "version" is set, the
+    # user requested an explicit minor (3 part version: 1.X.Y)
+    # refetch metadata, using uuid and requested version
+    if version and version != col_metadata['version']:
+        url = '{}/contents/{}@{}'.format(base_url, uuid, version) + \
+              '?as_collated=False'
+        resp = session.get(url)
+        if resp.status_code >= 400:  # Requested version doesn't exist
+            raise MissingContent(col_id, req_version)
+        col_metadata = resp.json()
+
+    return col_metadata
 
 
 def report_and_quit(loop, context):  # pragma: no cover
