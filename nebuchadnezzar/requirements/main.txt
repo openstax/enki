@@ -1,3 +1,4 @@
+lxml==4.4.3
 click
 cnxml>=3.0.1
 cnx-epub>=0.21.1
