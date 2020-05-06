@@ -1,6 +1,6 @@
 click
 cnxml>=3.0.1
-cnx-epub>=0.21.0
+cnx-epub>=0.21.1
 cnx-litezip>=1.6.0
 cnx-transforms>=1.1.0
 docker
