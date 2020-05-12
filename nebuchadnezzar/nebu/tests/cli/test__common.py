@@ -4,7 +4,8 @@ import pretend
 import pytest
 
 
-from nebu.cli._common import common_params, confirm, get_base_url
+from nebu.cli._common import common_params, confirm, get_base_url, \
+    build_archive_url
 from nebu.cli.exceptions import UnknownEnvironment
 
 
@@ -73,6 +74,45 @@ class TestGetBaseUrl:
             get_base_url(ctx, env_name)
         message = exc_info.value.message
         assert message == "unknown environment '{}'".format(env_name)
+
+
+def test_build_archive_url():
+    # Tuples of ("url", "expected_archive_url")
+    test_urls = [
+        ('https://dev.cnx.org', 'https://archive-dev.cnx.org'),
+        ('https://qa.cnx.org', 'https://archive-qa.cnx.org'),
+        ('https://staging.cnx.org', 'https://archive-staging.cnx.org'),
+        ('https://content01.cnx.org', 'https://archive-content01.cnx.org'),
+        ('https://cnx.org', 'https://archive.cnx.org'),
+        ('https://local.cnx.org', 'https://archive-local.cnx.org')
+    ]
+
+    for url, expected in test_urls:
+        env_name = 'test'
+        settings = {
+            'settings': {'environs': {env_name: {'url': url}}},
+        }
+        ctx = pretend.stub(obj=settings)
+        resulting_url = build_archive_url(ctx, env_name)
+        assert resulting_url == expected
+
+
+def test_build_archive_url_with_config():
+    env_name = 'test'
+    url = 'https://archive.local.cnx.org'
+    settings = {
+        'settings': {
+            'environs': {
+                env_name: {
+                    'url': 'https://local.cnx.org',
+                    'archive_url': url
+                }
+            }
+        },
+    }
+    ctx = pretend.stub(obj=settings)
+    resulting_url = build_archive_url(ctx, env_name)
+    assert resulting_url == url
 
 
 def test_confirm(monkeypatch):
