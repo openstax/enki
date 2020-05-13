@@ -34,12 +34,14 @@ DEFAULT_REQUEST_LIMIT = 8
               help="maximum number of concurrent requests to make")
 @click.option('-m', '--save-metadata', is_flag=True, default=False,
               help="Save associated metadata as JSON file")
+@click.option('-k', '--insecure', is_flag=True, default=False,
+              help="Ignore SSL certificate verification errors")
 @click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version')
 @click.pass_context
 def get(ctx, env, col_id, col_version, output_dir, book_tree,
-        get_resources, request_limit, save_metadata):
+        get_resources, request_limit, save_metadata, insecure):
     """download and expand the completezip to the current working directory"""
 
     base_url = build_archive_url(ctx, env)
@@ -48,6 +50,7 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
     # socket connections and connection timeouts.
     # See https://stackoverflow.com/questions/33895739/
     session = requests.Session()
+    session.verify = not insecure
     adapter = requests.adapters.HTTPAdapter(max_retries=5)
     session.mount('https://', adapter)
 
@@ -108,7 +111,8 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
                                book_tree,
                                get_resources,
                                request_limit,
-                               pbar)
+                               pbar,
+                               insecure)
         loop.run_until_complete(coro)
 
     if save_metadata:
@@ -216,12 +220,20 @@ async def do_with_retried_request_while(session,
                                         condition,
                                         max_retries,
                                         do,
-                                        sleep_time=0.5):
+                                        sleep_time=0.5,
+                                        insecure=False):
     retries = 0
     while retries <= max_retries:
         try:
+            # Oddly, aiohttp ClienSession seems to want ssl=None (the default
+            # value) when you want it to check certs, but any other boolean
+            # value will cause it to ignore. Accordingly, we'll pass False to
+            # ignore cert check and None otherwise.
+            ssl = False if insecure else None
+
             async with session.get(
                     url,
+                    ssl=ssl,
                     timeout=ClientTimeout(total=30, connect=10)) as response:
                 if not condition(response):
                     return await do(response)
@@ -238,7 +250,8 @@ async def _write_contents(tree,
                           book_tree=False,
                           get_resources=False,
                           request_limit=DEFAULT_REQUEST_LIMIT,
-                          pbar=None):
+                          pbar=None,
+                          insecure=False):
     async def fetch_content_meta_node(session,
                                       node,
                                       content_meta_url,
@@ -255,7 +268,8 @@ async def _write_contents(tree,
                 url=content_meta_url,
                 condition=lambda resp: resp.status in (503, 504),
                 max_retries=4,
-                do=response_json)
+                do=response_json,
+                insecure=insecure)
 
         def get_resource_groups():
             def key_func(tup):
@@ -375,7 +389,8 @@ async def _write_contents(tree,
             url=resource_url,
             condition=lambda resp: resp.status in (503, 504),
             max_retries=4,
-            do=read_response)
+            do=read_response,
+            insecure=insecure)
         filepath = write_dir / filename
         filepath.write_bytes(resp)
         store_sha1(resource_id, write_dir, filename)
@@ -395,7 +410,8 @@ async def _write_contents(tree,
             url=content_url,
             condition=lambda resp: resp.status in (503, 504),
             max_retries=4,
-            do=read_response)
+            do=read_response,
+            insecure=insecure)
         filepath = write_dir / filename
         filepath.write_bytes(etree.tostring(etree.XML(resp),
                                             encoding='utf-8'))

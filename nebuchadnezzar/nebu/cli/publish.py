@@ -121,7 +121,7 @@ def gen_zip_file(base_file_path, struct):
     return zip_file
 
 
-def _publish(base_url, struct, message, username, password):
+def _publish(base_url, struct, message, username, password, insecure):
     if len(struct) == 0:
         logger.debug('Temporary raw output...')
         logger.error('Nothing changed, nothing to publish.\n')
@@ -131,7 +131,11 @@ def _publish(base_url, struct, message, username, password):
 
     """Check for good credentials"""
     auth_ping_url = '{}/api/auth-ping'.format(base_url)
-    auth_ping_resp = requests.get(auth_ping_url, auth=auth)
+    auth_ping_resp = requests.get(
+        auth_ping_url,
+        auth=auth,
+        verify=not insecure
+    )
 
     if auth_ping_resp.status_code == 401:
         logger.debug('Temporary raw output...')
@@ -140,7 +144,11 @@ def _publish(base_url, struct, message, username, password):
 
     """Check for permission to publish"""
     publish_ping_url = '{}/api/publish-ping'.format(base_url)
-    publish_ping_resp = requests.get(publish_ping_url, auth=auth)
+    publish_ping_resp = requests.get(
+        publish_ping_url,
+        auth=auth,
+        verify=not insecure
+    )
 
     if publish_ping_resp.status_code == 401:
         logger.debug('Temporary raw output...')
@@ -172,7 +180,7 @@ def _publish(base_url, struct, message, username, password):
     }
     # Send it!
     resp = requests.post(url, data=data, files=files,
-                         auth=auth, headers=headers)
+                         auth=auth, headers=headers, verify=not insecure)
 
     # Clean up!
     zip_file.unlink()
@@ -210,9 +218,11 @@ def _publish(base_url, struct, message, username, password):
 @click.option('-u', '--username', type=str, prompt=True)
 @click.option('-p', '--password', type=str, prompt=True, hide_input=True)
 @click.option('--skip-validation', is_flag=True)
+@click.option('-k', '--insecure', is_flag=True, default=False,
+              help="Ignore SSL certificate verification errors")
 @click.pass_context
 def publish(ctx, env, content_dir, message, username, password,
-            skip_validation):
+            skip_validation, insecure):
     base_url = get_base_url(ctx, env)
 
     content_dir = Path(content_dir).resolve()
@@ -225,7 +235,8 @@ def publish(ctx, env, content_dir, message, username, password,
         logger.info("We've got problems... :(")
         sys.exit(1)
 
-    has_published = _publish(base_url, struct, message, username, password)
+    has_published = _publish(base_url, struct, message, username, password,
+                             insecure)
     if has_published:
         logger.info("Great work!!! =D")
     else:

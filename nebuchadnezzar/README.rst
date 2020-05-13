@@ -44,12 +44,29 @@ Developer Run
 #. Now you can run various commands:
 
    - ``neb --help`` for help with the various commands
-   
+
 Testing
 -------------
 To run all tests: ``make test``
 
 To run a single test called ``test_main``: ``make test -- -k test_main``
+
+Configuration
+-------------
+
+The CLI will expect (and if not available create a default) configuration file as either ``~/.config/nebuchadnezzar.ini`` or as defined by the ``NEB_CONFIG`` environment variable. You can use this file to configure environment-specific URL values for:
+
+- ``url``: The environment specific URL
+- ``archive_url``: The archive endpoint URL (this is optional, and if not provided the tool will construct the URL based upon convention)
+
+An example of using both of these values to define a ``test`` environment::
+
+    [settings]
+
+    [environ-test]
+    url = https://test.cnx.org
+    archive_url = https://archive.test.cnx.org
+
 
 Configuring an Editor
 =====================
