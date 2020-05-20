@@ -91,8 +91,12 @@ def build_archive_url(context, environ_name):
     # configuration settings. If so, we'll return that value. Otherwise we'll
     # fallback to the backwards compatible method of constructing based upon
     # convention.
-    settings_archive_url = \
-        context.obj['settings']['environs'][environ_name].get('archive_url')
+    settings_archive_url = context.obj['settings']['environs'].get(
+        environ_name,
+        {}
+    ).get(
+        'archive_url'
+    )
 
     if settings_archive_url:
         return settings_archive_url

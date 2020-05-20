@@ -51,10 +51,18 @@ To run all tests: ``make test``
 
 To run a single test called ``test_main``: ``make test -- -k test_main``
 
-Configuration
--------------
+Usage
+-----
+There are a few ways to ensure ``neb`` attempts to connect with the desired server:
 
-The CLI will expect (and if not available create a default) configuration file as either ``~/.config/nebuchadnezzar.ini`` or as defined by the ``NEB_CONFIG`` environment variable. You can use this file to configure environment-specific URL values for:
+#. Use a configuration file
+#. Don't use a configuration file, and pass an environment name
+#. (For ``neb get``) Don't use a configuration file, and pass a specific archive host as an argument
+
+Using a configuration file
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The CLI will expect a configuration file as either ``~/.config/nebuchadnezzar.ini`` or as defined by the ``NEB_CONFIG`` environment variable. You can use this file to configure environment-specific URL values for:
 
 - ``url``: The environment specific URL
 - ``archive_url``: The archive endpoint URL (this is optional, and if not provided the tool will construct the URL based upon convention)
@@ -67,6 +75,27 @@ An example of using both of these values to define a ``test`` environment::
     url = https://test.cnx.org
     archive_url = https://archive.test.cnx.org
 
+Passing target host as environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For the ``get``, ``publish``, and ``ping`` commands, you can specify an environment value in the following forms and avoid a configuration file:
+
+#. An ``environment`` where the target host is ``environment.cnx.org``
+
+    Example: ``neb publish qa ...`` will access ``https://qa.cnx.org``
+
+#. An ``environment`` that is a FQDN but doesn't specifiy protocol
+
+    Example: ``neb publish qa.cnx.org ...`` will access ``https://qa.cnx.org``
+
+#. An ``environment`` that is a FQDN with protocol
+
+    Example: ``neb publish http://host.foobar.org ...`` will access ``http://host.foobar.org``
+
+Specifying archive host
+^^^^^^^^^^^^^^^^^^^^^^^
+For the ``get`` command, if you need to access an archive host that doesn't follow the ``archive-{environment}`` convention and also want to avoid using a configuration file, you can use the ``--archive`` argument:
+
+* Example: ``neb get vagrant --archive archive.local.cnx.org ...``
 
 Configuring an Editor
 =====================

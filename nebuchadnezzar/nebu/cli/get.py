@@ -36,15 +36,27 @@ DEFAULT_REQUEST_LIMIT = 8
               help="Save associated metadata as JSON file")
 @click.option('-k', '--insecure', is_flag=True, default=False,
               help="Ignore SSL certificate verification errors")
+@click.option('-a', '--archive', type=str,
+              help='Archive host to contact')
 @click.argument('env')
 @click.argument('col_id')
 @click.argument('col_version')
 @click.pass_context
 def get(ctx, env, col_id, col_version, output_dir, book_tree,
-        get_resources, request_limit, save_metadata, insecure):
+        get_resources, request_limit, save_metadata, insecure, archive):
     """download and expand the completezip to the current working directory"""
 
-    base_url = build_archive_url(ctx, env)
+    if archive:
+        # construct base_url using argument input
+        if '://' in archive:
+            # Assume name is fqdn with protocol
+            base_url = archive
+        else:
+            # Assume name is fqdn sans protocol
+            base_url = f'https://{archive}'
+    else:
+        # construct base_url using configuration file
+        base_url = build_archive_url(ctx, env)
 
     # Create a request session with retries if there's failed DNS lookups,
     # socket connections and connection timeouts.

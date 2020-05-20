@@ -5,6 +5,7 @@ import traceback
 import asyncio
 import json
 import re
+import pytest
 
 from nebu.cli.get import _write_contents
 from nebu.cli._common import calculate_sha1
@@ -160,6 +161,179 @@ class TestGetCmd:
 
         from nebu.cli.main import cli
         args = ['get', 'test-env', col_id, col_version]
+        result = invoker(cli, args)
+
+        debug_result_exception(result)
+        assert result.exit_code == 0
+
+        dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
+    @pytest.mark.parametrize('environment',
+                             ['qa', 'qa.cnx.org', 'https://qa.cnx.org'])
+    def test_with_fallback_archive(self,
+                                   datadir,
+                                   tmpcwd,
+                                   requests_mock,
+                                   mock_aioresponses,
+                                   invoker,
+                                   environment):
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive-qa.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        # Register the resources
+        resdir = datadir / 'resources'
+        for res in resdir.glob('*'):
+            url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
+
+        # Register contents
+        condir = datadir / 'contents'
+        for con in condir.glob('*'):
+            url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
+            register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
+
+        # Register subcollection/chapter as 404
+        register_404_aio(mock_aioresponses,
+                         'https://archive-qa.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+
+        from nebu.cli.main import cli
+        args = ['get', environment, col_id, col_version]
+        result = invoker(cli, args)
+
+        debug_result_exception(result)
+        assert result.exit_code == 0
+
+        dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
+    def test_with_archive_fqdn(self,
+                               datadir,
+                               tmpcwd,
+                               requests_mock,
+                               mock_aioresponses,
+                               invoker):
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.local.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        # Register the resources
+        resdir = datadir / 'resources'
+        for res in resdir.glob('*'):
+            url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
+
+        # Register contents
+        condir = datadir / 'contents'
+        for con in condir.glob('*'):
+            url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
+            register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
+
+        # Register subcollection/chapter as 404
+        register_404_aio(mock_aioresponses,
+                         'https://archive.local.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+
+        from nebu.cli.main import cli
+        args = ['get', 'random-env', '--archive', 'archive.local.cnx.org',
+                col_id, col_version]
+        result = invoker(cli, args)
+
+        debug_result_exception(result)
+        assert result.exit_code == 0
+
+        dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
+        expected = datadir / 'collection'
+
+        def _rel(p, b):
+            return p.relative_to(b)
+
+        relative_dir = map(partial(_rel, b=dir), pathlib_walk(dir))
+        relative_expected = map(partial(_rel, b=expected),
+                                pathlib_walk(expected))
+        assert sorted(relative_dir) == sorted(relative_expected)
+
+    def test_with_archive_fqdn_with_protocol(self,
+                                             datadir,
+                                             tmpcwd,
+                                             requests_mock,
+                                             mock_aioresponses,
+                                             invoker):
+        col_id = 'col11405'
+        col_version = '1.2'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'http://archive.local.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        # Register the resources
+        resdir = datadir / 'resources'
+        for res in resdir.glob('*'):
+            url = '{}/resources/{}'.format(base_url, res.relative_to(resdir))
+            register_data_file_aio(mock_aioresponses, resdir, res, url)
+
+        # Register contents
+        condir = datadir / 'contents'
+        for con in condir.glob('*'):
+            url = '{}/contents/{}'.format(base_url, con.relative_to(condir))
+            register_data_file(requests_mock, condir, con, url)
+            register_data_file_aio(mock_aioresponses, condir, con, url)
+
+        # Register subcollection/chapter as 404
+        register_404_aio(mock_aioresponses,
+                         'http://archive.local.cnx.org/contents/'
+                         '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
+
+        from nebu.cli.main import cli
+        args = ['get', 'random-env', '--archive',
+                'http://archive.local.cnx.org', col_id, col_version]
         result = invoker(cli, args)
 
         debug_result_exception(result)
