@@ -12,35 +12,9 @@ INITIAL_DEFAULT_CONFIG = """\
 # [environ-<short-name>]
 # url = <base-url-to-the-environment>
 
-[environ-dev]
-url = https://dev.cnx.org
-
-[environ-qa]
-url = https://qa.cnx.org
-
-[environ-staging]
-url = https://staging.cnx.org
-
-[environ-prod]
-url = https://cnx.org
-
-[environ-content01]
-url = https://content01.cnx.org
-
-[environ-content02]
-url = https://content02.cnx.org
-
-[environ-content03]
-url = https://content03.cnx.org
-
-[environ-content04]
-url = https://content04.cnx.org
-
-[environ-content05]
-url = https://content05.cnx.org
-
-[environ-staged]
-url = https://staged.cnx.org
+[environ-example]
+url = https://example.cnx.org
+archive_url = https://archive-example.cnx.org
 """
 
 

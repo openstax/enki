@@ -5,7 +5,6 @@ __all__ = (
     'ExistingOutputDir',
     'MissingContent',
     'OldContent',
-    'UnknownEnvironment',
 )
 
 
@@ -31,11 +30,3 @@ class OldContent(click.ClickException):
     def __init__(self):
         message = "Non-latest version requested"
         super(OldContent, self).__init__(message)
-
-
-class UnknownEnvironment(click.ClickException):
-    exit_code = 5
-
-    def __init__(self, environ_name):
-        message = "unknown environment '{}'".format(environ_name)
-        super(UnknownEnvironment, self).__init__(message)
