@@ -21,6 +21,7 @@ def parse_book_tree(bookdir):
     """Converts filesystem booktree back to a struct"""
     struct = []
     ex = [lambda filepath: '.sha1sum' in filepath.name]
+    ex.extend([lambda filepath: 'metadata.json' in filepath.name])
     for dirname, subdirs, filenames in os.walk(str(bookdir)):
         if 'collection.xml' in filenames:
             path = Path(dirname)

@@ -463,12 +463,12 @@ class TestGetCmd:
                                 pathlib_walk(expected))
         assert sorted(relative_dir) == sorted(relative_expected)
 
-    def test_with_metadata(self,
-                           datadir,
-                           tmpcwd,
-                           requests_mock,
-                           mock_aioresponses,
-                           invoker):
+    def test_metadata(self,
+                      datadir,
+                      tmpcwd,
+                      requests_mock,
+                      mock_aioresponses,
+                      invoker):
         col_id = 'col11405'
         col_version = '1.2'
         col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
@@ -502,7 +502,7 @@ class TestGetCmd:
                          '8ddfc8de-5164-5828-9fed-d0ed17edb489@2.1')
 
         from nebu.cli.main import cli
-        args = ['get', '--save-metadata', 'test-env', col_id, col_version]
+        args = ['get', 'test-env', col_id, col_version]
         result = invoker(cli, args)
 
         debug_result_exception(result)

@@ -32,8 +32,6 @@ DEFAULT_REQUEST_LIMIT = 8
               help="Also get all resources (images)")
 @click.option('-l', '--request-limit', type=int, default=DEFAULT_REQUEST_LIMIT,
               help="maximum number of concurrent requests to make")
-@click.option('-m', '--save-metadata', is_flag=True, default=False,
-              help="Save associated metadata as JSON file")
 @click.option('-k', '--insecure', is_flag=True, default=False,
               help="Ignore SSL certificate verification errors")
 @click.option('-a', '--archive', type=str,
@@ -43,7 +41,7 @@ DEFAULT_REQUEST_LIMIT = 8
 @click.argument('col_version')
 @click.pass_context
 def get(ctx, env, col_id, col_version, output_dir, book_tree,
-        get_resources, request_limit, save_metadata, insecure, archive):
+        get_resources, request_limit, insecure, archive):
     """download and expand the completezip to the current working directory"""
 
     if archive:
@@ -127,9 +125,11 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
                                insecure)
         loop.run_until_complete(coro)
 
-    if save_metadata:
-        with (output_dir / 'metadata.json').open('w') as metadata_file:
-            json.dump(col_metadata, metadata_file)
+    # Place the collection metadata.json next to collection.xml (this is to
+    # account for cases where there is a book tree, etc.)
+    metadata_dir = next(Path(output_dir).glob('**/collection.xml')).parent
+    with (metadata_dir / 'metadata.json').open('w') as metadata_file:
+        json.dump(col_metadata, metadata_file)
 
 
 def get_collection_metadata(session,
