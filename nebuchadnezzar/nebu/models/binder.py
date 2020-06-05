@@ -1,6 +1,7 @@
 import re
 
 from lxml import etree
+import json
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
 from cnxepub.models import (
     Binder as BaseBinder,
@@ -62,6 +63,7 @@ class Binder(BaseBinder):
 
         # Create the object
         binder = cls(id, metadata=metadata)
+        Binder._update_metadata(filepath, binder)
 
         # Load the binder using the collection tree
         with filepath.open('rb') as fb:
@@ -141,6 +143,25 @@ class Binder(BaseBinder):
                 return DocumentPointer('@'.join([id, version]))
             else:
                 reference_resolver = Binder._make_reference_resolver(id)
-                return Document.from_index_cnxml(filepath, reference_resolver)
+                document = Document.from_index_cnxml(
+                    filepath,
+                    reference_resolver
+                )
+                Binder._update_metadata(filepath, document)
+                return document
 
         return factory
+
+    @staticmethod
+    def _update_metadata(filepath, model):
+        """Updates model metadata using values from metadata.json files"""
+        metadata_file = filepath.parent / 'metadata.json'
+
+        if metadata_file.exists():
+            with open(metadata_file) as metadata_json:
+                metadata = json.load(metadata_json)
+                cnx_archive_uri = '{}@{}'.format(
+                    metadata['id'],
+                    metadata['version']
+                )
+                model.metadata['cnx-archive-uri'] = cnx_archive_uri
