@@ -19,6 +19,7 @@ from .utils import convert_to_model_compat_metadata, id_from_metadata
 IGNORE_RESOURCES_BY_FILENAME = (
     '.sha1sum',
     'index.cnxml',
+    'metadata.json',
 )
 
 
