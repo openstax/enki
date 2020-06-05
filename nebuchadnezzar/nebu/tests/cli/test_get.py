@@ -509,12 +509,17 @@ class TestGetCmd:
         assert result.exit_code == 0
 
         dir = tmpcwd / '{}_1.{}'.format(col_id, '2.1')
-        metadata_file = dir / 'metadata.json'
-        assert metadata_file.exists()
+        expected = datadir / 'collection'
 
-        metadata_received = json.load(open(metadata_file))
-        metadata_expected = json.load(open(datadir / 'contents.json'))
-        assert metadata_received == metadata_expected
+        for metadata_json in Path(expected).glob('**/metadata.json'):
+            metadata_file = dir / metadata_json.relative_to(expected)
+            assert metadata_file.exists()
+
+            with open(metadata_file) as json_data:
+                metadata_received = json.load(json_data)
+            with open(metadata_json) as json_data:
+                metadata_expected = json.load(json_data)
+            assert metadata_received == metadata_expected
 
     def test_three_part_vers(self,
                              datadir,

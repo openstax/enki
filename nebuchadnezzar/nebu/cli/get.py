@@ -304,10 +304,15 @@ async def _write_contents(tree,
 
             content_id = resource_groups['content'][content_filename]['id']
             content_url = f'{base_url}/resources/{content_id}'
+            # We pass metadata for module content but not collection. For the
+            # latter we will store the already retrieved (unbaked) metadata
+            # separately
+            content_metadata = metadata if is_module else None
             content_coro = fetch_content_node(session,
                                               content_url,
                                               write_dir,
-                                              content_filename)
+                                              content_filename,
+                                              content_metadata)
             tasks.append(asyncio.ensure_future(content_coro))
 
         def enqueue_extras():
@@ -346,9 +351,6 @@ async def _write_contents(tree,
                 tasks.append(asyncio.ensure_future(content_meta_coro))
 
         def get_scoped_directory():
-            is_module = content_filename == 'index.cnxml'
-            is_collection = content_filename == 'collection.xml'
-
             node_title = node.get('title', '')
             index_string = ('{:02d} '.format(index_in_group)
                             if not is_collection
@@ -371,6 +373,8 @@ async def _write_contents(tree,
 
         media_type = metadata.get('mediaType')
         content_filename = filename_by_type.get(media_type)
+        is_module = content_filename == 'index.cnxml'
+        is_collection = content_filename == 'collection.xml'
         legacy_id = metadata.get('legacy_id')
 
         scoped_directory = get_scoped_directory()
@@ -412,7 +416,8 @@ async def _write_contents(tree,
     async def fetch_content_node(session,
                                  content_url,
                                  write_dir,
-                                 filename):
+                                 filename,
+                                 metadata):
         await semaphore.acquire()
 
         async def read_response(response):
@@ -429,6 +434,12 @@ async def _write_contents(tree,
                                             encoding='utf-8'))
         sha1 = calculate_sha1(write_dir / filename)
         store_sha1(sha1, write_dir, filename)
+
+        # Write content metadata if provided
+        if metadata:
+            metadata_filename = 'metadata.json'
+            with (write_dir / metadata_filename).open('w') as metadata_file:
+                json.dump(metadata, metadata_file)
 
         semaphore.release()
 
