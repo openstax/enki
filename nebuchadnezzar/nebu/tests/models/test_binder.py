@@ -77,7 +77,7 @@ class TestBinder(object):
                          'name': 'OpenStaxCollege',
                          'type': 'cnx-id'}],
             'cnx-archive-shortid': None,
-            'cnx-archive-uri': 'col11562@1.23',
+            'cnx-archive-uri': '30189442-6998-4686-ac05-ed152b91b9de@23.41',
             'copyright_holders': [{'id': 'OpenStaxCollege',
                                    'name': 'OpenStaxCollege',
                                    'type': 'cnx-id'}],
@@ -127,3 +127,14 @@ class TestBinder(object):
         doc_pt = binder[0]
         title = 'Preface'
         assert doc_pt.metadata['title'] == title
+
+        # Verify cnx-archive-uri is set in modules with metadata
+        expected = {
+            'm46882': '3fb20c92-9515-420b-ab5e-6de221b89e99@17',
+            'm46909': 'cb418599-f69b-46c1-b0ef-60d9e36e677f@12',
+            'm46913': 'd93df8ff-6e4a-4a5e-befc-ba5a144f309c@14'
+        }
+        for doc in flatten_to_documents(binder):
+            if not expected.get(doc.id):
+                continue
+            assert expected[doc.id] == doc.metadata['cnx-archive-uri']

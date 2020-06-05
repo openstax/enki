@@ -1,0 +1,4873 @@
+{
+    "googleAnalytics": [
+        "UA-30227798-6",
+        "UA-101537094-1"
+    ],
+    "version": "23.41",
+    "submitlog": "errata 10759",
+    "abstract": "<div xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:c=\"http://cnx.rice.edu/cnxml\" xmlns:md=\"http://cnx.rice.edu/mdml\" xmlns:qml=\"http://cnx.rice.edu/qml/1.0\" xmlns:mod=\"http://cnx.rice.edu/#moduleIds\" xmlns:bib=\"http://bibtexml.sf.net/\" xmlns:data=\"http://www.w3.org/TR/html5/dom.html#custom-data-attribute\" data-cnxml-to-html-ver=\"1.3.2\"/>",
+    "revised": "2020-01-10T19:53:03Z",
+    "printStyle": "statistics",
+    "roles": null,
+    "keywords": [],
+    "id": "30189442-6998-4686-ac05-ed152b91b9de",
+    "canonical": null,
+    "title": "Introductory Statistics",
+    "mediaType": "application/vnd.org.cnx.collection",
+    "canon_url": "https://cnx.org/contents/30189442-6998-4686-ac05-ed152b91b9de/Introductory-Statistics",
+    "subjects": [
+        "Mathematics and Statistics"
+    ],
+    "legacy_id": "col11562",
+    "parentId": null,
+    "resources": [
+        {
+            "media_type": "text/xml",
+            "id": "d51da6deb84cb4a8ab65a7339a93d3cc72098399",
+            "filename": "collection.xml"
+        }
+    ],
+    "publishers": [
+        {
+            "surname": "OpenStax College",
+            "suffix": "",
+            "firstname": "",
+            "title": "",
+            "fullname": "OpenStax",
+            "id": "OpenStaxCollege"
+        },
+        {
+            "surname": "Statistics",
+            "suffix": "",
+            "firstname": "OpenStax",
+            "title": "",
+            "fullname": "OpenStax College",
+            "id": "cnxstats"
+        }
+    ],
+    "parent": {
+        "authors": [],
+        "shortId": null,
+        "version": "",
+        "id": null,
+        "title": null
+    },
+    "stateid": 1,
+    "parentTitle": null,
+    "shortId": "MBiUQmmY",
+    "authors": [
+        {
+            "surname": "OpenStax College",
+            "suffix": "",
+            "firstname": "",
+            "title": "",
+            "fullname": "OpenStax",
+            "id": "OpenStaxCollege"
+        }
+    ],
+    "parentVersion": "",
+    "legacy_version": "1.23",
+    "licensors": [
+        {
+            "surname": "OpenStax College",
+            "suffix": "",
+            "firstname": "",
+            "title": "",
+            "fullname": "OpenStax",
+            "id": "OpenStaxCollege"
+        }
+    ],
+    "language": "en",
+    "license": {
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "code": "by",
+        "version": "4.0",
+        "name": "Creative Commons Attribution License"
+    },
+    "created": "2013-07-19T00:30:26Z",
+    "tree": {
+        "shortId": "MBiUQmmY@23.41",
+        "title": "Introductory Statistics",
+        "id": "30189442-6998-4686-ac05-ed152b91b9de@23.41",
+        "contents": [
+            {
+                "shortId": "kcV4GRqc@17",
+                "title": "Preface",
+                "id": "91c57819-1a9c-42a4-afb6-c00a6de8d085@17",
+                "slug": null
+            },
+            {
+                "shortId": "x35NyANm@23.40",
+                "title": "Sampling and Data",
+                "id": "c77e4dc8-0366-54b8-a9f3-cbc613fcc61e@23.40",
+                "contents": [
+                    {
+                        "shortId": "2T34_25K@14",
+                        "title": "Introduction",
+                        "id": "d93df8ff-6e4a-4a5e-befc-ba5a144f309c@14",
+                        "slug": null
+                    },
+                    {
+                        "shortId": "y0GFmfab@12",
+                        "title": "Definitions of Statistics, Probability, and Key Terms",
+                        "id": "cb418599-f69b-46c1-b0ef-60d9e36e677f@12",
+                        "slug": null
+                    },
+                    {
+                        "shortId": "CY4aJuYS@22",
+                        "title": "Data, Sampling, and Variation in Data and Sampling",
+                        "id": "098e1a26-e612-4449-a45e-80fa23feba02@22",
+                        "slug": null
+                    },
+                    {
+                        "shortId": "P7IMkpUV@17",
+                        "title": "Frequency, Frequency Tables, and Levels of Measurement",
+                        "id": "3fb20c92-9515-420b-ab5e-6de221b89e99@17",
+                        "slug": null
+                    },
+                    {
+                        "shortId": "Ph_ExrCQ@13",
+                        "title": "Experimental Design and Ethics",
+                        "id": "3e1fc4c6-b090-47c1-8170-8578198cc3f0@13",
+                        "slug": null
+                    }
+                ],
+                "slug": null
+            },
+            {
+                "shortId": "h5wVkFeV@23.40",
+                "title": "Descriptive Statistics",
+                "id": "879c1590-5795-5870-aca4-59086b351595@23.40",
+                "contents": [
+                    {
+                        "shortId": "Z_8PEIhn@7",
+                        "title": "Introduction",
+                        "id": "67ff0f10-8867-4852-85f6-0f0be2257ed4@7",
+                        "slug": null
+                    },
+                    {
+                        "shortId": "KFOdKxbi@10",
+                        "title": "Stem-and-Leaf Graphs (Stemplots), Line Graphs, and Bar Graphs",
+                        "id": "28539d2b-16e2-4356-9ba8-9fcceaa27765@10",
+                        "slug": null
+                    }
+                ],
+                "slug": null
+            },
+            {
+                "shortId": "YhmlJ_b-@17",
+                "title": "Review Exercises (Ch 3-13)",
+                "id": "6219a527-f6fe-4172-9a4c-fc4d625483fa@17",
+                "slug": null
+            },
+            {
+                "shortId": "kIxIs3X-@16",
+                "title": "Practice Tests (1-4) and Final Exams",
+                "id": "908c48b3-75fe-403d-98ef-9e68c3150587@16",
+                "slug": null
+            },
+            {
+                "shortId": "PvgwvFJH@9",
+                "title": "Data Sets",
+                "id": "3ef830bc-5247-460a-9007-e3fd762e5e93@9",
+                "slug": null
+            }
+        ],
+        "slug": null
+    },
+    "doctype": "",
+    "buyLink": null,
+    "submitter": {
+        "surname": "OpenStax College",
+        "suffix": "",
+        "firstname": "",
+        "title": "",
+        "fullname": "OpenStax",
+        "id": "OpenStaxCollege"
+    },
+    "collated": false,
+    "baked": "2020-01-10T13:53:21.072459-06:00",
+    "parentAuthors": [],
+    "history": [
+        {
+            "changes": "errata 10759",
+            "version": "23.41",
+            "revised": "2020-01-10T19:53:03Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 10754 10753 10752 10751 10639 9866 9628 9500 9479 9392 9378 9377 9345 9306 9292 9289 9266 9265 9256 9249 9248 9245 9238 9230",
+            "version": "23.40",
+            "revised": "2020-01-10T19:23:08Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 9237",
+            "version": "23.39",
+            "revised": "2020-01-10T18:13:34Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 9236",
+            "version": "23.38",
+            "revised": "2020-01-10T18:01:06Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 10117",
+            "version": "23.37",
+            "revised": "2020-01-10T17:52:47Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 8762",
+            "version": "23.36",
+            "revised": "2020-01-10T17:44:43Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "errata 8762",
+            "version": "23.35",
+            "revised": "2020-01-10T17:30:13Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "implementing errata - CP",
+            "version": "23.34",
+            "revised": "2019-12-02T19:22:16Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "Errata# 9291 -MJ",
+            "version": "23.33",
+            "revised": "2019-08-23T19:10:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata 9269",
+            "version": "23.32",
+            "revised": "2019-08-21T16:44:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "removing subfigures from objects to resolve placement issue in webview ",
+            "version": "23.31",
+            "revised": "2019-06-17T14:07:41Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "test publishing",
+            "version": "23.30",
+            "revised": "2019-05-13T15:18:05Z",
+            "publisher": {
+                "surname": "otto",
+                "suffix": null,
+                "firstname": "zumi",
+                "title": "",
+                "fullname": "zumi otto",
+                "id": "zumi"
+            }
+        },
+        {
+            "changes": "errata 8483",
+            "version": "23.29",
+            "revised": "2019-04-24T18:37:00Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "12.6 trying to fix note, removed the note from being nested in a para tag - CP",
+            "version": "23.28",
+            "revised": "2019-03-14T16:32:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "attempting to fix note for issue 306 - CP",
+            "version": "23.27",
+            "revised": "2019-03-14T16:25:50Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "still trying to fix note - CP",
+            "version": "23.26",
+            "revised": "2019-03-14T16:15:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fixing notes in 10.1 - CP",
+            "version": "23.25",
+            "revised": "2019-03-14T16:11:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fixed note in 12.6 - CP",
+            "version": "23.24",
+            "revised": "2019-03-14T16:04:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "resolving more note issues ",
+            "version": "23.23",
+            "revised": "2019-03-14T15:56:21Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "making fixes to a couple of note elements | CP",
+            "version": "23.22",
+            "revised": "2019-03-14T15:22:50Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "removed a note per issue 647  -CP",
+            "version": "23.21",
+            "revised": "2019-03-07T16:40:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "moved some tables into examples - cp ",
+            "version": "23.20",
+            "revised": "2019-02-26T16:57:40Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "adding exercise 10.7 solution back - CP",
+            "version": "23.19",
+            "revised": "2019-02-22T20:15:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "erratum 6898 | CP",
+            "version": "23.18",
+            "revised": "2019-02-19T18:55:59Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "erratum 5953 | CP",
+            "version": "23.17",
+            "revised": "2019-02-19T18:02:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "erratum 6135 | CP",
+            "version": "23.16",
+            "revised": "2019-02-19T17:51:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata 6682 | CP",
+            "version": "23.15",
+            "revised": "2019-02-19T17:09:49Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata 6838 | CP",
+            "version": "23.14",
+            "revised": "2019-02-19T16:44:41Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "erratum 7786 | CP",
+            "version": "23.13",
+            "revised": "2019-02-18T14:52:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "removed extra breaks to resolve zen 251 | CP",
+            "version": "23.12",
+            "revised": "2019-02-08T15:37:54Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "making notes look like they should | CP",
+            "version": "23.11",
+            "revised": "2019-02-08T15:26:36Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Adding note title to resolve zen 294 | CP",
+            "version": "23.10",
+            "revised": "2019-02-08T15:24:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.9",
+            "revised": "2018-11-12T22:08:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.8",
+            "revised": "2018-11-12T21:45:54Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.7",
+            "revised": "2018-11-12T21:42:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.6",
+            "revised": "2018-11-12T21:36:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.5",
+            "revised": "2018-11-12T21:28:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.4",
+            "revised": "2018-11-12T21:15:54Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.3",
+            "revised": "2018-11-12T21:13:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "class=\"appendix\"",
+            "version": "23.2",
+            "revised": "2018-11-12T20:58:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "bake",
+            "version": "23.1",
+            "revised": "2018-09-26T16:24:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "move footnote",
+            "version": "22.8",
+            "revised": "2018-09-17T20:19:38Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "remove footnote",
+            "version": "22.7",
+            "revised": "2018-09-17T19:50:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "unnest calculator note",
+            "version": "22.6",
+            "revised": "2018-09-12T21:14:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix appendix class",
+            "version": "22.5",
+            "revised": "2018-09-12T21:04:10Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix lists",
+            "version": "22.4",
+            "revised": "2018-09-12T20:58:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "put code into para",
+            "version": "22.3",
+            "revised": "2018-09-12T20:51:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix image next to graph",
+            "version": "22.2",
+            "revised": "2018-09-07T21:15:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": " remove display block in math",
+            "version": "22.1",
+            "revised": "2018-09-06T21:52:56Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "remove display block math",
+            "version": "21.21",
+            "revised": "2018-09-06T21:08:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "display block remove",
+            "version": "21.20",
+            "revised": "2018-09-06T21:03:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "remove display block",
+            "version": "21.19",
+            "revised": "2018-09-06T20:51:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 267 -MJ ",
+            "version": "21.18",
+            "revised": "2018-09-06T20:50:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "block",
+            "version": "21.17",
+            "revised": "2018-09-06T20:47:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "remove inline math",
+            "version": "21.16",
+            "revised": "2018-09-06T20:29:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 267 -MJ",
+            "version": "21.15",
+            "revised": "2018-09-06T20:27:37Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 267 -MJ",
+            "version": "21.14",
+            "revised": "2018-09-06T20:09:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 267 -MJ",
+            "version": "21.13",
+            "revised": "2018-09-06T19:35:50Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 267 -MJ",
+            "version": "21.12",
+            "revised": "2018-08-31T15:51:39Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 265 -MJ",
+            "version": "21.11",
+            "revised": "2018-08-31T15:20:42Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Errata# 262 -MJ",
+            "version": "21.10",
+            "revised": "2018-08-30T20:21:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 248 -MJ",
+            "version": "21.9",
+            "revised": "2018-08-29T23:22:44Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 264 -MJ",
+            "version": "21.8",
+            "revised": "2018-08-29T22:46:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "list",
+            "version": "21.7",
+            "revised": "2018-08-27T21:05:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix note",
+            "version": "21.6",
+            "revised": "2018-08-27T20:53:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Github issue# 250 -MJ",
+            "version": "21.5",
+            "revised": "2018-08-27T19:22:38Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix image",
+            "version": "21.4",
+            "revised": "2018-08-24T20:41:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix math\r\n",
+            "version": "21.3",
+            "revised": "2018-08-24T18:55:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Errata# 5801 -MJ",
+            "version": "21.2",
+            "revised": "2018-08-07T18:30:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "removed Try It solutions -MJ",
+            "version": "21.1",
+            "revised": "2018-07-24T20:48:58Z",
+            "publisher": {
+                "surname": "OpenStax College",
+                "suffix": "",
+                "firstname": "",
+                "title": "",
+                "fullname": "OpenStax",
+                "id": "OpenStaxCollege"
+            }
+        },
+        {
+            "changes": "Github issue# 1637 -MJ",
+            "version": "20.3",
+            "revised": "2018-07-20T15:50:31Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Corrected Preface -MJ",
+            "version": "20.2",
+            "revised": "2018-07-13T15:54:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "updated summary to match openstax",
+            "version": "20.1",
+            "revised": "2018-06-25T17:36:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata \"In Sec. 5.2 in the solution to the Exercise regarding the Red line, the solutions from 'c' onward are labeled improperly. 'c' should say \"\"Check students solution.\"\" And the answers now labeled 'c' through 'h' should, instead, be labled 'd' through 'i'.\r\n {gc}\"",
+            "version": "19.6",
+            "revised": "2018-06-04T21:43:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata \"\"In the homework for Sec. 3.4, the exercise about suicide rates is ambiguous. It says 'Do not include \"\"all others\"\" for parts f and g.' Therefore, I think the answer for f should be 23720/(29760 - 780).\r\n Also, think the answer for g should be 5010/(6020 - 100).\r\n {gc}\"\"",
+            "version": "19.5",
+            "revised": "2018-06-04T21:10:42Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata \"In section \"9.5 Additional Information and Full Hypothesis Test Examples\" of the online version of the book, there is a \"Try It\" problem about a right- tailed test. When you click the \"Show Solution\" button, an image appears that shows a left-tailed test. The normal distribution should be shaded to the right like the example above it. I am attaching a screenshot of the problem.\"",
+            "version": "19.4",
+            "revised": "2018-06-04T20:27:41Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata \"Delete the line \"Z~N(0,1)\"\"",
+            "version": "19.3",
+            "revised": "2018-06-04T18:41:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata \"last formula of the section for k! : Insert asterisk after (k-3) and use minus signs here.\"",
+            "version": "19.2",
+            "revised": "2018-06-04T18:24:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "New GA code",
+            "version": "19.1",
+            "revised": "2018-04-11T17:55:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Preface changes -MJ",
+            "version": "18.137",
+            "revised": "2018-03-06T22:18:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "links",
+            "version": "18.136",
+            "revised": "2018-03-06T18:22:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata 4240",
+            "version": "18.135",
+            "revised": "2018-02-22T21:18:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "fix title",
+            "version": "18.134",
+            "revised": "2018-02-21T20:10:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "change guideline to note",
+            "version": "18.133",
+            "revised": "2018-02-21T16:54:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "change note styling",
+            "version": "18.132",
+            "revised": "2018-02-21T15:48:39Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "preface changes",
+            "version": "18.131",
+            "revised": "2018-02-07T16:11:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #3985",
+            "version": "18.130",
+            "revised": "2018-02-02T20:00:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4089",
+            "version": "18.129",
+            "revised": "2018-02-02T19:54:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4178",
+            "version": "18.128",
+            "revised": "2018-02-02T19:49:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4235",
+            "version": "18.127",
+            "revised": "2018-02-02T19:46:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4298",
+            "version": "18.126",
+            "revised": "2018-02-02T19:42:05Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4298",
+            "version": "18.125",
+            "revised": "2018-02-02T19:41:48Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4409",
+            "version": "18.124",
+            "revised": "2018-02-02T19:32:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4411",
+            "version": "18.123",
+            "revised": "2018-02-02T19:21:50Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4483",
+            "version": "18.122",
+            "revised": "2018-02-02T19:15:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4484",
+            "version": "18.121",
+            "revised": "2018-02-02T19:05:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "errata #4512",
+            "version": "18.120",
+            "revised": "2018-02-02T18:57:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "accuracy check",
+            "version": "18.119",
+            "revised": "2017-10-17T17:13:05Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "accuracy check",
+            "version": "18.118",
+            "revised": "2017-10-17T17:06:36Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "accuracy check",
+            "version": "18.117",
+            "revised": "2017-10-17T17:03:31Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "accuracy check",
+            "version": "18.116",
+            "revised": "2017-10-17T16:03:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "accuracy check",
+            "version": "18.115",
+            "revised": "2017-10-17T14:12:31Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.114",
+            "revised": "2017-08-08T16:34:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.113",
+            "revised": "2017-08-08T15:55:22Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.112",
+            "revised": "2017-08-08T15:09:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.111",
+            "revised": "2017-08-07T21:24:44Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.110",
+            "revised": "2017-08-07T21:00:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.109",
+            "revised": "2017-08-07T20:47:55Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.108",
+            "revised": "2017-08-07T20:47:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.107",
+            "revised": "2017-08-07T20:47:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.106",
+            "revised": "2017-08-07T20:40:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.105",
+            "revised": "2017-08-07T20:28:16Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.104",
+            "revised": "2017-08-07T20:24:47Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.103",
+            "revised": "2017-08-07T20:16:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.102",
+            "revised": "2017-08-07T20:15:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.101",
+            "revised": "2017-08-07T20:14:37Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.100",
+            "revised": "2017-08-07T20:14:17Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.99",
+            "revised": "2017-08-07T20:13:34Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.98",
+            "revised": "2017-08-07T19:45:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.97",
+            "revised": "2017-08-07T19:45:05Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.96",
+            "revised": "2017-08-07T19:44:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.95",
+            "revised": "2017-08-07T19:23:47Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.94",
+            "revised": "2017-08-07T19:00:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.93",
+            "revised": "2017-08-07T19:00:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.92",
+            "revised": "2017-08-07T18:59:48Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.91",
+            "revised": "2017-08-07T18:59:34Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.90",
+            "revised": "2017-08-07T18:58:59Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.89",
+            "revised": "2017-08-07T18:58:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.88",
+            "revised": "2017-08-07T15:28:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.87",
+            "revised": "2017-08-07T14:49:32Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.86",
+            "revised": "2017-08-04T20:40:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.85",
+            "revised": "2017-08-04T20:39:54Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.84",
+            "revised": "2017-08-04T20:39:11Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.83",
+            "revised": "2017-08-04T20:38:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.82",
+            "revised": "2017-08-04T20:38:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.81",
+            "revised": "2017-08-04T19:44:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.80",
+            "revised": "2017-08-04T19:33:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.79",
+            "revised": "2017-08-04T19:27:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.78",
+            "revised": "2017-08-04T19:19:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.77",
+            "revised": "2017-08-04T19:18:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.76",
+            "revised": "2017-08-04T19:08:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.75",
+            "revised": "2017-08-04T18:47:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.74",
+            "revised": "2017-08-04T16:30:10Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.73",
+            "revised": "2017-08-04T15:47:38Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.72",
+            "revised": "2017-08-04T15:17:11Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.71",
+            "revised": "2017-08-03T19:41:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.70",
+            "revised": "2017-08-03T19:24:43Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.69",
+            "revised": "2017-08-03T19:07:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.68",
+            "revised": "2017-08-03T18:46:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.67",
+            "revised": "2017-08-03T18:36:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.66",
+            "revised": "2017-08-03T16:15:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.65",
+            "revised": "2017-08-03T15:59:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.64",
+            "revised": "2017-08-03T15:35:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.63",
+            "revised": "2017-08-03T14:52:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.62",
+            "revised": "2017-08-01T21:41:37Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.61",
+            "revised": "2017-08-01T21:38:04Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.60",
+            "revised": "2017-08-01T21:35:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.59",
+            "revised": "2017-08-01T21:29:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.58",
+            "revised": "2017-08-01T21:27:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.57",
+            "revised": "2017-08-01T21:24:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.56",
+            "revised": "2017-07-18T15:41:20Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.55",
+            "revised": "2017-06-13T19:37:34Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.54",
+            "revised": "2017-02-24T17:57:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.53",
+            "revised": "2017-02-07T17:17:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.52",
+            "revised": "2017-02-07T17:00:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.51",
+            "revised": "2017-01-31T19:26:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.50",
+            "revised": "2017-01-23T21:27:29Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.49",
+            "revised": "2017-01-23T21:22:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.48",
+            "revised": "2017-01-23T21:17:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.47",
+            "revised": "2017-01-23T20:42:29Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.46",
+            "revised": "2017-01-23T20:38:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.45",
+            "revised": "2017-01-23T20:31:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.44",
+            "revised": "2017-01-23T20:29:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.43",
+            "revised": "2017-01-23T20:24:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.42",
+            "revised": "2017-01-23T20:20:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.41",
+            "revised": "2017-01-23T20:12:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.40",
+            "revised": "2017-01-23T20:04:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.39",
+            "revised": "2017-01-23T19:21:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.38",
+            "revised": "2017-01-23T19:17:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.37",
+            "revised": "2017-01-23T19:06:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.36",
+            "revised": "2017-01-23T19:02:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.35",
+            "revised": "2017-01-23T18:56:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.34",
+            "revised": "2017-01-23T18:52:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.33",
+            "revised": "2017-01-23T18:43:20Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.32",
+            "revised": "2017-01-23T18:39:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.31",
+            "revised": "2017-01-23T18:36:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.30",
+            "revised": "2017-01-23T17:56:49Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.29",
+            "revised": "2017-01-23T17:25:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.28",
+            "revised": "2017-01-23T17:09:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.27",
+            "revised": "2017-01-23T16:42:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.26",
+            "revised": "2017-01-23T16:31:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.25",
+            "revised": "2017-01-23T16:19:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.24",
+            "revised": "2017-01-23T16:09:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.23",
+            "revised": "2017-01-23T15:56:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.22",
+            "revised": "2017-01-23T15:54:02Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.21",
+            "revised": "2017-01-23T15:29:02Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.20",
+            "revised": "2017-01-23T15:21:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.19",
+            "revised": "2017-01-20T22:07:12Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.18",
+            "revised": "2017-01-20T22:03:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.17",
+            "revised": "2017-01-20T21:50:41Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.16",
+            "revised": "2017-01-20T21:47:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.15",
+            "revised": "2017-01-20T21:39:05Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.14",
+            "revised": "2017-01-20T21:21:40Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.13",
+            "revised": "2016-10-31T19:19:38Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.12",
+            "revised": "2016-09-28T21:33:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.11",
+            "revised": "2016-07-18T21:45:12Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.10",
+            "revised": "2016-06-06T16:28:22Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.9",
+            "revised": "2016-05-18T17:02:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.8",
+            "revised": "2016-05-18T16:54:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.7",
+            "revised": "2016-05-18T16:50:36Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.6",
+            "revised": "2016-05-18T16:46:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.5",
+            "revised": "2016-05-18T16:45:42Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.4",
+            "revised": "2016-05-18T16:41:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.3",
+            "revised": "2016-05-18T16:19:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.2",
+            "revised": "2016-05-18T16:18:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "appendix title change",
+            "version": "18.1",
+            "revised": "2016-05-06T19:35:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.54",
+            "revised": "2016-05-06T19:31:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.53",
+            "revised": "2016-05-06T19:26:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.52",
+            "revised": "2016-05-06T19:22:36Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.51",
+            "revised": "2016-05-06T19:16:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.50",
+            "revised": "2016-05-06T19:13:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.49",
+            "revised": "2016-05-06T19:09:42Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.48",
+            "revised": "2016-05-06T19:07:05Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.47",
+            "revised": "2016-05-06T19:00:17Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.46",
+            "revised": "2016-03-22T20:08:37Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.45",
+            "revised": "2016-02-23T19:17:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.44",
+            "revised": "2015-05-13T17:50:11Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.43",
+            "revised": "2015-04-14T14:21:16Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.42",
+            "revised": "2015-03-03T14:41:27Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.41",
+            "revised": "2015-02-25T19:12:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.40",
+            "revised": "2015-02-25T15:57:36Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.39",
+            "revised": "2015-02-25T15:56:49Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.38",
+            "revised": "2015-02-19T16:16:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.37",
+            "revised": "2015-01-06T17:38:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.36",
+            "revised": "2015-01-05T23:00:40Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.35",
+            "revised": "2015-01-05T22:50:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.34",
+            "revised": "2014-10-22T21:37:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.33",
+            "revised": "2014-10-22T21:23:35Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.32",
+            "revised": "2014-10-22T21:20:12Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.31",
+            "revised": "2014-10-22T21:17:18Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.30",
+            "revised": "2014-10-22T21:14:12Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.29",
+            "revised": "2014-10-22T21:10:52Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.28",
+            "revised": "2014-10-22T21:03:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.27",
+            "revised": "2014-10-22T20:58:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.26",
+            "revised": "2014-10-22T20:51:27Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.25",
+            "revised": "2014-10-22T20:41:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.24",
+            "revised": "2014-10-22T20:38:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.23",
+            "revised": "2014-07-30T14:50:29Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.22",
+            "revised": "2014-07-29T19:50:31Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.21",
+            "revised": "2014-07-29T19:24:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.20",
+            "revised": "2014-06-17T16:49:26Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.19",
+            "revised": "2014-06-11T21:25:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.18",
+            "revised": "2014-06-11T15:56:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.17",
+            "revised": "2014-06-11T15:55:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.16",
+            "revised": "2014-06-11T15:47:17Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.15",
+            "revised": "2014-06-11T15:47:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.14",
+            "revised": "2014-06-11T15:44:49Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.13",
+            "revised": "2014-06-11T15:37:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.12",
+            "revised": "2014-06-11T15:25:29Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.11",
+            "revised": "2014-06-11T15:12:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.10",
+            "revised": "2014-06-11T15:05:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.9",
+            "revised": "2014-06-11T14:29:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.8",
+            "revised": "2014-06-11T14:10:23Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.7",
+            "revised": "2014-06-11T13:57:50Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.6",
+            "revised": "2014-06-10T22:06:06Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.5",
+            "revised": "2014-06-10T22:01:59Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.4",
+            "revised": "2014-06-10T21:25:16Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.3",
+            "revised": "2014-06-10T21:23:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.2",
+            "revised": "2014-06-10T21:22:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "separated stats labs into their own modules, deleted them from modules formerly containing them",
+            "version": "17.1",
+            "revised": "2014-05-09T16:27:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.75",
+            "revised": "2014-05-09T16:06:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.74",
+            "revised": "2014-05-09T15:53:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.73",
+            "revised": "2014-05-09T15:38:49Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.72",
+            "revised": "2014-05-09T15:28:34Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.71",
+            "revised": "2014-05-09T14:50:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.70",
+            "revised": "2014-05-09T14:20:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.69",
+            "revised": "2014-05-09T00:51:21Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.68",
+            "revised": "2014-05-08T22:07:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.67",
+            "revised": "2014-05-08T21:59:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.66",
+            "revised": "2014-05-08T21:47:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.65",
+            "revised": "2014-05-08T21:47:12Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.64",
+            "revised": "2014-05-08T21:46:31Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.63",
+            "revised": "2014-04-07T20:03:51Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.62",
+            "revised": "2014-01-30T20:57:42Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.61",
+            "revised": "2014-01-30T20:34:01Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.60",
+            "revised": "2014-01-30T20:27:48Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.59",
+            "revised": "2014-01-30T20:25:43Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.58",
+            "revised": "2014-01-30T19:41:10Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.57",
+            "revised": "2014-01-30T19:36:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.56",
+            "revised": "2014-01-30T19:26:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.55",
+            "revised": "2014-01-27T15:04:20Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.54",
+            "revised": "2014-01-23T23:12:43Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.53",
+            "revised": "2014-01-23T19:59:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.52",
+            "revised": "2014-01-23T19:49:59Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.51",
+            "revised": "2014-01-23T19:48:11Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.50",
+            "revised": "2014-01-23T19:40:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.49",
+            "revised": "2014-01-23T19:35:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.48",
+            "revised": "2014-01-23T19:31:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.47",
+            "revised": "2014-01-23T19:16:41Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.46",
+            "revised": "2014-01-22T18:02:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.45",
+            "revised": "2014-01-22T17:56:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.44",
+            "revised": "2014-01-22T17:40:33Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.43",
+            "revised": "2014-01-22T17:30:37Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.42",
+            "revised": "2014-01-22T17:27:15Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.41",
+            "revised": "2014-01-17T16:15:48Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.40",
+            "revised": "2014-01-17T16:15:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.39",
+            "revised": "2014-01-17T16:12:04Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.38",
+            "revised": "2014-01-17T16:08:24Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.37",
+            "revised": "2014-01-17T16:05:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.36",
+            "revised": "2014-01-17T16:03:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.35",
+            "revised": "2014-01-17T15:33:39Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.34",
+            "revised": "2014-01-17T15:30:07Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.33",
+            "revised": "2014-01-15T16:52:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.32",
+            "revised": "2014-01-15T16:42:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.31",
+            "revised": "2014-01-14T22:55:40Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.30",
+            "revised": "2014-01-14T21:56:10Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.29",
+            "revised": "2014-01-14T21:54:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.28",
+            "revised": "2014-01-14T21:38:10Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.27",
+            "revised": "2014-01-14T20:35:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.26",
+            "revised": "2014-01-14T20:31:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.25",
+            "revised": "2014-01-14T20:19:43Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.24",
+            "revised": "2014-01-14T16:11:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.23",
+            "revised": "2014-01-14T16:01:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.22",
+            "revised": "2014-01-14T15:53:34Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.21",
+            "revised": "2014-01-14T15:28:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.20",
+            "revised": "2014-01-14T15:05:25Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.19",
+            "revised": "2014-01-14T14:56:17Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.18",
+            "revised": "2014-01-14T14:54:22Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.17",
+            "revised": "2014-01-13T20:04:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.16",
+            "revised": "2014-01-13T20:00:23Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.15",
+            "revised": "2014-01-13T19:53:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.14",
+            "revised": "2014-01-13T19:51:04Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.13",
+            "revised": "2014-01-09T22:15:57Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.12",
+            "revised": "2014-01-09T22:02:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.11",
+            "revised": "2014-01-09T21:52:00Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.10",
+            "revised": "2014-01-09T21:45:19Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.9",
+            "revised": "2014-01-09T21:28:13Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.8",
+            "revised": "2014-01-09T21:11:14Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.7",
+            "revised": "2013-12-18T20:50:30Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.6",
+            "revised": "2013-12-18T19:01:08Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.5",
+            "revised": "2013-12-17T22:22:56Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.4",
+            "revised": "2013-12-17T22:12:02Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.3",
+            "revised": "2013-12-17T16:02:03Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.2",
+            "revised": "2013-12-16T19:49:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "modified ch 9 and 10 titles",
+            "version": "16.1",
+            "revised": "2013-12-13T22:19:23Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "changes roles",
+            "version": "15.1",
+            "revised": "2013-12-05T16:42:23Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Removed appendix H. It has been assimilated. ",
+            "version": "14.1",
+            "revised": "2013-12-04T19:21:04Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "exploded appendices",
+            "version": "13.1",
+            "revised": "2013-12-02T23:02:09Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "reordered chapter 2",
+            "version": "12.1",
+            "revised": "2013-11-18T18:57:53Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "added summary and keywords",
+            "version": "11.1",
+            "revised": "2013-11-06T20:34:11Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "rearranged appendix I",
+            "version": "10.1",
+            "revised": "2013-10-29T18:27:41Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Added appendices",
+            "version": "9.1",
+            "revised": "2013-10-29T18:08:16Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "added preface",
+            "version": "8.1",
+            "revised": "2013-10-23T15:11:58Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "replaced last module of chapter 3",
+            "version": "7.1",
+            "revised": "2013-10-22T19:20:50Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "deleted unused modules",
+            "version": "6.1",
+            "revised": "2013-10-21T14:01:28Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "Removed deleted modules",
+            "version": "5.1",
+            "revised": "2013-10-14T15:40:45Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "reorganized chapter 1 according to updated bookmap",
+            "version": "4.1",
+            "revised": "2013-09-19T16:31:54Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "added tracking number, changed style parameter to CCAP Statistics",
+            "version": "3.1",
+            "revised": "2013-09-19T15:24:59Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "updated title",
+            "version": "2.1",
+            "revised": "2013-08-27T15:21:46Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        },
+        {
+            "changes": "publish",
+            "version": "1.1",
+            "revised": "2013-08-23T16:30:47Z",
+            "publisher": {
+                "surname": "Statistics",
+                "suffix": "",
+                "firstname": "OpenStax",
+                "title": "",
+                "fullname": "OpenStax College",
+                "id": "cnxstats"
+            }
+        }
+    ]
+}
