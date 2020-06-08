@@ -165,3 +165,4 @@ class Binder(BaseBinder):
                     metadata['version']
                 )
                 model.metadata['cnx-archive-uri'] = cnx_archive_uri
+                model.ident_hash = cnx_archive_uri

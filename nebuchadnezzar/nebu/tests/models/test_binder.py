@@ -20,10 +20,10 @@ class TestBinder(object):
                 {'id': 'm47830@1.17',
                  'shortId': None,
                  'title': 'Preface'},
-                {'contents': [{'id': 'm46913@1.13',
+                {'contents': [{'id': 'd93df8ff-6e4a-4a5e-befc-ba5a144f309c@14',
                                'shortId': None,
                                'title': 'Introduction'},
-                              {'id': 'm46909@1.12',
+                              {'id': 'cb418599-f69b-46c1-b0ef-60d9e36e677f@12',
                                'shortId': None,
                                'title': 'Definitions of '
                                'Statistics, Probability, '
@@ -33,7 +33,7 @@ class TestBinder(object):
                                'title': 'Data, Sampling, and '
                                'Variation in Data and '
                                'Sampling'},
-                              {'id': 'm46882@1.17',
+                              {'id': '3fb20c92-9515-420b-ab5e-6de221b89e99@17',
                                'shortId': None,
                                'title': 'Frequency, Frequency '
                                'Tables, and Levels of '
@@ -65,7 +65,7 @@ class TestBinder(object):
                 {'id': 'm47873@1.9',
                  'shortId': None,
                  'title': 'Data Sets'}],
-            'id': 'col11562@1.23',
+            'id': '30189442-6998-4686-ac05-ed152b91b9de@23.41',
             'shortId': None,
             'title': 'Introductory Statistics',
         }
@@ -102,19 +102,23 @@ class TestBinder(object):
             'summary': None,
             'title': 'Introductory Statistics',
             'translators': [],
-            'version': '1.23',
+            'version': '23.41',
         }
         assert binder.metadata == expected_metadata
 
         # Verify documents have been created
-        expected = ['m46913', 'm46909', 'm46882']
+        expected = [
+            'd93df8ff-6e4a-4a5e-befc-ba5a144f309c',
+            'cb418599-f69b-46c1-b0ef-60d9e36e677f',
+            '3fb20c92-9515-420b-ab5e-6de221b89e99'
+        ]
         assert [x.id for x in flatten_to_documents(binder)] == expected
 
         # Verify the collection title overrides
         custom_title_doc = [
             doc
             for doc in flatten_to_documents(binder)
-            if doc.id == 'm46913'
+            if doc.id == 'd93df8ff-6e4a-4a5e-befc-ba5a144f309c'
         ][0]
         # the page believes its title is...
         title = 'Introduction to Statistics'
@@ -130,11 +134,13 @@ class TestBinder(object):
 
         # Verify cnx-archive-uri is set in modules with metadata
         expected = {
-            'm46882': '3fb20c92-9515-420b-ab5e-6de221b89e99@17',
-            'm46909': 'cb418599-f69b-46c1-b0ef-60d9e36e677f@12',
-            'm46913': 'd93df8ff-6e4a-4a5e-befc-ba5a144f309c@14'
+            '3fb20c92-9515-420b-ab5e-6de221b89e99':
+                '3fb20c92-9515-420b-ab5e-6de221b89e99@17',
+            'cb418599-f69b-46c1-b0ef-60d9e36e677f':
+                'cb418599-f69b-46c1-b0ef-60d9e36e677f@12',
+            'd93df8ff-6e4a-4a5e-befc-ba5a144f309c':
+                'd93df8ff-6e4a-4a5e-befc-ba5a144f309c@14'
         }
         for doc in flatten_to_documents(binder):
-            if not expected.get(doc.id):
-                continue
+            assert expected.get(doc.id)
             assert expected[doc.id] == doc.metadata['cnx-archive-uri']

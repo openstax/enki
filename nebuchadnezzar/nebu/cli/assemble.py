@@ -10,7 +10,7 @@ from cnxepub.models import flatten_to_documents
 
 from ._common import common_params, logger
 from ..models.binder import Binder
-from ..models.utils import scan_for_id_mapping
+from ..models.utils import scan_for_id_mapping, scan_for_uuid_mapping
 from ..utils import relative_path
 
 
@@ -28,7 +28,9 @@ def produce_collection_xhtml(binder, output_dir, includes):
 
 def provide_supporting_files(input_dir, output_dir, binder):
     documents = {doc.id: doc for doc in flatten_to_documents(binder)}
-    for id, filepath in scan_for_id_mapping(input_dir).items():
+    id_to_filepath_mapping = scan_for_id_mapping(input_dir)
+    id_to_filepath_mapping.update(scan_for_uuid_mapping(input_dir))
+    for id, filepath in id_to_filepath_mapping.items():
         if id in documents:
             if (output_dir / id).exists():
                 (output_dir / id).unlink()

@@ -1,5 +1,6 @@
 from copy import copy
 
+import json
 from cnxepub.utils import squash_xml_to_text
 from cnxml.parse import parse_metadata as parse_cnxml_metadata
 from cnxtransforms import cnxml_abstract_to_html
@@ -9,6 +10,7 @@ from lxml import etree
 __all__ = (
     'convert_to_model_compat_metadata',
     'scan_for_id_mapping',
+    'scan_for_uuid_mapping',
     'id_from_metadata',
 )
 
@@ -100,4 +102,30 @@ def scan_for_id_mapping(start_dir):
         id = id_from_metadata(md)
         id = id.split('@')[0]
         mapping[id] = filepath
+    return mapping
+
+
+def scan_for_uuid_mapping(start_dir):
+    """Collect a mapping of content UUIDs to filepaths relative to the given
+    directory (as ``start_dir``).
+
+    This is similar to ``scan_for_id_mapping``, but instead of using the ID
+    value found in CNXML as the key, we want the same mapping keyed by the
+    UUID in the corresponding metadata.json file if it's available.
+
+    :param start_dir: a directory to start the scan from
+    :type start_dir: :class:`pathlib.Path`
+    :return: mapping of content uuids to the content filepath
+    :rtype: {str: pathlib.Path, ...}
+
+    """
+    mapping = {}
+    for filepath in start_dir.glob('**/index.cnxml'):
+        metadata_file = filepath.parent / 'metadata.json'
+
+        if metadata_file.exists():
+            with metadata_file.open('r') as metadata_json:
+                metadata = json.load(metadata_json)
+            uuid = metadata['id']
+            mapping[uuid] = filepath
     return mapping
