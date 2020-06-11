@@ -120,7 +120,7 @@ class TestAssembleCmd:
         assert Path(str(collection_xml.resolve())) == expected_filepath
 
         # Verify symlink to original data directories
-        m46882_dir = (output_dir / 'm46882')
+        m46882_dir = (output_dir / '3fb20c92-9515-420b-ab5e-6de221b89e99')
         assert m46882_dir.is_symlink()
         expected_dir = (src_data / 'm46882').resolve()
         assert Path(str(m46882_dir.resolve())) == expected_dir
@@ -176,8 +176,9 @@ class TestAssembleCmd:
         output_dir.mkdir()
         # clearly incorrect, but testable for the correct link
         (output_dir / 'collection.xml').symlink_to(output_dir)
-        (output_dir / 'm46882').symlink_to(output_dir)
-        (output_dir / 'm46882.xhtml').touch()
+        (output_dir / '3fb20c92-9515-420b-ab5e-6de221b89e99').\
+            symlink_to(output_dir)
+        (output_dir / '3fb20c92-9515-420b-ab5e-6de221b89e99.xhtml').touch()
 
         from nebu.cli.main import cli
         args = [
@@ -195,9 +196,11 @@ class TestAssembleCmd:
         output_filepath = Path(str(output_dir / 'collection.xml'))
         assert output_filepath.resolve() == expected_filepath
 
-        assert (output_dir / 'm46882').is_symlink()
+        assert (output_dir / '3fb20c92-9515-420b-ab5e-6de221b89e99').\
+            is_symlink()
         expected_filepath = (src_data / 'm46882')
-        output_filepath = Path(str(output_dir / 'm46882'))
+        output_filepath = \
+            Path(str(output_dir / '3fb20c92-9515-420b-ab5e-6de221b89e99'))
         assert output_filepath.resolve() == expected_filepath
 
     def test_edited_collection_xml(self, tmp_path, src_data, invoker,
@@ -214,9 +217,11 @@ class TestAssembleCmd:
         assert result.exit_code == 0
 
         # the first module in the first subcollection was removed
-        assert not (output_dir / 'm46913').is_symlink()
+        assert not (output_dir / 'd93df8ff-6e4a-4a5e-befc-ba5a144f309c').\
+            is_symlink()
         # the second module in the first subcollection should be there
-        assert (output_dir / 'm46909').is_symlink()
+        assert (output_dir / 'cb418599-f69b-46c1-b0ef-60d9e36e677f').\
+            is_symlink()
 
 
 class TestAssembleIntegration:
