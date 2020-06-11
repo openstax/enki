@@ -144,3 +144,31 @@ class TestBinder(object):
         for doc in flatten_to_documents(binder):
             assert expected.get(doc.id)
             assert expected[doc.id] == doc.metadata['cnx-archive-uri']
+
+        # Verify reference uris are updated based upon metadata
+        expected = {
+            'd93df8ff-6e4a-4a5e-befc-ba5a144f309c': [
+                'd93df8ff-6e4a-4a5e-befc-ba5a144f309c/CNX_Stats_C01_COs.jpg'
+            ],
+            'cb418599-f69b-46c1-b0ef-60d9e36e677f': [
+                'cb418599-f69b-46c1-b0ef-60d9e36e677f/fig-ch01_02_01n.png',
+                'cb418599-f69b-46c1-b0ef-60d9e36e677f'
+                '/m16020_DotPlot_description.html',
+                'cb418599-f69b-46c1-b0ef-60d9e36e677f'
+                '/m16020_DotPlot_description.html'
+            ],
+            '3fb20c92-9515-420b-ab5e-6de221b89e99': [
+                '/contents/m10275@2.1',
+                'http://en.wikibooks.org/',
+                '3fb20c92-9515-420b-ab5e-6de221b89e99'
+                '/CNX_Stats_C01_M10_003.jpg',
+                'foobar.png',
+                '/contents/cb418599-f69b-46c1-b0ef-60d9e36e677f',
+                '/contents/d93df8ff-6e4a-4a5e-befc-ba5a144f309c#pagelocation'
+            ]
+        }
+
+        for doc in flatten_to_documents(binder):
+            assert expected.get(doc.id)
+            for reference in doc.references:
+                assert reference.uri in expected[doc.id]

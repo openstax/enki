@@ -11,6 +11,7 @@ __all__ = (
     'convert_to_model_compat_metadata',
     'scan_for_id_mapping',
     'scan_for_uuid_mapping',
+    'build_id_to_uuid_mapping',
     'id_from_metadata',
 )
 
@@ -128,4 +129,29 @@ def scan_for_uuid_mapping(start_dir):
                 metadata = json.load(metadata_json)
             uuid = metadata['id']
             mapping[uuid] = filepath
+    return mapping
+
+
+def build_id_to_uuid_mapping(id_to_path_map, uuid_to_path_map):
+    """Build a mapping of ID to UUID values based upon matching paths
+
+    :param id_to_path_map: A mapping of IDs (m12345) to filepaths
+    :type id_to_path_map: {str: pathlib.Path, ...}
+
+    :param uuid_to_path_map: A mapping of UUIDs to filepaths
+    :type uuid_to_path_map: {str: pathlib.Path, ...}
+
+    :return: mapping of ids to uuids
+    :rtype: {str: str, ...}
+
+    """
+    mapping = {}
+
+    path_to_uuid_map = {
+        str(path): uuid for uuid, path in uuid_to_path_map.items()
+    }
+
+    for id, path in id_to_path_map.items():
+        mapping[id] = path_to_uuid_map.get(str(path))
+
     return mapping

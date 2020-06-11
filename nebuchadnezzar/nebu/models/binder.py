@@ -13,6 +13,8 @@ from .document import Document
 from .utils import (
     convert_to_model_compat_metadata,
     scan_for_id_mapping,
+    scan_for_uuid_mapping,
+    build_id_to_uuid_mapping,
     id_from_metadata,
 )
 
@@ -52,7 +54,15 @@ class Binder(BaseBinder):
         """
         # Create a document factory
         id_to_path_map = scan_for_id_mapping(filepath.parent)
-        document_factory = Binder._make_document_factory(id_to_path_map)
+        uuid_to_path_map = scan_for_uuid_mapping(filepath.parent)
+        id_to_uuid_map = build_id_to_uuid_mapping(
+            id_to_path_map,
+            uuid_to_path_map
+        )
+        document_factory = Binder._make_document_factory(
+            id_to_path_map,
+            id_to_uuid_map
+        )
 
         # Obtain metadata about the collection
         with filepath.open('rb') as fb:
@@ -105,30 +115,48 @@ class Binder(BaseBinder):
         return binder
 
     @staticmethod
-    def _make_reference_resolver(id):
+    def _make_reference_resolver(id, id_to_uuid_map):
 
         def func(reference, resource):
+            # Look for module ID with an optional version
+            module_id_pattern = re.compile(r'\/(m\d{5})(@\d+[.]\d+([.]\d+)?)?')
+            module_id_match = module_id_pattern.search(reference.uri)
+
             if resource:
+                bind_id = id_to_uuid_map.get(id) or id
                 reference.bind(
                     resource,
-                    '{}/{{}}'.format(id),
+                    '{}/{{}}'.format(bind_id),
                 )
-            elif re.match('/m[0-9]+.*', reference.uri):
+            elif module_id_match:
                 # SingleHTMLFormatter looks for links that start with
                 # "/contents/" for intra book links.  These links are important
                 # for baking to work.
                 reference.uri = '/contents{}'.format(reference.uri)
 
+                module_id = module_id_match.group(0).split('@')[0][1:]
+                module_uuid = id_to_uuid_map.get(module_id)
+                # We want to replace all module ID instances with UUIDs if
+                # there's a mapping available.
+                if module_uuid:
+                    reference.uri = reference.uri.replace(
+                        module_id_match.group(0),
+                        '/{}'.format(module_uuid)
+                    )
+
         return func
 
     @staticmethod
-    def _make_document_factory(id_to_path_map):
+    def _make_document_factory(id_to_path_map, id_to_uuid_map):
         """Creates a callable for creating Document or DocumentPointer
         objects based on information provided in the id-to-path mapping
         (supplied as ``id_to_path_map``).
 
         :param id_to_path_map: mapping of content ids to the content filepath
         :type id_to_path_map: {str: pathlib.Path, ...}
+
+        :param id_to_uuid_map: mapping of content ids to UUIDs
+        :type id_to_uuid_map: {str: str, ...}
 
         """
 
@@ -142,7 +170,10 @@ class Binder(BaseBinder):
             except KeyError:
                 return DocumentPointer('@'.join([id, version]))
             else:
-                reference_resolver = Binder._make_reference_resolver(id)
+                reference_resolver = Binder._make_reference_resolver(
+                    id,
+                    id_to_uuid_map
+                )
                 document = Document.from_index_cnxml(
                     filepath,
                     reference_resolver
@@ -154,7 +185,16 @@ class Binder(BaseBinder):
 
     @staticmethod
     def _update_metadata(filepath, model):
-        """Updates model metadata using values from metadata.json files"""
+        """Updates model metadata using values from metadata.json files
+
+        :param filepath: location of the ``collection.xml`` or ``index.cnxml``
+            file
+        :type filepath: :class:`pathlib.Path`
+
+        :param model: A Binder or Document object
+        :type model: :class:`Binder` or :class:`Document`
+
+        """
         metadata_file = filepath.parent / 'metadata.json'
 
         if metadata_file.exists():

@@ -6,6 +6,7 @@ from nebu.models.utils import (
     id_from_metadata,
     scan_for_id_mapping,
     scan_for_uuid_mapping,
+    build_id_to_uuid_mapping,
 )
 
 
@@ -117,6 +118,32 @@ def test_id_from_metadata():
     assert id_from_metadata({}) is None
     id = 'foo@bar'
     assert id_from_metadata({'cnx-archive-uri': id}) == id
+
+
+def test_id_to_uuid_mapping():
+    id_to_path_map = {
+        'm46882': Path('m46882/index.cnxml'),
+        'm46909': Path('m46909/index.cnxml'),
+        'm37151': Path(
+            '04 Lab 3-1 Basic MSP430 Assembly from Roots in LC-3/'
+            'index.cnxml'),
+        'm12345': Path('m12345/index.cnxml'),
+    }
+
+    uuid_to_path_map = {
+        '3fb20c92-9515-420b-ab5e-6de221b89e99': Path('m46882/index.cnxml'),
+        'cb418599-f69b-46c1-b0ef-60d9e36e677f': Path('m46909/index.cnxml'),
+        '06ca2321-54e8-4f28-8516-f38c8e39cac7': Path(
+            '04 Lab 3-1 Basic MSP430 Assembly from Roots in LC-3/'
+            'index.cnxml'),
+    }
+
+    id_to_uuid_map = build_id_to_uuid_mapping(id_to_path_map, uuid_to_path_map)
+
+    assert id_to_uuid_map['m46882'] == '3fb20c92-9515-420b-ab5e-6de221b89e99'
+    assert id_to_uuid_map['m46909'] == 'cb418599-f69b-46c1-b0ef-60d9e36e677f'
+    assert id_to_uuid_map['m37151'] == '06ca2321-54e8-4f28-8516-f38c8e39cac7'
+    assert id_to_uuid_map.get('m12345') is None
 
 
 class TestScanForIdMapping(object):
