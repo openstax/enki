@@ -1,4 +1,10 @@
-FROM python:3.6-jessie
+FROM python:3.7-slim
+
+# Needs to exist for jre installation
+RUN mkdir -p /usr/share/man/man1/
+
+RUN apt update
+RUN apt install -y openjdk-11-jre-headless libmagic1 mime-support
 
 COPY requirements /tmp/requirements
 
