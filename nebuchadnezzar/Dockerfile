@@ -4,7 +4,7 @@ FROM python:3.7-slim
 RUN mkdir -p /usr/share/man/man1/
 
 RUN apt update
-RUN apt install -y openjdk-11-jre-headless libmagic1 mime-support
+RUN apt install -y wget openjdk-11-jre-headless libmagic1 mime-support
 
 COPY requirements /tmp/requirements
 
