@@ -3,8 +3,8 @@ FROM python:3.7-slim
 # Needs to exist for jre installation
 RUN mkdir -p /usr/share/man/man1/
 
-RUN apt update
-RUN apt install -y wget openjdk-11-jre-headless libmagic1 mime-support
+RUN apt update \
+    && apt install -y build-essential wget openjdk-11-jre-headless libmagic1 mime-support
 
 COPY requirements /tmp/requirements
 

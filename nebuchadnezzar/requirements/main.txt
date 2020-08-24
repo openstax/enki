@@ -8,4 +8,4 @@ docker>=4.2.2
 pip
 requests>=2.24.0
 setuptools
-aiohttp>=3.6.2
+aiohttp[speedups]>=3.6.2
