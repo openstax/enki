@@ -111,3 +111,38 @@ def test_parse_derived_from(xml):
     assert props['derived_from'] == expected
     # Verify we've discovered the correct title
     assert props['title'] == 'College Physics'
+
+
+def test_parse_with_minimal_metadata():
+    cnxml = """
+        <document xmlns="http://cnx.rice.edu/cnxml">
+            <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+                <md:content-id>col11406</md:content-id>
+                <md:title>College Physics</md:title>
+                <md:abstract/>
+            </metadata>
+        </document>
+    """
+
+    xml = etree.fromstring(cnxml)
+    props = parse_metadata(xml)
+
+    expected_props = {
+        'abstract': '',
+        'authors': (),
+        'created': None,
+        'derived_from': {'title': None, 'uri': None},
+        'id': 'col11406',
+        'keywords': (),
+        'language': None,
+        'license_url': None,
+        'licensors': (),
+        'maintainers': (),
+        'print_style': None,
+        'revised': None,
+        'subjects': (),
+        'title': 'College Physics',
+        'version': None,
+    }
+    # Verify the metadata
+    assert props == expected_props
