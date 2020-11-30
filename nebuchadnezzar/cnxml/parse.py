@@ -30,10 +30,10 @@ NSMAP = {
 }
 
 
-def _maybe(l):
+def _maybe(vals):
     """Grab the first value if it exists."""
     try:
-        return l[0]
+        return vals[0]
     except IndexError:
         return None
 
@@ -71,16 +71,18 @@ def parse_metadata(elm_tree):
 
     """
     xpath = make_cnx_xpath(elm_tree)
-    role_xpath = lambda xp: tuple(xpath(xp)[0].split())  # noqa: E731
+    role_xpath = lambda xp: tuple(  # noqa: E731
+        (_maybe(xpath(xp)) or "").split()
+    )
 
     props = {
         'id': _maybe(xpath('//md:content-id/text()')),
-        'version': xpath('//md:version/text()')[0],
-        'created': xpath('//md:created/text()')[0],
-        'revised': xpath('//md:revised/text()')[0],
-        'title': xpath('//md:title/text()')[0],
-        'license_url': xpath('//md:license/@url')[0],
-        'language': xpath('//md:language/text()')[0],
+        'version': _maybe(xpath('//md:version/text()')),
+        'created': _maybe(xpath('//md:created/text()')),
+        'revised': _maybe(xpath('//md:revised/text()')),
+        'title': _maybe(xpath('//md:title/text()')),
+        'license_url': _maybe(xpath('//md:license/@url')),
+        'language': _maybe(xpath('//md:language/text()')),
         'authors': role_xpath('//md:role[@type="author"]/text()'),
         'maintainers': role_xpath('//md:role[@type="maintainer"]/text()'),
         'licensors': role_xpath('//md:role[@type="licensor"]/text()'),
