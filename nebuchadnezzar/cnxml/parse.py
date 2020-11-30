@@ -30,10 +30,10 @@ NSMAP = {
 }
 
 
-def _maybe(l):
+def _maybe(vals):
     """Grab the first value if it exists."""
     try:
-        return l[0]
+        return vals[0]
     except IndexError:
         return None
 
