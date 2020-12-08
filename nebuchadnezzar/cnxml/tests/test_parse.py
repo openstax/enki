@@ -45,6 +45,8 @@ def test_parse(xml):
         'subjects': ('Mathematics and Statistics', 'Science and Technology'),
         'title': 'College Physics',
         'version': '1.9',
+        'uuid': None,
+        'canonical_book_uuid': None,
     }
     # Verify the metadata
     assert props == expected_props
@@ -143,6 +145,47 @@ def test_parse_with_minimal_metadata():
         'subjects': (),
         'title': 'College Physics',
         'version': None,
+        'uuid': None,
+        'canonical_book_uuid': None,
+    }
+    # Verify the metadata
+    assert props == expected_props
+
+
+def test_parse_with_optional_metadata():
+    cnxml = """
+        <document xmlns="http://cnx.rice.edu/cnxml">
+            <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+                <md:content-id>col11406</md:content-id>
+                <md:title>College Physics</md:title>
+                <md:abstract/>
+                <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27e2d2</md:uuid>
+                <md:canonical-book-uuid>70fe3889-8d4b-4061-8efa-d00c655f474d</md:canonical-book-uuid>
+            </metadata>
+        </document>
+    """
+
+    xml = etree.fromstring(cnxml)
+    props = parse_metadata(xml)
+
+    expected_props = {
+        'abstract': '',
+        'authors': (),
+        'created': None,
+        'derived_from': {'title': None, 'uri': None},
+        'id': 'col11406',
+        'keywords': (),
+        'language': None,
+        'license_url': None,
+        'licensors': (),
+        'maintainers': (),
+        'print_style': None,
+        'revised': None,
+        'subjects': (),
+        'title': 'College Physics',
+        'version': None,
+        'uuid': 'e1edc39a-14cd-4d61-886f-36bebd27e2d2',
+        'canonical_book_uuid': '70fe3889-8d4b-4061-8efa-d00c655f474d',
     }
     # Verify the metadata
     assert props == expected_props

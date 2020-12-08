@@ -77,6 +77,10 @@ def parse_metadata(elm_tree):
 
     props = {
         'id': _maybe(xpath('//md:content-id/text()')),
+        'uuid': _maybe(xpath('//md:uuid/text()')),
+        'canonical_book_uuid': _maybe(
+            xpath('//md:canonical-book-uuid/text()')
+        ),
         'version': _maybe(xpath('//md:version/text()')),
         'created': _maybe(xpath('//md:created/text()')),
         'revised': _maybe(xpath('//md:revised/text()')),
