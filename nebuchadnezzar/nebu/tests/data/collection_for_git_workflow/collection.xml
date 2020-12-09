@@ -1,0 +1,90 @@
+<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:cnx="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:md="http://cnx.rice.edu/mdml" xmlns:col="http://cnx.rice.edu/collxml" xml:lang="en">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+    <!-- WARNING! The 'metadata' section is read only. Do not edit below. Changes to the metadata section in the source will not be saved. -->
+    <md:repository>https://legacy.cnx.org/content</md:repository>
+    <md:content-url>https://legacy.cnx.org/content/col11562/1.23</md:content-url>
+    <md:content-id>col11562</md:content-id>
+    <md:title>Introductory Statistics</md:title>
+    <md:version>1.23</md:version>
+    <md:created>2013-07-18T19:30:26-05:00</md:created>
+    <md:revised>2019-02-22T14:15:14.840187-06:00</md:revised>
+    <md:language>en</md:language>
+    <md:license url="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution License</md:license>
+    <!-- For information on license requirements for use or modification, see license url in the above <md:license> element.
+           For information on formatting required attribution, see the URL:
+             CONTENT_URL/content_info#cnx_cite_header
+           where CONTENT_URL is the value provided above in the <md:content-url> element.
+      -->
+    <md:actors>
+      <md:person userid="cnxstats">
+        <md:firstname>OpenStax</md:firstname>
+        <md:surname>Statistics</md:surname>
+        <md:fullname>OpenStax College</md:fullname>
+        <md:email>info@openstaxcollege.org</md:email>
+      </md:person>
+      <md:person userid="OpenStaxCollege">
+        <md:firstname/>
+        <md:surname>OpenStax College</md:surname>
+        <md:fullname>OpenStax</md:fullname>
+        <md:email>info@openstaxcollege.org</md:email>
+      </md:person>
+    </md:actors>
+    <md:roles>
+      <md:role type="author">OpenStaxCollege</md:role>
+      <md:role type="maintainer">OpenStaxCollege cnxstats</md:role>
+      <md:role type="licensor">OpenStaxCollege</md:role>
+    </md:roles>
+    <md:abstract/>
+    <md:subjectlist>
+      <md:subject>Mathematics and Statistics</md:subject>
+    </md:subjectlist>
+  </metadata>
+  <col:parameters>
+    <col:param name="print-style" value="statistics"/>
+  </col:parameters>
+  <col:content>
+    <col:module document="m47830" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
+      <md:title>Preface</md:title>
+    </col:module>
+    <col:subcollection>
+      <md:title>Sampling and Data</md:title>
+      <col:content>
+        <col:module document="m46913" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.13">
+          <md:title>Introduction</md:title>
+        </col:module>
+        <col:module document="m46909" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.12">
+          <md:title>Definitions of Statistics, Probability, and Key Terms</md:title>
+        </col:module>
+        <col:module document="m46885" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.21">
+          <md:title>Data, Sampling, and Variation in Data and Sampling</md:title>
+        </col:module>
+        <col:module document="m46882" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
+          <md:title>Frequency, Frequency Tables, and Levels of Measurement</md:title>
+        </col:module>
+        <col:module document="m46919" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.13">
+          <md:title>Experimental Design and Ethics</md:title>
+        </col:module>
+      </col:content>
+    </col:subcollection>
+    <col:subcollection>
+      <md:title>Descriptive Statistics</md:title>
+      <col:content>
+        <col:module document="m46925" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.7">
+          <md:title>Introduction</md:title>
+        </col:module>
+        <col:module document="m46934" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.10">
+          <md:title>Stem-and-Leaf Graphs (Stemplots), Line Graphs, and Bar Graphs</md:title>
+        </col:module>
+      </col:content>
+    </col:subcollection>
+    <col:module document="m47864" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
+      <md:title>Review Exercises (Ch 3-13)</md:title>
+    </col:module>
+    <col:module document="m47865" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.16">
+      <md:title>Practice Tests (1-4) and Final Exams</md:title>
+    </col:module>
+    <col:module document="m47873" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.9">
+      <md:title>Data Sets</md:title>
+    </col:module>
+  </col:content>
+</col:collection>

@@ -1,0 +1,51 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="id5564559" module-id="" cnxml-version="0.7">
+  <title>Frequency, Frequency Tables, and Levels of Measurement</title>
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+  <md:content-id>m46882</md:content-id>
+  <md:title>Frequency, Frequency Tables, and Levels of Measurement</md:title>
+  <md:uuid>3fb20c92-9515-420b-ab5e-6de221b89e99</md:uuid>
+  <md:canonical-book-uuid>30189442-6998-4686-ac05-ed152b91b9de</md:canonical-book-uuid>
+  <md:revised>2019/02/08 09:37:55.846 US/Central</md:revised>
+</metadata>
+
+<content>
+  <para id="fs-idp5986864">Once you have a set of data, you will need to organize it so that you can analyze how frequently each datum occurs in the set. However, when calculating the frequency, you may need to round your answers so that they are as precise as possible.</para>
+  <figure xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" id="eip-idp25576880" orient="horizontal"><media id="fs-idm20141232" alt="Graph A is a bar graph with 7 bars. The x-axis shows CEO's ages in intervals of 5 years starting with 40 - 44. The y-axis shows the relative frequency in intervals of 0.2 from 0 - 1. The highest relative frequency shown is 0.27. Graph B is a bar graph with 7 bars. The x-axis shows CEO's ages in intervals of 5 years starting with 40 - 44. The y-axis shows relative frequency in intervals of 0.2 from 0 - 1. The highest relative frequency shown is 1.">
+    <image mime-type="image/jpg" src="CNX_Stats_C01_M10_003.jpg"/>
+  </media>
+  </figure>
+  <figure id="eip-idp53333999">
+    <media id="id9955bb01a" alt="Links to a non-existent resource">
+      <image src="foobar.png" mime-type="image/png"/>
+    </media>
+  </figure>
+  <para id="linkexample">
+    There are many ways to grill
+    <link document="m10275" version="2.1">a good
+    steak</link>. My favorite can be found
+    <link url="http://en.wikibooks.org/"
+          window="new">on Wikibooks</link>.
+    <link document="m46909" version="1.12">A link to another page with version</link>
+    <link document="m46913" target-id="pagelocation">A link to another page with location</link>
+  </para>
+
+</content>
+
+<glossary>
+
+  <definition id="cumrelfreq">
+    <term>Cumulative Relative Frequency</term>
+    <meaning id="id19883082">
+      The term applies to an ordered set of observations from smallest to largest. The cumulative relative frequency is the sum of the relative frequencies for all values that are less than or equal to the given value.
+    </meaning>
+  </definition>
+
+
+  <definition id="freq">
+    <term>Frequency</term>
+    <meaning id="id19849552">
+   the number of times a value of the data occurs</meaning>
+  </definition>
+
+</glossary>
+</document>
