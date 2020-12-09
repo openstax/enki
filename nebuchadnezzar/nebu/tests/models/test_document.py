@@ -36,6 +36,7 @@ M46882_METADATA = {
     'title': 'Frequency, Frequency Tables, and Levels of Measurement',
     'translators': [],
     'version': '1.17',
+    'canonical_book_uuid': None,
 }
 
 
@@ -97,7 +98,9 @@ class TestDocument(object):
 
         # Verify the metadata
         assert doc.id == 'm46882'
-        expected_metadata = M46882_METADATA
+        expected_metadata = copy(M46882_METADATA)
+        # When parsing from index.cnxml, neb uses the cnxml metadata parser
+        expected_metadata['uuid'] = None
         assert doc.metadata == expected_metadata
 
         # Verify the content is content'ish

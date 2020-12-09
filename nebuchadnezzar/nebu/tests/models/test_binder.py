@@ -103,6 +103,8 @@ class TestBinder(object):
             'title': 'Introductory Statistics',
             'translators': [],
             'version': '23.41',
+            'uuid': None,
+            'canonical_book_uuid': None,
         }
         assert binder.metadata == expected_metadata
 
