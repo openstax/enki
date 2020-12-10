@@ -129,6 +129,13 @@ def scan_for_uuid_mapping(start_dir):
                 metadata = json.load(metadata_json)
             uuid = metadata['id']
             mapping[uuid] = filepath
+        else:
+            # Fallback to trying CNXML for UUID metadata
+            metadata = parse_cnxml_metadata(etree.parse(filepath.open()))
+            uuid = metadata.get('uuid')
+            if uuid:
+                mapping[uuid] = filepath
+
     return mapping
 
 

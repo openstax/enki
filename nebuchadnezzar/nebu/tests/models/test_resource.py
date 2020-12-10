@@ -5,9 +5,9 @@ from cnxepub.models import RESOURCE_HASH_TYPE
 from nebu.models.resource import FileSystemResource
 
 
-def test(collection_data):
+def test(request, neb_collection_data):
     filename = 'CNX_Stats_C01_M10_003.jpg'
-    filepath = collection_data / 'm46882' / filename
+    filepath = neb_collection_data / 'm46882' / filename
 
     # Create the resource object (target)
     res = FileSystemResource(filepath)

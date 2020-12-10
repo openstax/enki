@@ -206,3 +206,11 @@ class Binder(BaseBinder):
                 )
                 model.metadata['cnx-archive-uri'] = cnx_archive_uri
                 model.ident_hash = cnx_archive_uri
+        else:
+            # Fallback to trying CNXML for UUID metadata
+            metadata = parse_cnxml_metadata(etree.parse(filepath.open()))
+            uuid = metadata.get('uuid')
+            if uuid:
+                cnx_archive_uri = '{}@'.format(uuid)
+                model.metadata['cnx-archive-uri'] = cnx_archive_uri
+                model.ident_hash = cnx_archive_uri

@@ -1,3 +1,4 @@
+import pytest
 from copy import copy
 from pathlib import Path
 
@@ -159,8 +160,11 @@ class TestScanForIdMapping(object):
             for k, v in results.items()
         }
 
-    def test(self, collection_data):
+    @pytest.mark.parametrize(
+        'collection', ['neb_collection_data', 'git_collection_data'])
+    def test(self, request, collection):
         # Call the target
+        collection_data = request.getfixturevalue(collection)
         id_to_path_mapping = scan_for_id_mapping(collection_data)
 
         # Check the results
@@ -237,7 +241,10 @@ class TestScanForUUIDMapping(object):
             for k, v in results.items()
         }
 
-    def test(self, collection_data):
+    @pytest.mark.parametrize(
+        'collection', ['neb_collection_data', 'git_collection_data'])
+    def test(self, request, collection):
+        collection_data = request.getfixturevalue(collection)
         # Call the target
         uuid_to_path_mapping = scan_for_uuid_mapping(collection_data)
 
