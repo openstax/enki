@@ -1,3 +1,4 @@
+import pytest
 from copy import copy
 
 from lxml import etree
@@ -38,6 +39,31 @@ M46882_METADATA = {
     'version': '1.17',
     'canonical_book_uuid': None,
 }
+M46882_GIT_METADATA = {
+    'authors': [],
+    'cnx-archive-shortid': None,
+    'cnx-archive-uri': 'm46882@None',
+    'copyright_holders': [],
+    'created': None,
+    'derived_from_title': None,
+    'derived_from_uri': None,
+    'editors': [],
+    'illustrators': [],
+    'keywords': (),
+    'language': None,
+    'license_text': 'CC BY',
+    'license_url': None,
+    'print_style': None,
+    'publishers': [],
+    'revised': '2019/02/08 09:37:55.846 US/Central',
+    'subjects': (),
+    'summary': None,
+    'title': 'Frequency, Frequency Tables, and Levels of Measurement',
+    'translators': [],
+    'version': 'None',
+    'uuid': '3fb20c92-9515-420b-ab5e-6de221b89e99',
+    'canonical_book_uuid': '30189442-6998-4686-ac05-ed152b91b9de',
+}
 
 
 def mock_reference_resolver(reference, resource):
@@ -48,7 +74,10 @@ def mock_reference_resolver(reference, resource):
 
 class TestDocument(object):
 
-    def test_sanatize_content(self, assembled_data):
+    @pytest.mark.parametrize(
+        'assembled', ['neb_assembled_data', 'git_assembled_data'])
+    def test_sanatize_content(self, request, assembled):
+        assembled_data = request.getfixturevalue(assembled)
         with (assembled_data / 'm46913.xhtml').open('rb') as fb:
             html = etree.parse(fb)
             # And parse a second copy for verification
@@ -74,8 +103,8 @@ class TestDocument(object):
 
         assert results == expected_results
 
-    def test_find_resources(self, collection_data):
-        loc = collection_data / 'm46909'
+    def test_find_resources(self, request, neb_collection_data):
+        loc = neb_collection_data / 'm46909'
 
         # Hit the target
         resources = Document._find_resources(loc)
@@ -90,8 +119,8 @@ class TestDocument(object):
         assert sorted([r.id for r in resources]) == expected_filenames
         assert sorted([r.filename for r in resources]) == expected_filenames
 
-    def test_from_index_cnxml(self, collection_data):
-        filepath = collection_data / 'm46882' / 'index.cnxml'
+    def test_from_index_cnxml(self, neb_collection_data):
+        filepath = neb_collection_data / 'm46882' / 'index.cnxml'
 
         # Hit the target
         doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
@@ -130,8 +159,29 @@ class TestDocument(object):
         assert b'ef="/m10275@2.1"' in doc.content  # rewritten in cnxml->html
         assert b'ef="http://en.wikibooks.org/"' in doc.content
 
-    def test_from_filepath(self, assembled_data):
-        filepath = assembled_data / 'm46882.xhtml'
+    def test_from_git_index_cnxml(self, git_collection_data):
+        filepath = git_collection_data / 'm46882' / 'index.cnxml'
+
+        # Hit the target
+        doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
+
+        # Verify the metadata
+        assert doc.id == 'm46882'
+        expected_metadata = copy(M46882_GIT_METADATA)
+        assert doc.metadata == expected_metadata
+
+        # Verify the content is content'ish
+        assert doc._xml.xpath(
+            "/xhtml:body/*[@data-type='metadata']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        ) == []
+        assert len(doc._xml.xpath(
+            "//*[@id='fs-idm20141232']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        )) == 1
+
+    def test_from_filepath(self, neb_assembled_data):
+        filepath = neb_assembled_data / 'm46882.xhtml'
 
         # Hit the target
         doc = Document.from_filepath(filepath)
@@ -163,3 +213,37 @@ class TestDocument(object):
         # Verify the references have been rewritten
         ref = '{}/CNX_Stats_C01_M10_003.jpg'.format(REFERENCE_MARKER).encode()
         assert ref in doc.content
+
+    def test_from_git_filepath(self, git_assembled_data):
+        filepath = git_assembled_data / 'm46882.xhtml'
+
+        # Hit the target
+        doc = Document.from_filepath(filepath)
+
+        # Verify the metadata
+        assert doc.id == 'm46882'
+        expected_metadata = copy(M46882_GIT_METADATA)
+        # cnx-epub metadata is mutable, so sequences are lists rather than
+        # tuples.
+        expected_metadata['keywords'] = list(expected_metadata['keywords'])
+        expected_metadata['subjects'] = list(expected_metadata['subjects'])
+        # Document.from_index_cnxml uses cnxml to parse metadata and then does
+        # some conversions while Document.from_filepath uses cnx-epub. These
+        # generate slightly different values
+        del expected_metadata['uuid']
+        expected_metadata.update({
+            'created': 'None',
+            'language': 'None',
+            'license_text': None,
+        })
+        assert doc.metadata == expected_metadata
+
+        # Verify the content is content'ish
+        assert doc._xml.xpath(
+            "/xhtml:body/*[@data-type='metadata']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        ) == []
+        assert len(doc._xml.xpath(
+            "//*[@id='fs-idm20141232']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        )) == 1
