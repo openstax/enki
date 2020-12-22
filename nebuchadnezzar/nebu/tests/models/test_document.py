@@ -234,8 +234,6 @@ class TestDocument(object):
         # generate slightly different values
         del expected_metadata['uuid']
         expected_metadata.update({
-            'created': 'None',
-            'language': 'None',
             'license_text': None,
         })
         assert doc.metadata == expected_metadata
