@@ -105,6 +105,7 @@ class TestBinder(object):
             'version': '23.41',
             'uuid': None,
             'canonical_book_uuid': None,
+            'slug': None,
         }
         assert binder.metadata == expected_metadata
 
@@ -272,6 +273,7 @@ class TestBinder(object):
             'version': '23.41',
             'uuid': None,
             'canonical_book_uuid': None,
+            'slug': None,
         }
         assert binder.metadata == expected_metadata
 
