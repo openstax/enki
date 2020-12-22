@@ -85,6 +85,7 @@ def parse_metadata(elm_tree):
         'created': _maybe(xpath('//md:created/text()')),
         'revised': _maybe(xpath('//md:revised/text()')),
         'title': _maybe(xpath('//md:title/text()')),
+        'slug': _maybe(xpath('//md:slug/text()')),
         'license_url': _maybe(xpath('//md:license/@url')),
         'language': _maybe(xpath('//md:language/text()')),
         'authors': role_xpath('//md:role[@type="author"]/text()'),
