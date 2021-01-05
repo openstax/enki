@@ -105,6 +105,7 @@ class TestBinder(object):
             'version': '23.41',
             'uuid': None,
             'canonical_book_uuid': None,
+            'slug': None,
         }
         assert binder.metadata == expected_metadata
 
@@ -232,7 +233,7 @@ class TestBinder(object):
                 {'id': 'm47873@1.9',
                  'shortId': None,
                  'title': 'Data Sets'}],
-            'id': '30189442-6998-4686-ac05-ed152b91b9de@23.41',
+            'id': '30189442-6998-4686-ac05-ed152b91b9de@af89d35',
             'shortId': None,
             'title': 'Introductory Statistics',
         }
@@ -240,38 +241,30 @@ class TestBinder(object):
 
         # Verify the metadata
         expected_metadata = {
-            'authors': [{'id': 'OpenStaxCollege',
-                         'name': 'OpenStaxCollege',
-                         'type': 'cnx-id'}],
+            'authors': [],
             'cnx-archive-shortid': None,
-            'cnx-archive-uri': '30189442-6998-4686-ac05-ed152b91b9de@23.41',
-            'copyright_holders': [{'id': 'OpenStaxCollege',
-                                   'name': 'OpenStaxCollege',
-                                   'type': 'cnx-id'}],
-            'created': '2013-07-18T19:30:26-05:00',
+            'cnx-archive-uri': '30189442-6998-4686-ac05-ed152b91b9de@af89d35',
+            'copyright_holders': [],
+            'created': None,
             'derived_from_title': None,
             'derived_from_uri': None,
             'editors': [],
             'illustrators': [],
             'keywords': (),
-            'language': 'en',
+            'language': None,
             'license_text': 'CC BY',
             'license_url': 'http://creativecommons.org/licenses/by/4.0/',
             'print_style': 'statistics',
-            'publishers': [{'id': 'OpenStaxCollege',
-                            'name': 'OpenStaxCollege',
-                            'type': 'cnx-id'},
-                           {'id': 'cnxstats',
-                            'name': 'cnxstats',
-                            'type': 'cnx-id'}],
+            'publishers': [],
             'revised': '2019-02-22T14:15:14.840187-06:00',
-            'subjects': ('Mathematics and Statistics',),
+            'subjects': (),
             'summary': None,
             'title': 'Introductory Statistics',
             'translators': [],
-            'version': '23.41',
-            'uuid': None,
+            'version': 'af89d35',
+            'uuid': '30189442-6998-4686-ac05-ed152b91b9de',
             'canonical_book_uuid': None,
+            'slug': 'introductory-statistics',
         }
         assert binder.metadata == expected_metadata
 

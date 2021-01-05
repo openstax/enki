@@ -38,6 +38,7 @@ M46882_METADATA = {
     'translators': [],
     'version': '1.17',
     'canonical_book_uuid': None,
+    'slug': None,
 }
 M46882_GIT_METADATA = {
     'authors': [],
@@ -63,6 +64,7 @@ M46882_GIT_METADATA = {
     'version': 'None',
     'uuid': '3fb20c92-9515-420b-ab5e-6de221b89e99',
     'canonical_book_uuid': '30189442-6998-4686-ac05-ed152b91b9de',
+    'slug': None,
 }
 
 
@@ -232,8 +234,6 @@ class TestDocument(object):
         # generate slightly different values
         del expected_metadata['uuid']
         expected_metadata.update({
-            'created': 'None',
-            'language': 'None',
             'license_text': None,
         })
         assert doc.metadata == expected_metadata
