@@ -11,7 +11,7 @@ from ..config import prepare
 
 from .assemble import assemble
 from .atom import config_atom
-from .get import get
+from .get import head, get
 from .environment import list_environments
 from .ping import ping
 from .publish import publish
@@ -151,6 +151,7 @@ def cli(ctx):
 cli.add_command(assemble, help_section='Stock')
 cli.add_command(config_atom, help_section='Stock')
 cli.add_command(get, help_section='Stock')
+cli.add_command(head, help_section='Stock')
 cli.add_command(list_environments, help_section='Stock')
 cli.add_command(ping, help_section='Stock')
 cli.add_command(publish, help_section='Stock')

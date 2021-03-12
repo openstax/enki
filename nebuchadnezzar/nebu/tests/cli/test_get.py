@@ -1148,6 +1148,66 @@ class TestGetCmd:
         shutil.rmtree(str(datadir / legacy_id))
 
 
+class TestHeadCmd:
+    def test_general(self,
+                     datadir,
+                     tmpcwd,
+                     requests_mock,
+                     invoker):
+        col_id = 'col11405'
+        col_version = 'latest'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        from nebu.cli.main import cli
+        args = ['head', 'test-env', col_id]
+        result = invoker(cli, args)
+
+        debug_result_exception(result)
+        assert result.exit_code == 0
+        assert result.stdout == '2.1\n'
+
+    @pytest.mark.parametrize('environment',
+                             ['qa', 'qa.cnx.org', 'https://qa.cnx.org'])
+    def test_with_fallback_archive(self,
+                                   datadir,
+                                   tmpcwd,
+                                   requests_mock,
+                                   mock_aioresponses,
+                                   invoker,
+                                   environment):
+        col_id = 'col11405'
+        col_version = 'latest'
+        col_uuid = 'b699648f-405b-429f-bf11-37bad4246e7c'
+        col_hash = '{}@{}'.format(col_uuid, '2.1')
+        base_url = 'https://archive-qa.cnx.org'
+        metadata_url = '{}/content/{}/{}'.format(base_url, col_id, col_version)
+        extras_url = '{}/extras/{}'.format(base_url, col_hash)
+
+        # Register the data urls
+        for fname, url in (('contents.json', metadata_url),
+                           ('extras.json', extras_url),
+                           ):
+            register_data_file(requests_mock, datadir, fname, url)
+
+        from nebu.cli.main import cli
+        args = ['head', environment, col_id]
+        result = invoker(cli, args)
+
+        debug_result_exception(result)
+        assert result.exit_code == 0
+        assert result.stdout == '2.1\n'
+
+
 def get_sha1s_dict(path):
     """Returns a dict of sha1-s by filename"""
     try:

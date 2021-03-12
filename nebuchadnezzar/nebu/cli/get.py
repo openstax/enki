@@ -132,6 +132,41 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
         json.dump(col_metadata, metadata_file)
 
 
+@click.command()
+@common_params
+@click.option('-k', '--insecure', is_flag=True, default=False,
+              help="Ignore SSL certificate verification errors")
+@click.argument('env')
+@click.argument('col_id')
+@click.pass_context
+def head(ctx, env, col_id, insecure):
+    """get the head version for environment + collection pair"""
+
+    # doesn't need to be latest, but latest is the version most likely to exist
+    col_version = 'latest'
+
+    base_url = build_archive_url(ctx, env)
+
+    session = requests.Session()
+    session.verify = not insecure
+    adapter = requests.adapters.HTTPAdapter(max_retries=5)
+    session.mount('https://', adapter)
+
+    col_metadata = get_collection_metadata(session,
+                                           base_url,
+                                           col_id,
+                                           col_version)
+
+    uuid = col_metadata['id']
+    # latest defaults to successfully baked - we need extras > headVersion
+    version = col_metadata['version']
+
+    url = '{}/extras/{}@{}'.format(base_url, uuid, version)
+    resp = session.get(url)
+    head_version = resp.json()['headVersion']
+    print(head_version)
+
+
 def get_collection_metadata(session,
                             base_url,
                             col_id,
