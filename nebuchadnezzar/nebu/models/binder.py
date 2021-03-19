@@ -75,43 +75,45 @@ class Binder(BaseBinder):
         binder = cls(id, metadata=metadata)
         Binder._update_metadata(filepath, binder)
 
-        # Load the binder using the collection tree
-        with filepath.open('rb') as fb:
-            elm_iterparser = etree.iterparse(
-                fb,
-                events=('start', 'end'),
-                tag=COLLXML_TOPIC_TAGS,
-                remove_blank_text=True,
-            )
+        parent_node = current_node = binder
+        chain = [binder]
 
-            parent_node = current_node = binder
-            chain = [binder]
-            for event, elm in elm_iterparser:
-                if elm.tag == TITLE_TAG and event == 'start':
-                    title = elm.text
-                    if isinstance(current_node, DOC_TYPES):
-                        parent_node.set_title_for_node(
-                            current_node,
-                            title,
-                        )
-                        if isinstance(current_node, DocumentPointer):
-                            current_node.metadata['title'] = title
-                    else:
+        def handler(event, elm):
+            nonlocal parent_node, current_node
+            if elm.tag == TITLE_TAG and event == 'start':
+                title = elm.text
+                if isinstance(current_node, DOC_TYPES):
+                    parent_node.set_title_for_node(
+                        current_node,
+                        title,
+                    )
+                    if isinstance(current_node, DocumentPointer):
                         current_node.metadata['title'] = title
-                elif elm.tag == SUBCOLLECTION_TAG:
-                    if event == 'start':
-                        current_node = TranslucentBinder()
-                        parent_node.append(current_node)
-                        parent_node = current_node
-                        chain.append(parent_node)
-                    else:
-                        chain.pop()
-                        parent_node = chain[-1]
-                elif elm.tag == MODULE_TAG and event == 'start':
-                    id = elm.attrib['document']
-                    version = elm.attrib[VERSION_ATTRIB_NAME]
-                    current_node = document_factory(id, version)
+                else:
+                    current_node.metadata['title'] = title
+            elif elm.tag == SUBCOLLECTION_TAG:
+                if event == 'start':
+                    current_node = TranslucentBinder()
                     parent_node.append(current_node)
+                    parent_node = current_node
+                    chain.append(parent_node)
+                else:
+                    chain.pop()
+                    parent_node = chain[-1]
+            elif elm.tag == MODULE_TAG and event == 'start':
+                id = elm.attrib['document']
+                version = elm.attrib[VERSION_ATTRIB_NAME]
+                current_node = document_factory(id, version)
+                parent_node.append(current_node)
+
+        def recurse(node):
+            handler('start', node)
+            for child in node:
+                recurse(child)
+            handler('end', node)
+
+        recurse(xml.getroot())
+
         return binder
 
     @staticmethod
