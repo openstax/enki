@@ -13,3 +13,6 @@
 [submodule "recipes"]
 	path = recipes
 	url = https://github.com/openstax/recipes
+[submodule "output-producer-service"]
+	path = output-producer-service
+	url = https://github.com/openstax/output-producer-service
