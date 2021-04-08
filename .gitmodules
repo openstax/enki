@@ -1,0 +1,15 @@
+[submodule "mathify"]
+	path = mathify
+	url = https://github.com/openstax/mathify
+[submodule "princexml"]
+	path = princexml
+	url = https://github.com/openstax/princexml
+[submodule "nebuchadnezzar"]
+	path = nebuchadnezzar
+	url = https://github.com/openstax/nebuchadnezzar
+[submodule "cnx-easybake"]
+	path = cnx-easybake
+	url = https://github.com/openstax/cnx-easybake
+[submodule "recipes"]
+	path = recipes
+	url = https://github.com/openstax/recipes
