@@ -4,7 +4,11 @@
 
 set -e
 
-declare -x PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/
+ https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+if [[ $(tput colors) -ge 8 ]]; then
+  declare -x c_red=$(tput setaf 1)
+  declare -x c_none=$(tput sgr0) # Keep this last so TRACE=true does not cause everything to be cyan
+fi
 
 say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
@@ -71,7 +75,7 @@ case $step_name in
     pdf)
         try prince -v --output="${assembled_dir}/collection.pdf" "${assembled_dir}/collection.mathified.xhtml"
     ;;
-    shell)
+    shell | /bin/bash)
         bash
     ;;
     *) # All other arguments are an error

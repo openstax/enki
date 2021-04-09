@@ -11,10 +11,16 @@ RUN set -x \
     && apt-get install --no-install-recommends -y \
     # ... for princexml:
     gdebi fonts-stix libcurl4 \
+    # ... for bakery-scripts
+    build-essential libicu-dev pkg-config libmagic1 \
+    mime-support wget curl xsltproc lsb-release git \
+    imagemagick icc-profiles-free curl unzip \
     # ... for neb:
     python3 python3-pip build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
-    libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
+    libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
+    libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
+    libxcb-dri3-0 libdrm2 libgbm1 \
     # ... for cnx-easybake:
     build-essential libicu-dev pkg-config python3-dev
 
@@ -36,21 +42,6 @@ RUN apt-get autoremove -y \
 
 
 # ---------------------------
-# Install node
-# ---------------------------
-
-
-# Source: https://github.com/gitpod-io/workspace-images/blob/master/full/Dockerfile#L139
-ENV NODE_VERSION=14.16.1
-RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | PROFILE=/dev/null bash \
-    && bash -c ". $HOME/.nvm/nvm.sh \
-        && nvm install $NODE_VERSION \
-        && nvm alias default $NODE_VERSION \
-        && npm install -g typescript yarn node-gyp"
-    # && echo ". ~/.nvm/nvm-lazy.sh"  >> /home/gitpod/.bashrc.d/50-node
-
-
-# ---------------------------
 # Install ruby
 # ---------------------------
 
@@ -69,13 +60,68 @@ RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
 
 
 # ---------------------------
+# Install node
+# ---------------------------
+
+# Source: https://github.com/gitpod-io/workspace-images/blob/master/full/Dockerfile#L139
+ENV NODE_VERSION=14.16.1
+RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | PROFILE=/dev/null bash \
+    && bash -c ". $HOME/.nvm/nvm.sh \
+        && nvm install $NODE_VERSION \
+        && nvm alias default $NODE_VERSION \
+        && npm install -g typescript yarn node-gyp"
+    # && echo ". ~/.nvm/nvm-lazy.sh"  >> /home/gitpod/.bashrc.d/50-node
+
+ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
+
+
+# -----------------------
+# Install bakery-scripts
+# -----------------------
+
+ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
+
+COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /bakery-scripts/scripts/
+WORKDIR /bakery-scripts/
+
+RUN pip3 install -r scripts/requirements.txt
+
+ENV JQ_VERSION='1.6'
+ENV PANDOC_VERSION='2.11.3.2'
+
+RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key && \
+    wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc && \
+    wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 && \
+    gpg --import /tmp/jq-release.key && \
+    gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 && \
+    cp /tmp/jq-linux64 /usr/bin/jq && \
+    chmod +x /usr/bin/jq && \
+    rm -f /tmp/jq-release.key && \
+    rm -f /tmp/jq-linux64.asc && \
+    rm -f /tmp/jq-linux64
+
+RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb && \
+    dpkg -i /tmp/pandoc.deb && \
+    rm -f /tmp/pandoc.deb
+
+RUN npm install pm2@4.5.0 -g
+
+COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
+COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
+
+RUN pip3 install /bakery-scripts/scripts/.
+RUN npm --prefix /bakery-scripts/scripts install /bakery-scripts/scripts
+
+
+# ---------------------------
 # Install mathify
 # ---------------------------
 
 COPY ./mathify/package.json ./mathify/package-lock.json /mathify/
 WORKDIR /mathify/
-# RUN . $HOME/.nvm/nvm.sh && npm ci
-RUN PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/ npm ci
+RUN npm ci
+COPY ./mathify/typeset /mathify/typeset
+
 
 # ---------------------------
 # Install neb
@@ -123,63 +169,12 @@ RUN bash -lc " \
     ./scripts/install_used_gem_versions"
 
 
-
-
-# -----------------------
-# Install bakery-scripts
-# -----------------------
-
-RUN apt-get update && apt-get install -y build-essential libicu-dev pkg-config libmagic1 \
-    mime-support wget curl xsltproc lsb-release git \
-    imagemagick icc-profiles-free curl unzip
-
-COPY ./output-producer-service/bakery/src/scripts/requirements.txt /bakery-scripts/scripts/
-WORKDIR /bakery-scripts/
-
-RUN pip install -r scripts/requirements.txt
-
-ENV JQ_VERSION='1.6'
-ENV PANDOC_VERSION='2.11.3.2'
-
-RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key && \
-    wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc && \
-    wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 && \
-    gpg --import /tmp/jq-release.key && \
-    gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 && \
-    cp /tmp/jq-linux64 /usr/bin/jq && \
-    chmod +x /usr/bin/jq && \
-    rm -f /tmp/jq-release.key && \
-    rm -f /tmp/jq-linux64.asc && \
-    rm -f /tmp/jq-linux64
-
-RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb && \
-    dpkg -i /tmp/pandoc.deb && \
-    rm -f /tmp/pandoc.deb
-
-RUN PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/ npm install pm2@4.5.0 -g
-
-COPY ./output-producer-service/bakery/src/scripts/*.py ./output-producer-service/bakery/src/scripts/*.js ./output-producer-service/bakery/src/scripts/*.json /bakery-scripts/scripts/
-COPY ./output-producer-service/bakery/src/scripts/gdoc/ /bakery-scripts/gdoc/
-
-RUN pip install /bakery-scripts/scripts/.
-RUN PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/ npm --prefix /bakery-scripts/scripts install /bakery-scripts/scripts
-
-
 # ---------------------------
 # Install cnx-recipes styles
 # ---------------------------
 
 COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
-
-
-
-# ---------------------------
-# Install mathify src files
-# ---------------------------
-RUN apt-get install -y libxcb-dri3-0 libdrm2 libgbm1
-COPY ./mathify/typeset /mathify/typeset
-
 
 
 # ---------------------------
