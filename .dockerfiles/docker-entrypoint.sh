@@ -22,8 +22,8 @@ step_name=$1
 case $step_name in
     fetch)
         collection_id=$2
-        book_server=cnx.org
         book_version=latest
+        book_server=cnx.org
         book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
 
         # Validate commandline arguments
@@ -34,8 +34,27 @@ case $step_name in
         try wget "${book_slugs_url}" -O "${fetched_dir}/approved-book-list.json"
     ;;
     assemble)
-
+        # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/assemble-book.js
         try neb assemble "${fetched_dir}" "${assembled_dir}"
+    ;;
+    link-extras)
+        book_server=archive.cnx.org
+        # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/link-extras.js#L40
+        try python3 /bakery-scripts/scripts/link_extras.py "${assembled_dir}" "${book_server}" /bakery-scripts/scripts/canonical-book-list.json
+    ;;
+    bake)
+        recipe_name=$2
+
+        # Validate commandline arguments
+        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+
+        try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${assembled_dir}/collection.linked.xhtml" -o "${assembled_dir}/collection.baked.xhtml"
+    ;;
+    mathify)
+        die "Not implemented yet!"
+    ;;
+    shell)
+        bash
     ;;
     *) # All other arguments are an error
         die "Invalid command. The first argument needs to be a command like 'fetch'"

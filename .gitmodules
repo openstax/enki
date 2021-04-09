@@ -16,3 +16,6 @@
 [submodule "output-producer-service"]
 	path = output-producer-service
 	url = https://github.com/openstax/output-producer-service
+[submodule "cnx-recipes"]
+	path = cnx-recipes
+	url = https://github.com/openstax/cnx-recipes
