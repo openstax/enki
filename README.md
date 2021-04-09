@@ -1,27 +1,26 @@
 # Instructions
 
+This uses a little wrapper to hide all the docker commands
+
 ```sh
-# Create the image by building all the repos
-docker build -t my_image .
+./cli.sh physics   fetch col12006
+./cli.sh sociology fetch col11407
 
-# Fetch a book and put it in the ./data/physics/ directory
-COL_ID=col12006 BOOK=physics   docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image fetch ${COL_ID}
-COL_ID=col11407 BOOK=sociology docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image fetch ${COL_ID}
-
-# Assemble a book
-BOOK=physics   docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image assemble
-BOOK=sociology docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image assemble
-
-# Link Extras
-BOOK=physics   docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image link-extras
-BOOK=sociology docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image link-extras
-
-# Bake a book
-RECIPE=college-physics BOOK=physics   docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image bake ${RECIPE}
-RECIPE=sociology       BOOK=sociology docker run -it -v $(pwd)/data/${BOOK}/:/data/ --rm my_image bake ${RECIPE}
-
-# Mathify a book
-
-
-# PDF a book
+./cli.sh physics assemble
+./cli.sh physics link-extras
+./cli.sh physics bake college-physics # The recipe name
+./cli.sh physics mathify
+./cli.sh physics pdf
 ```
+
+In general, the format is:
+
+```sh
+TEMP_NAME=physics
+# COL_ID=col12006
+# RECIPE=college-physics
+
+docker run -it -v $(pwd)/data/${TEMP_NAME}/:/data/ --rm my_image ${command} ${command_specific_args}
+```
+
+And with the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.

@@ -76,8 +76,6 @@ COPY ./mathify/package.json ./mathify/package-lock.json /mathify/
 WORKDIR /mathify/
 # RUN . $HOME/.nvm/nvm.sh && npm ci
 RUN PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/ npm ci
-# # COPY ./.dockerfiles/docker-entrypoint.sh /usr/local/bin/
-
 
 # ---------------------------
 # Install neb
@@ -173,6 +171,14 @@ RUN PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/ npm --prefix /bakery-scrip
 
 COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
+
+
+
+# ---------------------------
+# Install mathify src files
+# ---------------------------
+RUN apt-get install -y libxcb-dri3-0 libdrm2 libgbm1
+COPY ./mathify/typeset /mathify/typeset
 
 
 

@@ -4,6 +4,8 @@
 
 set -e
 
+declare -x PATH=$PATH:$HOME/.nvm/versions/node/v14.16.1/bin/
+
 say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
 yell() { >&2 say "$0: ${c_red}$*${c_none}"; }
@@ -49,9 +51,25 @@ case $step_name in
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
         try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${assembled_dir}/collection.linked.xhtml" -o "${assembled_dir}/collection.baked.xhtml"
+
+        style_file="/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+
+        [[ -f "${style_file}" ]] || yell "Warning: Could not find style file for recipe name '${recipe_name}'"
+
+        if [ -f "${style_file}" ]
+        then
+            cp "${style_file}" "${assembled_dir}"
+            sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${assembled_dir}/collection.baked.xhtml"
+        fi
     ;;
     mathify)
-        die "Not implemented yet!"
+        # Remove the mathified file if it already exists ecause the code assumes the file does not exist
+        [[ -f "${assembled_dir}/collection.mathified.xhtml" ]] && rm "${assembled_dir}/collection.mathified.xhtml"
+
+        try node /mathify/typeset/start.js -i "${assembled_dir}/collection.baked.xhtml" -o "${assembled_dir}/collection.mathified.xhtml" -f svg 
+    ;;
+    pdf)
+        try prince -v --output="${assembled_dir}/collection.pdf" "${assembled_dir}/collection.mathified.xhtml"
     ;;
     shell)
         bash
