@@ -4,7 +4,7 @@
 
 set -e
 
- https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+# https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
   declare -x c_red=$(tput setaf 1)
   declare -x c_none=$(tput sgr0) # Keep this last so TRACE=true does not cause everything to be cyan
