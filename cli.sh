@@ -51,7 +51,7 @@ local_dir=$(pwd)/data/${book_name}/
 docker build -t ${image_name} .
 docker run -it -v ${local_dir}:/data/ --rm ${image_name} "${@:2}" # Args after the 1st one
 
-if [[ $2 == 'pdf' ]]
+if [[ $2 == *pdf ]]
 then
     >&2 echo "The PDF is available at ${local_dir}/assembled/collection.pdf"
 fi

@@ -3,26 +3,29 @@
 This uses a little wrapper to hide all the docker commands
 
 ```sh
-./cli.sh physics   fetch col12006
-./cli.sh sociology fetch col11407
+# All-in-one
+#
+#  CLI   anything  command col_id   recipe_name 
+./cli.sh fizix     all-pdf col12006 college-physics
 
 # Common steps
-./cli.sh physics assemble
-./cli.sh physics link-extras
-./cli.sh physics bake college-physics # The recipe name
+./cli.sh fizix fetch col12006
+./cli.sh fizix assemble
+./cli.sh fizix link-extras
+./cli.sh fizix bake college-physics # The recipe name
 
 # PDF steps
-./cli.sh physics mathify
-./cli.sh physics pdf
+./cli.sh fizix mathify
+./cli.sh fizix pdf
 
 # Webhosting steps
-./cli.sh physics assemble-metadata
-./cli.sh physics bake-metadata
-./cli.sh physics checksum
-./cli.sh physics disassemble
-./cli.sh physics patch-disassembled-links
-./cli.sh physics jsonify
-./cli.sh physics validate-xhtml
+./cli.sh fizix assemble-metadata
+./cli.sh fizix bake-metadata
+./cli.sh fizix checksum
+./cli.sh fizix disassemble
+./cli.sh fizix patch-disassembled-links
+./cli.sh fizix jsonify
+./cli.sh fizix validate-xhtml
 ```
 
 In general, the format is:
