@@ -187,5 +187,5 @@ RUN mv /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
 # ---------------------------
 # Add the entrypoint
 # ---------------------------
-COPY ./.dockerfiles/docker-entrypoint.sh /usr/local/bin/
+COPY ./docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
