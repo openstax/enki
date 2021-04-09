@@ -32,7 +32,7 @@ RUN set -x \
 ENV PRINCE_VERSION=12.5.1-1
 ENV PRINCE_UBUNTU_BUILD=20.04
 
-ADD https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb /tmp/
+RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
 
 RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
 
@@ -172,9 +172,16 @@ RUN bash -lc " \
 # ---------------------------
 # Install cnx-recipes styles
 # ---------------------------
-
 COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
+
+# ---------------------------
+# Install xhtml-validator jar
+# ---------------------------
+COPY ./xhtml-validator/ /xhtml-validator/
+WORKDIR /xhtml-validator
+RUN ./gradlew jar
+RUN mv /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
 
 
 # ---------------------------

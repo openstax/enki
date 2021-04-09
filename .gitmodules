@@ -19,3 +19,6 @@
 [submodule "cnx-recipes"]
 	path = cnx-recipes
 	url = https://github.com/openstax/cnx-recipes
+[submodule "xhtml-validator"]
+	path = xhtml-validator
+	url = https://github.com/openstax/xhtml-validator
