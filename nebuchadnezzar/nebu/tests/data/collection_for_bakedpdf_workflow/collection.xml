@@ -38,6 +38,40 @@
     <md:subjectlist>
       <md:subject>Mathematics and Statistics</md:subject>
     </md:subjectlist>
+    <!-- Let's go ahead and pretend this derives from an econ book. Spoopy! -->
+    <md:derived-from url="https://legacy.cnx.org/content/col11613/1.2">
+      <!-- WARNING! The 'metadata' section is read only. Do not edit below. Changes to the metadata section in the source will not be saved. -->
+      <md:repository>https://legacy.cnx.org/content</md:repository>
+      <md:content-url>https://legacy.cnx.org/content/col11613/1.2</md:content-url>
+      <md:content-id>col11613</md:content-id>
+      <md:title>Principles of Economics</md:title>
+      <md:version>1.2</md:version>
+      <md:created>2014-01-02T16:13:54-06:00</md:created>
+      <md:revised>2014-02-12T15:06:58.908179-06:00</md:revised>
+      <md:language>en</md:language>
+      <md:license url="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution License</md:license>
+      <!-- For information on license requirements for use or modification, see license url in the above <md:license> element.
+          For information on formatting required attribution, see the URL:
+            CONTENT_URL/content_info#cnx_cite_header
+          where CONTENT_URL is the value provided above in the <md:content-url> element.
+      -->
+      <md:actors>
+        <md:person userid="cnxecon">
+          <md:firstname>OpenStax</md:firstname>
+          <md:surname>Economics</md:surname>
+          <md:fullname>OpenStax College</md:fullname>
+          <md:email>info@openstaxcollege.org</md:email>
+        </md:person>
+      </md:actors>
+      <md:roles>
+        <md:role type="author">cnxecon</md:role>
+        <md:role type="maintainer">cnxecon</md:role>
+        <md:role type="licensor">cnxecon</md:role>
+      </md:roles>
+      <md:subjectlist>
+        <md:subject>Mathematics and Statistics</md:subject>
+      </md:subjectlist>
+    </md:derived-from>
   </metadata>
   <col:parameters>
     <col:param name="print-style" value="statistics"/>

@@ -32,6 +32,7 @@ COLLXML_TOPIC_TAGS = (
 VERSION_ATTRIB_NAME = (
     '{http://cnx.rice.edu/system-info}version-at-this-collection-version'
 )
+DERIVED_FROM_TAG = '{http://cnx.rice.edu/mdml}derived-from'
 DOC_TYPES = (Document, DocumentPointer,)
 
 
@@ -78,8 +79,17 @@ class Binder(BaseBinder):
         parent_node = current_node = binder
         chain = [binder]
 
+        ignoring = False
+
         def handler(event, elm):
-            nonlocal parent_node, current_node
+            nonlocal parent_node, current_node, ignoring
+            if elm.tag == DERIVED_FROM_TAG:
+                if event == 'start':
+                    ignoring = True
+                elif event == 'end':
+                    ignoring = False
+            if ignoring:
+                return
             if elm.tag == TITLE_TAG and event == 'start':
                 title = elm.text
                 if isinstance(current_node, DOC_TYPES):

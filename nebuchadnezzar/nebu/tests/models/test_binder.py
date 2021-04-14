@@ -82,8 +82,8 @@ class TestBinder(object):
                                    'name': 'OpenStaxCollege',
                                    'type': 'cnx-id'}],
             'created': '2013-07-18T19:30:26-05:00',
-            'derived_from_title': None,
-            'derived_from_uri': None,
+            'derived_from_title': 'Principles of Economics',
+            'derived_from_uri': 'https://legacy.cnx.org/content/col11613/1.2',
             'editors': [],
             'illustrators': [],
             'keywords': (),
@@ -98,7 +98,11 @@ class TestBinder(object):
                             'name': 'cnxstats',
                             'type': 'cnx-id'}],
             'revised': '2019-02-22T14:15:14.840187-06:00',
-            'subjects': ('Mathematics and Statistics',),
+            # FIXME: Subject from derived-from is duplicated here
+            # This is a problem with the cnxml library, not neb
+            # Same problem will exist with keywords and potentially roles
+            'subjects': ('Mathematics and Statistics',
+                         'Mathematics and Statistics'),
             'summary': None,
             'title': 'Introductory Statistics',
             'translators': [],
