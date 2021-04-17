@@ -1,4 +1,4 @@
-FROM buildpack-deps:focal
+FROM buildpack-deps:focal as base
 
 
 # ---------------------------
@@ -16,7 +16,7 @@ RUN set -x \
     mime-support wget curl xsltproc lsb-release git \
     imagemagick icc-profiles-free curl unzip \
     # ... for neb:
-    python3 python3-pip build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
+    python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
     libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
     libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
@@ -36,6 +36,28 @@ RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PR
 
 RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
 
+# ---------------------------
+# Install jq and Pandoc
+# ---------------------------
+ENV JQ_VERSION='1.6'
+ENV PANDOC_VERSION='2.11.3.2'
+
+RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key && \
+    wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc && \
+    wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 && \
+    gpg --import /tmp/jq-release.key && \
+    gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 && \
+    cp /tmp/jq-linux64 /usr/bin/jq && \
+    chmod +x /usr/bin/jq && \
+    rm -f /tmp/jq-release.key && \
+    rm -f /tmp/jq-linux64.asc && \
+    rm -f /tmp/jq-linux64
+
+RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb && \
+    dpkg -i /tmp/pandoc.deb && \
+    rm -f /tmp/pandoc.deb
+
+
 # Remove unnecessary apt and temp files
 RUN apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -45,16 +67,17 @@ RUN apt-get autoremove -y \
 # Install ruby
 # ---------------------------
 
+ENV RUBY_VERSION=2.6.6
+
 RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
     && curl -fsSL https://rvm.io/pkuczynski.asc | gpg --import - \
     && curl -fsSL https://get.rvm.io | bash -s stable \
     && bash -lc " \
         rvm requirements \
-        && rvm install 2.6.6 \
-        && rvm use 2.6.6 --default \
+        && rvm install ${RUBY_VERSION} \
+        && rvm use ${RUBY_VERSION} --default \
         && rvm rubygems current \
-        && gem install bundler --no-document \
-        && gem install solargraph --no-document" # \
+        && gem install bundler --no-document" # \
     # && echo '[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*' >> /home/gitpod/.bashrc.d/70-ruby
 RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
 
@@ -76,80 +99,98 @@ ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 
 
 # -----------------------
+# Create Virtualenv
+# -----------------------
+
+RUN python3 -m venv /opt/venv && \
+  . /opt/venv/bin/activate && \
+  pip3 install --no-cache-dir -U 'pip<20'
+
+
+# -----------------------
 # Install bakery-scripts
 # -----------------------
+
+FROM base as build-bakery-scripts-stage
 
 ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
 
 COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /bakery-scripts/scripts/
 WORKDIR /bakery-scripts/
 
-RUN pip3 install -r scripts/requirements.txt
-
-ENV JQ_VERSION='1.6'
-ENV PANDOC_VERSION='2.11.3.2'
-
-RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key && \
-    wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc && \
-    wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 && \
-    gpg --import /tmp/jq-release.key && \
-    gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 && \
-    cp /tmp/jq-linux64 /usr/bin/jq && \
-    chmod +x /usr/bin/jq && \
-    rm -f /tmp/jq-release.key && \
-    rm -f /tmp/jq-linux64.asc && \
-    rm -f /tmp/jq-linux64
-
-RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb && \
-    dpkg -i /tmp/pandoc.deb && \
-    rm -f /tmp/pandoc.deb
-
-RUN npm install pm2@4.5.0 -g
+RUN . /opt/venv/bin/activate && pip3 install -r scripts/requirements.txt
 
 COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
 COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
 
 RUN pip3 install /bakery-scripts/scripts/.
-RUN npm --prefix /bakery-scripts/scripts install /bakery-scripts/scripts
+RUN npm --prefix /bakery-scripts/scripts install --production /bakery-scripts/scripts
+
+# TODO: Move this into bakery-scripts/scripts/package.json
+RUN npm install pm2@4.5.0
+
 
 
 # ---------------------------
 # Install mathify
 # ---------------------------
 
+FROM base as build-mathify-stage
+
 COPY ./mathify/package.json ./mathify/package-lock.json /mathify/
 WORKDIR /mathify/
 RUN npm ci
 COPY ./mathify/typeset /mathify/typeset
 
-
 # ---------------------------
 # Install neb
 # ---------------------------
 
-COPY ./nebuchadnezzar/ /nebuchadnezzar/
+FROM base as build-neb-stage
+
+COPY ./nebuchadnezzar/requirements /nebuchadnezzar/requirements
 WORKDIR /nebuchadnezzar/
 # Install Python Dependencies
 RUN set -x \
-    && pip3 install -U pip setuptools wheel \
-    && pip3 install -r ./requirements/lint.txt \
-                   -r ./requirements/test.txt \
-                   -r ./requirements/main.txt
+    && . /opt/venv/bin/activate \
+    && pip3 install -U setuptools wheel \
+    && pip3 install -r ./requirements/main.txt
+
+COPY ./nebuchadnezzar/ /nebuchadnezzar/
 
 # Install neb
-RUN pip3 install -e .
+RUN . /opt/venv/bin/activate \
+    && pip3 install .
 
 
 # ---------------------------
 # Install cnx-easybake
 # ---------------------------
+FROM base AS build-easybake-stage
+
+COPY ./cnx-easybake/requirements/main.txt /cnx-easybake/requirements/
+WORKDIR /cnx-easybake/
+RUN . /opt/venv/bin/activate && python3 -m pip install -r requirements/main.txt
 
 COPY ./cnx-easybake/ /cnx-easybake/
-WORKDIR /cnx-easybake/
-RUN python3 -m pip install -r requirements/main.txt -r requirements/test.txt
+RUN . /opt/venv/bin/activate && python3 -m pip install "."
 
-# # COPY ./ /src/
-RUN python3 -m pip install -e "."
+
+# ---------------------------
+# Install xhtml-validator jar
+# ---------------------------
+FROM base AS build-xhtml-validator-stage
+COPY ./xhtml-validator/ /xhtml-validator/
+WORKDIR /xhtml-validator
+
+RUN ./gradlew jar
+# FROM validator/validator:20.3.16
+
+
+# ===========================
+# The Final Stage
+# ===========================
+FROM base as runner
 
 
 # ---------------------------
@@ -170,22 +211,21 @@ RUN bash -lc " \
 
 
 # ---------------------------
-# Install cnx-recipes styles
+# Copy the stages over
 # ---------------------------
+COPY --from=build-xhtml-validator-stage /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
+COPY --from=build-easybake-stage /opt/venv/ /opt/venv/
+COPY --from=build-mathify-stage /mathify/ /mathify/
+COPY --from=build-mathify-stage /opt/venv/ /opt/venv/
+COPY --from=build-bakery-scripts-stage /opt/venv/ /opt/venv/
+COPY --from=build-bakery-scripts-stage /bakery-scripts/scripts /bakery-scripts/scripts
+COPY --from=build-neb-stage /opt/venv/ /opt/venv/
+
+# Copy cnx-recipes styles
 COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
 
-# ---------------------------
-# Install xhtml-validator jar
-# ---------------------------
-COPY ./xhtml-validator/ /xhtml-validator/
-WORKDIR /xhtml-validator
-RUN ./gradlew jar
-RUN mv /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
-
-
-# ---------------------------
-# Add the entrypoint
-# ---------------------------
 COPY ./docker-entrypoint.sh /usr/local/bin/
+
+
 ENTRYPOINT ["docker-entrypoint.sh"]

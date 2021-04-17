@@ -7,6 +7,7 @@ This uses a little wrapper to hide all the docker commands
 #
 #  CLI   anything  command col_id   recipe_name 
 ./cli.sh fizix     all-pdf col12006 college-physics
+./cli.sh socio     all-pdf col11407 sociology
 
 # Common steps
 ./cli.sh fizix fetch col12006

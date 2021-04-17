@@ -4,6 +4,9 @@
 
 set -e
 
+# Activate the python virtualenv
+source /opt/venv/bin/activate
+
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
   declare -x c_red=$(tput setaf 1)
@@ -145,6 +148,13 @@ function do_step() {
     esac
 }
 
+function do_step_named() {
+    step_name=$1
+    say "==> Starting ${step_name}"
+    do_step $@
+    say "==> Ending ${step_name}"
+}
+
 
 collection_id=$2
 recipe_name=$3
@@ -152,27 +162,27 @@ case $1 in
     all-pdf)
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
-        do_step fetch ${collection_id}
-        do_step assemble
-        do_step link-extras
-        do_step bake ${recipe_name}
-        do_step mathify
-        do_step pdf
+        do_step_named fetch ${collection_id}
+        do_step_named assemble
+        do_step_named link-extras
+        do_step_named bake ${recipe_name}
+        do_step_named mathify
+        do_step_named pdf
     ;;
     all-web)
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
-        do_step fetch ${collection_id}
-        do_step assemble
-        do_step assemble-metadata
-        do_step link-extras
-        do_step bake ${recipe_name}
-        do_step bake-metadata
-        do_step checksum
-        do_step disassemble
-        do_step patch-disassembled-links
-        do_step jsonify
-        do_step validate-xhtml
+        do_step_named fetch ${collection_id}
+        do_step_named assemble
+        do_step_named assemble-metadata
+        do_step_named link-extras
+        do_step_named bake ${recipe_name}
+        do_step_named bake-metadata
+        do_step_named checksum
+        do_step_named disassemble
+        do_step_named patch-disassembled-links
+        do_step_named jsonify
+        do_step_named validate-xhtml
     ;;
     *) # Assume the user is only running one step
         do_step $@
