@@ -2,7 +2,9 @@ FROM buildpack-deps:focal as base
 
 
 # ---------------------------
-# Install OS dependencies
+# Install OS packages
+# necessary to build the
+# other stages.
 # ---------------------------
 
 RUN set -x \
@@ -123,7 +125,7 @@ RUN . /opt/venv/bin/activate && pip3 install -r scripts/requirements.txt
 COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
 COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
 
-RUN pip3 install /bakery-scripts/scripts/.
+RUN . /opt/venv/bin/activate && pip3 install /bakery-scripts/scripts/.
 RUN npm --prefix /bakery-scripts/scripts install --production /bakery-scripts/scripts
 
 # TODO: Move this into bakery-scripts/scripts/package.json
@@ -191,6 +193,18 @@ RUN ./gradlew jar
 # The Final Stage
 # ===========================
 FROM base as runner
+
+# ---------------------------
+# Install dependencies that
+# are not needed to prepare
+# the other steps.
+# ---------------------------
+RUN set -x \
+    ### Git ###
+    add-apt-repository -y ppa:git-core/ppa \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+        git
 
 
 # ---------------------------

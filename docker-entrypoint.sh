@@ -138,6 +138,109 @@ function do_step() {
             done
         ;;
 
+
+        git-fetch)
+            # Environment variables:
+            # - COMMON_LOG_DIR
+            # - GH_SECRET_CREDS
+            # - CONTENT_OUTPUT
+            # - BOOK_INPUT (deleteme)
+            # - UNUSED_RESOURCE_OUTPUT
+            # - book_dir
+            #
+            # Arguments:
+            # 1. repo_name
+            # 2. git_ref
+            # 3. slug_name
+
+            [[ ${COMMON_LOG_DIR} != '' ]] && exec > >(tee "${COMMON_LOG_DIR}"/log >&2) 2>&1
+
+            repo_name=$2
+            git_ref=$3
+            slug_name=$4
+
+            [[ "${git_ref}" == latest ]] && git_ref=main
+            [[ "${repo_name}" == */* ]] || repo_name="openstax/${repo_name}"
+
+
+            # Do not show creds
+            set +x
+            if [[ ${GH_SECRET_CREDS} != '' ]]; then
+                creds_dir=tmp-gh-creds
+                creds_file="$creds_dir/gh-creds"
+                git config --global credential.helper "store --file=$creds_file"
+                mkdir "$creds_dir"
+                set +x
+                # Do not show creds
+                echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+            fi
+            set -x
+            remote_url="https://github.com/${repo_name}.git"
+
+            # If git_ref starts with '@' then it is a commit and check out the individual commit
+            # Or, https://stackoverflow.com/a/7662531
+            [[ ${git_ref} =~ ^[a-f0-9]{40}$ ]] && git_ref="@${git_ref}"
+
+            if [[ ${git_ref} = @* ]]; then
+                git_commit="${git_ref:1}"
+                GIT_TERMINAL_PROMPT=0 git clone --depth 50 "${remote_url}" "${fetched_dir}"
+                git reset --hard "${git_commit}"
+                # If the commit was not recent, try cloning the whole repo
+                if [[ $? != 0 ]]; then
+                    GIT_TERMINAL_PROMPT=0 git clone "${remote_url}" "${fetched_dir}"
+                    git reset --hard "${git_commit}"
+                fi
+            else
+                GIT_TERMINAL_PROMPT=0 git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${fetched_dir}"
+            fi
+
+            if [[ ! -f "${fetched_dir}/collections/${slug_name}.collection.xml" ]]; then
+                echo "No matching book for slug in this repo"
+                exit 1
+            fi
+        ;;
+
+        git-fetch-meta)
+            fetch-update-meta "${fetched_dir}/.git" "${fetched_dir}/modules" "${fetched_dir}/collections" "${git_ref}" "${fetched_dir}/canonical.json"
+            rm -rf "${fetched_dir}/.git"
+            rm -rf "$creds_dir"
+
+            fetch-map-resources "${fetched_dir}/modules" "${fetched_dir}/media" . "${fetched_dir}/unused-resources"
+            # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
+            rm -d "${fetched_dir}/media"
+        ;;
+
+        git-assemble)
+
+        ;;
+
+        git-assemble-meta)
+        ;;
+
+        git-bake)
+        ;;
+
+        git-bake-meta)
+        ;;
+
+        git-link)
+        ;;
+
+        git--meta)
+        ;;
+
+        git-disassemble)
+        ;;
+
+        git-patch-disassembled-links)
+        ;;
+
+        git-jsonify)
+        ;;
+
+        git-validate-xhtml)
+        ;;
+
         shell | /bin/bash)
             bash
         ;;
@@ -156,12 +259,13 @@ function do_step_named() {
 }
 
 
-collection_id=$2
-recipe_name=$3
 case $1 in
     all-pdf)
+        collection_id=$2
+        recipe_name=$3
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+        
         do_step_named fetch ${collection_id}
         do_step_named assemble
         do_step_named link-extras
@@ -170,9 +274,13 @@ case $1 in
         do_step_named pdf
     ;;
     all-web)
+        collection_id=$2
+        recipe_name=$3
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+
         do_step_named fetch ${collection_id}
+        do_step_named fetch-meta
         do_step_named assemble
         do_step_named assemble-metadata
         do_step_named link-extras
@@ -183,6 +291,27 @@ case $1 in
         do_step_named patch-disassembled-links
         do_step_named jsonify
         do_step_named validate-xhtml
+    ;;
+    all-git-web)
+        repo_name=$2
+        git_ref=$3
+        slug_name=$4
+        [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
+        [[ ${git_ref} ]] || die "A git ref (branch/tag/@commit) is missing. It is necessary for baking a book."
+        [[ ${slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+
+        do_step_named git-fetch ${repo_name} ${git_ref} ${slug_name}
+        do_step_named git-fetch-meta
+        # do_step_named git-assemble
+        # do_step_named git-assemble-meta
+        # do_step_named git-bake
+        # do_step_named git-bake-meta
+        # do_step_named git-link
+        # do_step_named git--meta
+        # do_step_named git-disassemble
+        # do_step_named git-patch-disassembled-links
+        # do_step_named git-jsonify
+        # do_step_named git-validate-xhtml
     ;;
     *) # Assume the user is only running one step
         do_step $@
