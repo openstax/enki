@@ -109,30 +109,6 @@ RUN python3 -m venv /opt/venv && \
   pip3 install --no-cache-dir -U 'pip<20'
 
 
-# -----------------------
-# Install bakery-scripts
-# -----------------------
-
-FROM base as build-bakery-scripts-stage
-
-ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
-
-COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /bakery-scripts/scripts/
-WORKDIR /bakery-scripts/
-
-RUN . /opt/venv/bin/activate && pip3 install -r scripts/requirements.txt
-
-COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
-COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
-
-RUN . /opt/venv/bin/activate && pip3 install /bakery-scripts/scripts/.
-RUN npm --prefix /bakery-scripts/scripts install --production /bakery-scripts/scripts
-
-# TODO: Move this into bakery-scripts/scripts/package.json
-RUN npm install pm2@4.5.0
-
-
-
 # ---------------------------
 # Install mathify
 # ---------------------------
@@ -144,11 +120,29 @@ WORKDIR /mathify/
 RUN npm ci
 COPY ./mathify/typeset /mathify/typeset
 
+
+# ===========================
+# Install Python Packages
+# ===========================
+
+
+FROM base AS build-python-stage
+
+# ---------------------------
+# Install cnx-easybake
+# ---------------------------
+
+COPY ./cnx-easybake/requirements/main.txt /cnx-easybake/requirements/
+WORKDIR /cnx-easybake/
+RUN . /opt/venv/bin/activate && python3 -m pip install -r requirements/main.txt
+
+COPY ./cnx-easybake/ /cnx-easybake/
+RUN . /opt/venv/bin/activate && python3 -m pip install "."
+
+
 # ---------------------------
 # Install neb
 # ---------------------------
-
-FROM base as build-neb-stage
 
 COPY ./nebuchadnezzar/requirements /nebuchadnezzar/requirements
 WORKDIR /nebuchadnezzar/
@@ -165,17 +159,25 @@ RUN . /opt/venv/bin/activate \
     && pip3 install .
 
 
-# ---------------------------
-# Install cnx-easybake
-# ---------------------------
-FROM base AS build-easybake-stage
+# -----------------------
+# Install bakery-scripts
+# -----------------------
 
-COPY ./cnx-easybake/requirements/main.txt /cnx-easybake/requirements/
-WORKDIR /cnx-easybake/
-RUN . /opt/venv/bin/activate && python3 -m pip install -r requirements/main.txt
+ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
 
-COPY ./cnx-easybake/ /cnx-easybake/
-RUN . /opt/venv/bin/activate && python3 -m pip install "."
+COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /bakery-scripts/scripts/
+WORKDIR /bakery-scripts/
+
+RUN . /opt/venv/bin/activate && pip3 install -r scripts/requirements.txt
+
+COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
+COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
+
+RUN . /opt/venv/bin/activate && pip3 install /bakery-scripts/scripts/.
+RUN npm --prefix /bakery-scripts/scripts install --production /bakery-scripts/scripts
+
+# TODO: Move this into bakery-scripts/scripts/package.json
+RUN npm install pm2@4.5.0
 
 
 # ---------------------------
@@ -228,12 +230,9 @@ RUN bash -lc " \
 # Copy the stages over
 # ---------------------------
 COPY --from=build-xhtml-validator-stage /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
-COPY --from=build-easybake-stage /opt/venv/ /opt/venv/
 COPY --from=build-mathify-stage /mathify/ /mathify/
-COPY --from=build-mathify-stage /opt/venv/ /opt/venv/
-COPY --from=build-bakery-scripts-stage /opt/venv/ /opt/venv/
 COPY --from=build-bakery-scripts-stage /bakery-scripts/scripts /bakery-scripts/scripts
-COPY --from=build-neb-stage /opt/venv/ /opt/venv/
+COPY --from=build-python-stage /opt/venv/ /opt/venv/
 
 # Copy cnx-recipes styles
 COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/

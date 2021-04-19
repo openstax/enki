@@ -162,7 +162,8 @@ function do_step() {
             [[ "${git_ref}" == latest ]] && git_ref=main
             [[ "${repo_name}" == */* ]] || repo_name="openstax/${repo_name}"
 
-
+            remote_url="https://github.com/${repo_name}.git"
+            
             # Do not show creds
             set +x
             if [[ ${GH_SECRET_CREDS} != '' ]]; then
@@ -175,7 +176,7 @@ function do_step() {
                 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
             fi
             set -x
-            remote_url="https://github.com/${repo_name}.git"
+            
 
             # If git_ref starts with '@' then it is a commit and check out the individual commit
             # Or, https://stackoverflow.com/a/7662531
@@ -184,12 +185,16 @@ function do_step() {
             if [[ ${git_ref} = @* ]]; then
                 git_commit="${git_ref:1}"
                 GIT_TERMINAL_PROMPT=0 git clone --depth 50 "${remote_url}" "${fetched_dir}"
+                pushd "${fetched_dir}"
                 git reset --hard "${git_commit}"
                 # If the commit was not recent, try cloning the whole repo
                 if [[ $? != 0 ]]; then
+                    popd
                     GIT_TERMINAL_PROMPT=0 git clone "${remote_url}" "${fetched_dir}"
+                    pushd "${fetched_dir}"
                     git reset --hard "${git_commit}"
                 fi
+                popd
             else
                 GIT_TERMINAL_PROMPT=0 git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${fetched_dir}"
             fi
@@ -293,6 +298,7 @@ case $1 in
         do_step_named validate-xhtml
     ;;
     all-git-web)
+        set -x
         repo_name=$2
         git_ref=$3
         slug_name=$4

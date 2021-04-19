@@ -49,7 +49,7 @@ local_dir=$(pwd)/data/${book_name}/
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
 docker build -t ${image_name} .
-docker run -it -v ${local_dir}:/data/ --rm ${image_name} "${@:2}" # Args after the 1st one
+docker run -it -v ${local_dir}:/data/ -e GH_SECRET_CREDS--rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]
 then
