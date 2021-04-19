@@ -231,7 +231,7 @@ RUN bash -lc " \
 # ---------------------------
 COPY --from=build-xhtml-validator-stage /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
 COPY --from=build-mathify-stage /mathify/ /mathify/
-COPY --from=build-bakery-scripts-stage /bakery-scripts/scripts /bakery-scripts/scripts
+COPY --from=build-python-stage /bakery-scripts/scripts /bakery-scripts/scripts
 COPY --from=build-python-stage /opt/venv/ /opt/venv/
 
 # Copy cnx-recipes styles

@@ -78,7 +78,7 @@ function do_step() {
             if [ -f "${style_file}" ]
             then
                 cp "${style_file}" "${book_dir}"
-                sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${book_dir}/collection.baked.xhtml"
+                try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${book_dir}/collection.baked.xhtml"
             fi
         ;;
         mathify)
@@ -108,7 +108,7 @@ function do_step() {
                 jq --arg ident_hash "$book_ident_hash" --arg uuid "$book_uuid" --arg version "$book_version" --argjson license "$book_license" \
                 --arg legacy_id "$book_legacy_id" --arg legacy_version "$book_legacy_version" \
                 '. + {($ident_hash): {id: $uuid, version: $version, license: $license, legacy_id: $legacy_id, legacy_version: $legacy_version}}' > "/tmp/collection.baked-input-metadata.json"
-            bake-meta /tmp/collection.baked-input-metadata.json "$target_dir/collection.baked.xhtml" "$book_uuid" "$book_slugs_file" "$target_dir/collection.baked-metadata.json"
+            try bake-meta /tmp/collection.baked-input-metadata.json "$target_dir/collection.baked.xhtml" "$book_uuid" "$book_slugs_file" "$target_dir/collection.baked-metadata.json"
         ;;
         checksum)
             try checksum "$book_dir" "$book_dir"
@@ -134,7 +134,7 @@ function do_step() {
         validate-xhtml)
             for xhtmlfile in $(find $book_dir -name '*.xhtml')
             do
-                java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
         ;;
 
@@ -190,13 +190,13 @@ function do_step() {
                 # If the commit was not recent, try cloning the whole repo
                 if [[ $? != 0 ]]; then
                     popd
-                    GIT_TERMINAL_PROMPT=0 git clone "${remote_url}" "${fetched_dir}"
+                    GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${fetched_dir}"
                     pushd "${fetched_dir}"
                     git reset --hard "${git_commit}"
                 fi
                 popd
             else
-                GIT_TERMINAL_PROMPT=0 git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${fetched_dir}"
             fi
 
             if [[ ! -f "${fetched_dir}/collections/${slug_name}.collection.xml" ]]; then
@@ -206,17 +206,32 @@ function do_step() {
         ;;
 
         git-fetch-meta)
-            fetch-update-meta "${fetched_dir}/.git" "${fetched_dir}/modules" "${fetched_dir}/collections" "${git_ref}" "${fetched_dir}/canonical.json"
-            rm -rf "${fetched_dir}/.git"
-            rm -rf "$creds_dir"
+            try fetch-update-meta "${fetched_dir}/.git" "${fetched_dir}/modules" "${fetched_dir}/collections" "${git_ref}" "${fetched_dir}/canonical.json"
+            try rm -rf "${fetched_dir}/.git"
+            try rm -rf "$creds_dir"
 
-            fetch-map-resources "${fetched_dir}/modules" "${fetched_dir}/media" . "${fetched_dir}/unused-resources"
+            try fetch-map-resources "${fetched_dir}/modules" "${fetched_dir}/media" . "${fetched_dir}/unused-resources"
             # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-            rm -d "${fetched_dir}/media"
+            try rm -d "${fetched_dir}/media"
         ;;
 
         git-assemble)
+            shopt -s globstar nullglob
+            for collection in "${fetched_dir}/collections/"*; do
+                slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+                if [[ -n "${TARGET_BOOK}" ]]; then
+                    if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
+                        continue
+                    fi
+                fi
+                try mv "$collection" "${fetched_dir}/modules/collection.xml"
 
+                try neb assemble "${fetched_dir}/modules" temp-assembly/
+
+                try cp "temp-assembly/collection.assembled.xhtml" "${assembed_dir}/$slug_name.assembled.xhtml"
+                try rm -rf temp-assembly
+            done
+            shopt -u globstar nullglob
         ;;
 
         git-assemble-meta)
@@ -303,12 +318,12 @@ case $1 in
         git_ref=$3
         slug_name=$4
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
-        [[ ${git_ref} ]] || die "A git ref (branch/tag/@commit) is missing. It is necessary for baking a book."
+        [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
         [[ ${slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
 
         do_step_named git-fetch ${repo_name} ${git_ref} ${slug_name}
         do_step_named git-fetch-meta
-        # do_step_named git-assemble
+        do_step_named git-assemble
         # do_step_named git-assemble-meta
         # do_step_named git-bake
         # do_step_named git-bake-meta
