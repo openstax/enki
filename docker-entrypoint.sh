@@ -27,6 +27,31 @@ fetched_dir="${data_dir}/raw"
 book_dir="${data_dir}/assembled"
 
 
+
+
+git_resources_dir="${data_dir}/resources/"
+git_unused_dir="${data_dir}/unused-resources/"
+git_fetched_dir="${data_dir}/fetched-book-group/"
+git_assembled_dir="${data_dir}/assembled-book-group/"
+git_assembled_meta_dir="${data_dir}/assembled-metadata-group/"
+git_baked_dir="${data_dir}/baked-book-group/"
+git_baked_meta_dir="${data_dir}/baked-metadata-group/"
+git_linked_dir="${data_dir}/linked-single/"
+git_mathified_dir="${data_dir}/mathified-single/"
+git_disassembled_dir="${data_dir}/disassembled-single/"
+git_artifacts_dir="${data_dir}/artifacts-single/"
+git_disassembled_linked_dir="${data_dir}/disassembled-linked-single/"
+git_jsonified_dir="${data_dir}/jsonified-single/"
+
+
+function check_input_dir() {
+    [[ -d $1 ]] || die "Expected directory to exist but it was missing. Maybe an earlier step needs to run: '$1'"
+}
+function check_output_dir() {
+    [[ $1 ]] || die "This output directory name is not set (it is an empty string)"
+    [[ -d $1 ]] || try mkdir -p $1
+}
+
 function do_step() {
     step_name=$1
 
@@ -152,6 +177,7 @@ function do_step() {
             # 1. repo_name
             # 2. git_ref
             # 3. slug_name
+            check_output_dir "${git_fetched_dir}"
 
             [[ ${COMMON_LOG_DIR} != '' ]] && exec > >(tee "${COMMON_LOG_DIR}"/log >&2) 2>&1
 
@@ -184,60 +210,127 @@ function do_step() {
 
             if [[ ${git_ref} = @* ]]; then
                 git_commit="${git_ref:1}"
-                GIT_TERMINAL_PROMPT=0 git clone --depth 50 "${remote_url}" "${fetched_dir}"
-                pushd "${fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 git clone --depth 50 "${remote_url}" "${git_fetched_dir}"
+                pushd "${git_fetched_dir}"
                 git reset --hard "${git_commit}"
                 # If the commit was not recent, try cloning the whole repo
                 if [[ $? != 0 ]]; then
                     popd
-                    GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${fetched_dir}"
-                    pushd "${fetched_dir}"
+                    GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${git_fetched_dir}"
+                    pushd "${git_fetched_dir}"
                     git reset --hard "${git_commit}"
                 fi
                 popd
             else
-                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${git_fetched_dir}"
             fi
 
-            if [[ ! -f "${fetched_dir}/collections/${slug_name}.collection.xml" ]]; then
+            if [[ ! -f "${git_fetched_dir}/collections/${slug_name}.collection.xml" ]]; then
                 echo "No matching book for slug in this repo"
                 exit 1
             fi
         ;;
 
         git-fetch-meta)
-            try fetch-update-meta "${fetched_dir}/.git" "${fetched_dir}/modules" "${fetched_dir}/collections" "${git_ref}" "${fetched_dir}/canonical.json"
-            try rm -rf "${fetched_dir}/.git"
+            check_input_dir "${git_fetched_dir}"
+            check_output_dir "${git_fetched_dir}"
+            check_output_dir "${git_resources_dir}"
+            check_output_dir "${git_unused_dir}"
+
+            
+            try fetch-update-meta "${git_fetched_dir}/.git" "${git_fetched_dir}/modules" "${git_fetched_dir}/collections" "${git_ref}" "${git_fetched_dir}/canonical.json"
+            try rm -rf "${git_fetched_dir}/.git"
             try rm -rf "$creds_dir"
 
-            try fetch-map-resources "${fetched_dir}/modules" "${fetched_dir}/media" . "${fetched_dir}/unused-resources"
+            try fetch-map-resources "${git_fetched_dir}/modules" "${git_fetched_dir}/media" . "${git_unused_dir}"
             # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-            try rm -d "${fetched_dir}/media"
+            try rm -d "${git_fetched_dir}/media"
         ;;
 
         git-assemble)
+            check_input_dir "${git_fetched_dir}"
+            check_output_dir "${git_assembled_dir}"
+            
             shopt -s globstar nullglob
-            for collection in "${fetched_dir}/collections/"*; do
+            for collection in "${git_fetched_dir}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                if [[ -n "${TARGET_BOOK}" ]]; then
-                    if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
-                        continue
-                    fi
-                fi
-                try mv "$collection" "${fetched_dir}/modules/collection.xml"
+                # if [[ -n "${TARGET_BOOK}" ]]; then
+                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
+                #         continue
+                #     fi
+                # fi
+                try cp "$collection" "${git_fetched_dir}/modules/collection.xml"
 
-                try neb assemble "${fetched_dir}/modules" temp-assembly/
+                try neb assemble "${git_fetched_dir}/modules" temp-assembly/
 
-                try cp "temp-assembly/collection.assembled.xhtml" "${assembed_dir}/$slug_name.assembled.xhtml"
+                try cp "temp-assembly/collection.assembled.xhtml" "${git_assembled_dir}/$slug_name.assembled.xhtml"
                 try rm -rf temp-assembly
+                try rm "${git_fetched_dir}/modules/collection.xml"
             done
             shopt -u globstar nullglob
         ;;
 
         git-assemble-meta)
+            check_input_dir "${git_fetched_dir}"
+            check_input_dir "${git_assembled_dir}"
+            check_output_dir "${git_assembled_meta_dir}"
+
+            shopt -s globstar nullglob
+            # Create an empty map file for invoking assemble-meta
+            echo "{}" > uuid-to-revised-map.json
+            for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
+                slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+                # if [[ -n "${TARGET_BOOK}" ]]; then
+                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
+                #         continue
+                #     fi
+                # fi
+                try assemble-meta "${git_assembled_dir}/$slug_name.assembled.xhtml" uuid-to-revised-map.json "${git_assembled_meta_dir}/${slug_name}.assembled-metadata.json"
+            done
+            try rm uuid-to-revised-map.json
+            shopt -u globstar nullglob
         ;;
 
         git-bake)
+            recipe_name=$2
+            check_input_dir "${git_assembled_dir}"
+            check_output_dir "${git_baked_dir}"
+
+            # FIXME: We assume that every book in the group uses the same style
+            # This assumption will not hold true forever, and book style + recipe name should
+            # be pulled from fetched-book-group (while still allowing injection w/ CLI)
+
+            # FIXME: Style devs will probably not like having to bake multiple books repeatedly,
+            # especially since they shouldn't care about link-extras correctness during their
+            # work cycle.
+
+            # FIXME: Separate style injection step from baking step. This is way too much work to change a line injected into the head tag
+            style_file="/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+
+            if [[ -f "$style_file" ]]
+                then
+                    cp "$style_file" "${git_baked_output}"
+                    cp "$style_file" "${STYLE_OUTPUT}"
+                else
+                    echo "Warning: Style Not Found" > "${git_baked_output}/stderr"
+            fi
+
+            shopt -s globstar nullglob
+            for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
+                slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+                # if [[ -n "${TARGET_BOOK}" ]]; then
+                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
+                #         continue
+                #     fi
+                # fi
+                /recipes/bake_root -b "${recipe_name}" -r cnx-recipes-output/rootfs/recipes -i "${ASSEMBLED_INPUT}/$slug_name.assembled.xhtml" -o "${BAKED_OUTPUT}/$slug_name.baked.xhtml"
+                if [[ -f "$style_file" ]]
+                    then
+                        sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename "$style_file")\" />&%" "${BAKED_OUTPUT}/$slug_name.baked.xhtml"
+                fi
+            done
+            shopt -u globstar nullglob
+
         ;;
 
         git-bake-meta)
@@ -317,15 +410,17 @@ case $1 in
         repo_name=$2
         git_ref=$3
         slug_name=$4
+        recipe_name=$5
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
         [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
         [[ ${slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
         do_step_named git-fetch ${repo_name} ${git_ref} ${slug_name}
         do_step_named git-fetch-meta
         do_step_named git-assemble
-        # do_step_named git-assemble-meta
-        # do_step_named git-bake
+        do_step_named git-assemble-meta
+        do_step_named git-bake ${recipe_name}
         # do_step_named git-bake-meta
         # do_step_named git-link
         # do_step_named git--meta
