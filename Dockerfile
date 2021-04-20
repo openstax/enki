@@ -191,6 +191,33 @@ RUN ./gradlew jar
 # FROM validator/validator:20.3.16
 
 
+# ---------------------------
+# Install kcov
+FROM base AS build-kcov-stage
+
+RUN git clone https://github.com/SimonKagstrom/kcov /kcov-src/
+
+RUN apt-get install -y \
+        binutils-dev \
+        build-essential \
+        cmake \
+        git \
+        libcurl4-openssl-dev \
+        libdw-dev \
+        libiberty-dev \
+        libssl-dev \
+        ninja-build \
+        python3 \
+        zlib1g-dev \
+        ;
+
+RUN mkdir /kcov-src/build && \
+    cd /kcov-src/build && \
+    cmake -G 'Ninja' .. && \
+    cmake --build . && \
+    cmake --build . --target install
+
+
 # ===========================
 # The Final Stage
 # ===========================
@@ -199,14 +226,17 @@ FROM base as runner
 # ---------------------------
 # Install dependencies that
 # are not needed to prepare
-# the other steps.
+# the other steps but are
+# necessary to run the code.
 # ---------------------------
 RUN set -x \
     ### Git ###
     add-apt-repository -y ppa:git-core/ppa \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-        git
+        git \
+        libdw-dev \
+        ;
 
 
 # ---------------------------
@@ -229,6 +259,9 @@ RUN bash -lc " \
 # ---------------------------
 # Copy the stages over
 # ---------------------------
+COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
+COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
+
 COPY --from=build-xhtml-validator-stage /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
 COPY --from=build-mathify-stage /mathify/ /mathify/
 COPY --from=build-python-stage /bakery-scripts/scripts /bakery-scripts/scripts
@@ -239,6 +272,8 @@ COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
 
 COPY ./docker-entrypoint.sh /usr/local/bin/
+COPY ./docker-entrypoint-with-kcov.sh /usr/local/bin/
 
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+
+ENTRYPOINT ["docker-entrypoint-with-kcov.sh"]
