@@ -42,6 +42,7 @@ git_disassembled_dir="${data_dir}/disassembled-single/"
 git_artifacts_dir="${data_dir}/artifacts-single/"
 git_disassembled_linked_dir="${data_dir}/disassembled-linked-single/"
 git_jsonified_dir="${data_dir}/jsonified-single/"
+git_style_dir="${data_dir}/style/"
 
 
 function check_input_dir() {
@@ -183,7 +184,7 @@ function do_step() {
 
             repo_name=$2
             git_ref=$3
-            slug_name=$4
+            target_slug_name=$4
 
             [[ "${git_ref}" == latest ]] && git_ref=main
             [[ "${repo_name}" == */* ]] || repo_name="openstax/${repo_name}"
@@ -225,7 +226,7 @@ function do_step() {
                 GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${git_fetched_dir}"
             fi
 
-            if [[ ! -f "${git_fetched_dir}/collections/${slug_name}.collection.xml" ]]; then
+            if [[ ! -f "${git_fetched_dir}/collections/${target_slug_name}.collection.xml" ]]; then
                 echo "No matching book for slug in this repo"
                 exit 1
             fi
@@ -248,17 +249,18 @@ function do_step() {
         ;;
 
         git-assemble)
+            opt_only_one_book=$2
             check_input_dir "${git_fetched_dir}"
             check_output_dir "${git_assembled_dir}"
             
             shopt -s globstar nullglob
             for collection in "${git_fetched_dir}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                # if [[ -n "${TARGET_BOOK}" ]]; then
-                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
-                #         continue
-                #     fi
-                # fi
+                if [[ -n "${opt_only_one_book}" ]]; then
+                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                        continue
+                    fi
+                fi
                 try cp "$collection" "${git_fetched_dir}/modules/collection.xml"
 
                 try neb assemble "${git_fetched_dir}/modules" temp-assembly/
@@ -271,6 +273,7 @@ function do_step() {
         ;;
 
         git-assemble-meta)
+            opt_only_one_book=$2
             check_input_dir "${git_fetched_dir}"
             check_input_dir "${git_assembled_dir}"
             check_output_dir "${git_assembled_meta_dir}"
@@ -280,11 +283,11 @@ function do_step() {
             echo "{}" > uuid-to-revised-map.json
             for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                # if [[ -n "${TARGET_BOOK}" ]]; then
-                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
-                #         continue
-                #     fi
-                # fi
+                if [[ -n "${opt_only_one_book}" ]]; then
+                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                        continue
+                    fi
+                fi
                 try assemble-meta "${git_assembled_dir}/$slug_name.assembled.xhtml" uuid-to-revised-map.json "${git_assembled_meta_dir}/${slug_name}.assembled-metadata.json"
             done
             try rm uuid-to-revised-map.json
@@ -293,6 +296,7 @@ function do_step() {
 
         git-bake)
             recipe_name=$2
+            opt_only_one_book=$3
             check_input_dir "${git_assembled_dir}"
             check_output_dir "${git_baked_dir}"
 
@@ -309,40 +313,70 @@ function do_step() {
 
             if [[ -f "$style_file" ]]
                 then
-                    cp "$style_file" "${git_baked_output}"
-                    cp "$style_file" "${STYLE_OUTPUT}"
+                    try cp "$style_file" "${git_baked_dir}"
+                    # try cp "$style_file" "${git_style_dir}"
                 else
-                    echo "Warning: Style Not Found" > "${git_baked_output}/stderr"
+                    echo "Warning: Style Not Found" > "${git_baked_dir}/stderr"
             fi
 
             shopt -s globstar nullglob
             for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                # if [[ -n "${TARGET_BOOK}" ]]; then
-                #     if [[ "$slug_name" != "${TARGET_BOOK}" ]]; then
-                #         continue
-                #     fi
-                # fi
-                /recipes/bake_root -b "${recipe_name}" -r cnx-recipes-output/rootfs/recipes -i "${ASSEMBLED_INPUT}/$slug_name.assembled.xhtml" -o "${BAKED_OUTPUT}/$slug_name.baked.xhtml"
+                if [[ -n "${opt_only_one_book}" ]]; then
+                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                        continue
+                    fi
+                fi
+                try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${git_assembled_dir}/$slug_name.assembled.xhtml" -o "${git_baked_dir}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
                     then
-                        sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename "$style_file")\" />&%" "${BAKED_OUTPUT}/$slug_name.baked.xhtml"
+                        try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename "$style_file")\" />&%" "${git_baked_dir}/$slug_name.baked.xhtml"
                 fi
             done
             shopt -u globstar nullglob
-
         ;;
 
         git-bake-meta)
+            opt_only_one_book=$2
+            check_input_dir "${git_assembled_meta_dir}"
+            check_input_dir "${git_baked_dir}"
+            check_output_dir "${git_baked_meta_dir}"
+
+            shopt -s globstar nullglob
+            for collection in "${git_baked_dir}/"*.baked.xhtml; do
+                slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+                if [[ -n "${opt_only_one_book}" ]]; then
+                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                        continue
+                    fi
+                fi
+
+                try bake-meta "${git_assembled_meta_dir}/$slug_name.assembled-metadata.json" "${git_baked_dir}/$slug_name.baked.xhtml" "" "" "${git_baked_meta_dir}/$slug_name.baked-metadata.json"
+            done
+            shopt -u globstar nullglob
         ;;
 
         git-link)
-        ;;
+            target_slug_name=$2
+            opt_only_one_book=$3
+            check_input_dir "${git_baked_dir}"
+            check_input_dir "${git_baked_meta_dir}"
+            check_output_dir "${git_linked_dir}"
 
-        git--meta)
+            if [[ -n "${opt_only_one_book}" ]]; then
+                try link-single "${git_baked_dir}" "${git_baked_meta_dir}" "${target_slug_name}" "${git_linked_dir}/${target_slug_name}.linked.xhtml" --mock-otherbook
+            else
+                try link-single "${git_baked_dir}" "${git_baked_meta_dir}" "${target_slug_name}" "${git_linked_dir}/${target_slug_name}.linked.xhtml"
+            fi
         ;;
 
         git-disassemble)
+            target_slug_name=$2
+            check_input_dir "${git_linked_dir}"
+            check_input_dir "${git_baked_meta_dir}"
+            check_output_dir "${git_disassembled_dir}"
+
+            try disassemble "${git_linked_dir}/$target_slug_name.linked.xhtml" "${git_baked_meta_dir}/$target_slug_name.baked-metadata.json" "$target_slug_name" "${git_disassembled_dir}"
         ;;
 
         git-patch-disassembled-links)
@@ -409,22 +443,30 @@ case $1 in
         set -x
         repo_name=$2
         git_ref=$3
-        slug_name=$4
-        recipe_name=$5
+        recipe_name=$4
+        target_slug_name=$5
+        opt_only_one_book=$6
+
+        echo "Info: repo_name='${repo_name}' git_ref='${git_ref}' recipe_name='${recipe_name}' opt_target_book='${opt_target_book}'"
+
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
         [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
-        [[ ${slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+        [[ ${target_slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
 
-        do_step_named git-fetch ${repo_name} ${git_ref} ${slug_name}
+        # Change opt_only_one_book from a boolean to the name of the one book
+        if [[ ${opt_only_one_book} ]]; then
+            opt_only_one_book=${target_slug_name}
+        fi
+
+        do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
         do_step_named git-fetch-meta
-        do_step_named git-assemble
-        do_step_named git-assemble-meta
-        do_step_named git-bake ${recipe_name}
-        # do_step_named git-bake-meta
-        # do_step_named git-link
-        # do_step_named git--meta
-        # do_step_named git-disassemble
+        do_step_named git-assemble ${opt_only_one_book}
+        do_step_named git-assemble-meta ${opt_only_one_book}
+        do_step_named git-bake ${recipe_name} ${opt_only_one_book}
+        do_step_named git-bake-meta ${opt_only_one_book}
+        do_step_named git-link ${target_slug_name} ${opt_only_one_book}
+        do_step_named git-disassemble ${target_slug_name}
         # do_step_named git-patch-disassembled-links
         # do_step_named git-jsonify
         # do_step_named git-validate-xhtml

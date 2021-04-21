@@ -10,6 +10,9 @@ This uses a little wrapper to hide all the docker commands
 ./cli.sh socio     all-pdf col11407 sociology
 
 # All-in-one Git-based books
+./cli.sh 'tiny-book' all-git-web 'philschatz/tiny-book' 'main' 'chemistry' 'book-slug1'
+
+# Private repositories:
 GH_SECRET_CREDS='..' ./cli.sh 'foo-tempdir' all-git-web 'osbooks-test-bundle' 'test-slug'
 
 
