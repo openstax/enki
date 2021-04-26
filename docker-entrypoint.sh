@@ -380,12 +380,36 @@ function do_step() {
         ;;
 
         git-patch-disassembled-links)
+            target_slug_name=$2
+            check_input_dir "${git_disassembled_dir}"
+            check_output_dir "${git_disassembled_linked_dir}"
+
+            try patch-same-book-links "${git_disassembled_dir}" "${git_disassembled_linked_dir}" "$target_slug_name"
+            try cp "${git_disassembled_dir}"/*@*-metadata.json "${git_disassembled_linked_dir}"
+            try cp "${git_disassembled_dir}"/"$target_slug_name".toc* "${git_disassembled_linked_dir}"
         ;;
 
         git-jsonify)
+            target_slug_name=$2
+            check_input_dir "${git_disassembled_linked_dir}"
+            check_output_dir "${git_jsonified_dir}"
+
+            try jsonify "${git_disassembled_linked_dir}" "${git_jsonified_dir}"
+            try jsonschema -i "${git_jsonified_dir}/${target_slug_name}.toc.json" /bakery-scripts/scripts/book-schema-git.json
+
+            for jsonfile in "${git_jsonified_dir}/"*@*.json; do
+                try jsonschema -i "$jsonfile" /bakery-scripts/scripts/page-schema.json
+            done
         ;;
 
         git-validate-xhtml)
+            check_input_dir "${git_disassembled_linked_dir}"
+            
+            for xhtmlfile in $(find ${git_disassembled_linked_dir} -name '*.xhtml')
+            do
+                say "XHTML-validating ${xhtmlfile}"
+                try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+            done
         ;;
 
         shell | /bin/bash)
@@ -467,9 +491,9 @@ case $1 in
         do_step_named git-bake-meta ${opt_only_one_book}
         do_step_named git-link ${target_slug_name} ${opt_only_one_book}
         do_step_named git-disassemble ${target_slug_name}
-        # do_step_named git-patch-disassembled-links
-        # do_step_named git-jsonify
-        # do_step_named git-validate-xhtml
+        do_step_named git-patch-disassembled-links ${target_slug_name}
+        do_step_named git-jsonify ${target_slug_name}
+        do_step_named git-validate-xhtml
     ;;
     *) # Assume the user is only running one step
         do_step $@

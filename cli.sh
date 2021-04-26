@@ -36,13 +36,6 @@ then
 fi
 
 
-if [[ ${book_name} == 'shell' ]]
-then
-    docker build -t ${image_name} .
-    docker run -it --rm ${image_name} /bin/bash
-    exit $?
-fi
-
 local_dir=$(pwd)/data/${book_name}/
 
 [[ ${book_name} ]] || ( >&2 echo "ERROR: A book name is required as the first argument" && exit 111)

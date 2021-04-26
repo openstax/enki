@@ -24,7 +24,8 @@ RUN set -x \
     libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
     libxcb-dri3-0 libdrm2 libgbm1 \
     # ... for cnx-easybake:
-    build-essential libicu-dev pkg-config python3-dev
+    build-essential libicu-dev pkg-config python3-dev \
+    ;
 
 
 # ---------------------------
@@ -236,6 +237,8 @@ RUN set -x \
     && apt-get install --no-install-recommends -y \
         git \
         libdw-dev \
+        # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
+        xmlstarlet \
         ;
 
 

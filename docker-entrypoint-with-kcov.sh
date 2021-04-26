@@ -5,7 +5,7 @@
 set -xe
 
 if [[ $1 == 'shell' ]]; then
-    docker-entrypoint.sh $@
+    bash
 else
     kcov /data/kcov-coverage-results/ docker-entrypoint.sh $@
 fi

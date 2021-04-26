@@ -47,3 +47,15 @@ docker run -it -v $(pwd)/data/${TEMP_NAME}/:/data/ --rm my_image ${command} ${co
 ```
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
+
+
+# TODO list
+
+- [x] Build Archive PDF
+- [ ] Build Archive JSON
+- [ ] Build Git PDF
+- [x] Build Git JSON
+- [x] Support checking out a commit instead of a branch/tag
+- [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
+- [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
+- [ ] add back support for content servers
