@@ -2,7 +2,7 @@
 
 # This is run every time the docker container starts up.
 
-set -e
+set -e -x
 
 # Activate the python virtualenv
 source /opt/venv/bin/activate
@@ -25,8 +25,8 @@ try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 data_dir="/data"
 fetched_dir="${data_dir}/raw"
 book_dir="${data_dir}/assembled"
-
-
+jsonified_dir="${data_dir}/jsonified"
+upload_dir="${data_dir}/upload"
 
 
 git_resources_dir="${data_dir}/resources/"
@@ -61,14 +61,16 @@ function do_step() {
             collection_id=$2
             book_version=latest
             book_server=cnx.org
-            book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
 
             # Validate commandline arguments
             [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             yes | try neb get -r -d "${fetched_dir}" "${book_server}" "${collection_id}" "${book_version}" || die "failed to fetch from server."
-            try wget "${book_slugs_url}" -O "${b}/approved-book-list.json"
+        ;;
+        fetch-metadata)
+            book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
+            try wget "${book_slugs_url}" -O "${fetched_dir}/approved-book-list.json"
         ;;
         assemble)
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/assemble-book.js
@@ -147,7 +149,9 @@ function do_step() {
             try patch-same-book-links "$book_dir" "$target_dir" "collection"
         ;;
         jsonify)
-            target_dir="$book_dir"
+            target_dir="$jsonified_dir"
+            
+            try mkdir -p $target_dir
             try jsonify "$book_dir" "$target_dir"
             try jsonschema -i "$target_dir/collection.toc.json" /bakery-scripts/scripts/book-schema.json
             for jsonfile in "$target_dir/"*@*.json; do
@@ -162,6 +166,39 @@ function do_step() {
             do
                 try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
+        ;;
+        upload-book)
+            s3_bucket_name=$3
+            s3_bucket_prefix=$4
+
+            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
+            [[ ${s3_bucket_prefix} ]] || die "An S3 bucket prefix is missing. It is necessary for uploading"
+
+            [[ ${AWS_ACCESS_KEY_ID} ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
+            [[ ${AWS_SECRET_ACCESS_KEY} ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
+
+            book_dir="${jsonified_dir}"
+            book_metadata="${fetched_dir}/metadata.json"
+            resources_dir="${assembled_dir}/resources"
+            target_dir="${upload_dir}/contents"
+            mkdir -p "$target_dir"
+            book_uuid="$(cat $book_metadata | jq -r '.id')"
+            book_version="$(cat $book_metadata | jq -r '.version')"
+            for jsonfile in "$book_dir/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
+            for xhtmlfile in "$book_dir/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
+            try echo aws s3 cp --recursive "$target_dir" "s3://${s3_bucket_name}/${s3_bucket_prefix}/contents"
+            try echo copy-resources-s3 "$resources_dir" "${s3_bucket_name}" "${s3_bucket_prefix}/resources"
+
+            #######################################
+            # UPLOAD BOOK LEVEL FILES LAST
+            # so that if an error is encountered
+            # on prior upload steps, those files
+            # will not be found by watchers
+            #######################################
+            toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
+            toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
+            try echo aws s3 cp "$book_dir/collection.toc.json" "$toc_s3_link_json"
+            try echo aws s3 cp "$book_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
         ;;
 
 
@@ -232,7 +269,7 @@ function do_step() {
             fi
         ;;
 
-        git-fetch-meta)
+        git-fetch-metadata)
             check_input_dir "${git_fetched_dir}"
             check_output_dir "${git_fetched_dir}"
             check_output_dir "${git_resources_dir}"
@@ -438,6 +475,7 @@ case $1 in
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
         
         do_step_named fetch ${collection_id}
+        do_step_named fetch-metadata
         do_step_named assemble
         do_step_named link-extras
         do_step_named bake ${recipe_name}
@@ -451,7 +489,7 @@ case $1 in
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
         do_step_named fetch ${collection_id}
-        do_step_named fetch-meta
+        do_step_named fetch-metadata
         do_step_named assemble
         do_step_named assemble-metadata
         do_step_named link-extras
@@ -462,6 +500,7 @@ case $1 in
         do_step_named patch-disassembled-links
         do_step_named jsonify
         do_step_named validate-xhtml
+        do_step_named upload-book ${collection_id}
     ;;
     all-git-web)
         set -x
@@ -482,7 +521,7 @@ case $1 in
         fi
 
         do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
-        do_step_named git-fetch-meta
+        do_step_named git-fetch-metadata
         do_step_named git-assemble ${opt_only_one_book}
         do_step_named git-assemble-meta ${opt_only_one_book}
         do_step_named git-bake ${recipe_name} ${opt_only_one_book}
@@ -512,7 +551,7 @@ case $1 in
         fi
 
         do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
-        do_step_named git-fetch-meta
+        do_step_named git-fetch-metadata
         do_step_named git-assemble ${opt_only_one_book}
         do_step_named git-assemble-meta ${opt_only_one_book}
         do_step_named git-bake ${recipe_name} ${opt_only_one_book}

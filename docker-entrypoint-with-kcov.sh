@@ -6,6 +6,8 @@ set -xe
 
 if [[ $1 == 'shell' ]]; then
     bash
-else
+elif [[ ${CI} ]]; then
     kcov /data/kcov-coverage-results/ docker-entrypoint.sh $@
+else
+    docker-entrypoint.sh $@
 fi
