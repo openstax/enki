@@ -404,7 +404,7 @@ function do_step() {
 
         git-validate-xhtml)
             check_input_dir "${git_disassembled_linked_dir}"
-            
+
             for xhtmlfile in $(find ${git_disassembled_linked_dir} -name '*.xhtml')
             do
                 say "XHTML-validating ${xhtmlfile}"
@@ -431,7 +431,7 @@ function do_step_named() {
 
 
 case $1 in
-    all-pdf)
+    all-archive-pdf)
         collection_id=$2
         recipe_name=$3
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
@@ -444,7 +444,7 @@ case $1 in
         do_step_named mathify
         do_step_named pdf
     ;;
-    all-web)
+    all-archive-web)
         collection_id=$2
         recipe_name=$3
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
@@ -471,8 +471,6 @@ case $1 in
         target_slug_name=$5
         opt_only_one_book=$6
 
-        echo "Info: repo_name='${repo_name}' git_ref='${git_ref}' recipe_name='${recipe_name}' opt_target_book='${opt_target_book}'"
-
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
         [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
@@ -494,6 +492,35 @@ case $1 in
         do_step_named git-patch-disassembled-links ${target_slug_name}
         do_step_named git-jsonify ${target_slug_name}
         do_step_named git-validate-xhtml
+    ;;
+    all-git-pdf)
+        set -x
+        repo_name=$2
+        git_ref=$3
+        recipe_name=$4
+        target_slug_name=$5
+        opt_only_one_book=$6
+
+        [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
+        [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
+        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+        [[ ${target_slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+
+        # Change opt_only_one_book from a boolean to the name of the one book
+        if [[ ${opt_only_one_book} ]]; then
+            opt_only_one_book=${target_slug_name}
+        fi
+
+        do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
+        do_step_named git-fetch-meta
+        do_step_named git-assemble ${opt_only_one_book}
+        do_step_named git-assemble-meta ${opt_only_one_book}
+        do_step_named git-bake ${recipe_name} ${opt_only_one_book}
+        do_step_named git-bake-meta ${opt_only_one_book}
+        do_step_named git-link ${target_slug_name} ${opt_only_one_book}
+        
+        do_step_named git-mathify
+        do_step_named git-pdfify
     ;;
     *) # Assume the user is only running one step
         do_step $@

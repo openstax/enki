@@ -5,9 +5,9 @@ This uses a little wrapper to hide all the docker commands
 ```sh
 # All-in-one
 #
-#  CLI   tempdir   command col_id   recipe_name 
-./cli.sh fizix     all-pdf col12006 college-physics
-./cli.sh socio     all-pdf col11407 sociology
+#  CLI   tempdir   command         col_id   recipe_name 
+./cli.sh fizix     all-archive-pdf col12006 college-physics
+./cli.sh socio     all-archive-pdf col11407 sociology
 
 # All-in-one Git-based books
 ./cli.sh 'tiny-book' all-git-web 'philschatz/tiny-book' 'main' 'chemistry' 'book-slug1'
