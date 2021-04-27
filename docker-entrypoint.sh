@@ -7,6 +7,10 @@ set -e -x
 # Activate the python virtualenv
 source /opt/venv/bin/activate
 
+# Ensure the permissions of files are set to the host user/group, not root
+# Other options: https://stackoverflow.com/a/53915137
+chown -R "$(stat -c '%u:%g' /data)" /data
+
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
   declare -x c_red=$(tput setaf 1)
@@ -168,26 +172,27 @@ function do_step() {
             done
         ;;
         upload-book)
-            s3_bucket_name=$3
-            s3_bucket_prefix=$4
+            s3_bucket_name=$2
+            code_version=$3
+            s3_bucket_prefix="apps/archive/${code_version}"
 
             [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
-            [[ ${s3_bucket_prefix} ]] || die "An S3 bucket prefix is missing. It is necessary for uploading"
+            [[ ${code_version} ]] || die "A code version is missing. It is necessary for uploading"
 
-            [[ ${AWS_ACCESS_KEY_ID} ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
-            [[ ${AWS_SECRET_ACCESS_KEY} ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
+            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
+            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
 
-            book_dir="${jsonified_dir}"
             book_metadata="${fetched_dir}/metadata.json"
-            resources_dir="${assembled_dir}/resources"
+            resources_dir="${book_dir}/resources"
             target_dir="${upload_dir}/contents"
             mkdir -p "$target_dir"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
-            for jsonfile in "$book_dir/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
-            for xhtmlfile in "$book_dir/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
-            try echo aws s3 cp --recursive "$target_dir" "s3://${s3_bucket_name}/${s3_bucket_prefix}/contents"
-            try echo copy-resources-s3 "$resources_dir" "${s3_bucket_name}" "${s3_bucket_prefix}/resources"
+
+            for jsonfile in "$jsonified_dir/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
+            for xhtmlfile in "$jsonified_dir/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
+            try aws s3 cp --recursive "$target_dir" "s3://${s3_bucket_name}/${s3_bucket_prefix}/contents"
+            try copy-resources-s3 "$resources_dir" "${s3_bucket_name}" "${s3_bucket_prefix}/resources"
 
             #######################################
             # UPLOAD BOOK LEVEL FILES LAST
@@ -197,8 +202,8 @@ function do_step() {
             #######################################
             toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
             toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
-            try echo aws s3 cp "$book_dir/collection.toc.json" "$toc_s3_link_json"
-            try echo aws s3 cp "$book_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
+            try aws s3 cp "$book_dir/collection.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$book_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
         ;;
 
 
@@ -500,7 +505,7 @@ case $1 in
         do_step_named patch-disassembled-links
         do_step_named jsonify
         do_step_named validate-xhtml
-        do_step_named upload-book ${collection_id}
+        # do_step_named upload-book ${s3_bucket_name} ${code_version}
     ;;
     all-git-web)
         set -x
@@ -565,3 +570,7 @@ case $1 in
         do_step $@
     ;;
 esac
+
+# Ensure the permissions of files are set to the host user/group, not root
+# Other options: https://stackoverflow.com/a/53915137
+chown -R "$(stat -c '%u:%g' /data)" /data

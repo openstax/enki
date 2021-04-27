@@ -41,8 +41,16 @@ local_dir=$(pwd)/data/${book_name}/
 [[ ${book_name} ]] || ( >&2 echo "ERROR: A book name is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
+# Ensure the directory is created with the current user so docker can chown its files to be the same user
+[[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
+
 docker build -t ${image_name} .
-docker run -it -v ${local_dir}:/data/ -e GH_SECRET_CREDS -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --rm ${image_name} "${@:2}" # Args after the 1st one
+docker run -it -v ${local_dir}:/data/ \
+    -e GH_SECRET_CREDS \
+    -e AWS_ACCESS_KEY_ID \
+    -e AWS_SECRET_ACCESS_KEY \
+    -e AWS_SESSION_TOKEN \
+    --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]
 then
