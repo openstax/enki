@@ -2,7 +2,10 @@
 
 # This is run every time the docker container starts up.
 
-set -xe
+set -e
+
+# Trace if DEBUG is set
+[[ ${TRACE_ON} ]] && set -x
 
 if [[ $1 == 'shell' ]]; then
     bash

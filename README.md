@@ -48,6 +48,10 @@ docker run -it -v $(pwd)/data/${TEMP_NAME}/:/data/ --rm my_image ${command} ${co
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
 
+## Debugging
+
+Set `TRACE_ON=1` before every comamnd to trace every line that runs for debugging.
+
 
 # TODO list
 

@@ -4,6 +4,10 @@
 
 set -e
 
+# Trace if TRACE_ON is set
+[[ ${TRACE_ON} ]] && set -x
+
+
 image_name=my_image
 book_name=$1
 
@@ -50,9 +54,10 @@ docker run -it -v ${local_dir}:/data/ \
     -e AWS_ACCESS_KEY_ID \
     -e AWS_SECRET_ACCESS_KEY \
     -e AWS_SESSION_TOKEN \
+    -e TRACE_ON \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]
 then
-    >&2 echo "The PDF is available at ${local_dir}/assembled/collection.pdf"
+    >&2 echo "The PDF is available somewhere in either ${local_dir}/assembled/collection.pdf or ${local_dir}/artifacts-single/"
 fi

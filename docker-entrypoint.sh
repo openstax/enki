@@ -2,7 +2,10 @@
 
 # This is run every time the docker container starts up.
 
-set -e -x
+set -e
+
+# Trace if TRACE_ON is set
+[[ ${TRACE_ON} ]] && set -x
 
 # Activate the python virtualenv
 source /opt/venv/bin/activate
@@ -228,24 +231,23 @@ function do_step() {
             git_ref=$3
             target_slug_name=$4
 
+            [[ ${repo_name} ]] || die "A repo name is missing"
+            [[ ${git_ref} ]] || die "A git reference is missing (branch, tag, or @commit)"
+            [[ ${target_slug_name} ]] || die "A book slug name is missing"
+
             [[ "${git_ref}" == latest ]] && git_ref=main
             [[ "${repo_name}" == */* ]] || repo_name="openstax/${repo_name}"
 
             remote_url="https://github.com/${repo_name}.git"
             
-            # Do not show creds
-            set +x
-            if [[ ${GH_SECRET_CREDS} != '' ]]; then
+            if [[ ${GH_SECRET_CREDS} ]]; then
                 creds_dir=tmp-gh-creds
                 creds_file="$creds_dir/gh-creds"
                 git config --global credential.helper "store --file=$creds_file"
                 mkdir "$creds_dir"
-                set +x
                 # Do not show creds
                 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
             fi
-            set -x
-            
 
             # If git_ref starts with '@' then it is a commit and check out the individual commit
             # Or, https://stackoverflow.com/a/7662531
@@ -339,6 +341,7 @@ function do_step() {
         git-bake)
             recipe_name=$2
             opt_only_one_book=$3
+            [[ ${recipe_name} ]] || die "A recipe name is missing"
             check_input_dir "${git_assembled_dir}"
             check_output_dir "${git_baked_dir}"
 
@@ -355,8 +358,7 @@ function do_step() {
 
             if [[ -f "$style_file" ]]
                 then
-                    try cp "$style_file" "${git_baked_dir}"
-                    # try cp "$style_file" "${git_style_dir}"
+                    try cp "$style_file" "${git_baked_dir}/the-style-pdf.css"
                 else
                     echo "Warning: Style Not Found" > "${git_baked_dir}/stderr"
             fi
@@ -372,7 +374,7 @@ function do_step() {
                 try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${git_assembled_dir}/$slug_name.assembled.xhtml" -o "${git_baked_dir}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
                     then
-                        try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename "$style_file")\" />&%" "${git_baked_dir}/$slug_name.baked.xhtml"
+                        try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${git_baked_dir}/$slug_name.baked.xhtml"
                 fi
             done
             shopt -u globstar nullglob
@@ -401,6 +403,7 @@ function do_step() {
         git-link)
             target_slug_name=$2
             opt_only_one_book=$3
+            [[ ${target_slug_name} ]] || die "An book slug name is missing"
             check_input_dir "${git_baked_dir}"
             check_input_dir "${git_baked_meta_dir}"
             check_output_dir "${git_linked_dir}"
@@ -414,6 +417,7 @@ function do_step() {
 
         git-disassemble)
             target_slug_name=$2
+            [[ ${target_slug_name} ]] || die "An book slug name is missing"
             check_input_dir "${git_linked_dir}"
             check_input_dir "${git_baked_meta_dir}"
             check_output_dir "${git_disassembled_dir}"
@@ -423,6 +427,7 @@ function do_step() {
 
         git-patch-disassembled-links)
             target_slug_name=$2
+            [[ ${target_slug_name} ]] || die "An book slug name is missing"
             check_input_dir "${git_disassembled_dir}"
             check_output_dir "${git_disassembled_linked_dir}"
 
@@ -433,6 +438,7 @@ function do_step() {
 
         git-jsonify)
             target_slug_name=$2
+            [[ ${target_slug_name} ]] || die "An book slug name is missing"
             check_input_dir "${git_disassembled_linked_dir}"
             check_output_dir "${git_jsonified_dir}"
 
@@ -452,6 +458,41 @@ function do_step() {
                 say "XHTML-validating ${xhtmlfile}"
                 try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
+        ;;
+        git-mathify)
+            target_slug_name=$2
+            [[ ${target_slug_name} ]] || die "A book slug name is missing"
+
+            check_input_dir "${git_linked_dir}"
+            check_input_dir "${git_baked_dir}"
+            check_output_dir "${git_mathified_dir}"
+
+            # Style needed because mathjax will size converted math according to surrounding text
+            try cp "${git_baked_dir}/the-style-pdf.css" "${git_linked_dir}"
+            try cp "${git_baked_dir}/the-style-pdf.css" "${git_mathified_dir}"
+            try node /mathify/typeset/start.js -i "${git_linked_dir}/$target_slug_name.linked.xhtml" -o "${git_mathified_dir}/$target_slug_name.mathified.xhtml" -f svg
+        ;;
+        git-pdfify)
+            target_slug_name=$2
+            target_pdf_filename=$3
+
+            [[ ${target_slug_name} ]] || die "A book slug name is missing"
+            [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
+
+            check_input_dir "${git_mathified_dir}"
+            check_output_dir "${git_artifacts_dir}"
+
+            try prince -v --output="${git_artifacts_dir}/${target_pdf_filename}" "${git_mathified_dir}/${target_slug_name}.mathified.xhtml"
+        ;;
+        git-pdfify-meta)
+            s3_bucket_name=$2
+            target_pdf_filename=$3
+            check_output_dir "${git_artifacts_dir}"
+
+            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing"
+            [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
+
+            try echo -n "https://${s3_bucket_name}.s3.amazonaws.com/${target_pdf_filename}" > "${git_artifacts_dir}/pdf_url"
         ;;
 
         shell | /bin/bash)
@@ -508,7 +549,6 @@ case $1 in
         # do_step_named upload-book ${s3_bucket_name} ${code_version}
     ;;
     all-git-web)
-        set -x
         repo_name=$2
         git_ref=$3
         recipe_name=$4
@@ -538,7 +578,6 @@ case $1 in
         do_step_named git-validate-xhtml
     ;;
     all-git-pdf)
-        set -x
         repo_name=$2
         git_ref=$3
         recipe_name=$4
@@ -563,8 +602,8 @@ case $1 in
         do_step_named git-bake-meta ${opt_only_one_book}
         do_step_named git-link ${target_slug_name} ${opt_only_one_book}
         
-        do_step_named git-mathify
-        do_step_named git-pdfify
+        do_step_named git-mathify ${target_slug_name}
+        do_step_named git-pdfify ${target_slug_name} file.pdf
     ;;
     *) # Assume the user is only running one step
         do_step $@
