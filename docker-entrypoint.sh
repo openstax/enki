@@ -49,7 +49,6 @@ git_disassembled_dir="${data_dir}/disassembled-single/"
 git_artifacts_dir="${data_dir}/artifacts-single/"
 git_disassembled_linked_dir="${data_dir}/disassembled-linked-single/"
 git_jsonified_dir="${data_dir}/jsonified-single/"
-git_style_dir="${data_dir}/style/"
 
 
 function check_input_dir() {
@@ -612,4 +611,4 @@ esac
 
 # Ensure the permissions of files are set to the host user/group, not root
 # Other options: https://stackoverflow.com/a/53915137
-chown -R "$(stat -c '%u:%g' /data)" /data
+try chown -R "$(stat -c '%u:%g' /data)" /data

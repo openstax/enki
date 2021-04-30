@@ -56,8 +56,8 @@ Set `TRACE_ON=1` before every comamnd to trace every line that runs for debuggin
 # TODO list
 
 - [x] Build Archive PDF
-- [ ] Build Archive JSON
-- [ ] Build Git PDF
+- [x] Build Archive JSON
+- [x] Build Git PDF
 - [x] Build Git JSON
 - [x] Support checking out a commit instead of a branch/tag
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
