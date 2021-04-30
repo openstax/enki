@@ -14,8 +14,7 @@ This uses a little wrapper to hide all the docker commands
 #  CLI   tempdir  command     repo_name              gitref recipe      book_slug
 ./cli.sh tin-bk   all-git-pdf 'philschatz/tiny-book' main   chemistry   book-slug1
 
-# Private repositories:
-GH_SECRET_CREDS='..' ./cli.sh 'foo-tempdir' all-git-web 'osbooks-test-bundle' 'test-slug'
+# Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
 
 # Run one step

@@ -1,3 +1,4 @@
+FROM sudobmitch/base:scratch as base-scratch
 FROM buildpack-deps:focal as base
 
 
@@ -258,6 +259,13 @@ RUN bash -lc " \
 RUN bash -lc " \
     ./scripts/install_used_gem_versions"
 
+WORKDIR /data/
+
+RUN useradd --create-home -u 5000 app
+RUN mv /root/.nvm /openstax/nvm
+ENV PATH=$PATH:/openstax/nvm/versions/node/v$NODE_VERSION/bin/
+
+COPY --from=base-scratch / /
 
 # ---------------------------
 # Copy the stages over
@@ -274,9 +282,13 @@ COPY --from=build-python-stage /openstax/venv/ /openstax/venv/
 COPY ./cnx-recipes/recipes/output/ /openstax/cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
-COPY ./docker-entrypoint.sh /usr/local/bin/
-COPY ./docker-entrypoint-with-kcov.sh /usr/local/bin/
+
+COPY ./10-fix-perms.sh /etc/entrypoint.d/
+COPY ./docker-entrypoint.sh /usr/bin/
+COPY ./docker-entrypoint-with-kcov.sh /usr/bin/
 
 
-
-ENTRYPOINT ["docker-entrypoint-with-kcov.sh"]
+ENV RUN_AS="app:app"
+ENV ORIG_ENTRYPOINT='/usr/bin/docker-entrypoint-with-kcov.sh'
+ENTRYPOINT ["/usr/bin/entrypointd.sh"]
+HEALTHCHECK CMD /usr/bin/healthcheckd.sh

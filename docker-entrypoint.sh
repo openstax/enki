@@ -7,12 +7,9 @@ set -e
 # Trace and log if TRACE_ON is set
 [[ ${TRACE_ON} ]] && set -x && exec > >(tee /data/log >&2) 2>&1
 
+
 # Activate the python virtualenv
 source /openstax/venv/bin/activate
-
-# Ensure the permissions of files are set to the host user/group, not root
-# Other options: https://stackoverflow.com/a/53915137
-chown -R "$(stat -c '%u:%g' /data)" /data
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
@@ -72,7 +69,7 @@ function do_step() {
             [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
-            yes | try neb get -r -d "${fetched_dir}" "${book_server}" "${collection_id}" "${book_version}" || die "failed to fetch from server."
+            yes | try neb get -r -d "${fetched_dir}" "${book_server}" "${collection_id}" "${book_version}"
         ;;
         archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
