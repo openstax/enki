@@ -112,7 +112,7 @@ class Binder(BaseBinder):
                     parent_node = chain[-1]
             elif elm.tag == MODULE_TAG and event == 'start':
                 id = elm.attrib['document']
-                version = elm.attrib[VERSION_ATTRIB_NAME]
+                version = elm.attrib.get(VERSION_ATTRIB_NAME, '0.0')
                 current_node = document_factory(id, version)
                 parent_node.append(current_node)
 
