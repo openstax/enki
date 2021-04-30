@@ -7,7 +7,6 @@ set -e
 # Trace if TRACE_ON is set
 [[ ${TRACE_ON} ]] && set -x
 
-
 image_name=my_image
 book_name=$1
 
@@ -39,8 +38,7 @@ then
     fi
 fi
 
-
-local_dir=$(pwd)/data/${book_name}/
+local_dir="${DATA_ROOT:-$(pwd)/data}/${book_name}/"
 
 [[ ${book_name} ]] || ( >&2 echo "ERROR: A book name is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)

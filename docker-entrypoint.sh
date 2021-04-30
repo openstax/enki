@@ -4,11 +4,11 @@
 
 set -e
 
-# Trace if TRACE_ON is set
-[[ ${TRACE_ON} ]] && set -x
+# Trace and log if TRACE_ON is set
+[[ ${TRACE_ON} ]] && set -x && exec > >(tee /data/log >&2) 2>&1
 
 # Activate the python virtualenv
-source /opt/venv/bin/activate
+source /openstax/venv/bin/activate
 
 # Ensure the permissions of files are set to the host user/group, not root
 # Other options: https://stackoverflow.com/a/53915137
@@ -63,7 +63,7 @@ function do_step() {
     step_name=$1
 
     case $step_name in
-        fetch)
+        archive-fetch)
             collection_id=$2
             book_version=latest
             book_server=cnx.org
@@ -74,15 +74,15 @@ function do_step() {
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             yes | try neb get -r -d "${fetched_dir}" "${book_server}" "${collection_id}" "${book_version}" || die "failed to fetch from server."
         ;;
-        fetch-metadata)
+        archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
             try wget "${book_slugs_url}" -O "${fetched_dir}/approved-book-list.json"
         ;;
-        assemble)
+        archive-assemble)
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/assemble-book.js
             try neb assemble "${fetched_dir}" "${book_dir}"
         ;;
-        assemble-metadata)
+        archive-assemble-metadata)
             target_dir=$book_dir
             echo "{" > $book_dir/uuid-to-revised-map.json
             find $fetched_dir/ -path */m*/metadata.json | xargs cat | jq -r '. | "\"\(.id)\": \"\(.revised)\","' >> $book_dir/uuid-to-revised-map.json
@@ -92,20 +92,20 @@ function do_step() {
             assemble-meta "$book_dir/collection.assembled.xhtml" $book_dir/uuid-to-revised-map.json "$target_dir/collection.assembled-metadata.json"
             rm $book_dir/uuid-to-revised-map.json
         ;;
-        link-extras)
+        archive-link-extras)
             book_server=archive.cnx.org
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/link-extras.js#L40
-            try python3 /bakery-scripts/scripts/link_extras.py "${book_dir}" "${book_server}" /bakery-scripts/scripts/canonical-book-list.json
+            try python3 /openstax/bakery-scripts/scripts/link_extras.py "${book_dir}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
         ;;
-        bake)
+        archive-bake)
             recipe_name=$2
 
             # Validate commandline arguments
             [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
-            try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${book_dir}/collection.linked.xhtml" -o "${book_dir}/collection.baked.xhtml"
+            try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${book_dir}/collection.linked.xhtml" -o "${book_dir}/collection.baked.xhtml"
 
-            style_file="/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+            style_file="/openstax/cnx-recipes-styles-output/${recipe_name}-pdf.css"
 
             [[ -f "${style_file}" ]] || yell "Warning: Could not find style file for recipe name '${recipe_name}'"
 
@@ -115,17 +115,17 @@ function do_step() {
                 try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${book_dir}/collection.baked.xhtml"
             fi
         ;;
-        mathify)
+        archive-mathify)
             # Remove the mathified file if it already exists ecause the code assumes the file does not exist
             [[ -f "${book_dir}/collection.mathified.xhtml" ]] && rm "${book_dir}/collection.mathified.xhtml"
 
-            try node /mathify/typeset/start.js -i "${book_dir}/collection.baked.xhtml" -o "${book_dir}/collection.mathified.xhtml" -f svg 
+            try node /openstax/mathify/typeset/start.js -i "${book_dir}/collection.baked.xhtml" -o "${book_dir}/collection.mathified.xhtml" -f svg 
         ;;
-        pdf)
+        archive-pdf)
             try prince -v --output="${book_dir}/collection.pdf" "${book_dir}/collection.mathified.xhtml"
         ;;
 
-        bake-metadata)
+        archive-bake-metadata)
             # TODO: Use a real collection id
             collection_id="fakecollectionid"
             book_metadata="${fetched_dir}/metadata.json"
@@ -144,36 +144,36 @@ function do_step() {
                 '. + {($ident_hash): {id: $uuid, version: $version, license: $license, legacy_id: $legacy_id, legacy_version: $legacy_version}}' > "/tmp/collection.baked-input-metadata.json"
             try bake-meta /tmp/collection.baked-input-metadata.json "$target_dir/collection.baked.xhtml" "$book_uuid" "$book_slugs_file" "$target_dir/collection.baked-metadata.json"
         ;;
-        checksum)
+        archive-checksum)
             try checksum "$book_dir" "$book_dir"
         ;;
-        disassemble)
+        archive-disassemble)
             try disassemble "$book_dir/collection.baked.xhtml" "$book_dir/collection.baked-metadata.json" "collection" "$book_dir"
         ;;
-        patch-disassembled-links)
+        archive-patch-disassembled-links)
             target_dir="$book_dir"
             try patch-same-book-links "$book_dir" "$target_dir" "collection"
         ;;
-        jsonify)
+        archive-jsonify)
             target_dir="$jsonified_dir"
             
             try mkdir -p $target_dir
             try jsonify "$book_dir" "$target_dir"
-            try jsonschema -i "$target_dir/collection.toc.json" /bakery-scripts/scripts/book-schema.json
+            try jsonschema -i "$target_dir/collection.toc.json" /openstax/bakery-scripts/scripts/book-schema.json
             for jsonfile in "$target_dir/"*@*.json; do
                 #ignore -metadata.json files
                 if [[ $jsonfile != *-metadata.json ]]; then
-                    try jsonschema -i "$jsonfile" /bakery-scripts/scripts/page-schema.json
+                    try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
                 fi
             done
         ;;
-        validate-xhtml)
+        archive-validate-xhtml)
             for xhtmlfile in $(find $book_dir -name '*.xhtml')
             do
-                try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
         ;;
-        upload-book)
+        archive-upload-book)
             s3_bucket_name=$2
             code_version=$3
             s3_bucket_prefix="apps/archive/${code_version}"
@@ -210,21 +210,7 @@ function do_step() {
 
 
         git-fetch)
-            # Environment variables:
-            # - COMMON_LOG_DIR
-            # - GH_SECRET_CREDS
-            # - CONTENT_OUTPUT
-            # - BOOK_INPUT (deleteme)
-            # - UNUSED_RESOURCE_OUTPUT
-            # - book_dir
-            #
-            # Arguments:
-            # 1. repo_name
-            # 2. git_ref
-            # 3. slug_name
             check_output_dir "${git_fetched_dir}"
-
-            [[ ${COMMON_LOG_DIR} != '' ]] && exec > >(tee "${COMMON_LOG_DIR}"/log >&2) 2>&1
 
             repo_name=$2
             git_ref=$3
@@ -254,15 +240,15 @@ function do_step() {
 
             if [[ ${git_ref} = @* ]]; then
                 git_commit="${git_ref:1}"
-                GIT_TERMINAL_PROMPT=0 git clone --depth 50 "${remote_url}" "${git_fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${git_fetched_dir}"
                 pushd "${git_fetched_dir}"
-                git reset --hard "${git_commit}"
+                try git reset --hard "${git_commit}"
                 # If the commit was not recent, try cloning the whole repo
                 if [[ $? != 0 ]]; then
                     popd
                     GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${git_fetched_dir}"
                     pushd "${git_fetched_dir}"
-                    git reset --hard "${git_commit}"
+                    try git reset --hard "${git_commit}"
                 fi
                 popd
             else
@@ -353,7 +339,7 @@ function do_step() {
             # work cycle.
 
             # FIXME: Separate style injection step from baking step. This is way too much work to change a line injected into the head tag
-            style_file="/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+            style_file="/openstax/cnx-recipes-styles-output/${recipe_name}-pdf.css"
 
             if [[ -f "$style_file" ]]
                 then
@@ -370,7 +356,7 @@ function do_step() {
                         continue
                     fi
                 fi
-                try /recipes/bake_root -b "${recipe_name}" -r /cnx-recipes-recipes-output/ -i "${git_assembled_dir}/$slug_name.assembled.xhtml" -o "${git_baked_dir}/$slug_name.baked.xhtml"
+                try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${git_assembled_dir}/$slug_name.assembled.xhtml" -o "${git_baked_dir}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
                     then
                         try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${git_baked_dir}/$slug_name.baked.xhtml"
@@ -442,10 +428,10 @@ function do_step() {
             check_output_dir "${git_jsonified_dir}"
 
             try jsonify "${git_disassembled_linked_dir}" "${git_jsonified_dir}"
-            try jsonschema -i "${git_jsonified_dir}/${target_slug_name}.toc.json" /bakery-scripts/scripts/book-schema-git.json
+            try jsonschema -i "${git_jsonified_dir}/${target_slug_name}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
 
             for jsonfile in "${git_jsonified_dir}/"*@*.json; do
-                try jsonschema -i "$jsonfile" /bakery-scripts/scripts/page-schema.json
+                try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
             done
         ;;
 
@@ -455,7 +441,7 @@ function do_step() {
             for xhtmlfile in $(find ${git_disassembled_linked_dir} -name '*.xhtml')
             do
                 say "XHTML-validating ${xhtmlfile}"
-                try java -cp /xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
         ;;
         git-mathify)
@@ -469,7 +455,7 @@ function do_step() {
             # Style needed because mathjax will size converted math according to surrounding text
             try cp "${git_baked_dir}/the-style-pdf.css" "${git_linked_dir}"
             try cp "${git_baked_dir}/the-style-pdf.css" "${git_mathified_dir}"
-            try node /mathify/typeset/start.js -i "${git_linked_dir}/$target_slug_name.linked.xhtml" -o "${git_mathified_dir}/$target_slug_name.mathified.xhtml" -f svg
+            try node /openstax/mathify/typeset/start.js -i "${git_linked_dir}/$target_slug_name.linked.xhtml" -o "${git_mathified_dir}/$target_slug_name.mathified.xhtml" -f svg
         ;;
         git-pdfify)
             target_slug_name=$2
@@ -519,13 +505,13 @@ case $1 in
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
         
-        do_step_named fetch ${collection_id}
-        do_step_named fetch-metadata
-        do_step_named assemble
-        do_step_named link-extras
-        do_step_named bake ${recipe_name}
-        do_step_named mathify
-        do_step_named pdf
+        do_step_named archive-fetch ${collection_id}
+        do_step_named archive-fetch-metadata
+        do_step_named archive-assemble
+        do_step_named archive-link-extras
+        do_step_named archive-bake ${recipe_name}
+        do_step_named archive-mathify
+        do_step_named archive-pdf
     ;;
     all-archive-web)
         collection_id=$2
@@ -533,19 +519,19 @@ case $1 in
         [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
-        do_step_named fetch ${collection_id}
-        do_step_named fetch-metadata
-        do_step_named assemble
-        do_step_named assemble-metadata
-        do_step_named link-extras
-        do_step_named bake ${recipe_name}
-        do_step_named bake-metadata
-        do_step_named checksum
-        do_step_named disassemble
-        do_step_named patch-disassembled-links
-        do_step_named jsonify
-        do_step_named validate-xhtml
-        # do_step_named upload-book ${s3_bucket_name} ${code_version}
+        do_step_named archive-fetch ${collection_id}
+        do_step_named archive-fetch-metadata
+        do_step_named archive-assemble
+        do_step_named archive-assemble-metadata
+        do_step_named archive-link-extras
+        do_step_named archive-bake ${recipe_name}
+        do_step_named archive-bake-metadata
+        do_step_named archive-checksum
+        do_step_named archive-disassemble
+        do_step_named archive-patch-disassembled-links
+        do_step_named archive-jsonify
+        do_step_named archive-validate-xhtml
+        # do_step_named archive-upload-book ${s3_bucket_name} ${code_version}
     ;;
     all-git-web)
         repo_name=$2

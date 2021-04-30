@@ -105,8 +105,8 @@ ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 # Create Virtualenv
 # -----------------------
 
-RUN python3 -m venv /opt/venv && \
-  . /opt/venv/bin/activate && \
+RUN python3 -m venv /openstax/venv && \
+  . /openstax/venv/bin/activate && \
   pip3 install --no-cache-dir -U 'pip<20'
 
 
@@ -116,10 +116,10 @@ RUN python3 -m venv /opt/venv && \
 
 FROM base as build-mathify-stage
 
-COPY ./mathify/package.json ./mathify/package-lock.json /mathify/
-WORKDIR /mathify/
+COPY ./mathify/package.json ./mathify/package-lock.json /openstax/mathify/
+WORKDIR /openstax/mathify/
 RUN npm ci
-COPY ./mathify/typeset /mathify/typeset
+COPY ./mathify/typeset /openstax/mathify/typeset
 
 
 # ===========================
@@ -133,30 +133,30 @@ FROM base AS build-python-stage
 # Install cnx-easybake
 # ---------------------------
 
-COPY ./cnx-easybake/requirements/main.txt /cnx-easybake/requirements/
-WORKDIR /cnx-easybake/
-RUN . /opt/venv/bin/activate && python3 -m pip install -r requirements/main.txt
+COPY ./cnx-easybake/requirements/main.txt /openstax/cnx-easybake/requirements/
+WORKDIR /openstax/cnx-easybake/
+RUN . /openstax/venv/bin/activate && python3 -m pip install -r requirements/main.txt
 
-COPY ./cnx-easybake/ /cnx-easybake/
-RUN . /opt/venv/bin/activate && python3 -m pip install "."
+COPY ./cnx-easybake/ /openstax/cnx-easybake/
+RUN . /openstax/venv/bin/activate && python3 -m pip install "."
 
 
 # ---------------------------
 # Install neb
 # ---------------------------
 
-COPY ./nebuchadnezzar/requirements /nebuchadnezzar/requirements
-WORKDIR /nebuchadnezzar/
+COPY ./nebuchadnezzar/requirements /openstax/nebuchadnezzar/requirements
+WORKDIR /openstax/nebuchadnezzar/
 # Install Python Dependencies
 RUN set -x \
-    && . /opt/venv/bin/activate \
+    && . /openstax/venv/bin/activate \
     && pip3 install -U setuptools wheel \
     && pip3 install -r ./requirements/main.txt
 
-COPY ./nebuchadnezzar/ /nebuchadnezzar/
+COPY ./nebuchadnezzar/ /openstax/nebuchadnezzar/
 
 # Install neb
-RUN . /opt/venv/bin/activate \
+RUN . /openstax/venv/bin/activate \
     && pip3 install .
 
 
@@ -166,16 +166,16 @@ RUN . /opt/venv/bin/activate \
 
 ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
 
-COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /bakery-scripts/scripts/
-WORKDIR /bakery-scripts/
+COPY ${BAKERY_SCRIPTS_ROOT}/requirements.txt /openstax/bakery-scripts/scripts/
+WORKDIR /openstax/bakery-scripts/
 
-RUN . /opt/venv/bin/activate && pip3 install -r scripts/requirements.txt
+RUN . /openstax/venv/bin/activate && pip3 install -r scripts/requirements.txt
 
-COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /bakery-scripts/scripts/
-COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /bakery-scripts/gdoc/
+COPY ${BAKERY_SCRIPTS_ROOT}/*.py ${BAKERY_SCRIPTS_ROOT}/*.js ${BAKERY_SCRIPTS_ROOT}/*.json /openstax/bakery-scripts/scripts/
+COPY ${BAKERY_SCRIPTS_ROOT}/gdoc/ /openstax/bakery-scripts/gdoc/
 
-RUN . /opt/venv/bin/activate && pip3 install /bakery-scripts/scripts/.
-RUN npm --prefix /bakery-scripts/scripts install --production /bakery-scripts/scripts
+RUN . /openstax/venv/bin/activate && pip3 install /openstax/bakery-scripts/scripts/.
+RUN npm --prefix /openstax/bakery-scripts/scripts install --production /openstax/bakery-scripts/scripts
 
 # TODO: Move this into bakery-scripts/scripts/package.json
 RUN npm install pm2@4.5.0
@@ -185,8 +185,8 @@ RUN npm install pm2@4.5.0
 # Install xhtml-validator jar
 # ---------------------------
 FROM base AS build-xhtml-validator-stage
-COPY ./xhtml-validator/ /xhtml-validator/
-WORKDIR /xhtml-validator
+COPY ./xhtml-validator/ /openstax/xhtml-validator/
+WORKDIR /openstax/xhtml-validator
 
 RUN ./gradlew jar
 # FROM validator/validator:20.3.16
@@ -246,8 +246,8 @@ RUN set -x \
 # Install recipes
 # ---------------------------
 
-COPY ./recipes/ /recipes/
-WORKDIR /recipes/
+COPY ./recipes/ /openstax/recipes/
+WORKDIR /openstax/recipes/
 
 RUN bash -lc " \
     gem install bundler --no-document && \
@@ -265,14 +265,14 @@ RUN bash -lc " \
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
-COPY --from=build-xhtml-validator-stage /xhtml-validator/build/libs/xhtml-validator.jar /xhtml-validator/
-COPY --from=build-mathify-stage /mathify/ /mathify/
-COPY --from=build-python-stage /bakery-scripts/scripts /bakery-scripts/scripts
-COPY --from=build-python-stage /opt/venv/ /opt/venv/
+COPY --from=build-xhtml-validator-stage /openstax/xhtml-validator/build/libs/xhtml-validator.jar /openstax/xhtml-validator/
+COPY --from=build-mathify-stage /openstax/mathify/ /openstax/mathify/
+COPY --from=build-python-stage /openstax/bakery-scripts/scripts /openstax/bakery-scripts/scripts
+COPY --from=build-python-stage /openstax/venv/ /openstax/venv/
 
 # Copy cnx-recipes styles
-COPY ./cnx-recipes/recipes/output/ /cnx-recipes-recipes-output/
-COPY ./cnx-recipes/styles/output/ /cnx-recipes-styles-output/
+COPY ./cnx-recipes/recipes/output/ /openstax/cnx-recipes-recipes-output/
+COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
 COPY ./docker-entrypoint.sh /usr/local/bin/
 COPY ./docker-entrypoint-with-kcov.sh /usr/local/bin/
