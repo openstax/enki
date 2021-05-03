@@ -12,12 +12,9 @@
                 xmlns:cc="http://web.resource.org/cc/"
                 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
                 xml:lang="en" type="Textbook">
-  <metadata xmlns:md="http://cnx.rice.edu/mdml"
-            mdml-version="0.5">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml">
     <!-- WARNING! The 'metadata' section is read only. Do not edit below.
          Changes to the metadata section in the source will not be saved. -->
-
-    <md:repository>http://legacy.cnx.org/content</md:repository>
     <md:content-id>col11406</md:content-id>
     <md:title>College Physics</md:title>
 
@@ -34,34 +31,9 @@
          Changes to the metadata section in the source will not be saved. -->
   </metadata>
 
-  <col:parameters>
-    <col:param name="real-imaginary-notation" value="font"/>
-    <col:param name="and-or-notation"
-               value="propositional-logic"/>
-    <col:param name="gradient-notation" value="text"/>
-    <col:param name="mean-notation" value="bar"/>
-    <col:param name="remainder-notation" value="text"/>
-    <col:param name="conjugate-notation" value="bar"/>
-    <col:param name="imaginary-i-notation" value="i"/>
-    <col:param name="scalar-product-notation"
-               value="angle-bracket"/>
-    <col:param name="print-font-size" value="10pt"/>
-    <col:param name="curl-notation" value="text"/>
-    <col:param name="for-all-equation-layout"
-               value="symbolic"/>
-    <col:param name="vector-notation" value="bold"/>
-    <col:param name="print-paper-size" value="8.5x11"/>
-    <col:param name="print-font" value="computer-modern"/>
-    <col:param name="print-style" value="ccap-physics"/>
-    <col:param name="print-paragraph-spacing"
-               value="compact"/>
-  </col:parameters>
-
   <col:content>
 
-    <col:module document="m42955" version="latest"
-                repository="http://legacy.cnx.org/content"
-                cnxorg:version-at-this-collection-version="1.9">
+    <col:module document="m42955">
       <md:title>Preface</md:title>
     </col:module>
 
@@ -69,60 +41,42 @@
       <md:title>Frontiers of Physics</md:title>
       <col:content>
 
-        <col:module document="m42683" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.4">
+        <col:module document="m42683">
           <md:title>Introduction to Frontiers of Physics</md:title>
         </col:module>
 
-        <col:module document="m42686" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.8">
+        <col:module document="m42686">
           <md:title>Cosmology and Particle Physics</md:title>
         </col:module>
 
-        <col:module document="m42689" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.6">
+        <col:module document="m42689">
           <md:title>General Relativity and Quantum Gravity</md:title>
         </col:module>
 
-        <col:module document="m42691" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.3">
+        <col:module document="m42691">
           <md:title>Superstrings</md:title>
         </col:module>
 
-        <col:module document="m42692" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.5">
+        <col:module document="m42692">
           <md:title>Dark Matter and Closure</md:title>
         </col:module>
 
-        <col:module document="m42694" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.2">
+        <col:module document="m42694">
           <md:title>Complexity and Chaos</md:title>
         </col:module>
 
-        <col:module document="m42696" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.5">
+        <col:module document="m42696">
           <md:title>High-temperature Superconductors</md:title>
         </col:module>
 
-        <col:module document="m42704" version="latest"
-                    repository="http://legacy.cnx.org/content"
-                    cnxorg:version-at-this-collection-version="1.3">
+        <col:module document="m42704">
           <md:title>Some Questions We Know to Ask</md:title>
         </col:module>
 
       </col:content>
     </col:subcollection>
 
-    <col:module document="m42699" version="latest"
-                repository="http://legacy.cnx.org/content"
-                cnxorg:version-at-this-collection-version="1.3">
+    <col:module document="m42699">
       <md:title>Atomic Masses</md:title>
       <col:featured-links>
         <cnxml:link-group type="example">
@@ -135,21 +89,15 @@
       </col:featured-links>
     </col:module>
 
-    <col:module document="m42702" version="latest"
-                repository="http://legacy.cnx.org/content"
-                cnxorg:version-at-this-collection-version="1.2">
+    <col:module document="m42702">
       <md:title>Selected Radioactive Isotopes</md:title>
     </col:module>
 
-    <col:module document="m42720" version="latest"
-                repository="http://legacy.cnx.org/content"
-                cnxorg:version-at-this-collection-version="1.5">
+    <col:module document="m42720">
       <md:title>Useful Information</md:title>
     </col:module>
 
-    <col:module document="m42709" version="latest"
-                repository="http://legacy.cnx.org/content"
-                cnxorg:version-at-this-collection-version="1.4">
+    <col:module document="m42709">
       <md:title>Glossary of Key Symbols and Notation</md:title>
     </col:module>
 
