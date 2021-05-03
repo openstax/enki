@@ -84,7 +84,8 @@ def parse_metadata(elm_tree):
         'version': _maybe(xpath('//md:version/text()')),
         'created': _maybe(xpath('//md:created/text()')),
         'revised': _maybe(xpath('//md:revised/text()')),
-        'title': _maybe(xpath('//md:title/text()')),
+        'title':
+            _maybe(xpath('//md:title/text()')) or xpath('//c:title/text()')[0],
         'slug': _maybe(xpath('//md:slug/text()')),
         'license_url': _maybe(xpath('//md:license/@url')),
         'language': _maybe(xpath('//md:language/text()')),

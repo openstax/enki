@@ -154,9 +154,9 @@ def test_parse_derived_from(xml):
 def test_parse_with_minimal_metadata():
     cnxml = """
         <document xmlns="http://cnx.rice.edu/cnxml">
+            <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
-                <md:title>College Physics</md:title>
                 <md:abstract/>
             </metadata>
         </document>
