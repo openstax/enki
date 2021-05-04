@@ -75,7 +75,7 @@ def test_git_parse(git_xml):
         'license_url': 'http://creativecommons.org/licenses/by/4.0/',
         'licensors': (),
         'maintainers': (),
-        'print_style': 'ccap-physics',
+        'print_style': None,
         'revised': None,
         'subjects': (),
         'title': 'College Physics',
