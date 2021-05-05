@@ -13,6 +13,7 @@ This uses a little wrapper to hide all the docker commands
 # All-in-one Git-based books
 #  CLI   tempdir  command     repo_name              gitref recipe      book_slug
 ./cli.sh tin-bk   all-git-pdf 'philschatz/tiny-book' main   chemistry   book-slug1
+./cli.sh tin-bk   all-git-web 'philschatz/tiny-book' main   chemistry   book-slug1
 
 # Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
@@ -69,3 +70,4 @@ The CLI command (& docker steps) listen to a few optional environment variables,
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
 - [ ] add back support for content servers
+- [ ] Create a pipeline in concourse

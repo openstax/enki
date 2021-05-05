@@ -203,6 +203,8 @@ function do_step() {
             toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
             try aws s3 cp "$book_dir/collection.toc.json" "$toc_s3_link_json"
             try aws s3 cp "$book_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
+
+            echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;
 
 
@@ -474,7 +476,10 @@ function do_step() {
             [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing"
             [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
 
-            try echo -n "https://${s3_bucket_name}.s3.amazonaws.com/${target_pdf_filename}" > "${git_artifacts_dir}/pdf_url"
+            pdf_url="https://${s3_bucket_name}.s3.amazonaws.com/${target_pdf_filename}"
+            try echo -n "${pdf_url}" > "${git_artifacts_dir}/pdf_url"
+
+            echo "DONE: See book at ${pdf_url}"
         ;;
 
         shell | /bin/bash)
