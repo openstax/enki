@@ -238,6 +238,7 @@ RUN set -x \
     && apt-get install --no-install-recommends -y \
         git \
         libdw-dev \
+        libxtst6 \
         # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
         xmlstarlet \
         ;
