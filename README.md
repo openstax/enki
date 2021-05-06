@@ -5,15 +5,15 @@ This uses a little wrapper to hide all the docker commands
 ```sh
 # All-in-one
 #
-#  CLI   tempdir   command         col_id   recipe_name 
-./cli.sh fizix     all-archive-pdf col12006 college-physics
-./cli.sh socio     all-archive-pdf col11407 sociology
-./cli.sh socio     all-archive-web col11407 sociology
+#  CLI   tempdir      command         col_id   recipe_name     version   server
+./cli.sh ./data/fizix all-archive-pdf col12006 college-physics
+./cli.sh ./data/socio all-archive-pdf col11407 sociology
+./cli.sh ./data/socio all-archive-web col11407 sociology
 
 # All-in-one Git-based books
-#  CLI   tempdir  command     repo_name              gitref recipe      book_slug
-./cli.sh tin-bk   all-git-pdf 'philschatz/tiny-book' main   chemistry   book-slug1
-./cli.sh tin-bk   all-git-web 'philschatz/tiny-book' main   chemistry   book-slug1
+#  CLI   tempdir         command     repo_name              gitref recipe      book_slug
+./cli.sh ./data/tin-bk   all-git-pdf 'philschatz/tiny-book' main   chemistry   book-slug1
+./cli.sh ./data/tin-bk   all-git-web 'philschatz/tiny-book' main   chemistry   book-slug1
 
 # Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
@@ -25,23 +25,23 @@ If you want to run a single step at a time specify it as the first argument. Sub
 
 ```sh
 # Common steps
-./cli.sh fizix archive-fetch col12006
-./cli.sh fizix archive-assemble
-./cli.sh fizix archive-link-extras
-./cli.sh fizix archive-bake college-physics # The recipe name
+./cli.sh ./data/fizix archive-fetch col12006
+./cli.sh ./data/fizix archive-assemble
+./cli.sh ./data/fizix archive-link-extras
+./cli.sh ./data/fizix archive-bake college-physics # The recipe name
 
 # PDF steps
-./cli.sh fizix archive-mathify
-./cli.sh fizix archive-pdf
+./cli.sh ./data/fizix archive-mathify
+./cli.sh ./data/fizix archive-pdf
 
 # Webhosting steps
-./cli.sh fizix archive-assemble-metadata
-./cli.sh fizix archive-bake-metadata
-./cli.sh fizix archive-checksum
-./cli.sh fizix archive-disassemble
-./cli.sh fizix archive-patch-disassembled-links
-./cli.sh fizix archive-jsonify
-./cli.sh fizix archive-validate-xhtml
+./cli.sh ./data/fizix archive-assemble-metadata
+./cli.sh ./data/fizix archive-bake-metadata
+./cli.sh ./data/fizix archive-checksum
+./cli.sh ./data/fizix archive-disassemble
+./cli.sh ./data/fizix archive-patch-disassembled-links
+./cli.sh ./data/fizix archive-jsonify
+./cli.sh ./data/fizix archive-validate-xhtml
 ```
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
@@ -52,7 +52,6 @@ The CLI command (& docker steps) listen to a few optional environment variables,
 
 | Name | Use | Description |
 | :--- | :-- | :---------- |
-| `DATA_ROOT=$(pwd)/data` | temp | Directory on where the generated files are stored (on the host)
 | `TRACE_ON=1` | Debug | Set to anything to enable trace output
 | `GH_SECRET_CREDS=user1:skjdhfs...` | Git Clone | An Authorization token from GitHub to clone a private repository
 | `AWS_ACCESS_KEY_ID` | | AWS Upload | See `aws-access` for more

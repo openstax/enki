@@ -165,7 +165,7 @@ function do_step() {
             done
         ;;
         archive-validate-xhtml)
-            for xhtmlfile in $(find $book_dir -name '*.xhtml')
+            for xhtmlfile in $(find $jsonified_dir -name '*@*.xhtml')
             do
                 try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
@@ -494,9 +494,9 @@ function do_step() {
 
 function do_step_named() {
     step_name=$1
-    say "==> Starting ${step_name}"
+    say "==> Starting: $*"
     do_step $@
-    say "==> Ending ${step_name}"
+    say "==> Finished: $*"
 }
 
 

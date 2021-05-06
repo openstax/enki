@@ -8,7 +8,7 @@ set -e
 [[ ${TRACE_ON} ]] && set -x
 
 image_name=my_image
-book_name=$1
+local_dir=$1
 
 # Books use more memory than Docker's default. Check if it is low and inform the user
 hyperkit_file="${HOME}/Library/Containers/com.docker.docker/Data/vms/0/hyperkit.json"
@@ -38,16 +38,14 @@ then
     fi
 fi
 
-local_dir="${DATA_ROOT:-$(pwd)/data}/${book_name}/"
-
-[[ ${book_name} ]] || ( >&2 echo "ERROR: A book name is required as the first argument" && exit 111)
+[[ ${local_dir} ]] || ( >&2 echo "ERROR: A local temp directory for the book is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
-[[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
+[[ -d ${local_dir} ]] || mkdir "${local_dir}"
 
 docker build -t ${image_name} .
-docker run -it -v ${local_dir}:/data/ \
+docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     -e GH_SECRET_CREDS \
     -e AWS_ACCESS_KEY_ID \
     -e AWS_SECRET_ACCESS_KEY \

@@ -124,7 +124,7 @@ const feeder = {
     ]
 }
 
-const baker = {
+const webBaker = {
     name: 'bakery',
     max_in_flight: env.isDev ? 2 : 5,
     plan: [
@@ -161,7 +161,7 @@ const baker = {
             echo -n "$(cat $book | jq -r '.uuid')" >${IN_OUT.BOOK}/uuid
     `, [RESOURCES.S3_QUEUE], [IN_OUT.BOOK]),
 
-        pipeliney(docker, { COLUMNS: 80 }, 'archive-pdf-book', dedent`
+        pipeliney(docker, { COLUMNS: 80 }, 'all-web-book', dedent`
             exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
 
             book_style="$(cat ./${IN_OUT.BOOK}/style)"
@@ -171,14 +171,14 @@ const baker = {
             if [[ -f ./${IN_OUT.BOOK}/repo ]]; then
                 book_repo="$(cat ./${IN_OUT.BOOK}/repo)"
                 book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
-                docker-entrypoint.sh all-git-pdf "$book_repo" "$book_version" "$book_style" "$book_slug"
+                docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"
             else
                 book_server="$(cat ./${IN_OUT.BOOK}/server)"
                 book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
-                docker-entrypoint.sh all-archive-pdf "$book_col_id" "$book_style" "$book_version" "$book_server"
+                docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
             fi
 `, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG])
     ]
 }
 
-fs.writeFileSync(process.argv[2], yaml.dump({ jobs: [feeder, baker], resources }))
+fs.writeFileSync('./build-web.yml', yaml.dump({ jobs: [feeder, webBaker], resources }))
