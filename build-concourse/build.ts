@@ -19,12 +19,12 @@ type Settings = {
     AWS_SESSION_TOKEN?: string,
     s3Bucket: string,
     codeVersion: string,
-    dockerTag: string,
     isDev: boolean
 }
 type Env = { [key: string]: string | number }
 type DockerDetails = {
     repository: string
+    tag: string
     username?: string,
     password?: string
 }
@@ -44,7 +44,6 @@ const devOrProductionSettings = (): Settings => {
             AWS_ACCESS_KEY_ID: expectEnv('AWS_ACCESS_KEY_ID'),
             AWS_SECRET_ACCESS_KEY: expectEnv('AWS_SECRET_ACCESS_KEY'),
             AWS_SESSION_TOKEN: expectEnv('AWS_SESSION_TOKEN'),
-            dockerTag: '',
             codeVersion: `randomlocaldevtag-${rand(7)}`,
             s3Bucket: 'openstax-sandbox-web-hosting-content-queue-state',
             isDev: true
@@ -53,7 +52,6 @@ const devOrProductionSettings = (): Settings => {
         return {
             AWS_ACCESS_KEY_ID: '((prod-web-hosting-content-gatekeeper-access-key-id))',
             AWS_SECRET_ACCESS_KEY: '((prod-web-hosting-content-gatekeeper-secret-access-key))',
-            dockerTag: expectEnv('CODE_VERSION'),
             codeVersion: expectEnv('CODE_VERSION'),
             s3Bucket: 'openstax-web-hosting-content-queue-state',
             isDev: false
@@ -73,7 +71,7 @@ const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: strin
             type: 'docker-image',
             source: {
                 repository: docker.repository,
-                tag: env.dockerTag,
+                tag: docker.tag,
                 username: docker.username,
                 password: docker.password
             }
@@ -85,10 +83,11 @@ const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: strin
     }
 })
 
+const env = devOrProductionSettings()
 const docker: DockerDetails = {
     repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
+    tag: env.isDev ? 'main' : expectEnv('CODE_VERSION')
 }
-const env = devOrProductionSettings()
 
 const resources = [
     {
@@ -172,12 +171,17 @@ const webBaker = {
                 book_repo="$(cat ./${IN_OUT.BOOK}/repo)"
                 book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
                 docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"
+                echo "Git upload not supported yet"
+                exit 1
             else
                 book_server="$(cat ./${IN_OUT.BOOK}/server)"
                 book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
                 docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
+                echo "===> Upload book"
+                docker-entrypoint.sh archive-upload-book "${env.s3Bucket}" "${env.codeVersion}"
             fi
-`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG])
+`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG]),
+
     ]
 }
 
