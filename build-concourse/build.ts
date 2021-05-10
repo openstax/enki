@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
+import { DockerDetails, pipeliney } from './util'
 
 const CONTENT_SOURCE = 'archive'
 
@@ -20,13 +21,6 @@ type Settings = {
     s3Bucket: string,
     codeVersion: string,
     isDev: boolean
-}
-type Env = { [key: string]: string | number }
-type DockerDetails = {
-    repository: string
-    tag: string
-    username?: string,
-    password?: string
 }
 
 const expectEnv = (name: string) => {
@@ -59,34 +53,12 @@ const devOrProductionSettings = (): Settings => {
     }
 }
 
-const bashy = (cmd) => ({
-    path: '/bin/bash',
-    args: ['-cxe', `source /openstax/venv/bin/activate\n${cmd}`]
-})
-const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: string, inputs: string[], outputs: string[]) => ({
-    task: taskName,
-    config: {
-        platform: 'linux',
-        image_resource: {
-            type: 'docker-image',
-            source: {
-                repository: docker.repository,
-                tag: docker.tag,
-                username: docker.username,
-                password: docker.password
-            }
-        },
-        params: env,
-        run: bashy(cmd),
-        inputs: inputs.map(name => ({ name })),
-        outputs: outputs.map(name => ({ name })),
-    }
-})
 
 const env = devOrProductionSettings()
 const docker: DockerDetails = {
     repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
-    tag: env.isDev ? 'main' : expectEnv('CODE_VERSION')
+    tag: env.isDev ? 'main' : expectEnv('CODE_VERSION'),
+    corgiApiUrl: 'http://localhost:19281/corgi-dummy-placeholder'
 }
 
 const resources = [
@@ -160,7 +132,7 @@ const webBaker = {
             echo -n "$(cat $book | jq -r '.uuid')" >${IN_OUT.BOOK}/uuid
     `, [RESOURCES.S3_QUEUE], [IN_OUT.BOOK]),
 
-        pipeliney(docker, { COLUMNS: 80 }, 'all-web-book', dedent`
+        pipeliney(docker, { AWS_ACCESS_KEY_ID: env.AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN: env.AWS_SESSION_TOKEN, COLUMNS: 80 }, 'all-web-book', dedent`
             exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
 
             book_style="$(cat ./${IN_OUT.BOOK}/style)"
