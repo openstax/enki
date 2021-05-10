@@ -27,7 +27,7 @@ export type DockerDetails = {
     tag: string
     username?: string
     password?: string
-    corgiApiUrl: string
+    corgiApiUrl?: string
 }
 
 type TaskArgs = {
@@ -38,11 +38,42 @@ type TaskArgs = {
     abortedStates: Status[]
 }
 
+export type TaskStepThing<TEnv> = {
+    task: string
+    config: {
+        platform: 'linux'
+        image_resource: {
+            type: 'docker-image'
+            source: {
+                repository: string
+                tag: string
+                username?: string
+                password?: string
+            }
+        },
+        params: TEnv
+        run: { path: string,
+            args: string[]}
+        inputs: Array<{name: string}>
+        outputs: Array<{name: string}>
+    }
+} | {
+    get: string
+    trigger: boolean
+    version: 'every'
+}
+
+const expect = <T>(v: T | null | undefined): T => {
+    if (v == null) {
+        throw new Error('BUG/ERROR: This value is expected to exist')
+    }
+    return v
+}
 const bashy = (cmd: string) => ({
     path: '/bin/bash',
     args: ['-cxe', `source /openstax/venv/bin/activate\n${cmd}`]
 })
-export const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: string, inputs: string[], outputs: string[]) => ({
+export const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: string, inputs: string[], outputs: string[]): TaskStepThing<Env> => ({
     task: taskName,
     config: {
         platform: 'linux',
@@ -75,7 +106,7 @@ const reportToOutputProducer = (resource: string) => {
     }
 }
 
-const taskStatusCheck = (docker, taskArgs: TaskArgs) => {
+const taskStatusCheck = (docker: DockerDetails, taskArgs: TaskArgs) => {
     const { resource, apiRoot, processingStates, completedStates, abortedStates } = taskArgs
 
     const toBashCaseMatch = (list: Status[]) => {
@@ -132,7 +163,7 @@ const taskStatusCheck = (docker, taskArgs: TaskArgs) => {
     return pipeliney(docker, env, 'status-check', cmd, inputs, [])
 }
 
-const runWithStatusCheck = (docker: DockerDetails, resource, step) => {
+const runWithStatusCheck = (docker: DockerDetails, resource: string, step: TaskStepThing<Env>) => {
     const reporter = reportToOutputProducer(resource)
     return {
         in_parallel: {
@@ -143,7 +174,7 @@ const runWithStatusCheck = (docker: DockerDetails, resource, step) => {
                     do: [
                         taskStatusCheck(docker, {
                             resource: resource,
-                            apiRoot: docker.corgiApiUrl,
+                            apiRoot: expect(docker.corgiApiUrl),
                             processingStates: [Status.ASSIGNED, Status.PROCESSING],
                             completedStates: [Status.FAILED, Status.SUCCEEDED],
                             abortedStates: [Status.ABORTED]
@@ -158,7 +189,7 @@ const runWithStatusCheck = (docker: DockerDetails, resource, step) => {
     }
 }
 
-export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, resource: string, step) => {
+export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, resource: string, steps: TaskStepThing<any>[], extraArgs?: any) => {
     const report = reportToOutputProducer(resource)
     return {
         name: jobName,
@@ -174,13 +205,14 @@ export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, reso
                     error_message: genericErrorMessage
                 })
             },
-            runWithStatusCheck(docker, resource, step)
+            ...steps.map(s => runWithStatusCheck(docker, resource, s))
         ],
         on_error: report(Status.FAILED, {
             error_message: genericErrorMessage
         }),
         on_abort: report(Status.ABORTED, {
             error_message: genericAbortMessage
-        })
+        }),
+        ...extraArgs
     }
 }

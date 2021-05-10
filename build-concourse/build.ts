@@ -53,12 +53,10 @@ const devOrProductionSettings = (): Settings => {
     }
 }
 
-
 const env = devOrProductionSettings()
 const docker: DockerDetails = {
     repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
     tag: env.isDev ? 'main' : expectEnv('CODE_VERSION'),
-    corgiApiUrl: 'http://localhost:19281/corgi-dummy-placeholder'
 }
 
 const resources = [
