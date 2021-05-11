@@ -33,51 +33,23 @@
 
   <col:content>
 
-    <col:module document="m42955">
-      <md:title>Preface</md:title>
-    </col:module>
+    <col:module document="m42955" />
 
     <col:subcollection>
       <md:title>Frontiers of Physics</md:title>
       <col:content>
-
-        <col:module document="m42683">
-          <md:title>Introduction to Frontiers of Physics</md:title>
-        </col:module>
-
-        <col:module document="m42686">
-          <md:title>Cosmology and Particle Physics</md:title>
-        </col:module>
-
-        <col:module document="m42689">
-          <md:title>General Relativity and Quantum Gravity</md:title>
-        </col:module>
-
-        <col:module document="m42691">
-          <md:title>Superstrings</md:title>
-        </col:module>
-
-        <col:module document="m42692">
-          <md:title>Dark Matter and Closure</md:title>
-        </col:module>
-
-        <col:module document="m42694">
-          <md:title>Complexity and Chaos</md:title>
-        </col:module>
-
-        <col:module document="m42696">
-          <md:title>High-temperature Superconductors</md:title>
-        </col:module>
-
-        <col:module document="m42704">
-          <md:title>Some Questions We Know to Ask</md:title>
-        </col:module>
-
+        <col:module document="m42683" />
+        <col:module document="m42686" />
+        <col:module document="m42689" />
+        <col:module document="m42691" />
+        <col:module document="m42692" />
+        <col:module document="m42694" />
+        <col:module document="m42696" />
+        <col:module document="m42704" />
       </col:content>
     </col:subcollection>
 
     <col:module document="m42699">
-      <md:title>Atomic Masses</md:title>
       <col:featured-links>
         <cnxml:link-group type="example">
           <cnxml:link url="http://example.com/exampe1">Example</cnxml:link>
@@ -89,18 +61,9 @@
       </col:featured-links>
     </col:module>
 
-    <col:module document="m42702">
-      <md:title>Selected Radioactive Isotopes</md:title>
-    </col:module>
-
-    <col:module document="m42720">
-      <md:title>Useful Information</md:title>
-    </col:module>
-
-    <col:module document="m42709">
-      <md:title>Glossary of Key Symbols and Notation</md:title>
-    </col:module>
-
+    <col:module document="m42702" />
+    <col:module document="m42720" />
+    <col:module document="m42709" />
   </col:content>
 
 </col:collection>
