@@ -1,74 +1,22 @@
 import * as fs from 'fs'
 import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
-import { DockerDetails, pipeliney } from './util'
+import { devOrProductionSettings, IN_OUT, populateEnv, RESOURCES, toConcourseTask } from './util'
 
 const CONTENT_SOURCE = 'archive'
 
-enum RESOURCES {
-    S3_QUEUE = 's3-queue',
-    TICKER = 'ticker',
-}
-enum IN_OUT {
-    BOOK = 'book',
-    COMMON_LOG = 'common-log',
-}
-
-type Settings = { 
-    AWS_ACCESS_KEY_ID: string,
-    AWS_SECRET_ACCESS_KEY: string,
-    AWS_SESSION_TOKEN?: string,
-    s3Bucket: string,
-    codeVersion: string,
-    isDev: boolean
-}
-
-const expectEnv = (name: string) => {
-    const value = process.env[name]
-    if (!value) {
-        throw new Error(`Missing Environment variable: ${name}. This should only occur during dev mode`)
-    }
-    return value
-}
-const rand = (len: number) => Math.random().toString().substr(2, len)
-
-const devOrProductionSettings = (): Settings => {
-    if (process.env['DEV_MODE'] || process.env['AWS_SESSION_TOKEN']) {
-        return {
-            AWS_ACCESS_KEY_ID: expectEnv('AWS_ACCESS_KEY_ID'),
-            AWS_SECRET_ACCESS_KEY: expectEnv('AWS_SECRET_ACCESS_KEY'),
-            AWS_SESSION_TOKEN: expectEnv('AWS_SESSION_TOKEN'),
-            codeVersion: `randomlocaldevtag-${rand(7)}`,
-            s3Bucket: 'openstax-sandbox-web-hosting-content-queue-state',
-            isDev: true
-        }
-    } else {
-        return {
-            AWS_ACCESS_KEY_ID: '((prod-web-hosting-content-gatekeeper-access-key-id))',
-            AWS_SECRET_ACCESS_KEY: '((prod-web-hosting-content-gatekeeper-secret-access-key))',
-            codeVersion: expectEnv('CODE_VERSION'),
-            s3Bucket: 'openstax-web-hosting-content-queue-state',
-            isDev: false
-        }
-    }
-}
-
 const env = devOrProductionSettings()
-const docker: DockerDetails = {
-    repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
-    tag: env.isDev ? 'main' : expectEnv('CODE_VERSION'),
-}
-
+const myEnv = populateEnv({AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false})
 const resources = [
     {
         name: RESOURCES.S3_QUEUE,
         source: {
-            access_key_id: env.AWS_ACCESS_KEY_ID,
-            secret_access_key: env.AWS_SECRET_ACCESS_KEY,
-            session_token: env.AWS_SESSION_TOKEN,
-            bucket: env.s3Bucket,
+            access_key_id: myEnv.AWS_ACCESS_KEY_ID,
+            secret_access_key: myEnv.AWS_SECRET_ACCESS_KEY,
+            session_token: myEnv.AWS_SESSION_TOKEN,
+            bucket: devOrProductionSettings().queueBucket,
             initial_version: 'initializing',
-            versioned_file: `${env.codeVersion}.web-hosting-queue.json`
+            versioned_file: `${devOrProductionSettings().codeVersion}.web-hosting-queue.json`
         },
         type: 's3',
     },
@@ -86,10 +34,10 @@ const feeder = {
     plan: [{
         get: RESOURCES.TICKER,
         trigger: true,
-    }, pipeliney(docker, {AWS_ACCESS_KEY_ID: env.AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN: env.AWS_SESSION_TOKEN}, 'check-feed', dedent`
+    }, toConcourseTask('check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}, dedent`
             curl https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json -o book-feed.json
-            check-feed book-feed.json "${env.codeVersion}" "${env.s3Bucket}" "${env.codeVersion}.web-hosting-queue.json" "50" "archive-dist" "archive"
-        `, [], []),
+            check-feed book-feed.json "${env.codeVersion}" "${env.queueBucket}" "${env.codeVersion}.web-hosting-queue.json" "50" "archive-dist" "archive"
+        `),
     ]
 }
 
@@ -102,7 +50,7 @@ const webBaker = {
             trigger: true,
             version: 'every'
         },
-        pipeliney(docker, { CONTENT_SOURCE }, 'dequeue-book', dedent`
+        toConcourseTask('dequeue-book', [RESOURCES.S3_QUEUE], [IN_OUT.BOOK], { CONTENT_SOURCE }, dedent`
             exec 2> >(tee ${IN_OUT.BOOK}/stderr >&2)
             book="${RESOURCES.S3_QUEUE}/${env.codeVersion}.web-hosting-queue.json"
             if [[ ! -s "$book" ]]; then
@@ -128,9 +76,9 @@ const webBaker = {
             echo -n "$(cat $book | jq -r '.style')" >${IN_OUT.BOOK}/style
             echo -n "$(cat $book | jq -r '.version')" >${IN_OUT.BOOK}/version
             echo -n "$(cat $book | jq -r '.uuid')" >${IN_OUT.BOOK}/uuid
-    `, [RESOURCES.S3_QUEUE], [IN_OUT.BOOK]),
+    `),
 
-        pipeliney(docker, { AWS_ACCESS_KEY_ID: env.AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN: env.AWS_SESSION_TOKEN, COLUMNS: 80 }, 'all-web-book', dedent`
+        toConcourseTask('all-web-book', [IN_OUT.BOOK], [IN_OUT.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, COLUMNS: '80' }, dedent`
             exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
 
             book_style="$(cat ./${IN_OUT.BOOK}/style)"
@@ -148,9 +96,9 @@ const webBaker = {
                 book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
                 docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
                 echo "===> Upload book"
-                docker-entrypoint.sh archive-upload-book "${env.s3Bucket}" "${env.codeVersion}"
+                docker-entrypoint.sh archive-upload-book "${env.queueBucket}" "${env.codeVersion}"
             fi
-`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG]),
+`),
 
     ]
 }

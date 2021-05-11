@@ -458,15 +458,15 @@ function do_step() {
         ;;
         git-pdfify)
             target_slug_name=$2
-            target_pdf_filename=$3
+            target_pdf_path=$3
 
             [[ ${target_slug_name} ]] || die "A book slug name is missing"
-            [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
+            [[ ${target_pdf_path} ]] || die "A target PDF filename name is missing"
 
             check_input_dir "${git_mathified_dir}"
             check_output_dir "${git_artifacts_dir}"
 
-            try prince -v --output="${git_artifacts_dir}/${target_pdf_filename}" "${git_mathified_dir}/${target_slug_name}.mathified.xhtml"
+            try prince -v --output="${target_pdf_path}" "${git_mathified_dir}/${target_slug_name}.mathified.xhtml"
         ;;
         git-pdfify-meta)
             s3_bucket_name=$2
@@ -569,7 +569,8 @@ case $1 in
         git_ref=$3
         recipe_name=$4
         target_slug_name=$5
-        opt_only_one_book=$6
+        target_pdf_path=${6:-${git_artifacts_dir}/filename.pdf}
+        opt_only_one_book=$7
 
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
         [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
@@ -590,7 +591,7 @@ case $1 in
         do_step_named git-link ${target_slug_name} ${opt_only_one_book}
         
         do_step_named git-mathify ${target_slug_name}
-        do_step_named git-pdfify ${target_slug_name} file.pdf
+        do_step_named git-pdfify ${target_slug_name} ${target_pdf_path}
     ;;
     *) # Assume the user is only running one step
         do_step $@

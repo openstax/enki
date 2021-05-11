@@ -1,3 +1,5 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import * as dedent from 'dedent'
 
 const buildLogRetentionDays = 14
@@ -21,7 +23,8 @@ export enum Status {
 }
 
 
-export type Env = { [key: string]: string | number }
+// A Boolean value denotes that the value will be looked up from this scripts' environment and `true` indicates that it is required
+export type Env = { [key: string]: string | boolean }
 export type DockerDetails = {
     repository: string
     tag: string
@@ -38,7 +41,8 @@ type TaskArgs = {
     abortedStates: Status[]
 }
 
-export type TaskStepThing<TEnv> = {
+export type Pipeline = any
+export type ConcourseTask = {
     task: string
     config: {
         platform: 'linux'
@@ -51,7 +55,7 @@ export type TaskStepThing<TEnv> = {
                 password?: string
             }
         },
-        params: TEnv
+        params: Env
         run: { path: string,
             args: string[]}
         inputs: Array<{name: string}>
@@ -63,9 +67,36 @@ export type TaskStepThing<TEnv> = {
     version: 'every'
 }
 
-const expect = <T>(v: T | null | undefined): T => {
+export enum RESOURCES {
+    S3_QUEUE = 's3-queue',
+    TICKER = 'ticker',
+    OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
+}
+export enum IN_OUT {
+    BOOK = 'book',
+    COMMON_LOG = 'common-log',
+}
+
+export type TaskNode = {
+    inputs: IN_OUT[]
+    outputs: IN_OUT[]
+    staticEnv: Env
+    dynamicEnvKeys: string[]
+    name: string
+    code: string
+}
+
+const hardCodeSomeEnvValuesWhenNotDevMode = (key: string) => {
+    if (!devOrProductionSettings().isDev) {
+        if (key === 'AWS_ACCESS_KEY_ID') { return '((prod-web-hosting-content-gatekeeper-access-key-id))' }
+        else if (key === 'AWS_SECRET_ACCESS_KEY') { return '((prod-web-hosting-content-gatekeeper-secret-access-key))'}
+    }
+    return process.env[key]
+}
+
+const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR: This value is expected to exist'): T => {
     if (v == null) {
-        throw new Error('BUG/ERROR: This value is expected to exist')
+        throw new Error(message)
     }
     return v
 }
@@ -73,7 +104,23 @@ const bashy = (cmd: string) => ({
     path: '/bin/bash',
     args: ['-cxe', `source /openstax/venv/bin/activate\n${cmd}`]
 })
-export const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd: string, inputs: string[], outputs: string[]): TaskStepThing<Env> => ({
+export const populateEnv = (env: Env) => {
+    const ret: any = {}
+    for (const key in env) {
+        const value = env[key]
+        if (value === true) {
+            ret[key] = expect(hardCodeSomeEnvValuesWhenNotDevMode(key), `Expected environment variable '${key}' to be set but it was not.`)
+        } else if (value === false) {
+            ret[key] = hardCodeSomeEnvValuesWhenNotDevMode(key)
+        } else if(typeof value === 'string') {
+            ret[key] = value
+        } else {
+            throw new Error('BUG: Unsupported type')
+        }
+    }
+    return ret
+}
+export const toConcourseTask = (taskName: string, inputs: string[], outputs: string[], env: Env, cmd: string): ConcourseTask => ({
     task: taskName,
     config: {
         platform: 'linux',
@@ -86,15 +133,16 @@ export const pipeliney = (docker: DockerDetails, env: Env, taskName: string, cmd
                 password: docker.password
             }
         },
-        params: env,
+        params: populateEnv(env),
         run: bashy(cmd),
         inputs: inputs.map(name => ({ name })),
         outputs: outputs.map(name => ({ name })),
     }
 })
+export const readScript = (pathToFile: string) => `${fs.readFileSync(path.resolve(__dirname, pathToFile), { encoding: 'utf-8' })}\n# Source: ${pathToFile}`
 
-const reportToOutputProducer = (resource: string) => {
-    return (status: number, extras: any) => {
+export const reportToOutputProducer = (resource: RESOURCES) => {
+    return (status: number, extras?: any) => {
         return {
             put: resource,
             params: {
@@ -106,7 +154,7 @@ const reportToOutputProducer = (resource: string) => {
     }
 }
 
-const taskStatusCheck = (docker: DockerDetails, taskArgs: TaskArgs) => {
+const taskStatusCheck = (taskArgs: TaskArgs) => {
     const { resource, apiRoot, processingStates, completedStates, abortedStates } = taskArgs
 
     const toBashCaseMatch = (list: Status[]) => {
@@ -114,8 +162,8 @@ const taskStatusCheck = (docker: DockerDetails, taskArgs: TaskArgs) => {
     }
 
     const env = {
-        RESOURCE: resource,
-        API_ROOT: apiRoot,
+        RESOURCE: expect(resource),
+        API_ROOT: expect(apiRoot),
         PROCESSING_STATES: toBashCaseMatch(processingStates),
         COMPLETED_STATES: toBashCaseMatch(completedStates),
         ABORTED_STATES: toBashCaseMatch(abortedStates)
@@ -159,11 +207,10 @@ const taskStatusCheck = (docker: DockerDetails, taskArgs: TaskArgs) => {
         sleep 30
       done
       `
-    const inputs = [resource]
-    return pipeliney(docker, env, 'status-check', cmd, inputs, [])
+    return toConcourseTask('status-check', [resource], [], env, cmd)
 }
 
-const runWithStatusCheck = (docker: DockerDetails, resource: string, step: TaskStepThing<Env>) => {
+const runWithStatusCheck = (resource: RESOURCES, step: Pipeline) => {
     const reporter = reportToOutputProducer(resource)
     return {
         in_parallel: {
@@ -172,7 +219,7 @@ const runWithStatusCheck = (docker: DockerDetails, resource: string, step: TaskS
                 step,
                 {
                     do: [
-                        taskStatusCheck(docker, {
+                        taskStatusCheck({
                             resource: resource,
                             apiRoot: expect(docker.corgiApiUrl),
                             processingStates: [Status.ASSIGNED, Status.PROCESSING],
@@ -189,7 +236,7 @@ const runWithStatusCheck = (docker: DockerDetails, resource: string, step: TaskS
     }
 }
 
-export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, resource: string, steps: TaskStepThing<any>[], extraArgs?: any) => {
+export const wrapGenericCorgiJob = (jobName: string, resource: RESOURCES, step: Pipeline, extraArgs?: any) => {
     const report = reportToOutputProducer(resource)
     return {
         name: jobName,
@@ -205,7 +252,7 @@ export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, reso
                     error_message: genericErrorMessage
                 })
             },
-            ...steps.map(s => runWithStatusCheck(docker, resource, s))
+            runWithStatusCheck(resource, step)
         ],
         on_error: report(Status.FAILED, {
             error_message: genericErrorMessage
@@ -215,4 +262,71 @@ export const wrapGenericCorgiJob = (docker: DockerDetails, jobName: string, reso
         }),
         ...extraArgs
     }
+}
+
+
+export enum PDF_OR_WEB {
+    PDF = 'pdf',
+    WEB = 'web'
+  }
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`allPdfOrWeb=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, COLUMNS: '80' }, dedent`
+      exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
+  
+      book_style="$(cat ./${IN_OUT.BOOK}/style)"
+      book_version="$(cat ./${IN_OUT.BOOK}/version)"
+  
+      if [[ -f ./${IN_OUT.BOOK}/repo ]]; then
+          book_repo="$(cat ./${IN_OUT.BOOK}/repo)"
+          book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
+          docker-entrypoint.sh all-git-${pdfOrWeb} "$book_repo" "$book_version" "$book_style" "$book_slug"
+      else
+          book_server="$(cat ./${IN_OUT.BOOK}/server)"
+          book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
+          docker-entrypoint.sh all-archive-${pdfOrWeb} "$book_col_id" "$book_style" "$book_version" "$book_server"
+      fi
+      `)
+  
+
+
+type Settings = { 
+    queueBucket: string,
+    artifactBucket: string,
+    codeVersion: string,
+    isDev: boolean
+}
+
+export const expectEnv = (name: string) => {
+    const value = process.env[name]
+    if (!value) {
+        throw new Error(`Missing Environment variable: ${name}. This should only occur during dev mode`)
+    }
+    return value
+}
+const rand = (len: number) => Math.random().toString().substr(2, len)
+
+export const devOrProductionSettings = (): Settings => {
+    if (process.env['DEV_MODE'] || process.env['AWS_SESSION_TOKEN']) {
+        return {
+            codeVersion: `randomlocaldevtag-${rand(7)}`,
+            queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
+            artifactBucket: 'phil-bucket',
+            isDev: true
+        }
+    } else {
+        return {
+            codeVersion: expectEnv('CODE_VERSION'),
+            queueBucket: 'openstax-web-hosting-content-queue-state',
+            artifactBucket: expectEnv('COPS_ARTIFACTS_S3_BUCKET'),
+            isDev: false
+        }
+    }
+}
+
+
+export const docker: DockerDetails = {
+    repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
+    tag: devOrProductionSettings().isDev ? 'main' : expectEnv('CODE_VERSION'),
+    username: process.env['DOCKER_USERNAME'],
+    password: process.env['DOCKER_PASSWORD'],
+    corgiApiUrl: devOrProductionSettings().isDev ? 'https://corgi-staging.openstax.org/api' : 'https://corgi.openstax.org/api'
 }

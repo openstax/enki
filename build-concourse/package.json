@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "ts-node ./build-web.ts"
+    "start": "ts-node ./build-corgi.ts && ts-node ./build-web.ts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
