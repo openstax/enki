@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "${MESSAGE}" > "${COMMON_LOG_DIR}/log"
+echo "${MESSAGE}" > "${IO_COMMON_LOG}/log"

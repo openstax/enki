@@ -72,15 +72,17 @@ export enum RESOURCES {
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
 }
-export enum IN_OUT {
+// Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
+// so that the scripts do not have to hardcode these directories into the script file
+export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
     ARTIFACTS_SINGLE = 'artifacts-single',
 }
 
 export type TaskNode = {
-    inputs: IN_OUT[]
-    outputs: IN_OUT[]
+    inputs: IO[]
+    outputs: IO[]
     staticEnv: Env
     dynamicEnvKeys: string[]
     name: string
@@ -121,6 +123,13 @@ export const populateEnv = (env: Env) => {
     }
     return ret
 }
+const toUpperCamel = (s: string) => s.toUpperCase().replace(/-/g, '_')
+const ioToEnvVars = (inputs: string[], outputs: string[]) => {
+    const ret = {}
+    inputs.forEach(s => ret[`IO_${toUpperCamel(s)}`] = s)
+    outputs.forEach(s => ret[`IO_${toUpperCamel(s)}`] = s)
+    return ret
+}
 export const toConcourseTask = (taskName: string, inputs: string[], outputs: string[], env: Env, cmd: string): ConcourseTask => ({
     task: taskName,
     config: {
@@ -134,7 +143,7 @@ export const toConcourseTask = (taskName: string, inputs: string[], outputs: str
                 password: docker.password
             }
         },
-        params: populateEnv(env),
+        params: {...ioToEnvVars(inputs, outputs), ...populateEnv(env)},
         run: bashy(cmd),
         inputs: inputs.map(name => ({ name })),
         outputs: outputs.map(name => ({ name })),
@@ -169,46 +178,7 @@ const taskStatusCheck = (taskArgs: TaskArgs) => {
         COMPLETED_STATES: toBashCaseMatch(completedStates),
         ABORTED_STATES: toBashCaseMatch(abortedStates)
     }
-    const cmd = dedent`#!/bin/bash
-      job_id=$(cat "$RESOURCE/id")
-      subsequent_failures=0
-      while true; do
-        curl -w "%{http_code}" -o response "$API_ROOT/jobs/$job_id" > status_code
-        timestamp=$(date '+%H:%M:%S')
-        status_code="$(cat status_code)"
-        if [[ "$status_code" = "200" ]]; then
-          subsequent_failures=0
-          current_job_status_id=$(jq -r '.status.id' response)
-          shopt -s extglob
-          case "$current_job_status_id" in
-            $PROCESSING_STATES)
-              echo "$timestamp | Pipeline running, no intervention needed"
-              ;;
-            $COMPLETED_STATES)
-              echo "$timestamp | Pipeline completed, no intervention needed"
-              sleep 1
-              exit 0
-              ;;
-            $ABORTED_STATES)
-              echo "$timestamp | Job aborted via UI, torpedoing the build"
-              sleep 1
-              exit 1
-              ;;
-            *)
-              echo "$timestamp | Unknown job status id ('$current_job_status_id'), torpedoing the build"
-              sleep 1
-              exit 1
-              ;;
-          esac
-        elif [[ "$((++subsequent_failures))" -gt "2" ]]; then
-          echo "$timestamp | Unable to check status code ('$status_code'), torpedoing the build"
-          sleep 1
-          exit 1
-        fi
-        sleep 30
-      done
-      `
-    return toConcourseTask('status-check', [resource], [], env, cmd)
+    return toConcourseTask('status-check', [resource], [], env, readScript('script/task_status_check.sh'))
 }
 
 const runWithStatusCheck = (resource: RESOURCES, step: Pipeline) => {
@@ -270,36 +240,7 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG, IN_OUT.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, dedent`
-      exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
-  
-      book_style="$(cat ./${IN_OUT.BOOK}/style)"
-      book_version="$(cat ./${IN_OUT.BOOK}/version)"
-
-      if [[ -f ./${IN_OUT.BOOK}/repo ]]; then
-          book_repo="$(cat ./${IN_OUT.BOOK}/repo)"
-          book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
-          pdf_filename="$(cat ./${IN_OUT.BOOK}/pdf_filename)"
-          if [[ $PDF_OR_WEB == 'pdf' ]]; then
-              docker-entrypoint.sh all-git-pdf "$book_repo" "$book_version" "$book_style" "$book_slug" $pdf_filename
-              docker-entrypoint.sh git-pdfify-meta $S3_ARTIFACTS_BUCKET $pdf_filename
-              # Move the PDF and pdf_url into the out directory
-              mv $pdf_filename ${IN_OUT.ARTIFACTS_SINGLE}/
-              mv /data/artifacts-single/* ${IN_OUT.ARTIFACTS_SINGLE}/
-          else # web
-              docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"
-          fi
-      else
-          book_server="$(cat ./${IN_OUT.BOOK}/server)"
-          book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
-
-          if [[ $PDF_OR_WEB == 'pdf' ]]; then
-              docker-entrypoint.sh all-archive-pdf "$book_col_id" "$book_style" "$book_version" "$book_server" ${IN_OUT.ARTIFACTS_SINGLE}/book.pdf
-          else # web
-              docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
-          fi
-      fi
-      `)
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
   
 
 
