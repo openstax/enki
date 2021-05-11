@@ -53,6 +53,7 @@ const resources = [
         bucket: devOrProductionSettings().artifactBucket,
         access_key_id: myEnv.AWS_ACCESS_KEY_ID,
         secret_access_key: myEnv.AWS_SECRET_ACCESS_KEY,
+        session_token: myEnv.AWS_SESSION_TOKEN,
         skip_download: true
       }
     }
@@ -114,14 +115,14 @@ report = reportToOutputProducer(RESOURCES.OUTPUT_PRODUCER_GIT_PDF)
       {
         put: 's3-pdf',
         params: {
-          file: 'artifacts-single/*.pdf',
+          file: `${IN_OUT.ARTIFACTS_SINGLE}/*.pdf`,
           acl: 'public-read',
           content_type: 'application/pdf'
         }
       }
     ],
     on_success: report(Status.SUCCEEDED, {
-      pdf_url: 'artifacts-single/pdf_url'
+      pdf_url: `${IN_OUT.ARTIFACTS_SINGLE}/pdf_url`
     }),
     on_failure: report(Status.FAILED, {
       error_message_file: commonLogFile

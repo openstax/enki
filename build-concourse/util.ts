@@ -75,6 +75,7 @@ export enum RESOURCES {
 export enum IN_OUT {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
+    ARTIFACTS_SINGLE = 'artifacts-single',
 }
 
 export type TaskNode = {
@@ -269,20 +270,34 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`allPdfOrWeb=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, COLUMNS: '80' }, dedent`
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`allPdfOrWeb=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG, IN_OUT.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, dedent`
       exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
   
       book_style="$(cat ./${IN_OUT.BOOK}/style)"
       book_version="$(cat ./${IN_OUT.BOOK}/version)"
-  
+
       if [[ -f ./${IN_OUT.BOOK}/repo ]]; then
           book_repo="$(cat ./${IN_OUT.BOOK}/repo)"
           book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
-          docker-entrypoint.sh all-git-${pdfOrWeb} "$book_repo" "$book_version" "$book_style" "$book_slug"
+          pdf_filename="$(cat ./${IN_OUT.BOOK}/pdf_filename)"
+          if [[ $PDF_OR_WEB == 'pdf' ]]; then
+              pdf_filename="book-$book_repo-$book_version.pdf"
+              docker-entrypoint.sh all-git-pdf "$book_repo" "$book_version" "$book_style" "$book_slug" $pdf_filename
+              docker-entrypoint.sh git-pdfify-meta $S3_ARTIFACTS_BUCKET $pdf_filename
+              # Move the PDF and pdf_url into the out directory
+              mv /data/artifacts-single/* ${IN_OUT.ARTIFACTS_SINGLE}/
+          else # web
+              docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"
+          fi
       else
           book_server="$(cat ./${IN_OUT.BOOK}/server)"
           book_col_id="$(cat ./${IN_OUT.BOOK}/collection_id)"
-          docker-entrypoint.sh all-archive-${pdfOrWeb} "$book_col_id" "$book_style" "$book_version" "$book_server"
+
+          if [[ $PDF_OR_WEB == 'pdf' ]]; then
+              docker-entrypoint.sh all-archive-pdf "$book_col_id" "$book_style" "$book_version" "$book_server" ${IN_OUT.ARTIFACTS_SINGLE}/book.pdf
+          else # web
+              docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
+          fi
       fi
       `)
   
@@ -309,7 +324,7 @@ export const devOrProductionSettings = (): Settings => {
         return {
             codeVersion: `randomlocaldevtag-${rand(7)}`,
             queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
-            artifactBucket: 'phil-bucket',
+            artifactBucket: expectEnv('S3_ARTIFACTS_BUCKET'),
             isDev: true
         }
     } else {

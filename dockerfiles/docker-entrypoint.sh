@@ -569,13 +569,15 @@ case $1 in
         git_ref=$3
         recipe_name=$4
         target_slug_name=$5
-        target_pdf_path=${6:-${git_artifacts_dir}/filename.pdf}
+        target_pdf_filename=$6
         opt_only_one_book=$7
 
         [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
         [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
         [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
         [[ ${target_slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+
+        [[ $target_pdf_filename ]] || target_pdf_filename='book.pdf'
 
         # Change opt_only_one_book from a boolean to the name of the one book
         if [[ ${opt_only_one_book} ]]; then
@@ -591,7 +593,7 @@ case $1 in
         do_step_named git-link ${target_slug_name} ${opt_only_one_book}
         
         do_step_named git-mathify ${target_slug_name}
-        do_step_named git-pdfify ${target_slug_name} ${target_pdf_path}
+        do_step_named git-pdfify ${target_slug_name} ${target_pdf_filename}
     ;;
     *) # Assume the user is only running one step
         do_step $@
