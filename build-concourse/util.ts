@@ -270,7 +270,7 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`allPdfOrWeb=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG, IN_OUT.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, dedent`
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IN_OUT.BOOK], [IN_OUT.COMMON_LOG, IN_OUT.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, dedent`
       exec > >(tee ${IN_OUT.COMMON_LOG}/log >&2) 2>&1
   
       book_style="$(cat ./${IN_OUT.BOOK}/style)"
@@ -281,10 +281,10 @@ export enum PDF_OR_WEB {
           book_slug="$(cat ./${IN_OUT.BOOK}/slug)"
           pdf_filename="$(cat ./${IN_OUT.BOOK}/pdf_filename)"
           if [[ $PDF_OR_WEB == 'pdf' ]]; then
-              pdf_filename="book-$book_repo-$book_version.pdf"
               docker-entrypoint.sh all-git-pdf "$book_repo" "$book_version" "$book_style" "$book_slug" $pdf_filename
               docker-entrypoint.sh git-pdfify-meta $S3_ARTIFACTS_BUCKET $pdf_filename
               # Move the PDF and pdf_url into the out directory
+              mv $pdf_filename ${IN_OUT.ARTIFACTS_SINGLE}/
               mv /data/artifacts-single/* ${IN_OUT.ARTIFACTS_SINGLE}/
           else # web
               docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"

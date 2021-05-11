@@ -99,7 +99,8 @@ const taskLookUpBook = (inputSource: RESOURCES, contentSource: GIT_OR_ARCHIVE) =
 
 
 
-const taskOverrideCommonLog = (message: string) => toConcourseTask('generate-preview-urls', [], [IN_OUT.COMMON_LOG], {MESSAGE: message, COMMON_LOG_DIR: IN_OUT.COMMON_LOG}, readScript('script/override_common_log.sh'))
+const taskOverrideCommonLog = (message: string) => toConcourseTask('override-common-log', [], [IN_OUT.COMMON_LOG], {MESSAGE: message, COMMON_LOG_DIR: IN_OUT.COMMON_LOG}, readScript('script/override_common_log.sh'))
+const taskGeneratePreviewUrls = (message: string) => toConcourseTask('generate-preview-urls', [], [IN_OUT.COMMON_LOG], {MESSAGE: message, COMMON_LOG_DIR: IN_OUT.COMMON_LOG}, readScript('script/generate_preview_urls.sh'))
 
 let report
 report = reportToOutputProducer(RESOURCES.OUTPUT_PRODUCER_GIT_PDF)
