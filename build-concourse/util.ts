@@ -246,7 +246,7 @@ export enum PDF_OR_WEB {
 
 type Settings = { 
     queueBucket: string,
-    artifactBucket: string,
+    artifactsBucket: string,
     codeVersion: string,
     isDev: boolean
 }
@@ -259,20 +259,20 @@ export const expectEnv = (name: string) => {
     return value
 }
 const rand = (len: number) => Math.random().toString().substr(2, len)
-
+const theId = rand(7)
 export const devOrProductionSettings = (): Settings => {
     if (process.env['DEV_MODE'] || process.env['AWS_SESSION_TOKEN']) {
         return {
-            codeVersion: `randomlocaldevtag-${rand(7)}`,
+            codeVersion: `randomlocaldevtag-${theId}`,
             queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
-            artifactBucket: expectEnv('S3_ARTIFACTS_BUCKET'),
+            artifactsBucket: expectEnv('S3_ARTIFACTS_BUCKET'),
             isDev: true
         }
     } else {
         return {
             codeVersion: expectEnv('CODE_VERSION'),
             queueBucket: 'openstax-web-hosting-content-queue-state',
-            artifactBucket: expectEnv('COPS_ARTIFACTS_S3_BUCKET'),
+            artifactsBucket: expectEnv('COPS_ARTIFACTS_S3_BUCKET'),
             isDev: false
         }
     }

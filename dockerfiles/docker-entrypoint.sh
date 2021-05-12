@@ -201,8 +201,8 @@ function do_step() {
             #######################################
             toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
             toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
-            try aws s3 cp "$book_dir/collection.toc.json" "$toc_s3_link_json"
-            try aws s3 cp "$book_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
+            try aws s3 cp "$jsonified_dir/collection.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$jsonified_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
 
             echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;

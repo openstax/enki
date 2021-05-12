@@ -15,5 +15,5 @@ else
     book_col_id="$(cat ./$IO_BOOK/collection_id)"
     docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
     echo "===> Upload book"
-    docker-entrypoint.sh archive-upload-book "$QUEUE_BUCKET}" "$CODE_VERSION"
+    docker-entrypoint.sh archive-upload-book "$S3_ARTIFACTS_BUCKET" "$CODE_VERSION"
 fi

@@ -12,7 +12,11 @@ if [[ -f ./$IO_BOOK/repo ]]; then
         docker-entrypoint.sh git-pdfify-meta $S3_ARTIFACTS_BUCKET $pdf_filename
 
         # Move the PDF and pdf_url into the out directory
-        mv /data/artifacts-single/book.pdf $IO_ARTIFACTS_SINGLE/$pdf_filename
+        if [[ -f ./book.pdf ]]; then # Old location
+            mv ./book.pdf $IO_ARTIFACTS_SINGLE/$pdf_filename
+        else
+            mv /data/artifacts-single/book.pdf $IO_ARTIFACTS_SINGLE/$pdf_filename
+        fi
         mv /data/artifacts-single/* $IO_ARTIFACTS_SINGLE/
     else # web
         docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"

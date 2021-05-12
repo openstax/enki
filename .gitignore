@@ -3,3 +3,4 @@
 node_modules/
 
 build-concourse/build-web.yml
+build-concourse/build-corgi.yml

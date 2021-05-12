@@ -50,7 +50,7 @@ const resources = [
       name: 's3-pdf',
       type: 's3',
       source: {
-        bucket: devOrProductionSettings().artifactBucket,
+        bucket: devOrProductionSettings().artifactsBucket,
         access_key_id: myEnv.AWS_ACCESS_KEY_ID,
         secret_access_key: myEnv.AWS_SECRET_ACCESS_KEY,
         session_token: myEnv.AWS_SESSION_TOKEN,
