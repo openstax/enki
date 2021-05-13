@@ -71,6 +71,7 @@ export enum RESOURCES {
     S3_QUEUE = 's3-queue',
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
+    OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file

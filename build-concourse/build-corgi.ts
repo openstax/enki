@@ -10,15 +10,15 @@ const s3UploadFailMessage = 'Error occurred upload to S3.'
 
 const myEnv = populateEnv({ AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false })
 const resources = [
-    // {
-    //   name: 'output-producer-pdf',
-    //   type: 'output-producer',
-    //   source: {
-    //     api_root: docker.corgiApiUrl,
-    //     job_type_id: JobType.PDF,
-    //     status_id: 1
-    //   }
-    // },
+    {
+      name: RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF,
+      type: 'output-producer',
+      source: {
+        api_root: docker.corgiApiUrl,
+        job_type_id: JobType.PDF,
+        status_id: 1
+      }
+    },
     // {
     //   name: 'output-producer-dist-preview',
     //   type: 'output-producer',
@@ -64,40 +64,39 @@ enum GIT_OR_ARCHIVE {
     ARCHIVE = 'archive'
 }
 const taskLookUpBook = (inputSource: RESOURCES, contentSource: GIT_OR_ARCHIVE) => toConcourseTask('look-up-book', [inputSource], [IO.BOOK, IO.COMMON_LOG], { CONTENT_SOURCE: contentSource, INPUT_SOURCE_DIR: inputSource }, readScript('script/look_up_book.sh'))
-
-
-
 const taskOverrideCommonLog = (message: string) => toConcourseTask('override-common-log', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/override_common_log.sh'))
-const taskGeneratePreviewUrls = (message: string) => toConcourseTask('generate-preview-urls', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/generate_preview_urls.sh'))
 
-let report
-report = reportToOutputProducer(RESOURCES.OUTPUT_PRODUCER_GIT_PDF)
-const gitPdfJob = wrapGenericCorgiJob('PDF (git)', RESOURCES.OUTPUT_PRODUCER_GIT_PDF, {
-    do: [
-        report(Status.ASSIGNED, {
-            worker_version: docker.tag
-        }),
-        taskLookUpBook(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT),
-        report(Status.PROCESSING),
-        variantMaker(PDF_OR_WEB.PDF),
-        taskOverrideCommonLog(s3UploadFailMessage),
-        {
-            put: 's3-pdf',
-            params: {
-                file: `${IO.ARTIFACTS_SINGLE}/*.pdf`,
-                acl: 'public-read',
-                content_type: 'application/pdf'
+const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE) => {
+    const report = reportToOutputProducer(resource)
+    return wrapGenericCorgiJob(`PDF (${gitOrArchive})`, resource, {
+        do: [
+            report(Status.ASSIGNED, {
+                worker_version: docker.tag
+            }),
+            taskLookUpBook(resource, gitOrArchive),
+            report(Status.PROCESSING),
+            variantMaker(PDF_OR_WEB.PDF),
+            taskOverrideCommonLog(s3UploadFailMessage),
+            {
+                put: 's3-pdf',
+                params: {
+                    file: `${IO.ARTIFACTS_SINGLE}/*.pdf`,
+                    acl: 'public-read',
+                    content_type: 'application/pdf'
+                }
             }
-        }
-    ],
-    on_success: report(Status.SUCCEEDED, {
-        pdf_url: `${IO.ARTIFACTS_SINGLE}/pdf_url`
-    }),
-    on_failure: report(Status.FAILED, {
-        error_message_file: commonLogFile
+        ],
+        on_success: report(Status.SUCCEEDED, {
+            pdf_url: `${IO.ARTIFACTS_SINGLE}/pdf_url`
+        }),
+        on_failure: report(Status.FAILED, {
+            error_message_file: commonLogFile
+        })
     })
-})
+}
 
+const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT)
+const archivePdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF, GIT_OR_ARCHIVE.ARCHIVE)
 
 const resourceTypes = [
     {
@@ -113,4 +112,4 @@ const resourceTypes = [
 ]
 
 console.warn('Hardcoded output-producer-resource to a specific version. This resource type should be absorbed into the pipeline repo')
-fs.writeFileSync('./build-corgi.yml', yaml.dump({ jobs: [gitPdfJob], resources, resource_types: resourceTypes }))
+fs.writeFileSync('./build-corgi.yml', yaml.dump({ jobs: [gitPdfJob, archivePdfJob], resources, resource_types: resourceTypes }))
