@@ -72,6 +72,8 @@ export enum RESOURCES {
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
     OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
+    OUTPUT_PRODUCER_GIT_WEB = 'output-producer-git-dist-preview',
+    OUTPUT_PRODUCER_ARCHIVE_WEB = 'output-producer-dist-preview',
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file
@@ -79,6 +81,7 @@ export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
     ARTIFACTS_SINGLE = 'artifacts-single',
+    PREVIEW_URLS = 'preview-urls',
 }
 
 export type TaskNode = {
@@ -241,14 +244,15 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
-  
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, CODE_VERSION: devOrProductionSettings().codeVersion, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
+
 
 
 type Settings = { 
     queueBucket: string,
     artifactsBucket: string,
     codeVersion: string,
+    cloudfrontUrl: string,
     isDev: boolean
 }
 
@@ -267,6 +271,7 @@ export const devOrProductionSettings = (): Settings => {
             codeVersion: `randomlocaldevtag-${theId}`,
             queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
             artifactsBucket: expectEnv('S3_ARTIFACTS_BUCKET'),
+            cloudfrontUrl: 'https://not-a-valid-cloudfront-url',
             isDev: true
         }
     } else {
@@ -274,6 +279,7 @@ export const devOrProductionSettings = (): Settings => {
             codeVersion: expectEnv('CODE_VERSION'),
             queueBucket: 'openstax-web-hosting-content-queue-state',
             artifactsBucket: expectEnv('COPS_ARTIFACTS_S3_BUCKET'),
+            cloudfrontUrl: expectEnv('COPS_CLOUDFRONT_URL'),
             isDev: false
         }
     }

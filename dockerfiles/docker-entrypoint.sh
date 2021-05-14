@@ -173,6 +173,10 @@ function do_step() {
         archive-upload-book)
             s3_bucket_name=$2
             code_version=$3
+
+            check_input_dir "${fetched_dir}"
+            check_output_dir "${jsonified_dir}"
+
             s3_bucket_prefix="apps/archive/${code_version}"
 
             [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
@@ -480,6 +484,48 @@ function do_step() {
             try echo -n "${pdf_url}" > "${git_artifacts_dir}/pdf_url"
 
             echo "DONE: See book at ${pdf_url}"
+        ;;
+        git-upload-book)
+            s3_bucket_name=$2
+            code_version=$3
+            target_slug_name=$4
+
+            check_input_dir "${git_jsonified_dir}"
+            check_input_dir "${git_resources_dir}"
+            check_output_dir "${git_artifacts_dir}"
+
+            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
+            [[ ${code_version} ]] || die "A code version is missing. It is necessary for uploading"
+            [[ ${target_slug_name} ]] || die "A book slug is missing. It is necessary for uploading"
+
+            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
+            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
+
+            s3_bucket_prefix="apps/archive/${code_version}"
+
+            # Parse the UUID and versions from the book metadata since it will be accessible
+            # for any pipeline (web-hosting or web-preview) and to be self-consistent
+            # metadata and values used.
+            book_metadata="${git_jsonified_dir}/$target_slug_name.toc.json"
+            book_uuid=$(jq -r '.id' "$book_metadata")
+            book_version=$(jq -r '.version' "$book_metadata")
+            for jsonfile in "$git_jsonified_dir/"*@*.json; do cp "$jsonfile" "$git_artifacts_dir/$(basename "$jsonfile")"; done;
+            for xhtmlfile in "$git_jsonified_dir/"*@*.xhtml; do cp "$xhtmlfile" "$git_artifacts_dir/$(basename "$xhtmlfile")"; done;
+            try aws s3 cp --recursive "$git_artifacts_dir" "s3://${BUCKET}/${BUCKET_PREFIX}/contents"
+            try copy-resources-s3 "${git_resources_dir}" "${BUCKET}" "${BUCKET_PREFIX}/resources"
+
+            #######################################
+            # UPLOAD BOOK LEVEL FILES LAST
+            # so that if an error is encountered
+            # on prior upload steps, those files
+            # will not be found by watchers
+            #######################################
+            toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
+            toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
+            try aws s3 cp "$git_jsonified_dir/$book_slug.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$git_jsonified_dir/$book_slug.toc.xhtml" "$toc_s3_link_xhtml"
+
+            echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;
 
         shell | /bin/bash)

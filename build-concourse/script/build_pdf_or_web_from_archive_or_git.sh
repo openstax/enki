@@ -1,5 +1,15 @@
 exec > >(tee $IO_COMMON_LOG/log >&2) 2>&1
 
+[[ -d $IO_COMMON_LOG ]] || (echo "Undefined Environment variable: IO_COMMON_LOG" && exit 1)
+[[ -d $IO_BOOK ]] || (echo "Undefined Environment variable: IO_BOOK" && exit 1)
+[[ -d $IO_ARTIFACTS_SINGLE ]] || (echo "Undefined Environment variable: IO_ARTIFACTS_SINGLE" && exit 1)
+[[ $PDF_OR_WEB ]] || (echo "Undefined Environment variable: PDF_OR_WEB" && exit 1)
+[[ $S3_ARTIFACTS_BUCKET ]] || (echo "Undefined Environment variable: S3_ARTIFACTS_BUCKET" && exit 1)
+[[ $CODE_VERSION ]] || (echo "Undefined Environment variable: CODE_VERSION" && exit 1)
+[[ $REX_PREVIEW_URL ]] || (echo "Undefined Environment variable: REX_PREVIEW_URL" && exit 1)
+[[ $REX_PROD_PREVIEW_URL ]] || (echo "Undefined Environment variable: REX_PROD_PREVIEW_URL" && exit 1)
+
+
 book_style="$(cat ./$IO_BOOK/style)"
 book_version="$(cat ./$IO_BOOK/version)"
 
@@ -21,6 +31,10 @@ if [[ -f ./$IO_BOOK/repo ]]; then
         mv /data/artifacts-single/* $IO_ARTIFACTS_SINGLE/
     else # web
         docker-entrypoint.sh all-git-web "$book_repo" "$book_version" "$book_style" "$book_slug"
+        docker-entrypoint.sh git-upload-book "$S3_ARTIFACTS_BUCKET" "$CODE_VERSION" "$book_slug"
+
+        # Move the JSON artifacts into the IO_ARTIFACTS_SINGLE directory
+        mv /data/jsonified-single/* $IO_ARTIFACTS_SINGLE/
     fi
 else
     book_server="$(cat ./$IO_BOOK/server)"
@@ -37,5 +51,10 @@ else
 
     else # web
         docker-entrypoint.sh all-archive-web "$book_col_id" "$book_style" "$book_version" "$book_server"
+        docker-entrypoint.sh archive-upload-book "$S3_ARTIFACTS_BUCKET" "$CODE_VERSION"
+
+        # Move the JSON artifacts into the IO_ARTIFACTS_SINGLE directory
+        mv /data/jsonified/* $IO_ARTIFACTS_SINGLE/
+
     fi
 fi
