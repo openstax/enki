@@ -23,26 +23,26 @@ die() {
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
+# Directory defaults. local dev writes to /data/... and concourse overrides these temp directories
 data_dir="/data"
-fetched_dir="${data_dir}/raw"
-book_dir="${data_dir}/assembled"
-jsonified_dir="${data_dir}/jsonified"
-upload_dir="${data_dir}/upload"
+IO_ARCHIVE_FETCHED="${IO_ARCHIVE_FETCHED:-${data_dir}/raw}"
+IO_ARCHIVE_BOOK="${IO_ARCHIVE_BOOK:-${data_dir}/assembled}"
+IO_ARCHIVE_JSONIFIED="${IO_ARCHIVE_JSONIFIED:-${data_dir}/jsonified}"
+IO_ARCHIVE_UPLOAD="${IO_ARCHIVE_UPLOAD:-${data_dir}/upload}"
 
-
-git_resources_dir="${data_dir}/resources/"
-git_unused_dir="${data_dir}/unused-resources/"
-git_fetched_dir="${data_dir}/fetched-book-group/"
-git_assembled_dir="${data_dir}/assembled-book-group/"
-git_assembled_meta_dir="${data_dir}/assembled-metadata-group/"
-git_baked_dir="${data_dir}/baked-book-group/"
-git_baked_meta_dir="${data_dir}/baked-metadata-group/"
-git_linked_dir="${data_dir}/linked-single/"
-git_mathified_dir="${data_dir}/mathified-single/"
-git_disassembled_dir="${data_dir}/disassembled-single/"
-git_artifacts_dir="${data_dir}/artifacts-single/"
-git_disassembled_linked_dir="${data_dir}/disassembled-linked-single/"
-git_jsonified_dir="${data_dir}/jsonified-single/"
+IO_RESOURCES="${IO_RESOURCES:-${data_dir}/resources/}"
+IO_UNUSED="${IO_UNUSED:-${data_dir}/unused-resources/}"
+IO_FETCHED="${IO_FETCHED:-${data_dir}/fetched-book-group/}"
+IO_ASSEMBLED="${IO_ASSEMBLED:-${data_dir}/assembled-book-group/}"
+IO_ASSEMBLE_META="${IO_ASSEMBLE_META:-${data_dir}/assembled-metadata-group/}"
+IO_BAKED="${IO_BAKED:-${data_dir}/baked-book-group/}"
+IO_BAKE_META="${IO_BAKE_META:-${data_dir}/baked-metadata-group/}"
+IO_LINKED="${IO_LINKED:-${data_dir}/linked-single/}"
+IO_MATHIFIED="${IO_MATHIFIED:-${data_dir}/mathified-single/}"
+IO_DISASSEMBLED="${IO_DISASSEMBLED:-${data_dir}/disassembled-single/}"
+IO_ARTIFACTS="${IO_ARTIFACTS:-${data_dir}/artifacts-single/}"
+IO_DISASSEMBLE_LINKED="${IO_DISASSEMBLE_LINKED:-${data_dir}/disassembled-linked-single/}"
+IO_JSONIFIED="${IO_JSONIFIED:-${data_dir}/jsonified-single/}"
 
 
 function check_input_dir() {
@@ -69,30 +69,30 @@ function do_step() {
             [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
-            yes | try neb get -r -d "${fetched_dir}" "${book_server}" "${collection_id}" "${book_version}"
+            yes | try neb get -r -d "${IO_ARCHIVE_FETCHED}" "${book_server}" "${collection_id}" "${book_version}"
         ;;
         archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
-            try wget "${book_slugs_url}" -O "${fetched_dir}/approved-book-list.json"
+            try wget "${book_slugs_url}" -O "${IO_ARCHIVE_FETCHED}/approved-book-list.json"
         ;;
         archive-assemble)
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/assemble-book.js
-            try neb assemble "${fetched_dir}" "${book_dir}"
+            try neb assemble "${IO_ARCHIVE_FETCHED}" "${IO_ARCHIVE_BOOK}"
         ;;
         archive-assemble-metadata)
-            target_dir=$book_dir
-            echo "{" > $book_dir/uuid-to-revised-map.json
-            find $fetched_dir/ -path */m*/metadata.json | xargs cat | jq -r '. | "\"\(.id)\": \"\(.revised)\","' >> $book_dir/uuid-to-revised-map.json
-            echo '"dummy": "dummy"' >> $book_dir/uuid-to-revised-map.json
-            echo "}" >> $book_dir/uuid-to-revised-map.json
+            target_dir=$IO_ARCHIVE_BOOK
+            echo "{" > $IO_ARCHIVE_BOOK/uuid-to-revised-map.json
+            find $IO_ARCHIVE_FETCHED/ -path */m*/metadata.json | xargs cat | jq -r '. | "\"\(.id)\": \"\(.revised)\","' >> $IO_ARCHIVE_BOOK/uuid-to-revised-map.json
+            echo '"dummy": "dummy"' >> $IO_ARCHIVE_BOOK/uuid-to-revised-map.json
+            echo "}" >> $IO_ARCHIVE_BOOK/uuid-to-revised-map.json
 
-            assemble-meta "$book_dir/collection.assembled.xhtml" $book_dir/uuid-to-revised-map.json "$target_dir/collection.assembled-metadata.json"
-            rm $book_dir/uuid-to-revised-map.json
+            assemble-meta "$IO_ARCHIVE_BOOK/collection.assembled.xhtml" $IO_ARCHIVE_BOOK/uuid-to-revised-map.json "$target_dir/collection.assembled-metadata.json"
+            rm $IO_ARCHIVE_BOOK/uuid-to-revised-map.json
         ;;
         archive-link-extras)
             book_server=archive.cnx.org
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/link-extras.js#L40
-            try python3 /openstax/bakery-scripts/scripts/link_extras.py "${book_dir}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
+            try python3 /openstax/bakery-scripts/scripts/link_extras.py "${IO_ARCHIVE_BOOK}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
         ;;
         archive-bake)
             recipe_name=$2
@@ -100,7 +100,7 @@ function do_step() {
             # Validate commandline arguments
             [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
 
-            try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${book_dir}/collection.linked.xhtml" -o "${book_dir}/collection.baked.xhtml"
+            try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
 
             style_file="/openstax/cnx-recipes-styles-output/${recipe_name}-pdf.css"
 
@@ -108,54 +108,54 @@ function do_step() {
 
             if [ -f "${style_file}" ]
             then
-                cp "${style_file}" "${book_dir}"
-                try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${book_dir}/collection.baked.xhtml"
+                cp "${style_file}" "${IO_ARCHIVE_BOOK}"
+                try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$(basename ${style_file})\" />&%" "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
             fi
         ;;
         archive-mathify)
             # Remove the mathified file if it already exists ecause the code assumes the file does not exist
-            [[ -f "${book_dir}/collection.mathified.xhtml" ]] && rm "${book_dir}/collection.mathified.xhtml"
+            [[ -f "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" ]] && rm "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
 
-            try node /openstax/mathify/typeset/start.js -i "${book_dir}/collection.baked.xhtml" -o "${book_dir}/collection.mathified.xhtml" -f svg 
+            try node /openstax/mathify/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
         ;;
         archive-pdf)
-            try prince -v --output="${book_dir}/collection.pdf" "${book_dir}/collection.mathified.xhtml"
+            try prince -v --output="${IO_ARCHIVE_BOOK}/collection.pdf" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
 
         archive-bake-metadata)
             # TODO: Use a real collection id
             collection_id="fakecollectionid"
-            book_metadata="${fetched_dir}/metadata.json"
+            book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
             book_legacy_id="$(cat $book_metadata | jq -r '.legacy_id')"
             book_legacy_version="$(cat $book_metadata | jq -r '.legacy_version')"
             book_ident_hash="$book_uuid@$book_version"
             book_license="$(cat $book_metadata | jq '.license')"
-            target_dir="$book_dir"
+            target_dir="$IO_ARCHIVE_BOOK"
             book_slugs_file="/tmp/book-slugs.json"
-            cat "$fetched_dir/approved-book-list.json" | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
-            cat "$book_dir/collection.assembled-metadata.json" | \
+            cat "$IO_ARCHIVE_FETCHED/approved-book-list.json" | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
+            cat "$IO_ARCHIVE_BOOK/collection.assembled-metadata.json" | \
                 jq --arg ident_hash "$book_ident_hash" --arg uuid "$book_uuid" --arg version "$book_version" --argjson license "$book_license" \
                 --arg legacy_id "$book_legacy_id" --arg legacy_version "$book_legacy_version" \
                 '. + {($ident_hash): {id: $uuid, version: $version, license: $license, legacy_id: $legacy_id, legacy_version: $legacy_version}}' > "/tmp/collection.baked-input-metadata.json"
             try bake-meta /tmp/collection.baked-input-metadata.json "$target_dir/collection.baked.xhtml" "$book_uuid" "$book_slugs_file" "$target_dir/collection.baked-metadata.json"
         ;;
         archive-checksum)
-            try checksum "$book_dir" "$book_dir"
+            try checksum "$IO_ARCHIVE_BOOK" "$IO_ARCHIVE_BOOK"
         ;;
         archive-disassemble)
-            try disassemble "$book_dir/collection.baked.xhtml" "$book_dir/collection.baked-metadata.json" "collection" "$book_dir"
+            try disassemble "$IO_ARCHIVE_BOOK/collection.baked.xhtml" "$IO_ARCHIVE_BOOK/collection.baked-metadata.json" "collection" "$IO_ARCHIVE_BOOK"
         ;;
         archive-patch-disassembled-links)
-            target_dir="$book_dir"
-            try patch-same-book-links "$book_dir" "$target_dir" "collection"
+            target_dir="$IO_ARCHIVE_BOOK"
+            try patch-same-book-links "$IO_ARCHIVE_BOOK" "$target_dir" "collection"
         ;;
         archive-jsonify)
-            target_dir="$jsonified_dir"
+            target_dir="$IO_ARCHIVE_JSONIFIED"
             
             try mkdir -p $target_dir
-            try jsonify "$book_dir" "$target_dir"
+            try jsonify "$IO_ARCHIVE_BOOK" "$target_dir"
             try jsonschema -i "$target_dir/collection.toc.json" /openstax/bakery-scripts/scripts/book-schema.json
             for jsonfile in "$target_dir/"*@*.json; do
                 #ignore -metadata.json files
@@ -165,7 +165,7 @@ function do_step() {
             done
         ;;
         archive-validate-xhtml)
-            for xhtmlfile in $(find $jsonified_dir -name '*@*.xhtml')
+            for xhtmlfile in $(find $IO_ARCHIVE_JSONIFIED -name '*@*.xhtml')
             do
                 try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
@@ -174,8 +174,8 @@ function do_step() {
             s3_bucket_name=$2
             code_version=$3
 
-            check_input_dir "${fetched_dir}"
-            check_output_dir "${jsonified_dir}"
+            check_input_dir "${IO_ARCHIVE_FETCHED}"
+            check_output_dir "${IO_ARCHIVE_JSONIFIED}"
 
             s3_bucket_prefix="apps/archive/${code_version}"
 
@@ -185,15 +185,15 @@ function do_step() {
             [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
             [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
 
-            book_metadata="${fetched_dir}/metadata.json"
-            resources_dir="${book_dir}/resources"
-            target_dir="${upload_dir}/contents"
+            book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
+            resources_dir="${IO_ARCHIVE_BOOK}/resources"
+            target_dir="${IO_ARCHIVE_UPLOAD}/contents"
             mkdir -p "$target_dir"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
 
-            for jsonfile in "$jsonified_dir/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
-            for xhtmlfile in "$jsonified_dir/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
+            for jsonfile in "$IO_ARCHIVE_JSONIFIED/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
+            for xhtmlfile in "$IO_ARCHIVE_JSONIFIED/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
             try aws s3 cp --recursive "$target_dir" "s3://${s3_bucket_name}/${s3_bucket_prefix}/contents"
             try copy-resources-s3 "$resources_dir" "${s3_bucket_name}" "${s3_bucket_prefix}/resources"
 
@@ -205,15 +205,15 @@ function do_step() {
             #######################################
             toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
             toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
-            try aws s3 cp "$jsonified_dir/collection.toc.json" "$toc_s3_link_json"
-            try aws s3 cp "$jsonified_dir/collection.toc.xhtml" "$toc_s3_link_xhtml"
+            try aws s3 cp "$IO_ARCHIVE_JSONIFIED/collection.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$IO_ARCHIVE_JSONIFIED/collection.toc.xhtml" "$toc_s3_link_xhtml"
 
             echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;
 
 
         git-fetch)
-            check_output_dir "${git_fetched_dir}"
+            check_output_dir "${IO_FETCHED}"
 
             repo_name=$2
             git_ref=$3
@@ -243,84 +243,84 @@ function do_step() {
 
             if [[ ${git_ref} = @* ]]; then
                 git_commit="${git_ref:1}"
-                GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${git_fetched_dir}"
-                pushd "${git_fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${IO_FETCHED}"
+                pushd "${IO_FETCHED}"
                 try git reset --hard "${git_commit}"
                 # If the commit was not recent, try cloning the whole repo
                 if [[ $? != 0 ]]; then
                     popd
-                    GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${git_fetched_dir}"
-                    pushd "${git_fetched_dir}"
+                    GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${IO_FETCHED}"
+                    pushd "${IO_FETCHED}"
                     try git reset --hard "${git_commit}"
                 fi
                 popd
             else
-                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${git_fetched_dir}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${IO_FETCHED}"
             fi
 
-            if [[ ! -f "${git_fetched_dir}/collections/${target_slug_name}.collection.xml" ]]; then
+            if [[ ! -f "${IO_FETCHED}/collections/${target_slug_name}.collection.xml" ]]; then
                 echo "No matching book for slug in this repo"
                 exit 1
             fi
         ;;
 
         git-fetch-metadata)
-            check_input_dir "${git_fetched_dir}"
-            check_output_dir "${git_fetched_dir}"
-            check_output_dir "${git_resources_dir}"
-            check_output_dir "${git_unused_dir}"
+            check_input_dir "${IO_FETCHED}"
+            check_output_dir "${IO_FETCHED}"
+            check_output_dir "${IO_RESOURCES}"
+            check_output_dir "${IO_UNUSED}"
 
             
-            try fetch-update-meta "${git_fetched_dir}/.git" "${git_fetched_dir}/modules" "${git_fetched_dir}/collections" "${git_ref}" "${git_fetched_dir}/canonical.json"
-            try rm -rf "${git_fetched_dir}/.git"
+            try fetch-update-meta "${IO_FETCHED}/.git" "${IO_FETCHED}/modules" "${IO_FETCHED}/collections" "${git_ref}" "${IO_FETCHED}/canonical.json"
+            try rm -rf "${IO_FETCHED}/.git"
             try rm -rf "$creds_dir"
 
-            try fetch-map-resources "${git_fetched_dir}/modules" "${git_fetched_dir}/media" . "${git_unused_dir}"
+            try fetch-map-resources "${IO_FETCHED}/modules" "${IO_FETCHED}/media" . "${IO_UNUSED}"
             # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-            try rm -d "${git_fetched_dir}/media"
+            try rm -d "${IO_FETCHED}/media"
         ;;
 
         git-assemble)
             opt_only_one_book=$2
-            check_input_dir "${git_fetched_dir}"
-            check_output_dir "${git_assembled_dir}"
+            check_input_dir "${IO_FETCHED}"
+            check_output_dir "${IO_ASSEMBLED}"
             
             shopt -s globstar nullglob
-            for collection in "${git_fetched_dir}/collections/"*; do
+            for collection in "${IO_FETCHED}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${opt_only_one_book}" ]]; then
                     if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
                         continue
                     fi
                 fi
-                try cp "$collection" "${git_fetched_dir}/modules/collection.xml"
+                try cp "$collection" "${IO_FETCHED}/modules/collection.xml"
 
-                try neb assemble "${git_fetched_dir}/modules" temp-assembly/
+                try neb assemble "${IO_FETCHED}/modules" temp-assembly/
 
-                try cp "temp-assembly/collection.assembled.xhtml" "${git_assembled_dir}/$slug_name.assembled.xhtml"
+                try cp "temp-assembly/collection.assembled.xhtml" "${IO_ASSEMBLED}/$slug_name.assembled.xhtml"
                 try rm -rf temp-assembly
-                try rm "${git_fetched_dir}/modules/collection.xml"
+                try rm "${IO_FETCHED}/modules/collection.xml"
             done
             shopt -u globstar nullglob
         ;;
 
         git-assemble-meta)
             opt_only_one_book=$2
-            check_input_dir "${git_fetched_dir}"
-            check_input_dir "${git_assembled_dir}"
-            check_output_dir "${git_assembled_meta_dir}"
+            check_input_dir "${IO_FETCHED}"
+            check_input_dir "${IO_ASSEMBLED}"
+            check_output_dir "${IO_ASSEMBLE_META}"
 
             shopt -s globstar nullglob
             # Create an empty map file for invoking assemble-meta
             echo "{}" > uuid-to-revised-map.json
-            for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
+            for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${opt_only_one_book}" ]]; then
                     if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
                         continue
                     fi
                 fi
-                try assemble-meta "${git_assembled_dir}/$slug_name.assembled.xhtml" uuid-to-revised-map.json "${git_assembled_meta_dir}/${slug_name}.assembled-metadata.json"
+                try assemble-meta "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" uuid-to-revised-map.json "${IO_ASSEMBLE_META}/${slug_name}.assembled-metadata.json"
             done
             try rm uuid-to-revised-map.json
             shopt -u globstar nullglob
@@ -330,8 +330,8 @@ function do_step() {
             recipe_name=$2
             opt_only_one_book=$3
             [[ ${recipe_name} ]] || die "A recipe name is missing"
-            check_input_dir "${git_assembled_dir}"
-            check_output_dir "${git_baked_dir}"
+            check_input_dir "${IO_ASSEMBLED}"
+            check_output_dir "${IO_BAKED}"
 
             # FIXME: We assume that every book in the group uses the same style
             # This assumption will not hold true forever, and book style + recipe name should
@@ -346,23 +346,23 @@ function do_step() {
 
             if [[ -f "$style_file" ]]
                 then
-                    try cp "$style_file" "${git_baked_dir}/the-style-pdf.css"
+                    try cp "$style_file" "${IO_BAKED}/the-style-pdf.css"
                 else
-                    echo "Warning: Style Not Found" > "${git_baked_dir}/stderr"
+                    echo "Warning: Style Not Found" > "${IO_BAKED}/stderr"
             fi
 
             shopt -s globstar nullglob
-            for collection in "${git_assembled_dir}/"*.assembled.xhtml; do
+            for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${opt_only_one_book}" ]]; then
                     if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
                         continue
                     fi
                 fi
-                try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${git_assembled_dir}/$slug_name.assembled.xhtml" -o "${git_baked_dir}/$slug_name.baked.xhtml"
+                try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" -o "${IO_BAKED}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
                     then
-                        try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${git_baked_dir}/$slug_name.baked.xhtml"
+                        try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${IO_BAKED}/$slug_name.baked.xhtml"
                 fi
             done
             shopt -u globstar nullglob
@@ -370,12 +370,12 @@ function do_step() {
 
         git-bake-meta)
             opt_only_one_book=$2
-            check_input_dir "${git_assembled_meta_dir}"
-            check_input_dir "${git_baked_dir}"
-            check_output_dir "${git_baked_meta_dir}"
+            check_input_dir "${IO_ASSEMBLE_META}"
+            check_input_dir "${IO_BAKED}"
+            check_output_dir "${IO_BAKE_META}"
 
             shopt -s globstar nullglob
-            for collection in "${git_baked_dir}/"*.baked.xhtml; do
+            for collection in "${IO_BAKED}/"*.baked.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${opt_only_one_book}" ]]; then
                     if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
@@ -383,7 +383,7 @@ function do_step() {
                     fi
                 fi
 
-                try bake-meta "${git_assembled_meta_dir}/$slug_name.assembled-metadata.json" "${git_baked_dir}/$slug_name.baked.xhtml" "" "" "${git_baked_meta_dir}/$slug_name.baked-metadata.json"
+                try bake-meta "${IO_ASSEMBLE_META}/$slug_name.assembled-metadata.json" "${IO_BAKED}/$slug_name.baked.xhtml" "" "" "${IO_BAKE_META}/$slug_name.baked-metadata.json"
             done
             shopt -u globstar nullglob
         ;;
@@ -392,56 +392,56 @@ function do_step() {
             target_slug_name=$2
             opt_only_one_book=$3
             [[ ${target_slug_name} ]] || die "An book slug name is missing"
-            check_input_dir "${git_baked_dir}"
-            check_input_dir "${git_baked_meta_dir}"
-            check_output_dir "${git_linked_dir}"
+            check_input_dir "${IO_BAKED}"
+            check_input_dir "${IO_BAKE_META}"
+            check_output_dir "${IO_LINKED}"
 
             if [[ -n "${opt_only_one_book}" ]]; then
-                try link-single "${git_baked_dir}" "${git_baked_meta_dir}" "${target_slug_name}" "${git_linked_dir}/${target_slug_name}.linked.xhtml" --mock-otherbook
+                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${target_slug_name}" "${IO_LINKED}/${target_slug_name}.linked.xhtml" --mock-otherbook
             else
-                try link-single "${git_baked_dir}" "${git_baked_meta_dir}" "${target_slug_name}" "${git_linked_dir}/${target_slug_name}.linked.xhtml"
+                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${target_slug_name}" "${IO_LINKED}/${target_slug_name}.linked.xhtml"
             fi
         ;;
 
         git-disassemble)
             target_slug_name=$2
             [[ ${target_slug_name} ]] || die "An book slug name is missing"
-            check_input_dir "${git_linked_dir}"
-            check_input_dir "${git_baked_meta_dir}"
-            check_output_dir "${git_disassembled_dir}"
+            check_input_dir "${IO_LINKED}"
+            check_input_dir "${IO_BAKE_META}"
+            check_output_dir "${IO_DISASSEMBLED}"
 
-            try disassemble "${git_linked_dir}/$target_slug_name.linked.xhtml" "${git_baked_meta_dir}/$target_slug_name.baked-metadata.json" "$target_slug_name" "${git_disassembled_dir}"
+            try disassemble "${IO_LINKED}/$target_slug_name.linked.xhtml" "${IO_BAKE_META}/$target_slug_name.baked-metadata.json" "$target_slug_name" "${IO_DISASSEMBLED}"
         ;;
 
         git-patch-disassembled-links)
             target_slug_name=$2
             [[ ${target_slug_name} ]] || die "An book slug name is missing"
-            check_input_dir "${git_disassembled_dir}"
-            check_output_dir "${git_disassembled_linked_dir}"
+            check_input_dir "${IO_DISASSEMBLED}"
+            check_output_dir "${IO_DISASSEMBLE_LINKED}"
 
-            try patch-same-book-links "${git_disassembled_dir}" "${git_disassembled_linked_dir}" "$target_slug_name"
-            try cp "${git_disassembled_dir}"/*@*-metadata.json "${git_disassembled_linked_dir}"
-            try cp "${git_disassembled_dir}"/"$target_slug_name".toc* "${git_disassembled_linked_dir}"
+            try patch-same-book-links "${IO_DISASSEMBLED}" "${IO_DISASSEMBLE_LINKED}" "$target_slug_name"
+            try cp "${IO_DISASSEMBLED}"/*@*-metadata.json "${IO_DISASSEMBLE_LINKED}"
+            try cp "${IO_DISASSEMBLED}"/"$target_slug_name".toc* "${IO_DISASSEMBLE_LINKED}"
         ;;
 
         git-jsonify)
             target_slug_name=$2
             [[ ${target_slug_name} ]] || die "An book slug name is missing"
-            check_input_dir "${git_disassembled_linked_dir}"
-            check_output_dir "${git_jsonified_dir}"
+            check_input_dir "${IO_DISASSEMBLE_LINKED}"
+            check_output_dir "${IO_JSONIFIED}"
 
-            try jsonify "${git_disassembled_linked_dir}" "${git_jsonified_dir}"
-            try jsonschema -i "${git_jsonified_dir}/${target_slug_name}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
+            try jsonify "${IO_DISASSEMBLE_LINKED}" "${IO_JSONIFIED}"
+            try jsonschema -i "${IO_JSONIFIED}/${target_slug_name}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
 
-            for jsonfile in "${git_jsonified_dir}/"*@*.json; do
+            for jsonfile in "${IO_JSONIFIED}/"*@*.json; do
                 try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
             done
         ;;
 
         git-validate-xhtml)
-            check_input_dir "${git_disassembled_linked_dir}"
+            check_input_dir "${IO_DISASSEMBLE_LINKED}"
 
-            for xhtmlfile in $(find ${git_disassembled_linked_dir} -name '*.xhtml')
+            for xhtmlfile in $(find ${IO_DISASSEMBLE_LINKED} -name '*.xhtml')
             do
                 say "XHTML-validating ${xhtmlfile}"
                 try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
@@ -451,14 +451,14 @@ function do_step() {
             target_slug_name=$2
             [[ ${target_slug_name} ]] || die "A book slug name is missing"
 
-            check_input_dir "${git_linked_dir}"
-            check_input_dir "${git_baked_dir}"
-            check_output_dir "${git_mathified_dir}"
+            check_input_dir "${IO_LINKED}"
+            check_input_dir "${IO_BAKED}"
+            check_output_dir "${IO_MATHIFIED}"
 
             # Style needed because mathjax will size converted math according to surrounding text
-            try cp "${git_baked_dir}/the-style-pdf.css" "${git_linked_dir}"
-            try cp "${git_baked_dir}/the-style-pdf.css" "${git_mathified_dir}"
-            try node /openstax/mathify/typeset/start.js -i "${git_linked_dir}/$target_slug_name.linked.xhtml" -o "${git_mathified_dir}/$target_slug_name.mathified.xhtml" -f svg
+            try cp "${IO_BAKED}/the-style-pdf.css" "${IO_LINKED}"
+            try cp "${IO_BAKED}/the-style-pdf.css" "${IO_MATHIFIED}"
+            try node /openstax/mathify/typeset/start.js -i "${IO_LINKED}/$target_slug_name.linked.xhtml" -o "${IO_MATHIFIED}/$target_slug_name.mathified.xhtml" -f svg
         ;;
         git-pdfify)
             target_slug_name=$2
@@ -467,21 +467,21 @@ function do_step() {
             [[ ${target_slug_name} ]] || die "A book slug name is missing"
             [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
 
-            check_input_dir "${git_mathified_dir}"
-            check_output_dir "${git_artifacts_dir}"
+            check_input_dir "${IO_MATHIFIED}"
+            check_output_dir "${IO_ARTIFACTS}"
 
-            try prince -v --output="${git_artifacts_dir}/${target_pdf_filename}" "${git_mathified_dir}/${target_slug_name}.mathified.xhtml"
+            try prince -v --output="${IO_ARTIFACTS}/${target_pdf_filename}" "${IO_MATHIFIED}/${target_slug_name}.mathified.xhtml"
         ;;
         git-pdfify-meta)
             s3_bucket_name=$2
             target_pdf_filename=$3
-            check_output_dir "${git_artifacts_dir}"
+            check_output_dir "${IO_ARTIFACTS}"
 
             [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing"
             [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
 
             pdf_url="https://${s3_bucket_name}.s3.amazonaws.com/${target_pdf_filename}"
-            try echo -n "${pdf_url}" > "${git_artifacts_dir}/pdf_url"
+            try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
 
             echo "DONE: See book at ${pdf_url}"
         ;;
@@ -490,9 +490,9 @@ function do_step() {
             code_version=$3
             target_slug_name=$4
 
-            check_input_dir "${git_jsonified_dir}"
-            check_input_dir "${git_resources_dir}"
-            check_output_dir "${git_artifacts_dir}"
+            check_input_dir "${IO_JSONIFIED}"
+            check_input_dir "${IO_RESOURCES}"
+            check_output_dir "${IO_ARTIFACTS}"
 
             [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
             [[ ${code_version} ]] || die "A code version is missing. It is necessary for uploading"
@@ -506,13 +506,13 @@ function do_step() {
             # Parse the UUID and versions from the book metadata since it will be accessible
             # for any pipeline (web-hosting or web-preview) and to be self-consistent
             # metadata and values used.
-            book_metadata="${git_jsonified_dir}/$target_slug_name.toc.json"
+            book_metadata="${IO_JSONIFIED}/$target_slug_name.toc.json"
             book_uuid=$(jq -r '.id' "$book_metadata")
             book_version=$(jq -r '.version' "$book_metadata")
-            for jsonfile in "$git_jsonified_dir/"*@*.json; do cp "$jsonfile" "$git_artifacts_dir/$(basename "$jsonfile")"; done;
-            for xhtmlfile in "$git_jsonified_dir/"*@*.xhtml; do cp "$xhtmlfile" "$git_artifacts_dir/$(basename "$xhtmlfile")"; done;
-            try aws s3 cp --recursive "$git_artifacts_dir" "s3://${BUCKET}/${BUCKET_PREFIX}/contents"
-            try copy-resources-s3 "${git_resources_dir}" "${BUCKET}" "${BUCKET_PREFIX}/resources"
+            for jsonfile in "$IO_JSONIFIED/"*@*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
+            for xhtmlfile in "$IO_JSONIFIED/"*@*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(basename "$xhtmlfile")"; done;
+            try aws s3 cp --recursive "$IO_ARTIFACTS" "s3://${BUCKET}/${BUCKET_PREFIX}/contents"
+            try copy-resources-s3 "${IO_RESOURCES}" "${BUCKET}" "${BUCKET_PREFIX}/resources"
 
             #######################################
             # UPLOAD BOOK LEVEL FILES LAST
@@ -522,8 +522,8 @@ function do_step() {
             #######################################
             toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
             toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
-            try aws s3 cp "$git_jsonified_dir/$book_slug.toc.json" "$toc_s3_link_json"
-            try aws s3 cp "$git_jsonified_dir/$book_slug.toc.xhtml" "$toc_s3_link_xhtml"
+            try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.xhtml" "$toc_s3_link_xhtml"
 
             echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;
