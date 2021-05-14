@@ -71,7 +71,7 @@ The CLI command (& docker steps) listen to a few optional environment variables,
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
 - [ ] add back support for content servers
-- [ ] Create a pipeline in concourse
+- [x] Create a pipeline in concourse
 - [ ] Answer the following: When should code be in the image vs in the pipeline? (The pipeline should be as little as possible)
 - [ ] Answer the following: When should data be passed into docker via environment variable vs argument vs file?
     - Environment:

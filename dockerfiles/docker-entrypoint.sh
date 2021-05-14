@@ -8,9 +8,6 @@ set -e
 [[ ${TRACE_ON} ]] && set -x && exec > >(tee /data/log >&2) 2>&1
 
 
-# Activate the python virtualenv
-source /openstax/venv/bin/activate
-
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
   declare -x c_red=$(tput setaf 1)
@@ -53,7 +50,10 @@ function check_input_dir() {
 }
 function check_output_dir() {
     [[ $1 ]] || die "This output directory name is not set (it is an empty string)"
-    [[ -d $1 ]] || try mkdir -p $1
+    if [[ $1 =~ ^\/data && ! -d $1 ]]; then
+        try mkdir -p $1
+    fi
+    [[ -d $1 ]] || die "Expected output directory to exist but it was missing. it needs to be added to the concourse job: '$1'"
 }
 
 function do_step() {
