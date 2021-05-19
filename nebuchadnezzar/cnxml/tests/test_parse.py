@@ -71,7 +71,7 @@ def test_git_parse(git_xml):
         'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
         'keywords': (),
-        'language': None,
+        'language': 'en',
         'license_url': 'http://creativecommons.org/licenses/by/4.0/',
         'licensors': (),
         'maintainers': (),
