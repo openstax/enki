@@ -50,6 +50,7 @@ function check_input_dir() {
 }
 function check_output_dir() {
     [[ $1 ]] || die "This output directory name is not set (it is an empty string)"
+    # Auto-create directories only in local dev mode. In Concourse Pipelines these directories should already exist.
     if [[ $1 =~ ^\/data && ! -d $1 ]]; then
         try mkdir -p $1
     fi
@@ -528,6 +529,9 @@ function do_step() {
             echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;
 
+        --help)
+            die "This script uses environment variables extensively to change where to read/write content from. See the top of this file for a complete list"
+        ;;
         shell | /bin/bash)
             bash
         ;;

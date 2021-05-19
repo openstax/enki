@@ -244,7 +244,7 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, S3_ARTIFACTS_BUCKET: true, CODE_VERSION: devOrProductionSettings().codeVersion, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
+  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: devOrProductionSettings().artifactsBucket, CODE_VERSION: devOrProductionSettings().codeVersion, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
 
 
 
@@ -256,12 +256,13 @@ type Settings = {
     isDev: boolean
 }
 
-export const expectEnv = (name: string) => {
-    const value = process.env[name]
-    if (!value) {
-        throw new Error(`Missing Environment variable: ${name}. This should only occur during dev mode`)
+export const expectEnv = (names: string[]) => {
+    for (const name of names) {
+        if (process.env[name]) {
+            return process.env[name]
+        }
     }
-    return value
+    throw new Error(`Missing Environment variable: ${name[0]}.`)
 }
 const rand = (len: number) => Math.random().toString().substr(2, len)
 const theId = rand(7)
@@ -270,16 +271,16 @@ export const devOrProductionSettings = (): Settings => {
         return {
             codeVersion: `randomlocaldevtag-${theId}`,
             queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
-            artifactsBucket: expectEnv('S3_ARTIFACTS_BUCKET'),
+            artifactsBucket: expectEnv(['CORGI_ARTIFACTS_S3_BUCKET', 'COPS_ARTIFACTS_S3_BUCKET']),
             cloudfrontUrl: 'https://not-a-valid-cloudfront-url',
             isDev: true
         }
     } else {
         return {
-            codeVersion: expectEnv('CODE_VERSION'),
+            codeVersion: expectEnv(['CODE_VERSION']),
             queueBucket: 'openstax-web-hosting-content-queue-state',
-            artifactsBucket: expectEnv('COPS_ARTIFACTS_S3_BUCKET'),
-            cloudfrontUrl: expectEnv('COPS_CLOUDFRONT_URL'),
+            artifactsBucket: expectEnv(['CORGI_ARTIFACTS_S3_BUCKET', 'COPS_ARTIFACTS_S3_BUCKET']),
+            cloudfrontUrl: expectEnv(['CORGI_CLOUDFRONT_URL', 'COPS_CLOUDFRONT_URL']),
             isDev: false
         }
     }
@@ -288,7 +289,7 @@ export const devOrProductionSettings = (): Settings => {
 
 export const docker: DockerDetails = {
     repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
-    tag: devOrProductionSettings().isDev ? 'main' : expectEnv('CODE_VERSION'),
+    tag: devOrProductionSettings().isDev ? 'main' : expectEnv(['CODE_VERSION']),
     username: process.env['DOCKER_USERNAME'],
     password: process.env['DOCKER_PASSWORD'],
     corgiApiUrl: devOrProductionSettings().isDev ? 'https://corgi-staging.openstax.org/api' : 'https://corgi.openstax.org/api'

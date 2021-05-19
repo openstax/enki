@@ -51,7 +51,7 @@ const webBaker = {
             version: 'every'
         },
         toConcourseTask('dequeue-book', [RESOURCES.S3_QUEUE], [IO.BOOK], { CONTENT_SOURCE, S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: env.codeVersion }, readScript('script/dequeue_book.sh')),
-        toConcourseTask('all-web-book', [IO.BOOK], [IO.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CODE_VERSION: env.codeVersion, S3_ARTIFACTS_BUCKET: env.artifactsBucket, COLUMNS: '80' }, readScript('script/all_web_book.sh')),
+        toConcourseTask('all-web-book', [IO.BOOK], [IO.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CODE_VERSION: env.codeVersion, CORGI_ARTIFACTS_S3_BUCKET: env.artifactsBucket, COLUMNS: '80' }, readScript('script/all_web_book.sh')),
     ]
 }
 
