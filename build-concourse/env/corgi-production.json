@@ -1,0 +1,24 @@
+{
+    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "CORGI_API_URL": "https://corgi.openstax.org/api",
+    "AWS_ACCESS_KEY_ID": "((prod-cops-artifacts-access-key-id))",
+    "AWS_SECRET_ACCESS_KEY": "((prod-cops-artifacts-secret-access-key))",
+    "CORGI_ARTIFACTS_S3_BUCKET": "openstax-cops-artifacts",
+    "CORGI_CLOUDFRONT_URL": "https://openstax.org",
+    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "WEB_BUCKET_AKI_SECRET_NAME": "((prod-web-hosting-content-gatekeeper-access-key-id))",
+    "WEB_BUCKET_SAK_SECRET_NAME": "((prod-web-hosting-content-gatekeeper-secret-access-key))",
+    "WEB_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
+    "WEB_QUEUE_STATE_S3_BUCKET": "openstax-web-hosting-content-queue-state",
+    "WEB_ARCHIVE_QUEUE_FILENAME": "web-hosting-queue.json",
+    "WEB_GIT_QUEUE_FILENAME": "git-web-haosting-queue.json",
+    "PIPELINE_TICK_INTERVAL": "12h",
+    "MAX_BOOKS_PER_TICK": "50",
+    "GDOC_GOOGLE_FOLDER_ID": "",
+    "GDOC_QUEUE_FILENAME": "",
+    "GDOC_FEED_FILE_URL": "",
+    "GH_SECRET_CREDS": "git:((github-api-token))",
+    "DOCKERHUB_USERNAME": "((ce-dockerhub-id))",
+    "DOCKERHUB_PASSWORD": "((ce-dockerhub-token))"
+  }
+  

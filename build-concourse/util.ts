@@ -1,6 +1,5 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as dedent from 'dedent'
 
 const buildLogRetentionDays = 14
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -35,7 +34,6 @@ export type DockerDetails = {
 
 type TaskArgs = {
     resource: string
-    apiRoot: string
     processingStates: Status[]
     completedStates: Status[]
     abortedStates: Status[]
@@ -93,14 +91,6 @@ export type TaskNode = {
     code: string
 }
 
-const hardCodeSomeEnvValuesWhenNotDevMode = (key: string) => {
-    if (!devOrProductionSettings().isDev) {
-        if (key === 'AWS_ACCESS_KEY_ID') { return '((prod-web-hosting-content-gatekeeper-access-key-id))' }
-        else if (key === 'AWS_SECRET_ACCESS_KEY') { return '((prod-web-hosting-content-gatekeeper-secret-access-key))'}
-    }
-    return process.env[key]
-}
-
 const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR: This value is expected to exist'): T => {
     if (v == null) {
         throw new Error(message)
@@ -111,14 +101,14 @@ const bashy = (cmd: string) => ({
     path: '/bin/bash',
     args: ['-cxe', `source /openstax/venv/bin/activate\n${cmd}`]
 })
-export const populateEnv = (env: Env) => {
+export const populateEnv = (env: KeyValue, envKeys: Env) => {
     const ret: any = {}
-    for (const key in env) {
-        const value = env[key]
+    for (const key in envKeys) {
+        const value = envKeys[key]
         if (value === true) {
-            ret[key] = expect(hardCodeSomeEnvValuesWhenNotDevMode(key), `Expected environment variable '${key}' to be set but it was not.`)
+            ret[key] = expect(env[key], `Expected environment variable '${key}' to be set but it was not.`)
         } else if (value === false) {
-            ret[key] = hardCodeSomeEnvValuesWhenNotDevMode(key)
+            ret[key] = env[key]
         } else if(typeof value === 'string') {
             ret[key] = value
         } else {
@@ -134,20 +124,23 @@ const ioToEnvVars = (inputs: string[], outputs: string[]) => {
     outputs.forEach(s => ret[`IO_${toUpperCamel(s)}`] = s)
     return ret
 }
-export const toConcourseTask = (taskName: string, inputs: string[], outputs: string[], env: Env, cmd: string): ConcourseTask => ({
+function toDockerTag(codeVersion: string) {
+    return codeVersion.startsWith(RANDOM_DEV_CODEVERSION_PREFIX) ? 'main' : codeVersion
+}
+export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[], outputs: string[], envNames: Env, cmd: string): ConcourseTask => ({
     task: taskName,
     config: {
         platform: 'linux',
         image_resource: {
             type: 'docker-image',
             source: {
-                repository: docker.repository,
-                tag: docker.tag,
-                username: docker.username,
-                password: docker.password
+                repository: expect(env.DOCKER_REPOSITORY),
+                tag: toDockerTag(expect(env.CODE_VERSION)),
+                username: env.DOCKERHUB_USERNAME,
+                password: env.DOCKERHUB_PASSWORD
             }
         },
-        params: {...ioToEnvVars(inputs, outputs), ...populateEnv(env)},
+        params: {...ioToEnvVars(inputs, outputs), ...populateEnv(env, envNames)},
         run: bashy(cmd),
         inputs: inputs.map(name => ({ name })),
         outputs: outputs.map(name => ({ name })),
@@ -168,24 +161,24 @@ export const reportToOutputProducer = (resource: RESOURCES) => {
     }
 }
 
-const taskStatusCheck = (taskArgs: TaskArgs) => {
-    const { resource, apiRoot, processingStates, completedStates, abortedStates } = taskArgs
+const taskStatusCheck = (env: KeyValue, taskArgs: TaskArgs) => {
+    const { resource, processingStates, completedStates, abortedStates } = taskArgs
 
     const toBashCaseMatch = (list: Status[]) => {
         return `@(${list.join('|')})`
     }
 
-    const env = {
+    const myEnv = {
         RESOURCE: expect(resource),
-        API_ROOT: expect(apiRoot),
+        CORGI_API_URL: true,
         PROCESSING_STATES: toBashCaseMatch(processingStates),
         COMPLETED_STATES: toBashCaseMatch(completedStates),
         ABORTED_STATES: toBashCaseMatch(abortedStates)
     }
-    return toConcourseTask('status-check', [resource], [], env, readScript('script/task_status_check.sh'))
+    return toConcourseTask(env, 'status-check', [resource], [IO.COMMON_LOG], myEnv, readScript('script/task_status_check.sh'))
 }
 
-const runWithStatusCheck = (resource: RESOURCES, step: Pipeline) => {
+const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) => {
     const reporter = reportToOutputProducer(resource)
     return {
         in_parallel: {
@@ -194,9 +187,8 @@ const runWithStatusCheck = (resource: RESOURCES, step: Pipeline) => {
                 step,
                 {
                     do: [
-                        taskStatusCheck({
+                        taskStatusCheck(env, {
                             resource: resource,
-                            apiRoot: expect(docker.corgiApiUrl),
                             processingStates: [Status.ASSIGNED, Status.PROCESSING],
                             completedStates: [Status.FAILED, Status.SUCCEEDED],
                             abortedStates: [Status.ABORTED]
@@ -211,7 +203,7 @@ const runWithStatusCheck = (resource: RESOURCES, step: Pipeline) => {
     }
 }
 
-export const wrapGenericCorgiJob = (jobName: string, resource: RESOURCES, step: Pipeline, extraArgs?: any) => {
+export const wrapGenericCorgiJob = (env: KeyValue, jobName: string, resource: RESOURCES, step: Pipeline, extraArgs?: any) => {
     const report = reportToOutputProducer(resource)
     return {
         name: jobName,
@@ -227,7 +219,7 @@ export const wrapGenericCorgiJob = (jobName: string, resource: RESOURCES, step: 
                     error_message: genericErrorMessage
                 })
             },
-            runWithStatusCheck(resource, step)
+            runWithStatusCheck(env, resource, step)
         ],
         on_error: report(Status.FAILED, {
             error_message: genericErrorMessage
@@ -244,7 +236,7 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (pdfOrWeb: PDF_OR_WEB) => toConcourseTask(`build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: devOrProductionSettings().artifactsBucket, CODE_VERSION: devOrProductionSettings().codeVersion, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
+  export const variantMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB) => toConcourseTask(env, `build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: true, CODE_VERSION: true, GH_SECRET_CREDS: false, REX_PREVIEW_URL: true, REX_PROD_PREVIEW_URL: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
 
 
 
@@ -256,41 +248,61 @@ type Settings = {
     isDev: boolean
 }
 
-export const expectEnv = (names: string[]) => {
-    for (const name of names) {
-        if (process.env[name]) {
-            return process.env[name]
-        }
+export const expectEnv = (name: string) => {
+    if (process.env[name]) {
+        return process.env[name]
     }
-    throw new Error(`Missing Environment variable: ${name[0]}.`)
+    throw new Error(`Missing Environment variable: ${name}.`)
 }
 const rand = (len: number) => Math.random().toString().substr(2, len)
-const theId = rand(7)
-export const devOrProductionSettings = (): Settings => {
-    if (process.env['DEV_MODE'] || process.env['AWS_SESSION_TOKEN']) {
-        return {
-            codeVersion: `randomlocaldevtag-${theId}`,
-            queueBucket: 'openstax-sandbox-web-hosting-content-queue-state',
-            artifactsBucket: expectEnv(['CORGI_ARTIFACTS_S3_BUCKET', 'COPS_ARTIFACTS_S3_BUCKET']),
-            cloudfrontUrl: 'https://not-a-valid-cloudfront-url',
-            isDev: true
-        }
-    } else {
-        return {
-            codeVersion: expectEnv(['CODE_VERSION']),
-            queueBucket: 'openstax-web-hosting-content-queue-state',
-            artifactsBucket: expectEnv(['CORGI_ARTIFACTS_S3_BUCKET', 'COPS_ARTIFACTS_S3_BUCKET']),
-            cloudfrontUrl: expectEnv(['CORGI_CLOUDFRONT_URL', 'COPS_CLOUDFRONT_URL']),
-            isDev: false
-        }
+export const randId = rand(7)
+export const RANDOM_DEV_CODEVERSION_PREFIX = 'random-dev-codeversion'
+
+function defaultEnv(env: KeyValue, key: string, optional?: boolean) {
+    const v = env[key] || process.env[key]
+    if (!v && !optional) {
+        throw new Error(`ERROR: Missing environment variable: ${key}`)
     }
+    env[key] = v
+}
+export function loadEnv(pathToJson: string) {
+    const env: KeyValue = require(pathToJson)
+    if (!env.AWS_ACCESS_KEY_ID) {
+        // Don't pull the session token from environment if we are loading AWS 
+        // keys from the JSON file (anything but local)
+        defaultEnv(env, 'AWS_SESSION_TOKEN', true)
+    }
+    defaultEnv(env, 'CODE_VERSION')
+    defaultEnv(env, 'AWS_ACCESS_KEY_ID')
+    defaultEnv(env, 'AWS_SECRET_ACCESS_KEY')
+    defaultEnv(env, 'DOCKERHUB_USERNAME', true)
+    defaultEnv(env, 'DOCKERHUB_PASSWORD', true)
+
+    env.REX_PREVIEW_URL = 'https://rex-web.herokuapp.com'
+    env.REX_PROD_PREVIEW_URL = 'https://rex-web-production.herokuapp.com'
+
+    return env
 }
 
+export type KeyValue = {
+    CODE_VERSION: string
 
-export const docker: DockerDetails = {
-    repository: process.env['DOCKER_REPOSITORY'] || 'openstax/book-pipeline',
-    tag: devOrProductionSettings().isDev ? 'main' : expectEnv(['CODE_VERSION']),
-    username: process.env['DOCKER_USERNAME'],
-    password: process.env['DOCKER_PASSWORD'],
-    corgiApiUrl: devOrProductionSettings().isDev ? 'https://corgi-staging.openstax.org/api' : 'https://corgi.openstax.org/api'
+    DOCKER_REPOSITORY: string
+    CORGI_API_URL: string
+    CORGI_CLOUDFRONT_URL: string
+    CORGI_ARTIFACTS_S3_BUCKET: string
+
+    MAX_INFLIGHT_JOBS: number
+    WEB_QUEUE_STATE_S3_BUCKET: string
+
+    PIPELINE_TICK_INTERVAL: string // '12h'
+    REX_PROD_PREVIEW_URL: string
+    REX_PREVIEW_URL: string
+
+    // Secrets
+    DOCKERHUB_USERNAME: string
+    DOCKERHUB_PASSWORD: string
+    AWS_ACCESS_KEY_ID: string
+    AWS_SECRET_ACCESS_KEY: string
+    AWS_SESSION_TOKEN?: string
 }

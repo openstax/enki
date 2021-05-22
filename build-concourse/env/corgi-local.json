@@ -1,0 +1,10 @@
+{
+    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "CORGI_API_URL_UNUSED_FOR_NOW": "http://backend/api",
+    "CORGI_API_URL": "https://corgi-staging.openstax.org/api",
+    "CORGI_ARTIFACTS_S3_BUCKET": "ce-phil",
+    "CORGI_CLOUDFRONT_URL": "https://gibberish",
+    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "PIPELINE_TICK_INTERVAL": "12h",
+    "MAX_BOOKS_PER_TICK": "4"
+}

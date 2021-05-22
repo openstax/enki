@@ -2,7 +2,7 @@
 job_id=$(cat "$RESOURCE/id")
 subsequent_failures=0
 while true; do
-    curl -w "%{http_code}" -o response "$API_ROOT/jobs/$job_id" > status_code
+    curl -w "%{http_code}" -o response "$CORGI_API_URL/jobs/$job_id" > status_code
     timestamp=$(date '+%H:%M:%S')
     status_code="$(cat status_code)"
     if [[ "$status_code" = "200" ]]; then

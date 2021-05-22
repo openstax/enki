@@ -1,0 +1,23 @@
+{
+    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "MAX_INFLIGHT_JOBS": 5,
+    "CORGI_API_URL": "https://corgi-staging.openstax.org/api",
+    "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-key-id))",
+    "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-access-key))",
+    "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
+    "CORGI_CLOUDFRONT_URL": "https://cops.sandbox.openstax.org",
+    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "WEB_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
+    "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
+    "WEB_ARCHIVE_QUEUE_FILENAME": "web-hosting-queue.json",
+    "WEB_GIT_QUEUE_FILENAME": "git-web-hosting-queue.json",
+    "PIPELINE_TICK_INTERVAL": "12h",
+    "MAX_BOOKS_PER_TICK": "50",
+    "GDOC_GOOGLE_FOLDER_ID": "",
+    "GDOC_QUEUE_FILENAME": "",
+    "GDOC_FEED_FILE_URL": "",
+    "GH_SECRET_CREDS": "git:((github-api-token))",
+    "DOCKERHUB_USERNAME": "((ce-dockerhub-id))",
+    "DOCKERHUB_PASSWORD": "((ce-dockerhub-token))"
+  }
+  

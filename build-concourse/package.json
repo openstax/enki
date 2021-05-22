@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/dedent": "^0.7.0",
     "@types/js-yaml": "^4.0.1",
-    "@types/node": "^15.0.1",
+    "@types/node": "^15.6.0",
     "dedent": "^0.7.0"
   }
 }

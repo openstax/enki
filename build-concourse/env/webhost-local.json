@@ -1,0 +1,11 @@
+{
+    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "MAX_INFLIGHT_JOBS": 5,
+    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "WEB_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
+    "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
+    "WEB_ARCHIVE_QUEUE_FILENAME": "web-hosting-queue.json",
+    "WEB_GIT_QUEUE_FILENAME": "git-web-hosting-queue.json",
+    "PIPELINE_TICK_INTERVAL": "12h",
+    "MAX_BOOKS_PER_TICK": "50"
+}

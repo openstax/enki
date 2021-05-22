@@ -3,7 +3,7 @@
 [[ -d $IO_ARTIFACTS_SINGLE ]] || (echo "Undefined Environment variable: IO_ARTIFACTS_SINGLE" && exit 1)
 [[ -d $IO_PREVIEW_URLS ]] || (echo "Undefined Environment variable: IO_PREVIEW_URLS" && exit 1)
 [[ $CONTENT_SOURCE ]] || (echo "Undefined Environment variable: CONTENT_SOURCE" && exit 1)
-[[ $CLOUDFRONT_URL ]] || (echo "Undefined Environment variable: CLOUDFRONT_URL" && exit 1)
+[[ $CORGI_CLOUDFRONT_URL ]] || (echo "Undefined Environment variable: CORGI_CLOUDFRONT_URL" && exit 1)
 [[ $CODE_VERSION ]] || (echo "Undefined Environment variable: CODE_VERSION" && exit 1)
 [[ $PREVIEW_APP_URL_PREFIX ]] || (echo "Undefined Environment variable: PREVIEW_APP_URL_PREFIX" && exit 1)
 [[ $REX_PREVIEW_URL ]] || (echo "Undefined Environment variable: REX_PREVIEW_URL" && exit 1)
@@ -29,7 +29,7 @@ esac
 book_uuid=$(jq -r '.id' "$book_metadata")
 book_version=$(jq -r '.version' "$book_metadata")
 
-rex_archive_param="?archive=${CLOUDFRONT_URL}/${PREVIEW_APP_URL_PREFIX}/${CODE_VERSION}"
+rex_archive_param="?archive=${CORGI_CLOUDFRONT_URL}/${PREVIEW_APP_URL_PREFIX}/${CODE_VERSION}"
 
 first_page_slug=$(jq -r '.tree.contents[0].slug' "$book_metadata")
 rex_url="${REX_PREVIEW_URL}/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
