@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
-import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask } from './util'
+import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect } from './util'
 
 const CONTENT_SOURCE = 'archive'
 
@@ -42,7 +42,7 @@ function makePipeline(env: KeyValue) {
     
     const webBaker = {
         name: 'bakery',
-        max_in_flight: env.MAX_INFLIGHT_JOBS,
+        max_in_flight: expect(env.MAX_INFLIGHT_JOBS),
         plan: [
             {
                 get: RESOURCES.S3_QUEUE,
@@ -57,8 +57,8 @@ function makePipeline(env: KeyValue) {
 }
 
 
-fs.writeFileSync('./webhost-sandbox.yml', yaml.dump(makePipeline(loadEnv('./env/webhost-sandbox.json'))))
-fs.writeFileSync('./webhost-production.yml', yaml.dump(makePipeline(loadEnv('./env/webhost-production.json'))))
+fs.writeFileSync('./webhosting-sandbox.yml', yaml.dump(makePipeline(loadEnv('./env/webhosting-sandbox.json'))))
+fs.writeFileSync('./webhosting-production.yml', yaml.dump(makePipeline(loadEnv('./env/webhosting-production.json'))))
 
 process.env['CODE_VERSION'] = `${RANDOM_DEV_CODEVERSION_PREFIX}-${randId}`
-fs.writeFileSync('./webhost-local.yml', yaml.dump(makePipeline(loadEnv('./env/webhost-local.json'))))
+fs.writeFileSync('./webhosting-local.yml', yaml.dump(makePipeline(loadEnv('./env/webhosting-local.json'))))

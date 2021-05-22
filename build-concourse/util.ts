@@ -91,7 +91,7 @@ export type TaskNode = {
     code: string
 }
 
-const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR: This value is expected to exist'): T => {
+export const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR: This value is expected to exist'): T => {
     if (v == null) {
         throw new Error(message)
     }
