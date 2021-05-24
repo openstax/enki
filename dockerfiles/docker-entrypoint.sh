@@ -5,7 +5,7 @@
 set -e
 
 # Trace and log if TRACE_ON is set
-[[ ${TRACE_ON} ]] && set -x && exec > >(tee /data/log >&2) 2>&1
+[[ ${TRACE_ON} ]] && set -x
 
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
@@ -506,8 +506,8 @@ function do_step() {
             #######################################
             toc_s3_link_json="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
             toc_s3_link_xhtml="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
-            try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.json" "$toc_s3_link_json"
-            try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.xhtml" "$toc_s3_link_xhtml"
+            try aws s3 cp "$IO_JSONIFIED/$ARG_TARGET_SLUG_NAME.toc.json" "$toc_s3_link_json"
+            try aws s3 cp "$IO_JSONIFIED/$ARG_TARGET_SLUG_NAME.toc.xhtml" "$toc_s3_link_xhtml"
 
             echo "DONE: See book at ${toc_s3_link_json} and ${toc_s3_link_xhtml}"
         ;;

@@ -23,7 +23,7 @@ fi
 export ARG_CODE_VERSION=$CODE_VERSION
 export ARG_S3_BUCKET_NAME=$CORGI_ARTIFACTS_S3_BUCKET
 
-docker-entrypoint.sh $TASK_NAME
+TRACE_ON=1 docker-entrypoint.sh $TASK_NAME
 
 # pdf
     # # Move the PDF and pdf_url into the out directory
