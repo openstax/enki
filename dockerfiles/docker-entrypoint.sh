@@ -62,15 +62,14 @@ function do_step() {
 
     case $step_name in
         archive-fetch)
-            collection_id=$2
             book_version=latest
             book_server=cnx.org
 
             # Validate commandline arguments
-            [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
+            [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
-            yes | try neb get -r -d "${IO_ARCHIVE_FETCHED}" "${book_server}" "${collection_id}" "${book_version}"
+            yes | try neb get -r -d "${IO_ARCHIVE_FETCHED}" "${book_server}" "${ARG_COLLECTION_ID}" "${book_version}"
         ;;
         archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
@@ -96,16 +95,15 @@ function do_step() {
             try python3 /openstax/bakery-scripts/scripts/link_extras.py "${IO_ARCHIVE_BOOK}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
         ;;
         archive-bake)
-            recipe_name=$2
 
             # Validate commandline arguments
-            [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+            [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
 
-            try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
+            try /openstax/recipes/bake_root -b "${ARG_RECIPE_NAME}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
 
-            style_file="/openstax/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+            style_file="/openstax/cnx-recipes-styles-output/${ARG_RECIPE_NAME}-pdf.css"
 
-            [[ -f "${style_file}" ]] || yell "Warning: Could not find style file for recipe name '${recipe_name}'"
+            [[ -f "${style_file}" ]] || yell "Warning: Could not find style file for recipe name '${ARG_RECIPE_NAME}'"
 
             if [ -f "${style_file}" ]
             then
@@ -125,7 +123,7 @@ function do_step() {
 
         archive-bake-metadata)
             # TODO: Use a real collection id
-            collection_id="fakecollectionid"
+            ARG_COLLECTION_ID="fakecollectionid"
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
@@ -172,19 +170,17 @@ function do_step() {
             done
         ;;
         archive-upload-book)
-            s3_bucket_name=$2
-            code_version=$3
+
+            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing. It is necessary for uploading"
+            [[ ${ARG_CODE_VERSION} ]] || die "ARG_CODE_VERSION is missing. It is necessary for uploading"
+
+            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
+            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
 
             check_input_dir "${IO_ARCHIVE_FETCHED}"
             check_output_dir "${IO_ARCHIVE_JSONIFIED}"
 
-            s3_bucket_prefix="apps/archive/${code_version}"
-
-            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
-            [[ ${code_version} ]] || die "A code version is missing. It is necessary for uploading"
-
-            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
-            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
+            s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             resources_dir="${IO_ARCHIVE_BOOK}/resources"
@@ -195,8 +191,8 @@ function do_step() {
 
             for jsonfile in "$IO_ARCHIVE_JSONIFIED/"*@*.json; do try cp "$jsonfile" "$target_dir/$(basename $jsonfile)"; done;
             for xhtmlfile in "$IO_ARCHIVE_JSONIFIED/"*@*.xhtml; do try cp "$xhtmlfile" "$target_dir/$(basename $xhtmlfile)"; done;
-            try aws s3 cp --recursive "$target_dir" "s3://${s3_bucket_name}/${s3_bucket_prefix}/contents"
-            try copy-resources-s3 "$resources_dir" "${s3_bucket_name}" "${s3_bucket_prefix}/resources"
+            try aws s3 cp --recursive "$target_dir" "s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents"
+            try copy-resources-s3 "$resources_dir" "${ARG_S3_BUCKET_NAME}" "${s3_bucket_prefix}/resources"
 
             #######################################
             # UPLOAD BOOK LEVEL FILES LAST
@@ -204,8 +200,8 @@ function do_step() {
             # on prior upload steps, those files
             # will not be found by watchers
             #######################################
-            toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
-            toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
+            toc_s3_link_json="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
+            toc_s3_link_xhtml="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
             try aws s3 cp "$IO_ARCHIVE_JSONIFIED/collection.toc.json" "$toc_s3_link_json"
             try aws s3 cp "$IO_ARCHIVE_JSONIFIED/collection.toc.xhtml" "$toc_s3_link_xhtml"
 
@@ -216,18 +212,14 @@ function do_step() {
         git-fetch)
             check_output_dir "${IO_FETCHED}"
 
-            repo_name=$2
-            git_ref=$3
-            target_slug_name=$4
+            [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing"
+            [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REFerence is missing (branch, tag, or @commit)"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
 
-            [[ ${repo_name} ]] || die "A repo name is missing"
-            [[ ${git_ref} ]] || die "A git reference is missing (branch, tag, or @commit)"
-            [[ ${target_slug_name} ]] || die "A book slug name is missing"
+            [[ "${ARG_GIT_REF}" == latest ]] && ARG_GIT_REF=main
+            [[ "${ARG_REPO_NAME}" == */* ]] || ARG_REPO_NAME="openstax/${ARG_REPO_NAME}"
 
-            [[ "${git_ref}" == latest ]] && git_ref=main
-            [[ "${repo_name}" == */* ]] || repo_name="openstax/${repo_name}"
-
-            remote_url="https://github.com/${repo_name}.git"
+            remote_url="https://github.com/${ARG_REPO_NAME}.git"
             
             if [[ ${GH_SECRET_CREDS} ]]; then
                 creds_dir=tmp-gh-creds
@@ -238,12 +230,12 @@ function do_step() {
                 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
             fi
 
-            # If git_ref starts with '@' then it is a commit and check out the individual commit
+            # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
             # Or, https://stackoverflow.com/a/7662531
-            [[ ${git_ref} =~ ^[a-f0-9]{40}$ ]] && git_ref="@${git_ref}"
+            [[ ${ARG_GIT_REF} =~ ^[a-f0-9]{40}$ ]] && ARG_GIT_REF="@${ARG_GIT_REF}"
 
-            if [[ ${git_ref} = @* ]]; then
-                git_commit="${git_ref:1}"
+            if [[ ${ARG_GIT_REF} = @* ]]; then
+                git_commit="${ARG_GIT_REF:1}"
                 GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${IO_FETCHED}"
                 pushd "${IO_FETCHED}"
                 try git reset --hard "${git_commit}"
@@ -256,10 +248,10 @@ function do_step() {
                 fi
                 popd
             else
-                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${git_ref}" "${IO_FETCHED}"
+                GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${ARG_GIT_REF}" "${IO_FETCHED}"
             fi
 
-            if [[ ! -f "${IO_FETCHED}/collections/${target_slug_name}.collection.xml" ]]; then
+            if [[ ! -f "${IO_FETCHED}/collections/${ARG_TARGET_SLUG_NAME}.collection.xml" ]]; then
                 echo "No matching book for slug in this repo"
                 exit 1
             fi
@@ -272,7 +264,7 @@ function do_step() {
             check_output_dir "${IO_UNUSED}"
 
             
-            try fetch-update-meta "${IO_FETCHED}/.git" "${IO_FETCHED}/modules" "${IO_FETCHED}/collections" "${git_ref}" "${IO_FETCHED}/canonical.json"
+            try fetch-update-meta "${IO_FETCHED}/.git" "${IO_FETCHED}/modules" "${IO_FETCHED}/collections" "${ARG_GIT_REF}" "${IO_FETCHED}/canonical.json"
             try rm -rf "${IO_FETCHED}/.git"
             try rm -rf "$creds_dir"
 
@@ -282,15 +274,14 @@ function do_step() {
         ;;
 
         git-assemble)
-            opt_only_one_book=$2
             check_input_dir "${IO_FETCHED}"
             check_output_dir "${IO_ASSEMBLED}"
             
             shopt -s globstar nullglob
             for collection in "${IO_FETCHED}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                if [[ -n "${opt_only_one_book}" ]]; then
-                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
+                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                         continue
                     fi
                 fi
@@ -306,7 +297,6 @@ function do_step() {
         ;;
 
         git-assemble-meta)
-            opt_only_one_book=$2
             check_input_dir "${IO_FETCHED}"
             check_input_dir "${IO_ASSEMBLED}"
             check_output_dir "${IO_ASSEMBLE_META}"
@@ -316,8 +306,8 @@ function do_step() {
             echo "{}" > uuid-to-revised-map.json
             for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                if [[ -n "${opt_only_one_book}" ]]; then
-                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
+                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                         continue
                     fi
                 fi
@@ -328,9 +318,7 @@ function do_step() {
         ;;
 
         git-bake)
-            recipe_name=$2
-            opt_only_one_book=$3
-            [[ ${recipe_name} ]] || die "A recipe name is missing"
+            [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing"
             check_input_dir "${IO_ASSEMBLED}"
             check_output_dir "${IO_BAKED}"
 
@@ -343,7 +331,7 @@ function do_step() {
             # work cycle.
 
             # FIXME: Separate style injection step from baking step. This is way too much work to change a line injected into the head tag
-            style_file="/openstax/cnx-recipes-styles-output/${recipe_name}-pdf.css"
+            style_file="/openstax/cnx-recipes-styles-output/${ARG_RECIPE_NAME}-pdf.css"
 
             if [[ -f "$style_file" ]]
                 then
@@ -355,12 +343,12 @@ function do_step() {
             shopt -s globstar nullglob
             for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                if [[ -n "${opt_only_one_book}" ]]; then
-                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
+                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                         continue
                     fi
                 fi
-                try /openstax/recipes/bake_root -b "${recipe_name}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" -o "${IO_BAKED}/$slug_name.baked.xhtml"
+                try /openstax/recipes/bake_root -b "${ARG_RECIPE_NAME}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" -o "${IO_BAKED}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
                     then
                         try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${IO_BAKED}/$slug_name.baked.xhtml"
@@ -370,7 +358,6 @@ function do_step() {
         ;;
 
         git-bake-meta)
-            opt_only_one_book=$2
             check_input_dir "${IO_ASSEMBLE_META}"
             check_input_dir "${IO_BAKED}"
             check_output_dir "${IO_BAKE_META}"
@@ -378,8 +365,8 @@ function do_step() {
             shopt -s globstar nullglob
             for collection in "${IO_BAKED}/"*.baked.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-                if [[ -n "${opt_only_one_book}" ]]; then
-                    if [[ "$slug_name" != "${opt_only_one_book}" ]]; then
+                if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
+                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                         continue
                     fi
                 fi
@@ -390,49 +377,44 @@ function do_step() {
         ;;
 
         git-link)
-            target_slug_name=$2
-            opt_only_one_book=$3
-            [[ ${target_slug_name} ]] || die "An book slug name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
             check_input_dir "${IO_BAKED}"
             check_input_dir "${IO_BAKE_META}"
             check_output_dir "${IO_LINKED}"
 
-            if [[ -n "${opt_only_one_book}" ]]; then
-                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${target_slug_name}" "${IO_LINKED}/${target_slug_name}.linked.xhtml" --mock-otherbook
+            if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
+                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml" --mock-otherbook
             else
-                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${target_slug_name}" "${IO_LINKED}/${target_slug_name}.linked.xhtml"
+                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml"
             fi
         ;;
 
         git-disassemble)
-            target_slug_name=$2
-            [[ ${target_slug_name} ]] || die "An book slug name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
             check_input_dir "${IO_LINKED}"
             check_input_dir "${IO_BAKE_META}"
             check_output_dir "${IO_DISASSEMBLED}"
 
-            try disassemble "${IO_LINKED}/$target_slug_name.linked.xhtml" "${IO_BAKE_META}/$target_slug_name.baked-metadata.json" "$target_slug_name" "${IO_DISASSEMBLED}"
+            try disassemble "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" "${IO_BAKE_META}/$ARG_TARGET_SLUG_NAME.baked-metadata.json" "$ARG_TARGET_SLUG_NAME" "${IO_DISASSEMBLED}"
         ;;
 
         git-patch-disassembled-links)
-            target_slug_name=$2
-            [[ ${target_slug_name} ]] || die "An book slug name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
             check_input_dir "${IO_DISASSEMBLED}"
             check_output_dir "${IO_DISASSEMBLE_LINKED}"
 
-            try patch-same-book-links "${IO_DISASSEMBLED}" "${IO_DISASSEMBLE_LINKED}" "$target_slug_name"
+            try patch-same-book-links "${IO_DISASSEMBLED}" "${IO_DISASSEMBLE_LINKED}" "$ARG_TARGET_SLUG_NAME"
             try cp "${IO_DISASSEMBLED}"/*@*-metadata.json "${IO_DISASSEMBLE_LINKED}"
-            try cp "${IO_DISASSEMBLED}"/"$target_slug_name".toc* "${IO_DISASSEMBLE_LINKED}"
+            try cp "${IO_DISASSEMBLED}"/"$ARG_TARGET_SLUG_NAME".toc* "${IO_DISASSEMBLE_LINKED}"
         ;;
 
         git-jsonify)
-            target_slug_name=$2
-            [[ ${target_slug_name} ]] || die "An book slug name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
             check_input_dir "${IO_DISASSEMBLE_LINKED}"
             check_output_dir "${IO_JSONIFIED}"
 
             try jsonify "${IO_DISASSEMBLE_LINKED}" "${IO_JSONIFIED}"
-            try jsonschema -i "${IO_JSONIFIED}/${target_slug_name}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
+            try jsonschema -i "${IO_JSONIFIED}/${ARG_TARGET_SLUG_NAME}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
 
             for jsonfile in "${IO_JSONIFIED}/"*@*.json; do
                 try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
@@ -449,8 +431,7 @@ function do_step() {
             done
         ;;
         git-mathify)
-            target_slug_name=$2
-            [[ ${target_slug_name} ]] || die "A book slug name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
 
             check_input_dir "${IO_LINKED}"
             check_input_dir "${IO_BAKED}"
@@ -459,55 +440,48 @@ function do_step() {
             # Style needed because mathjax will size converted math according to surrounding text
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_LINKED}"
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_MATHIFIED}"
-            try node /openstax/mathify/typeset/start.js -i "${IO_LINKED}/$target_slug_name.linked.xhtml" -o "${IO_MATHIFIED}/$target_slug_name.mathified.xhtml" -f svg
+            try node /openstax/mathify/typeset/start.js -i "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" -o "${IO_MATHIFIED}/$ARG_TARGET_SLUG_NAME.mathified.xhtml" -f svg
         ;;
         git-pdfify)
-            target_slug_name=$2
-            target_pdf_filename=$3
 
-            [[ ${target_slug_name} ]] || die "A book slug name is missing"
-            [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            [[ ${ARG_TARGET_PDF_FILENAME} ]] || die "ARG_TARGET_PDF_FILENAME is missing"
 
             check_input_dir "${IO_MATHIFIED}"
             check_output_dir "${IO_ARTIFACTS}"
 
-            try prince -v --output="${IO_ARTIFACTS}/${target_pdf_filename}" "${IO_MATHIFIED}/${target_slug_name}.mathified.xhtml"
+            try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_MATHIFIED}/${ARG_TARGET_SLUG_NAME}.mathified.xhtml"
         ;;
         git-pdfify-meta)
-            s3_bucket_name=$2
-            target_pdf_filename=$3
             check_output_dir "${IO_ARTIFACTS}"
 
-            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing"
-            [[ ${target_pdf_filename} ]] || die "A target PDF filename name is missing"
+            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing"
+            [[ ${ARG_TARGET_PDF_FILENAME} ]] || die "ARG_TARGET_PDF_FILENAME is missing"
 
-            pdf_url="https://${s3_bucket_name}.s3.amazonaws.com/${target_pdf_filename}"
+            pdf_url="https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${ARG_TARGET_PDF_FILENAME}"
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
 
             echo "DONE: See book at ${pdf_url}"
         ;;
         git-upload-book)
-            s3_bucket_name=$2
-            code_version=$3
-            target_slug_name=$4
 
             check_input_dir "${IO_JSONIFIED}"
             check_input_dir "${IO_RESOURCES}"
             check_output_dir "${IO_ARTIFACTS}"
 
-            [[ ${s3_bucket_name} ]] || die "An S3 bucket name is missing. It is necessary for uploading"
-            [[ ${code_version} ]] || die "A code version is missing. It is necessary for uploading"
-            [[ ${target_slug_name} ]] || die "A book slug is missing. It is necessary for uploading"
+            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing. It is necessary for uploading"
+            [[ ${ARG_CODE_VERSION} ]] || die "ARG_CODE_VERSION is missing. It is necessary for uploading"
+            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for uploading"
 
             [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
             [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
 
-            s3_bucket_prefix="apps/archive/${code_version}"
+            s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
             # Parse the UUID and versions from the book metadata since it will be accessible
             # for any pipeline (web-hosting or web-preview) and to be self-consistent
             # metadata and values used.
-            book_metadata="${IO_JSONIFIED}/$target_slug_name.toc.json"
+            book_metadata="${IO_JSONIFIED}/$ARG_TARGET_SLUG_NAME.toc.json"
             book_uuid=$(jq -r '.id' "$book_metadata")
             book_version=$(jq -r '.version' "$book_metadata")
             for jsonfile in "$IO_JSONIFIED/"*@*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
@@ -521,8 +495,8 @@ function do_step() {
             # on prior upload steps, those files
             # will not be found by watchers
             #######################################
-            toc_s3_link_json="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
-            toc_s3_link_xhtml="s3://${s3_bucket_name}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
+            toc_s3_link_json="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.json"
+            toc_s3_link_xhtml="s3://${ARG_S3_BUCKET_NAME}/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml"
             try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.json" "$toc_s3_link_json"
             try aws s3 cp "$IO_JSONIFIED/$book_slug.toc.xhtml" "$toc_s3_link_xhtml"
 
@@ -552,98 +526,92 @@ function do_step_named() {
 
 case $1 in
     all-archive-pdf)
-        collection_id=$2
-        recipe_name=$3
-        [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
-        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+        ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
+        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
+
+        [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
+        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
         
-        do_step_named archive-fetch ${collection_id}
+        do_step_named archive-fetch ${ARG_COLLECTION_ID}
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
         do_step_named archive-link-extras
-        do_step_named archive-bake ${recipe_name}
+        do_step_named archive-bake ${ARG_RECIPE_NAME}
         do_step_named archive-mathify
         do_step_named archive-pdf
     ;;
     all-archive-web)
-        collection_id=$2
-        recipe_name=$3
-        [[ ${collection_id} ]] || die "A collection id is missing. It is necessary for fetching a book from archive."
-        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
+        ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
+        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
 
-        do_step_named archive-fetch ${collection_id}
+        [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
+        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+
+        do_step_named archive-fetch ${ARG_COLLECTION_ID}
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
-        do_step_named archive-bake ${recipe_name}
+        do_step_named archive-bake ${ARG_RECIPE_NAME}
         do_step_named archive-bake-metadata
         do_step_named archive-checksum
         do_step_named archive-disassemble
         do_step_named archive-patch-disassembled-links
         do_step_named archive-jsonify
         do_step_named archive-validate-xhtml
-        # do_step_named archive-upload-book ${s3_bucket_name} ${code_version}
+        # do_step_named archive-upload-book ${ARG_S3_BUCKET_NAME} ${ARG_CODE_VERSION}
     ;;
     all-git-web)
-        repo_name=$2
-        git_ref=$3
-        recipe_name=$4
-        target_slug_name=$5
-        opt_only_one_book=$6
 
-        [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
-        [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
-        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
-        [[ ${target_slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+        ARG_REPO_NAME=${ARG_REPO_NAME:-$2}
+        ARG_GIT_REF=${ARG_GIT_REF:-$3}
+        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$4}
+        ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-$5}
+        ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$6}
 
-        # Change opt_only_one_book from a boolean to the name of the one book
-        if [[ ${opt_only_one_book} ]]; then
-            opt_only_one_book=${target_slug_name}
-        fi
+        [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing. It is necessary for baking a book."
+        [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REF (branch or tag or @commit) is missing. It is necessary for baking a book."
+        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+        [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for baking a book."
 
-        do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
+        do_step_named git-fetch ${ARG_REPO_NAME} ${ARG_GIT_REF} ${ARG_TARGET_SLUG_NAME}
         do_step_named git-fetch-metadata
-        do_step_named git-assemble ${opt_only_one_book}
-        do_step_named git-assemble-meta ${opt_only_one_book}
-        do_step_named git-bake ${recipe_name} ${opt_only_one_book}
-        do_step_named git-bake-meta ${opt_only_one_book}
-        do_step_named git-link ${target_slug_name} ${opt_only_one_book}
-        do_step_named git-disassemble ${target_slug_name}
-        do_step_named git-patch-disassembled-links ${target_slug_name}
-        do_step_named git-jsonify ${target_slug_name}
+        do_step_named git-assemble ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-assemble-meta ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-bake ${ARG_RECIPE_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-bake-meta ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-link ${ARG_TARGET_SLUG_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-disassemble ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-patch-disassembled-links ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-jsonify ${ARG_TARGET_SLUG_NAME}
         do_step_named git-validate-xhtml
     ;;
     all-git-pdf)
-        repo_name=$2
-        git_ref=$3
-        recipe_name=$4
-        target_slug_name=$5
-        target_pdf_filename=$6
-        opt_only_one_book=$7
 
-        [[ ${repo_name} ]] || die "A repository name is missing. It is necessary for baking a book."
-        [[ ${git_ref} ]] || die "A git ref (branch or tag or @commit) is missing. It is necessary for baking a book."
-        [[ ${recipe_name} ]] || die "A recipe name is missing. It is necessary for baking a book."
-        [[ ${target_slug_name} ]] || die "A slug name is missing. It is necessary for baking a book."
+        ARG_REPO_NAME=${ARG_REPO_NAME:-$2}
+        ARG_GIT_REF=${ARG_GIT_REF:-$3}
+        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$4}
+        ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-$5}
+        ARG_TARGET_PDF_FILENAME=${ARG_TARGET_PDF_FILENAME:-$6}
+        ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$7}
 
-        [[ $target_pdf_filename ]] || target_pdf_filename='book.pdf'
+        [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing. It is necessary for baking a book."
+        [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REF (branch or tag or @commit) is missing. It is necessary for baking a book."
+        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+        [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for baking a book."
 
-        # Change opt_only_one_book from a boolean to the name of the one book
-        if [[ ${opt_only_one_book} ]]; then
-            opt_only_one_book=${target_slug_name}
-        fi
+        [[ $ARG_TARGET_PDF_FILENAME ]] || ARG_TARGET_PDF_FILENAME='book.pdf'
 
-        do_step_named git-fetch ${repo_name} ${git_ref} ${target_slug_name}
+        do_step_named git-fetch ${ARG_REPO_NAME} ${ARG_GIT_REF} ${ARG_TARGET_SLUG_NAME}
         do_step_named git-fetch-metadata
-        do_step_named git-assemble ${opt_only_one_book}
-        do_step_named git-assemble-meta ${opt_only_one_book}
-        do_step_named git-bake ${recipe_name} ${opt_only_one_book}
-        do_step_named git-bake-meta ${opt_only_one_book}
-        do_step_named git-link ${target_slug_name} ${opt_only_one_book}
+        do_step_named git-assemble ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-assemble-meta ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-bake ${ARG_RECIPE_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-bake-meta ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-link ${ARG_TARGET_SLUG_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
         
-        do_step_named git-mathify ${target_slug_name}
-        do_step_named git-pdfify ${target_slug_name} ${target_pdf_filename}
+        do_step_named git-mathify ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-pdfify ${ARG_TARGET_SLUG_NAME} ${ARG_TARGET_PDF_FILENAME}
     ;;
     *) # Assume the user is only running one step
         do_step $@
