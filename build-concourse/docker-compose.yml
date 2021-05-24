@@ -26,3 +26,8 @@ services:
       CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: overlay
       # CONCOURSE_CLIENT_SECRET: '...='
       # CONCOURSE_TSA_CLIENT_SECRET: '...='
+
+  registry:
+    image: registry:2
+    ports: ["5000:5000"]
+    restart: always
