@@ -22,5 +22,8 @@ docker push $TAG
 # Build the concourse pipeline to point to
 cd ./build-concourse/
 DOCKER_REPOSITORY='book-pipeline' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm start
+
+# Send to concourse:
+# ~/Downloads/fly --target local set-pipeline --pipeline corgi --config ./corgi-local.yml
 ```
 

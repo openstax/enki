@@ -91,7 +91,7 @@ export enum IO {
     BAKED = 'baked', // 'baked-book-group',
     BAKE_META = 'bake-meta', // 'baked-metadata-group',
     LINKED = 'linked', // 'linked-single',
-    MATHIFIED = 'mathidfied', // 'mathified-single',
+    MATHIFIED = 'mathified', // 'mathified-single',
     DISASSEMBLED = 'disassembled', // 'disassembled-single',
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',

@@ -82,14 +82,14 @@ function makePipeline(env: KeyValue) {
                 {
                     put: 's3-pdf',
                     params: {
-                        file: `${IO.ARTIFACTS_SINGLE}/*.pdf`,
+                        file: `${IO.ARTIFACTS}/*.pdf`,
                         acl: 'public-read',
                         content_type: 'application/pdf'
                     }
                 }
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS_SINGLE}/pdf_url`
+                pdf_url: `${IO.ARTIFACTS}/pdf_url`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -127,8 +127,9 @@ function makePipeline(env: KeyValue) {
         taskMaker(env, PDF_OR_WEB.PDF, 'git-bake', [IO.BOOK, IO.ASSEMBLED], [IO.BAKED], {}),
         taskMaker(env, PDF_OR_WEB.PDF, 'git-bake-meta', [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], [IO.BAKE_META], {}),
         taskMaker(env, PDF_OR_WEB.PDF, 'git-link', [IO.BOOK, IO.BAKED, IO.BAKE_META], [IO.LINKED], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-mathify', [IO.BOOK, IO.LINKED, IO.BAKE_META], [IO.MATHIFIED], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-pdfify', [IO.BOOK, IO.MATHIFIED], [IO.ARTIFACTS_SINGLE], {}),
+        taskMaker(env, PDF_OR_WEB.PDF, 'git-mathify', [IO.BOOK, IO.LINKED, IO.BAKED], [IO.MATHIFIED], {}),
+        taskMaker(env, PDF_OR_WEB.PDF, 'git-pdfify', [IO.BOOK, IO.MATHIFIED], [IO.ARTIFACTS], {}),
+        taskMaker(env, PDF_OR_WEB.PDF, 'git-pdfify-meta', [IO.BOOK, IO.ARTIFACTS], [IO.ARTIFACTS], {CORGI_ARTIFACTS_S3_BUCKET: true}),
     ])
     const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, [
         taskMaker(env, PDF_OR_WEB.WEB, 'git-fetch', [IO.BOOK], [IO.FETCHED], {GH_SECRET_CREDS: false}),
@@ -154,8 +155,9 @@ function makePipeline(env: KeyValue) {
             source: {
                 username: env.DOCKERHUB_USERNAME,
                 password: env.DOCKERHUB_PASSWORD,
-                repository: 'openstax/output-producer-resource',
-                tag: "20210427.153250"
+                insecure_registries: [ 'registry:5000' ],
+                repository: 'registry:5000/output-producer', // 'openstax/output-producer-resource',
+                // tag: "20210427.153250"
                 // repository: docker.repository,
                 // tag: env.CODE_VERSION
             }
