@@ -155,11 +155,9 @@ function makePipeline(env: KeyValue) {
             source: {
                 username: env.DOCKERHUB_USERNAME,
                 password: env.DOCKERHUB_PASSWORD,
-                insecure_registries: [ 'registry:5000' ],
-                repository: 'registry:5000/output-producer', // 'openstax/output-producer-resource',
-                // tag: "20210427.153250"
-                // repository: docker.repository,
-                // tag: env.CODE_VERSION
+                insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
+                repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/output-producer` : 'output-producer',
+                tag: env.DOCKER_REGISTRY_HOST ? 'latest' : '20210427.153250'
             }
         }
     ]
