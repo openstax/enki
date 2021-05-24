@@ -47,6 +47,8 @@ export type ConcourseTask = {
         image_resource: {
             type: 'docker-image'
             source: {
+                insecure_registries?: string[]
+                
                 repository: string
                 tag: string
                 username?: string
@@ -149,7 +151,8 @@ export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[
         image_resource: {
             type: 'docker-image',
             source: {
-                repository: expect(env.DOCKER_REPOSITORY),
+                insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
+                repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
                 tag: toDockerTag(expect(env.CODE_VERSION)),
                 username: env.DOCKERHUB_USERNAME,
                 password: env.DOCKERHUB_PASSWORD
@@ -275,7 +278,7 @@ export const randId = rand(7)
 export const RANDOM_DEV_CODEVERSION_PREFIX = 'random-dev-codeversion'
 
 function defaultEnv(env: KeyValue, key: string, optional?: boolean) {
-    const v = env[key] || process.env[key]
+    const v = process.env[key] || env[key]
     if (!v && !optional) {
         throw new Error(`ERROR: Missing environment variable: ${key}`)
     }
@@ -287,6 +290,12 @@ export function loadEnv(pathToJson: string) {
         // Don't pull the session token from environment if we are loading AWS 
         // keys from the JSON file (anything but local)
         defaultEnv(env, 'AWS_SESSION_TOKEN', true)
+    }
+    // Prefer environment vars over the JSON files
+    for (const key of Object.keys(env)) {
+        if (process.env[key]) {
+            env[key] = process.env[key]
+        }
     }
     defaultEnv(env, 'CODE_VERSION')
     defaultEnv(env, 'AWS_ACCESS_KEY_ID')
@@ -304,6 +313,7 @@ export type KeyValue = {
     CODE_VERSION: string
 
     DOCKER_REPOSITORY: string
+    DOCKER_REGISTRY_HOST: string
     CORGI_API_URL: string
     CORGI_CLOUDFRONT_URL: string
     CORGI_ARTIFACTS_S3_BUCKET: string
