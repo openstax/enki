@@ -1,6 +1,6 @@
 [[ -d $IO_COMMON_LOG ]] || (echo "Undefined Environment variable: IO_COMMON_LOG" && exit 1)
 [[ -d $IO_BOOK ]] || (echo "Undefined Environment variable: IO_BOOK" && exit 1)
-[[ -d $IO_ARTIFACTS_SINGLE ]] || (echo "Undefined Environment variable: IO_ARTIFACTS_SINGLE" && exit 1)
+[[ -d $IO_ARTIFACTS ]] || (echo "Undefined Environment variable: IO_ARTIFACTS" && exit 1)
 [[ -d $IO_PREVIEW_URLS ]] || (echo "Undefined Environment variable: IO_PREVIEW_URLS" && exit 1)
 [[ $CONTENT_SOURCE ]] || (echo "Undefined Environment variable: CONTENT_SOURCE" && exit 1)
 [[ $CORGI_CLOUDFRONT_URL ]] || (echo "Undefined Environment variable: CORGI_CLOUDFRONT_URL" && exit 1)
@@ -14,11 +14,11 @@ exec > >(tee $IO_COMMON_LOG/log >&2) 2>&1
 case $CONTENT_SOURCE in
     archive)
         collection_id="$(cat $IO_BOOK/collection_id)"
-        book_metadata="$IO_ARTIFACTS_SINGLE/collection.toc.json"
+        book_metadata="$IO_ARTIFACTS/collection.toc.json"
         ;;
     git)
         book_slug="$(cat $IO_BOOK/slug)"
-        book_metadata="$IO_ARTIFACTS_SINGLE/$book_slug.toc.json"
+        book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
         ;;
     *)
         echo "CONTENT_SOURCE unrecognized: $CONTENT_SOURCE"
