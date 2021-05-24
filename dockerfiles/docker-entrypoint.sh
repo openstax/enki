@@ -44,6 +44,15 @@ IO_ARTIFACTS="${IO_ARTIFACTS:-${data_dir}/artifacts-single/}"
 IO_DISASSEMBLE_LINKED="${IO_DISASSEMBLE_LINKED:-${data_dir}/disassembled-linked-single/}"
 IO_JSONIFIED="${IO_JSONIFIED:-${data_dir}/jsonified-single/}"
 
+function ensure_arg() {
+    local arg_name
+    local pointer
+    local value
+    arg_name=$1
+    pointer=$arg_name # https://stackoverflow.com/a/55331060
+    value="${!pointer}"
+    [[ $value ]] || die "Environment variable $arg_name is missing. Set it."
+}
 
 function check_input_dir() {
     [[ -d $1 ]] || die "Expected directory to exist but it was missing. Maybe an earlier step needs to run: '$1'"
@@ -66,7 +75,7 @@ function do_step() {
             book_server=cnx.org
 
             # Validate commandline arguments
-            [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
+            ensure_arg ARG_COLLECTION_ID
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             yes | try neb get -r -d "${IO_ARCHIVE_FETCHED}" "${book_server}" "${ARG_COLLECTION_ID}" "${book_version}"
@@ -97,7 +106,7 @@ function do_step() {
         archive-bake)
 
             # Validate commandline arguments
-            [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+            ensure_arg ARG_RECIPE_NAME
 
             try /openstax/recipes/bake_root -b "${ARG_RECIPE_NAME}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
 
@@ -171,8 +180,8 @@ function do_step() {
         ;;
         archive-upload-book)
 
-            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing. It is necessary for uploading"
-            [[ ${ARG_CODE_VERSION} ]] || die "ARG_CODE_VERSION is missing. It is necessary for uploading"
+            ensure_arg ARG_S3_BUCKET_NAME
+            ensure_arg ARG_CODE_VERSION
 
             [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
             [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
@@ -212,9 +221,9 @@ function do_step() {
         git-fetch)
             check_output_dir "${IO_FETCHED}"
 
-            [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing"
-            [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REFerence is missing (branch, tag, or @commit)"
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_REPO_NAME
+            ensure_arg ARG_GIT_REF
+            ensure_arg ARG_TARGET_SLUG_NAME
 
             [[ "${ARG_GIT_REF}" == latest ]] && ARG_GIT_REF=main
             [[ "${ARG_REPO_NAME}" == */* ]] || ARG_REPO_NAME="openstax/${ARG_REPO_NAME}"
@@ -318,7 +327,7 @@ function do_step() {
         ;;
 
         git-bake)
-            [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing"
+            ensure_arg ARG_RECIPE_NAME
             check_input_dir "${IO_ASSEMBLED}"
             check_output_dir "${IO_BAKED}"
 
@@ -377,7 +386,7 @@ function do_step() {
         ;;
 
         git-link)
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_BAKED}"
             check_input_dir "${IO_BAKE_META}"
             check_output_dir "${IO_LINKED}"
@@ -390,7 +399,7 @@ function do_step() {
         ;;
 
         git-disassemble)
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_LINKED}"
             check_input_dir "${IO_BAKE_META}"
             check_output_dir "${IO_DISASSEMBLED}"
@@ -399,7 +408,7 @@ function do_step() {
         ;;
 
         git-patch-disassembled-links)
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_DISASSEMBLED}"
             check_output_dir "${IO_DISASSEMBLE_LINKED}"
 
@@ -409,7 +418,7 @@ function do_step() {
         ;;
 
         git-jsonify)
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_DISASSEMBLE_LINKED}"
             check_output_dir "${IO_JSONIFIED}"
 
@@ -431,7 +440,7 @@ function do_step() {
             done
         ;;
         git-mathify)
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
 
             check_input_dir "${IO_LINKED}"
             check_input_dir "${IO_BAKED}"
@@ -444,8 +453,8 @@ function do_step() {
         ;;
         git-pdfify)
 
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing"
-            [[ ${ARG_TARGET_PDF_FILENAME} ]] || die "ARG_TARGET_PDF_FILENAME is missing"
+            ensure_arg ARG_TARGET_SLUG_NAME
+            ensure_arg ARG_TARGET_PDF_FILENAME
 
             check_input_dir "${IO_MATHIFIED}"
             check_output_dir "${IO_ARTIFACTS}"
@@ -455,8 +464,8 @@ function do_step() {
         git-pdfify-meta)
             check_output_dir "${IO_ARTIFACTS}"
 
-            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing"
-            [[ ${ARG_TARGET_PDF_FILENAME} ]] || die "ARG_TARGET_PDF_FILENAME is missing"
+            ensure_arg ARG_S3_BUCKET_NAME
+            ensure_arg ARG_TARGET_PDF_FILENAME
 
             pdf_url="https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${ARG_TARGET_PDF_FILENAME}"
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
@@ -469,9 +478,9 @@ function do_step() {
             check_input_dir "${IO_RESOURCES}"
             check_output_dir "${IO_ARTIFACTS}"
 
-            [[ ${ARG_S3_BUCKET_NAME} ]] || die "ARG_S3_BUCKET_NAME is missing. It is necessary for uploading"
-            [[ ${ARG_CODE_VERSION} ]] || die "ARG_CODE_VERSION is missing. It is necessary for uploading"
-            [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for uploading"
+            ensure_arg ARG_S3_BUCKET_NAME
+            ensure_arg ARG_CODE_VERSION
+            ensure_arg ARG_TARGET_SLUG_NAME
 
             [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
             [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
@@ -529,8 +538,8 @@ case $1 in
         ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
         ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
 
-        [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
-        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+        ensure_arg ARG_COLLECTION_ID
+        ensure_arg ARG_RECIPE_NAME
         
         do_step_named archive-fetch ${ARG_COLLECTION_ID}
         do_step_named archive-fetch-metadata
@@ -544,8 +553,8 @@ case $1 in
         ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
         ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
 
-        [[ ${ARG_COLLECTION_ID} ]] || die "ARG_COLLECTION_ID is missing. It is necessary for fetching a book from archive."
-        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
+        ensure_arg ARG_COLLECTION_ID
+        ensure_arg ARG_RECIPE_NAME
 
         do_step_named archive-fetch ${ARG_COLLECTION_ID}
         do_step_named archive-fetch-metadata
@@ -569,10 +578,10 @@ case $1 in
         ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-$5}
         ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$6}
 
-        [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing. It is necessary for baking a book."
-        [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REF (branch or tag or @commit) is missing. It is necessary for baking a book."
-        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
-        [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for baking a book."
+        ensure_arg ARG_REPO_NAME
+        ensure_arg ARG_GIT_REF
+        ensure_arg ARG_RECIPE_NAME
+        ensure_arg ARG_TARGET_SLUG_NAME
 
         do_step_named git-fetch ${ARG_REPO_NAME} ${ARG_GIT_REF} ${ARG_TARGET_SLUG_NAME}
         do_step_named git-fetch-metadata
@@ -595,10 +604,10 @@ case $1 in
         ARG_TARGET_PDF_FILENAME=${ARG_TARGET_PDF_FILENAME:-$6}
         ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$7}
 
-        [[ ${ARG_REPO_NAME} ]] || die "ARG_REPO_NAME is missing. It is necessary for baking a book."
-        [[ ${ARG_GIT_REF} ]] || die "ARG_GIT_REF (branch or tag or @commit) is missing. It is necessary for baking a book."
-        [[ ${ARG_RECIPE_NAME} ]] || die "ARG_RECIPE_NAME is missing. It is necessary for baking a book."
-        [[ ${ARG_TARGET_SLUG_NAME} ]] || die "ARG_TARGET_SLUG_NAME is missing. It is necessary for baking a book."
+        ensure_arg ARG_REPO_NAME
+        ensure_arg ARG_GIT_REF
+        ensure_arg ARG_RECIPE_NAME
+        ensure_arg ARG_TARGET_SLUG_NAME
 
         [[ $ARG_TARGET_PDF_FILENAME ]] || ARG_TARGET_PDF_FILENAME='book.pdf'
 
