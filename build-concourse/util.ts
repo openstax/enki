@@ -80,6 +80,21 @@ export enum IO {
     COMMON_LOG = 'common-log',
     ARTIFACTS_SINGLE = 'artifacts-single',
     PREVIEW_URLS = 'preview-urls',
+    // Git directories
+    FETCHED = 'fetched', // 'fetched-book-group'
+    RESOURCES = 'resources',
+    UNUSED = 'unused-resources',
+    ASSEMBLED = 'assembled', // 'assembled-book-group',
+    ASSEMBLE_META = 'assemble-meta', // 'assembled-metadata-group',
+    BAKED = 'baked', // 'baked-book-group',
+    BAKE_META = 'bake-meta', // 'baked-metadata-group',
+    LINKED = 'linked', // 'linked-single',
+    MATHIFIED = 'mathidfied', // 'mathified-single',
+    DISASSEMBLED = 'disassembled', // 'disassembled-single',
+    ARTIFACTS = 'artifacts', // 'artifacts-single',
+    DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
+    JSONIFIED = 'jsonified', // 'jsonified-single',
+
 }
 
 export type TaskNode = {
@@ -236,8 +251,9 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  export const variantMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB) => toConcourseTask(env, `build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: true, CODE_VERSION: true, GH_SECRET_CREDS: false, REX_PREVIEW_URL: true, REX_PROD_PREVIEW_URL: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
+  const variantMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB) => toConcourseTask(env, `build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: true, CODE_VERSION: true, GH_SECRET_CREDS: false, REX_PREVIEW_URL: true, REX_PROD_PREVIEW_URL: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
 
+  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => toConcourseTask(env, `task=${taskName} ${pdfOrWeb}`, ins, [...outs, IO.COMMON_LOG], { TASK_NAME: taskName, PDF_OR_WEB: pdfOrWeb, CODE_VERSION: true, ...envKeys }, readScript('script/run_git_task.sh'))
 
 
 type Settings = { 
