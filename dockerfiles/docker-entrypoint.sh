@@ -74,11 +74,16 @@ function do_step() {
             book_version=latest
             book_server=cnx.org
 
-            # Validate commandline arguments
+            # Validate inputs
             ensure_arg ARG_COLLECTION_ID
+            check_output_dir "${IO_ARCHIVE_FETCHED}"
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
-            yes | try neb get -r -d "${IO_ARCHIVE_FETCHED}" "${book_server}" "${ARG_COLLECTION_ID}" "${book_version}"
+            temp_dir=$(mktemp -d)
+            yes | try neb get -r -d "${temp_dir}/does-not-exist-yet-dir" "${book_server}" "${ARG_COLLECTION_ID}" "${book_version}"
+
+            try mv $temp_dir/does-not-exist-yet-dir/* $IO_ARCHIVE_FETCHED
+
         ;;
         archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
@@ -182,12 +187,13 @@ function do_step() {
 
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_CODE_VERSION
+            ensure_arg AWS_ACCESS_KEY_ID
+            ensure_arg AWS_SECRET_ACCESS_KEY
 
-            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
-            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
-
+            check_input_dir "${IO_ARCHIVE_BOOK}"
             check_input_dir "${IO_ARCHIVE_FETCHED}"
-            check_output_dir "${IO_ARCHIVE_JSONIFIED}"
+            check_input_dir "${IO_ARCHIVE_JSONIFIED}"
+            check_output_dir "${IO_ARCHIVE_UPLOAD}"
 
             s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 

@@ -51,6 +51,14 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     -e AWS_SECRET_ACCESS_KEY \
     -e AWS_SESSION_TOKEN \
     -e TRACE_ON \
+    -e ARG_CODE_VERSION \
+    -e ARG_COLLECTION_ID \
+    -e ARG_GIT_REF \
+    -e ARG_RECIPE_NAME \
+    -e ARG_REPO_NAME \
+    -e ARG_S3_BUCKET_NAME \
+    -e ARG_TARGET_PDF_FILENAME \
+    -e ARG_TARGET_SLUG_NAME \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]
