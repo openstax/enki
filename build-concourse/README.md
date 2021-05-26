@@ -41,50 +41,100 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
 
 ```yaml
 - request:
-    method: PUT
-    path: /api/jobs/123
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        {"id": "123"}
-
-- request:
     method: GET
-    path: /api/jobs/123
+    path: /api/jobs/1111
   response:
     headers:
       Content-Type: application/json
     body: >
         {
             "collection_id": "col11992",
-            "status_id": "1",
-            "pdf_url": null,
-            "worker_version": null,
-            "error_message": null,
-            "content_server_id": "11",
             "version": null,
             "style": "astronomy",
-            "job_type_id": "1",
-            "id": "123",
-            "created_at": "2021-05-25T14:29:32.675108",
-            "updated_at": "2021-05-25T14:30:28.118520",
-            "status": {
-                "name": "processing",
-                "id": "2"
-            },
             "content_server": {
                 "hostname": "cnx.org",
                 "host_url": "https://cnx.org",
                 "name": "production",
                 "id": "11"
-            },
-            "job_type": {
-                "name": "pdf",
-                "display_name": "PDF",
-                "id": "1"
             }
         }
+- request:
+    method: GET
+    path: /api/jobs/2222
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {
+            "collection_id": "col11992",
+            "version": null,
+            "style": "astronomy",
+            "content_server": {
+                "hostname": "cnx.org",
+                "host_url": "https://cnx.org",
+                "name": "production",
+                "id": "11"
+            }
+        }
+- request:
+    method: GET
+    path: /api/jobs/3333
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {
+            "collection_id": "philschatz/tiny-book",
+            "version": null,
+            "style": "astronomy",
+            "content_server": null
+        }
+- request:
+    method: GET
+    path: /api/jobs/4444
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {
+            "collection_id": "philschatz/tiny-book",
+            "version": null,
+            "style": "astronomy",
+            "content_server": null
+        }
+
+- request:
+    method: PUT
+    path: /api/jobs/1111
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {"id": "1111"}
+- request:
+    method: PUT
+    path: /api/jobs/2222
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {"id": "2222"}
+- request:
+    method: PUT
+    path: /api/jobs/3333
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {"id": "3333"}
+- request:
+    method: PUT
+    path: /api/jobs/4444
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        {"id": "4444"}
 
 - request:
     method: GET
@@ -95,8 +145,23 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
     body: >
         [{
             "status_id": "1",
+            "job_type_id": "3",
+            "id": "3333"
+        },
+        {
+            "status_id": "1",
+            "job_type_id": "4",
+            "id": "4444"
+        },
+        {
+            "status_id": "1",
             "job_type_id": "1",
-            "id": "123"
+            "id": "1111"
+        },
+        {
+            "status_id": "1",
+            "job_type_id": "2",
+            "id": "2222"
         }]
 ```
 

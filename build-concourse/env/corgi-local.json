@@ -1,4 +1,5 @@
 {
+    "SKIP_TORPEDO_TASK": "true",
     "DOCKER_REPOSITORY": "openstax/book-pipeline",
     "DOCKER_REGISTRY_HOST": null,
     "CORGI_API_URL_UNUSED_FOR_NOW": "http://backend/api",

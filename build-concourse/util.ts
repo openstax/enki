@@ -203,25 +203,26 @@ const taskStatusCheck = (env: KeyValue, taskArgs: TaskArgs) => {
 
 const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) => {
     const reporter = reportToOutputProducer(resource)
+    const steps = [step]
+    if (!env.SKIP_TORPEDO_TASK) {
+        steps.push({
+            do: [
+                taskStatusCheck(env, {
+                    resource: resource,
+                    processingStates: [Status.ASSIGNED, Status.PROCESSING],
+                    completedStates: [Status.FAILED, Status.SUCCEEDED],
+                    abortedStates: [Status.ABORTED]
+                })
+            ],
+            on_failure: reporter(Status.ABORTED, {
+                error_message: genericAbortMessage
+            })
+        })
+    }
     return {
         in_parallel: {
             fail_fast: true,
-            steps: [
-                step,
-                // {
-                //     do: [
-                //         taskStatusCheck(env, {
-                //             resource: resource,
-                //             processingStates: [Status.ASSIGNED, Status.PROCESSING],
-                //             completedStates: [Status.FAILED, Status.SUCCEEDED],
-                //             abortedStates: [Status.ABORTED]
-                //         })
-                //     ],
-                //     on_failure: reporter(Status.ABORTED, {
-                //         error_message: genericAbortMessage
-                //     })
-                // }
-            ]
+            steps
         }
     }
 }
@@ -331,6 +332,10 @@ export type KeyValue = {
     PIPELINE_TICK_INTERVAL: string // '12h'
     REX_PROD_PREVIEW_URL: string
     REX_PREVIEW_URL: string
+
+    // Used just for the local concourse file. Used for skipping the the torpedo-task
+    // that stops the job when the user cancels or the job is complete
+    SKIP_TORPEDO_TASK: string
 
     // Secrets
     DOCKERHUB_USERNAME: string
