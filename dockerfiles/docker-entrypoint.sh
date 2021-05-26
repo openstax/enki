@@ -134,6 +134,9 @@ function do_step() {
         archive-pdf)
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
+        archive-pdf-metadata)
+            echo -n "https://$CORGI_ARTIFACTS_S3_BUCKET.s3.amazonaws.com/$ARG_TARGET_PDF_FILENAME" >$IO_ARTIFACTS/pdf_url
+        ;;
 
         archive-bake-metadata)
             # TODO: Use a real collection id
