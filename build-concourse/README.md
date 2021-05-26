@@ -42,6 +42,34 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
 ```yaml
 - request:
     method: GET
+    path: /api/jobs
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+        [{
+            "status_id": "1",
+            "job_type_id": "3",
+            "id": "3333"
+        },
+        {
+            "status_id": "1",
+            "job_type_id": "4",
+            "id": "4444"
+        },
+        {
+            "status_id": "1",
+            "job_type_id": "1",
+            "id": "1111"
+        },
+        {
+            "status_id": "1",
+            "job_type_id": "2",
+            "id": "2222"
+        }]
+
+- request:
+    method: GET
     path: /api/jobs/1111
   response:
     headers:
@@ -135,34 +163,6 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
       Content-Type: application/json
     body: >
         {"id": "4444"}
-
-- request:
-    method: GET
-    path: /api/jobs
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        [{
-            "status_id": "1",
-            "job_type_id": "3",
-            "id": "3333"
-        },
-        {
-            "status_id": "1",
-            "job_type_id": "4",
-            "id": "4444"
-        },
-        {
-            "status_id": "1",
-            "job_type_id": "1",
-            "id": "1111"
-        },
-        {
-            "status_id": "1",
-            "job_type_id": "2",
-            "id": "2222"
-        }]
 ```
 
 Use the following cheat-sheet for job types:
