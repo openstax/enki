@@ -23,7 +23,8 @@ services:
       CONCOURSE_EXTERNAL_URL: http://localhost:8080
       CONCOURSE_ADD_LOCAL_USER: test:test
       CONCOURSE_MAIN_TEAM_LOCAL_USER: test
-      CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: overlay
+      # overlay BAGGAGECLAIM_DRIVER does not work in linux when multiple tasks write to a dir
+      CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
       # CONCOURSE_CLIENT_SECRET: '...='
       # CONCOURSE_TSA_CLIENT_SECRET: '...='
 

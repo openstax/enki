@@ -15,18 +15,19 @@ cd ../ # main repo directory
 
 # Build the Docker image and upload it to local registry
 # Note: Use 'main' because the RANDOM_DEV_CODEVERSION_PREFIX related code assumes this tag name
-export TAG='localhost:5000/openstax/book-pipeline:main'
-docker build --tag $TAG .
-docker push $TAG
+export TAG='localhost:5000/openstax/book-pipeline:main' && docker build --tag $TAG . && docker push $TAG
 
 # Swith to the output-producer-resource repository
-export TAG='localhost:5000/openstax/output-producer:latest'
-docker build --tag $TAG .
-docker push $TAG
+export TAG='localhost:5000/openstax/output-producer:latest' && docker build --tag $TAG . && docker push $TAG
+
+# Verify the images are in the registry:
+# http://localhost:5000/v2/_catalog
+# http://localhost:5000/v2/openstax/book-pipeline/tags/list
 
 # Build the concourse pipeline to point to
 cd ./build-concourse/
 DOCKER_REPOSITORY='openstax/book-pipeline' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm start
+
 
 # Send to concourse:
 # ~/Downloads/fly --target local set-pipeline --pipeline corgi --config ./corgi-local.yml
@@ -41,16 +42,16 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
 ```yaml
 - request:
     method: PUT
-    path: /api/jobs/124
+    path: /api/jobs/123
   response:
     headers:
       Content-Type: application/json
     body: >
-        {"id": "124"}
+        {"id": "123"}
 
 - request:
     method: GET
-    path: /api/jobs/124
+    path: /api/jobs/123
   response:
     headers:
       Content-Type: application/json
@@ -65,7 +66,7 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
             "version": null,
             "style": "astronomy",
             "job_type_id": "1",
-            "id": "124",
+            "id": "123",
             "created_at": "2021-05-25T14:29:32.675108",
             "updated_at": "2021-05-25T14:30:28.118520",
             "status": {
@@ -95,7 +96,7 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
         [{
             "status_id": "1",
             "job_type_id": "1",
-            "id": "124"
+            "id": "123"
         }]
 ```
 
@@ -117,7 +118,3 @@ export enum Status {
     ABORTED = 6
 }
 ```
-
-id
-status_id
-job_type_id
