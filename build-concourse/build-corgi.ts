@@ -150,7 +150,7 @@ function makePipeline(env: KeyValue) {
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-link-extras', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-bake', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-mathify', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
+        archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARTIFACTS], {}),
     ])
     const archiveWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, [
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-fetch', [IO.BOOK], [IO.ARCHIVE_FETCHED], {}),

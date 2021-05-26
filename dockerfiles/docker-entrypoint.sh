@@ -132,7 +132,7 @@ function do_step() {
             try node /openstax/mathify/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
         ;;
         archive-pdf)
-            try prince -v --output="${IO_ARCHIVE_BOOK}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
+            try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
 
         archive-bake-metadata)
