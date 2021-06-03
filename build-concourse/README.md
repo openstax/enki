@@ -40,6 +40,11 @@ change the CORGI_API_URL in [env/corgi-local.json](./env/corgi-local.json) to po
 Upload the following (tweak it to change which job is pulled) to http://localhost:8081/pages/mocks
 
 ```yaml
+# See https://github.com/openstax/output-producer-resource/blob/master/src/in_.py for the consumer of this API
+# JobType.ARCHIVE_PDF = 1
+# JobType.ARCHIVE_DIST_PREVIEW = 2
+# JobType.GIT_PDF = 3
+# JobType.GIT_DIST_PREVIEW = 4
 - request:
     method: GET
     path: /api/jobs

@@ -63,5 +63,5 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
 
 if [[ $2 == *pdf ]]
 then
-    >&2 echo "The PDF is available somewhere in either ${local_dir}/assembled/collection.pdf or ${local_dir}/book.pdf"
+    >&2 echo "The PDF is available somewhere in either ${local_dir}/assembled/collection.pdf or ${local_dir}/artifacts-single/book.pdf"
 fi
