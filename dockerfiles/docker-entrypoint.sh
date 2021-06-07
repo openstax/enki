@@ -638,7 +638,3 @@ case $1 in
         do_step $@
     ;;
 esac
-
-# Ensure the permissions of files are set to the host user/group, not root
-# Other options: https://stackoverflow.com/a/53915137
-try chown -R "$(stat -c '%u:%g' /data)" /data

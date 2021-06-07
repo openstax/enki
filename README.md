@@ -1,3 +1,14 @@
+# About
+
+We build books in a pipeline of steps. These steps are written in different languages and sometimes run on a server and other times run locally.
+
+In order to support both use-cases, all the steps are included in one Docker container and parameters are specified as environment variables.
+
+Environment variables are used because each step may use different subsets of arguments and the author is not very familiar with parsing commandline arguments in bash.
+
+Additionally, intput/output directores for each step are specified as environment variables because local development does not need different directories but the production buils in concourse-CI use different input/output directories for each step.
+
+
 # Instructions
 
 This uses a little wrapper to hide all the docker commands
@@ -20,7 +31,7 @@ This uses a little wrapper to hide all the docker commands
 
 # Run one step
 
-If you want to run a single step at a time specify it as the first argument. Subsequent arguments are specific to that step.
+If you want to run a single step at a time specify it as the first argument. Additional arguments are specified as environment variables.
 
 
 ```sh
@@ -77,19 +88,25 @@ Git-specific:
 - `IO_DISASSEMBLE_LINKED`: ./data/disassembled-linked-single/
 - `IO_JSONIFIED`: ./data/jsonified-single/
 
-
-### Book-specific Arguments
+### Pipeline-specific Arguments
 
 - `ARG_CODE_VERSION`
-- `ARG_RECIPE_NAME`
-- `ARG_TARGET_PDF_FILENAME`
 - `ARG_S3_BUCKET_NAME`
 
-- `ARG_COLLECTION_ID`
+### Job-specific Arguments
 
-- `ARG_GIT_REF`
-- `ARG_REPO_NAME`
-- `ARG_TARGET_SLUG_NAME`
+- `ARG_RECIPE_NAME`
+- `ARG_TARGET_PDF_FILENAME`
+
+Only used for Git-based books:
+
+- `ARG_GIT_REF` : the git branch name (e.g. `main`), tag, or specific commit (e.g. `@d34db33f`) you want to build
+- `ARG_REPO_NAME` : the name of the GitHub repository that you want to build
+- `ARG_TARGET_SLUG_NAME` : the book slug in the repository that you want to build
+
+Only used for Legacy Archive-based books:
+
+- `ARG_COLLECTION_ID` : the collection id of the book you want to build
 
 
 ### Optional Environment Variables
