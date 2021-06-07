@@ -187,9 +187,12 @@ function makePipeline(env: KeyValue) {
     return { jobs: [gitPdfJob, gitWeb, archivePdfJob, archiveWeb], resources, resource_types: resourceTypes }
 }
 
+function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
+    fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
+}
 
-fs.writeFileSync('./corgi-staging.yml', yaml.dump(makePipeline(loadEnv('./env/corgi-staging.json'))))
-fs.writeFileSync('./corgi-production.yml', yaml.dump(makePipeline(loadEnv('./env/corgi-production.json'))))
+loadSaveAndDump('./env/corgi-staging.json', './corgi-staging.yml')
+loadSaveAndDump('./env/corgi-production.json', './corgi-production.yml')
 
 process.env['CODE_VERSION'] = `${RANDOM_DEV_CODEVERSION_PREFIX}-${randId}`
-fs.writeFileSync('./corgi-local.yml', yaml.dump(makePipeline(loadEnv('./env/corgi-local.json'))))
+loadSaveAndDump('./env/corgi-local.json', './corgi-local.yml')
