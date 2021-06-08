@@ -44,6 +44,8 @@ IO_ARTIFACTS="${IO_ARTIFACTS:-${data_dir}/artifacts-single/}"
 IO_DISASSEMBLE_LINKED="${IO_DISASSEMBLE_LINKED:-${data_dir}/disassembled-linked-single/}"
 IO_JSONIFIED="${IO_JSONIFIED:-${data_dir}/jsonified-single/}"
 
+ARG_TARGET_PDF_FILENAME="${ARG_TARGET_PDF_FILENAME:-book.pdf}"
+
 function ensure_arg() {
     local arg_name
     local pointer
@@ -132,15 +134,24 @@ function do_step() {
             try node /openstax/mathify/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
         ;;
         archive-pdf)
+            ensure_arg ARG_TARGET_PDF_FILENAME
+            check_input_dir "${IO_ARCHIVE_BOOK}"
+            check_output_dir "${IO_ARTIFACTS}"
+
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
         archive-pdf-metadata)
-            echo -n "https://$CORGI_ARTIFACTS_S3_BUCKET.s3.amazonaws.com/$ARG_TARGET_PDF_FILENAME" >$IO_ARTIFACTS/pdf_url
+            ensure_arg CORGI_ARTIFACTS_S3_BUCKET
+            ensure_arg ARG_TARGET_PDF_FILENAME
+            check_output_dir "${IO_ARTIFACTS}"
+
+            echo -n "https://$CORGI_ARTIFACTS_S3_BUCKET.s3.amazonaws.com/$ARG_TARGET_PDF_FILENAME" > $IO_ARTIFACTS/pdf_url
         ;;
 
         archive-bake-metadata)
-            # TODO: Use a real collection id
-            ARG_COLLECTION_ID="fakecollectionid"
+            ensure_arg ARG_COLLECTION_ID
+            check_input_dir "${IO_ARCHIVE_FETCHED}"
+
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
