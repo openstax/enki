@@ -8,6 +8,14 @@ npm start; /path/to/concourse-command/fly --target local set-pipeline --pipeline
 
 ```
 
+# Linux Notes
+
+If you are testing a legacy archive job (rather than a git job) then be sure to set the BAGGAGECLAIM_DRIVER to naive in the docker-compose.yml file when starting up concourse. The archive job reuses the same directory for different tasks.
+
+```
+CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
+```
+
 # Use a local docker registry instead of DockerHub
 
 ```sh
