@@ -8,7 +8,7 @@ npm start; /path/to/concourse-command/fly --target local set-pipeline --pipeline
 
 ```
 
-# Use a local docker registry isntead of DockerHub
+# Use a local docker registry instead of DockerHub
 
 ```sh
 cd ../ # main repo directory
@@ -53,24 +53,24 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
       Content-Type: application/json
     body: >
         [{
-            "status_id": "1",
             "job_type_id": "3",
-            "id": "3333"
+            "id": "3333",
+            "status_id": "1"
         },
         {
-            "status_id": "1",
             "job_type_id": "4",
-            "id": "4444"
+            "id": "4444",
+            "status_id": "1"
         },
         {
-            "status_id": "1",
             "job_type_id": "1",
-            "id": "1111"
+            "id": "1111",
+            "status_id": "1"
         },
         {
-            "status_id": "1",
             "job_type_id": "2",
-            "id": "2222"
+            "id": "2222",
+            "status_id": "1"
         }]
 
 - request:
@@ -168,23 +168,4 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
       Content-Type: application/json
     body: >
         {"id": "4444"}
-```
-
-Use the following cheat-sheet for job types:
-
-```typescript
-export enum JobType {
-    ARCHIVE_PDF = 1,
-    ARCHIVE_DIST_PREVIEW = 2,
-    GIT_PDF = 3,
-    GIT_DIST_PREVIEW = 4
-}
-export enum Status {
-    QUEUED = 1,
-    ASSIGNED = 2,
-    PROCESSING = 3,
-    FAILED = 4,
-    SUCCEEDED = 5,
-    ABORTED = 6
-}
 ```
