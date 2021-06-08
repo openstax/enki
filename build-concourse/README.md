@@ -1,22 +1,38 @@
-To deploy the pipeline to a local concourse:
+# Install Prerequisites
 
-```sh
-# Use set_aws_creds to obtain a token
-source /path/to/set_aws_creds -r sandbox:full-admin -t ######
+1. Start up concourse and the Docker registry by running `docker-compose up -d` in this directory (See **Linux Notes** below)
+1. Sign in to concourse by visiting http://localhost:8080 and using `test` and `test` for the username/password
+1. Download the fly command (into `~/Downloads/fly`)
+1. Make it executable by running `chmod 755 ~/Downloads/fly`
+1. Authenticate through the commandline by running `~/Downloads/fly --target local login --concourse-url http://localhost:8080` and opening the link that it prints out
 
-npm start; /path/to/concourse-command/fly --target local set-pipeline --pipeline webhost-pipeline --config ./build-web.yml
+Now you can build a pipeline using `npm start` and upload it to concourse.
 
-```
 
-# Linux Notes
+# Pipeline.yml Build Alternatives
 
-If you are testing a legacy archive job (rather than a git job) then be sure to set the BAGGAGECLAIM_DRIVER to naive in the docker-compose.yml file when starting up concourse. The archive job reuses the same directory for different tasks.
+If you are changing code inside the docker image you will need to upload the image to a local registry (see **Option B**). If you are not editing code inside the image then you can use the [main tag on dockerhub](https://hub.docker.com/r/openstax/book-pipeline/tags) by following the instructions in **Option A**.
 
-```
-CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
-```
+In both cases you will want to set the AWS credentials which will be used to upload to S3 (e.g. `source /path/to/set_aws_creds -r sandbox:full-admin -t ######`).
 
-# Use a local docker registry instead of DockerHub
+If you are not testing the upload parts you can provide dummy values for the following:
+
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+
+
+## Option A: Use image on DockerHub
+
+Since we are not changing the image we can use the images on dockerhub.
+DockerHub does have a rate limit. If you start too many jobs, Concourse will provide a cryptic error.
+
+At that point you can switch to **Option B** or provide your `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD` credentials (as environment variables) when running `npm start` and those will be injected into the pipeline.yml files. A local registry is **strongly encouraged**.
+
+1. Build the Cnocourse Pipeline.yml files by running `CODE_VERSION=main npm start`
+1. Upload the `corgi-local.yml` (and `webhost-local.yml` if you want) by running ``
+
+
+## Option B: Build an image and upload to local Docker Registry
 
 ```sh
 cd ../ # main repo directory
@@ -30,22 +46,35 @@ export TAG='localhost:5000/openstax/output-producer:latest' && docker build --ta
 
 # Verify the images are in the registry:
 # http://localhost:5000/v2/_catalog
-# http://localhost:5000/v2/openstax/book-pipeline/tags/list
+# http://localhost:5000/v2/openstax/book-pipeline/tags/list    : verify that "main" exists
+# http://localhost:5000/v2/openstax/output-producer/tags/list  : verify that "latest" exists
 
-# Build the concourse pipeline to point to
+# Build the concourse pipeline to point to our local registry
 cd ./build-concourse/
 DOCKER_REPOSITORY='openstax/book-pipeline' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm start
 
-
-# Send to concourse:
-# ~/Downloads/fly --target local set-pipeline --pipeline corgi --config ./corgi-local.yml
+# Send the pipeline definition to concourse (next section)
 ```
 
-# Using the builtin mock server
+# Upload pipeline to concourse
 
-change the CORGI_API_URL in [env/corgi-local.json](./env/corgi-local.json) to point to `http://smocker:8080/api`
+Once the .yml file is created, upload it to concourse by running the following:
 
-Upload the following (tweak it to change which job is pulled) to http://localhost:8081/pages/mocks
+```sh
+~/Downloads/fly --target local set-pipeline --pipeline corgi --config ./corgi-local.yml
+```
+
+
+# Mock CORGI API
+
+To trigger the CORGI pipeline you will need to mock the CORGI API. docker-compose has already started a mock webserver (smocker) that you just need to upload the CORGI JSON responses to.
+
+Once you upload the the mock you can wait a minute for concourse to poll and find it our you can refresh the resource directly by clicking it in http://localhost:8080/teams/main/pipelines/corgi
+
+Ensure that CORGI_API_URL in [env/corgi-local.json](./env/corgi-local.json) points to `http://smocker:8080/api`
+
+The following snippet starts up one of each type of CORGI job but you can tweak it.
+Upload the following (tweak it to change which jobs are pulled) by visiting http://localhost:8081/pages/mocks
 
 ```yaml
 # See https://github.com/openstax/output-producer-resource/blob/master/src/in_.py for the consumer of this API
@@ -177,3 +206,27 @@ Upload the following (tweak it to change which job is pulled) to http://localhos
     body: >
         {"id": "4444"}
 ```
+
+
+# Linux-specific Notes
+
+If you are testing a legacy archive job (rather than a git job) then be sure to set the BAGGAGECLAIM_DRIVER to naive in the docker-compose.yml file when starting up concourse. The archive job reuses the same directory for different tasks.
+
+```
+CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
+```
+
+
+# Debugging
+
+## `resource type 'output-producer' has no version`
+
+This usually means the resource is not in the registry. Verify that the resource definition in the pipeline.yml file is correct. If you are using a local registry, you can use these API links to see which images are in the local registry:
+
+- http://localhost:5000/v2/_catalog
+- http://localhost:5000/v2/openstax/book-pipeline/tags/list    : verify that "main" exists
+- http://localhost:5000/v2/openstax/output-producer/tags/list  : verify that "latest" exists
+
+
+## `failed to create volume`
+
