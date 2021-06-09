@@ -1,3 +1,22 @@
+# About
+
+Running `npm start` will generate Concourse Pipeline YAML files for the following:
+
+- corgi-production.yml
+- corgi-staging.yml
+- corgi-local.yml (only for local testing)
+- webhosting-production.yml
+- webhosting-sandbox.yml
+- webhosting-local.yml (only for local testing)
+
+The `*-local.yml` files differ in the following ways:
+
+- They can optionally point to a local registry
+- They use a random CODE_VERSION for S3 reasons (detecting if a book has already been built) but use `main` for the Docker image version
+- The CORGI API Url is http://smocker, a Mock server
+- The torpedo code is removed mostly because the Mock server does not have an easy way to change state (queued, processing, complete)
+
+
 # Install Prerequisites
 
 1. Start up concourse and the Docker registry by running `docker-compose up -d` in this directory (See **Linux Notes** below)

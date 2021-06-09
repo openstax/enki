@@ -8,8 +8,22 @@ Environment variables are used because each step may use different subsets of ar
 
 Additionally, intput/output directores for each step are specified as environment variables because local development does not need different directories but the production buils in concourse-CI use different input/output directories for each step.
 
+The code is organized as follows:
 
-# Instructions
+- [Dockerfile](./Dockerfile) contains a multi-stage build and builds all the code necessary to build a PDF or the webhosting JSON
+- [dockerfiles/docker-entrypoint.sh](./dockerfiles/docker-entrypoint.sh) contains the code for each step (e.g. fetch, assemble, bake, mathify) as well as convenience `all-*` steps which are only for local development
+- [cli.sh](./cli.sh) is the start for developers building books locally on their machine
+- [build-concourse/](./build-concourse/) contains scripts that generate Concourse pipeline YAML files which for each environment and pin the pipeline to a specific code version
+
+
+## Specific Use-cases
+
+There is a [./cli.sh](./cli.sh) which is used to build books locally.
+
+In [build-concourse/](./build-concourse/) running `npm start` will generate Concourse Pipeline YAML files for the different CORGI environments (production, staging, local) and different webhosting environments (production, sandbox, local).
+
+
+# Local Instructions
 
 This uses a little wrapper to hide all the docker commands
 
@@ -29,7 +43,7 @@ This uses a little wrapper to hide all the docker commands
 # Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
 
-# Run one step
+## Run one step
 
 If you want to run a single step at a time specify it as the first argument. Additional arguments are specified as environment variables.
 
@@ -57,13 +71,13 @@ ARG_RECIPE_NAME=college-physics ./cli.sh ./data/fizix archive-bake
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
 
-## Environment Variables
+# Environment Variables
 
 This repository makes heavy use of environment variables. It uses them to pass information like which book and version to fetch as well as the directory to read/write to.
 
 When running locally the directories by default read/write to subdirectories of [./data/](./data/) using a Docker volume mount. The pipelines that run in concourse use different directories since each one is an input/output directory specified in the Concourse-CI task.
 
-### Directories
+## Directories
 
 Archive-specific:
 
@@ -88,12 +102,12 @@ Git-specific:
 - `IO_DISASSEMBLE_LINKED`: ./data/disassembled-linked-single/
 - `IO_JSONIFIED`: ./data/jsonified-single/
 
-### Pipeline-specific Arguments
+## Pipeline-specific Arguments
 
 - `ARG_CODE_VERSION`
 - `ARG_S3_BUCKET_NAME`
 
-### Job-specific Arguments
+## Job-specific Arguments
 
 - `ARG_RECIPE_NAME`
 - `ARG_TARGET_PDF_FILENAME`
@@ -109,7 +123,7 @@ Only used for Legacy Archive-based books:
 - `ARG_COLLECTION_ID` : the collection id of the book you want to build
 
 
-### Optional Environment Variables
+## Optional Environment Variables
 
 The CLI command (& docker steps) listen to a few optional environment variables, listed below with examples:
 
@@ -121,7 +135,7 @@ The CLI command (& docker steps) listen to a few optional environment variables,
 | `AWS_SECRET_ACCESS_KEY` | | AWS Upload | See `aws-access` for more
 | `AWS_SESSION_TOKEN` | | AWS Upload | See `aws-access` for more
 
-### Pipeline-generation Environment Variables
+## Pipeline-generation Environment Variables
 
 The pipeline-generation code uses a few additional environment variables:
 
@@ -143,7 +157,7 @@ The pipeline-generation code uses a few additional environment variables:
     - search for `mv ` in build-concourse/script
 - [x] Create a pipeline in concourse
 - [ ] Add the output-producer-resource repo into here
-- [ ] add back support for content servers
+- [ ] add back support for content servers and content versions
 
 ## Future TODO work
 
