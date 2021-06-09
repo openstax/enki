@@ -121,7 +121,7 @@ export const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR:
 }
 const bashy = (cmd: string) => ({
     path: '/bin/bash',
-    args: ['-cxe', `source /openstax/venv/bin/activate\n${cmd}`]
+    args: ['-cxe', cmd]
 })
 export const populateEnv = (env: KeyValue, envKeys: Env) => {
     const ret: any = {}

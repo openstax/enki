@@ -47,8 +47,13 @@ DockerHub does have a rate limit. If you start too many jobs, Concourse will pro
 
 At that point you can switch to **Option B** or provide your `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD` credentials (as environment variables) when running `npm start` and those will be injected into the pipeline.yml files. A local registry is **strongly encouraged**.
 
-1. Build the Cnocourse Pipeline.yml files by running `CODE_VERSION=main npm start`
-1. Upload the `corgi-local.yml` (and `webhost-local.yml` if you want) by running ``
+Run the following to build the Cnocourse Pipeline.yml files:
+
+```sh
+CODE_VERSION=main npm start
+```
+
+Upload the `corgi-local.yml` (and `webhost-local.yml` if you want) instructions are in the next section.
 
 
 ## Option B: Build an image and upload to local Docker Registry

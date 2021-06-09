@@ -1,7 +1,5 @@
 exec > >(tee $IO_COMMON_LOG/log >&2) 2>&1
 
-source /openstax/venv/bin/activate
-
 [[ $TASK_NAME ]] || (echo "Did not specify a TASK_NAME to run" && exit 1)
 [[ -d $IO_COMMON_LOG ]] || (echo "Undefined Environment variable: IO_COMMON_LOG" && exit 1)
 [[ -d $IO_BOOK ]] || (echo "Undefined Environment variable: IO_BOOK" && exit 1)

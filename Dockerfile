@@ -284,7 +284,7 @@ COPY ./cnx-recipes/recipes/output/ /openstax/cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
 
-COPY ./dockerfiles/10-fix-perms.sh ./dockerfiles/90-activate-virtualenv.env /etc/entrypoint.d/
+COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
 COPY ./dockerfiles/docker-entrypoint.sh ./dockerfiles/docker-entrypoint-with-kcov.sh /usr/bin/
 
 

@@ -23,6 +23,8 @@ die() {
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
+source /openstax/venv/bin/activate
+
 # Directory defaults. local dev writes to /data/... and concourse overrides these temp directories
 data_dir="/data"
 IO_ARCHIVE_FETCHED="${IO_ARCHIVE_FETCHED:-${data_dir}/raw}"
