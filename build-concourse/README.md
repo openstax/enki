@@ -154,7 +154,7 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
       Content-Type: application/json
     body: >
         {
-            "collection_id": "philschatz/tiny-book",
+            "collection_id": "philschatz/tiny-book/book-slug1",
             "version": null,
             "style": "astronomy",
             "content_server": null
@@ -167,7 +167,7 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
       Content-Type: application/json
     body: >
         {
-            "collection_id": "philschatz/tiny-book",
+            "collection_id": "philschatz/tiny-book/book-slug1",
             "version": null,
             "style": "astronomy",
             "content_server": null

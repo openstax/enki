@@ -15,14 +15,15 @@ case $CONTENT_SOURCE in
         echo "$pdf_filename" > $IO_BOOK/pdf_filename
         ;;
     git)
-        cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-        cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+        if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
+            cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
+            cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
+        else
+            cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
+            cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+        fi
         pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
         echo "$pdf_filename" > $IO_BOOK/pdf_filename
-
-        echo 'Using test repository'
-        echo 'philschatz/tiny-book' > $IO_BOOK/repo
-        echo 'book-slug1' > $IO_BOOK/slug
         ;;
     *)
         echo "CONTENT_SOURCE unrecognized: $CONTENT_SOURCE"

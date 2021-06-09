@@ -179,10 +179,15 @@ function do_step() {
             try patch-same-book-links "$IO_ARCHIVE_BOOK" "$target_dir" "collection"
         ;;
         archive-jsonify)
+            check_input_dir "${IO_ARCHIVE_BOOK}"
+            check_output_dir "${IO_ARCHIVE_JSONIFIED}"
+            check_output_dir "${IO_ARTIFACTS}"
+
             target_dir="$IO_ARCHIVE_JSONIFIED"
             
             try mkdir -p $target_dir
             try jsonify "$IO_ARCHIVE_BOOK" "$target_dir"
+            try cp "$target_dir/collection.toc.json" "$IO_ARTIFACTS/"
             try jsonschema -i "$target_dir/collection.toc.json" /openstax/bakery-scripts/scripts/book-schema.json
             for jsonfile in "$target_dir/"*@*.json; do
                 #ignore -metadata.json files

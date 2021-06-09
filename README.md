@@ -141,13 +141,12 @@ The pipeline-generation code uses a few additional environment variables:
 - [x] Support checking out a commit instead of a branch/tag
 - [x] Change entrypoint script to use environment variables for directories instead of assuming `/data/{name}`
     - search for `mv ` in build-concourse/script
+- [x] Create a pipeline in concourse
+- [ ] Add the output-producer-resource repo into here
+- [ ] add back support for content servers
+
+## Future TODO work
+
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
-- [ ] add back support for content servers
-- [x] Create a pipeline in concourse
-- [ ] Answer the following: When should code be in the image vs in the pipeline? (The pipeline should be as little as possible)
-- [ ] Answer the following: When should data be passed into docker via environment variable vs argument vs file?
-    - Environment:
-        - AWS secrets
-        - Input/Output directories (like IO_JSONIFIED=/data/jsonified by default but pipeline would set it to be different)
-    - (maybe everything except the command to run?)
+- [ ] Move everything out of the pipeline and into the image
