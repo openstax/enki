@@ -33,10 +33,7 @@ function makePipeline(env: KeyValue) {
         plan: [{
             get: RESOURCES.TICKER,
             trigger: true,
-        }, toConcourseTask(env, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, dedent`
-                curl "$WEB_FEED_FILE_URL" -o book-feed.json
-                check-feed book-feed.json "$CODE_VERSION" "$WEB_QUEUE_STATE_S3_BUCKET" "$CODE_VERSION.web-hosting-queue.json" "$MAX_BOOKS_PER_TICK" "archive-dist" "archive"
-            `),
+        }, toConcourseTask(env, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/check_feed.sh')),
         ]
     }
     
