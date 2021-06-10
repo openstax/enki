@@ -260,6 +260,26 @@ RUN bash -lc " \
 RUN bash -lc " \
     ./scripts/install_used_gem_versions"
 
+
+# ---------------------------
+# Install the Concourse Resource
+# ---------------------------
+
+COPY ./output-producer-resource /openstax/output-producer-resource/
+
+WORKDIR /openstax/output-producer-resource/
+
+RUN set -x \
+    && . /openstax/venv/bin/activate \
+    && python3 setup.py sdist \
+    && pip3 install dist/output-producer-resource-*.tar.gz
+
+RUN mkdir -p /opt/resource
+RUN set -x \
+    && . /openstax/venv/bin/activate \
+    && for script in check in out; do ln -s $(which $script) /opt/resource/; done
+
+
 WORKDIR /data/
 
 RUN useradd --create-home -u 5000 app

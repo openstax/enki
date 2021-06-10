@@ -50,7 +50,6 @@ function makePipeline(envValues: KeyValue) {
                 version: 'every'
             },
             toConcourseTask(envValues, 'dequeue-book', [RESOURCES.S3_QUEUE], [IO.BOOK], { CONTENT_SOURCE, S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }, readScript('script/dequeue_book.sh')),
-            // toConcourseTask(env, 'all-web-book', [IO.BOOK], [IO.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CODE_VERSION: true, WEB_S3_BUCKET: true, GH_SECRET_CREDS: false, COLUMNS: '80' }, readScript('script/all_web_book.sh')),
             ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => archiveTaskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
         ]
     }

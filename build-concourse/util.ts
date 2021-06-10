@@ -150,19 +150,22 @@ const ioToEnvVars = (inputs: string[], outputs: string[]) => {
 function toDockerTag(codeVersion: string) {
     return codeVersion.startsWith(RANDOM_DEV_CODEVERSION_PREFIX) ? 'main' : codeVersion
 }
+export function toDockerSourceSection(env: KeyValue) {
+    return {
+        insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
+        repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
+        tag: toDockerTag(expect(env.CODE_VERSION)),
+        username: env.DOCKERHUB_USERNAME,
+        password: env.DOCKERHUB_PASSWORD
+    }
+}
 export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[], outputs: string[], envNames: Env, cmd: string): ConcourseTask => ({
     task: taskName,
     config: {
         platform: 'linux',
         image_resource: {
             type: 'docker-image',
-            source: {
-                insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
-                repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
-                tag: toDockerTag(expect(env.CODE_VERSION)),
-                username: env.DOCKERHUB_USERNAME,
-                password: env.DOCKERHUB_PASSWORD
-            }
+            source: toDockerSourceSection(env)
         },
         params: {...ioToEnvVars(inputs, outputs), ...populateEnv(env, envNames)},
         run: bashy(cmd),

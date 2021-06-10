@@ -30,3 +30,7 @@
 	path = xhtml-validator
 	url = https://github.com/openstax/xhtml-validator
 	branch = trunk
+[submodule "output-producer-resource"]
+	path = output-producer-resource
+	url = https://github.com/openstax/output-producer-resource
+	branch = master

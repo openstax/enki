@@ -156,7 +156,7 @@ The pipeline-generation code uses a few additional environment variables:
 - [x] Change entrypoint script to use environment variables for directories instead of assuming `/data/{name}`
     - search for `mv ` in build-concourse/script
 - [x] Create a pipeline in concourse
-- [ ] Add the output-producer-resource repo into here
+- [x] Add the output-producer-resource repo into here
 - [ ] add back support for content servers and content versions
 
 ## Future TODO work

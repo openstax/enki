@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
-import { KeyValue, DockerDetails, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO as IO, readScript, PDF_OR_WEB, expectEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, gitTaskMaker, archiveTaskMaker, Env } from './util'
+import { KeyValue, DockerDetails, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO as IO, readScript, PDF_OR_WEB, expectEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, gitTaskMaker, archiveTaskMaker, Env, toDockerSourceSection } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -158,18 +158,11 @@ function makePipeline(env: KeyValue) {
     const archiveStepsWithUpload = [...ARCHIVE_WEB_STEPS, buildUploadStep(true, false)]
     const archiveWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, archiveStepsWithUpload.map(({name, inputs, outputs, env: envKeys}) => archiveTaskMaker(env, PDF_OR_WEB.WEB, name, inputs, outputs, envKeys)))
 
-    console.warn('Hardcoding output-producer-resource to a specific version. This resource type should be absorbed into the pipeline repo')
     const resourceTypes = [
         {
             name: 'output-producer',
             type: 'docker-image',
-            source: {
-                username: env.DOCKERHUB_USERNAME,
-                password: env.DOCKERHUB_PASSWORD,
-                insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
-                repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/openstax/output-producer` : 'openstax/output-producer',
-                tag: env.DOCKER_REGISTRY_HOST ? 'latest' : '20210427.153250'
-            }
+            source: toDockerSourceSection(env)
         }
     ]
 
