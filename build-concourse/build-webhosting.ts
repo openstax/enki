@@ -1,21 +1,24 @@
 import * as fs from 'fs'
 import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
-import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect } from './util'
+import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, archiveTaskMaker, PDF_OR_WEB } from './util'
+import { ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
 
-function makePipeline(env: KeyValue) {
+const archiveStepsWithUpload = [...ARCHIVE_WEB_STEPS, buildUploadStep(false, true)]
+
+function makePipeline(envValues: KeyValue) {
     const resources = [
         {
             name: RESOURCES.S3_QUEUE,
             source: {
-                access_key_id: env.AWS_ACCESS_KEY_ID,
-                secret_access_key: env.AWS_SECRET_ACCESS_KEY,
-                session_token: env.AWS_SESSION_TOKEN,
-                bucket: env.WEB_QUEUE_STATE_S3_BUCKET,
+                access_key_id: envValues.AWS_ACCESS_KEY_ID,
+                secret_access_key: envValues.AWS_SECRET_ACCESS_KEY,
+                session_token: envValues.AWS_SESSION_TOKEN,
+                bucket: envValues.WEB_QUEUE_STATE_S3_BUCKET,
                 initial_version: 'initializing',
-                versioned_file: `${env.CODE_VERSION}.web-hosting-queue.json`
+                versioned_file: `${envValues.CODE_VERSION}.web-hosting-queue.json`
             },
             type: 's3',
         },
@@ -23,7 +26,7 @@ function makePipeline(env: KeyValue) {
             type: 'time',
             name: RESOURCES.TICKER,
             source: {
-                interval: env.PIPELINE_TICK_INTERVAL
+                interval: envValues.PIPELINE_TICK_INTERVAL
             }
         }
     ]
@@ -33,21 +36,22 @@ function makePipeline(env: KeyValue) {
         plan: [{
             get: RESOURCES.TICKER,
             trigger: true,
-        }, toConcourseTask(env, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/check_feed.sh')),
+        }, toConcourseTask(envValues, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/check_feed.sh')),
         ]
     }
     
     const webBaker = {
         name: 'bakery',
-        max_in_flight: expect(env.MAX_INFLIGHT_JOBS),
+        max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
             {
                 get: RESOURCES.S3_QUEUE,
                 trigger: true,
                 version: 'every'
             },
-            toConcourseTask(env, 'dequeue-book', [RESOURCES.S3_QUEUE], [IO.BOOK], { CONTENT_SOURCE, S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }, readScript('script/dequeue_book.sh')),
-            toConcourseTask(env, 'all-web-book', [IO.BOOK], [IO.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CODE_VERSION: true, WEB_S3_BUCKET: true, GH_SECRET_CREDS: false, COLUMNS: '80' }, readScript('script/all_web_book.sh')),
+            toConcourseTask(envValues, 'dequeue-book', [RESOURCES.S3_QUEUE], [IO.BOOK], { CONTENT_SOURCE, S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }, readScript('script/dequeue_book.sh')),
+            // toConcourseTask(env, 'all-web-book', [IO.BOOK], [IO.COMMON_LOG], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CODE_VERSION: true, WEB_S3_BUCKET: true, GH_SECRET_CREDS: false, COLUMNS: '80' }, readScript('script/all_web_book.sh')),
+            ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => archiveTaskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
         ]
     }
     return { jobs: [feeder, webBaker], resources }

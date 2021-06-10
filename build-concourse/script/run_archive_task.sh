@@ -20,6 +20,6 @@ fi
 
 # These are just mapped because the script prefixes args with ARG_
 export ARG_CODE_VERSION=$CODE_VERSION
-export ARG_S3_BUCKET_NAME=$CORGI_ARTIFACTS_S3_BUCKET
+export ARG_S3_BUCKET_NAME=${CORGI_ARTIFACTS_S3_BUCKET:-$WEB_S3_BUCKET}
 
 TRACE_ON=1 docker-entrypoint.sh $TASK_NAME

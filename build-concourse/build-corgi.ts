@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { KeyValue, DockerDetails, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO as IO, readScript, PDF_OR_WEB, expectEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, gitTaskMaker, archiveTaskMaker } from './util'
+import { ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
+import { KeyValue, DockerDetails, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO as IO, readScript, PDF_OR_WEB, expectEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, gitTaskMaker, archiveTaskMaker, Env } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -153,21 +154,9 @@ function makePipeline(env: KeyValue) {
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf', [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], [IO.ARTIFACTS], {}),
         archiveTaskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf-metadata', [IO.BOOK, IO.ARTIFACTS], [IO.ARTIFACTS], {CORGI_ARTIFACTS_S3_BUCKET: true}),
     ])
-    const archiveWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, [
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-fetch', [IO.BOOK], [IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-fetch-metadata', [IO.BOOK, IO.ARCHIVE_FETCHED], [IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-assemble', [IO.BOOK, IO.ARCHIVE_FETCHED], [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-assemble-metadata', [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-link-extras', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-bake', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-bake-metadata', [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-checksum', [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-disassemble', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-patch-disassembled-links', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-jsonify', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK, IO.ARCHIVE_JSONIFIED, IO.ARTIFACTS], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-validate-xhtml', [IO.BOOK, IO.ARCHIVE_JSONIFIED], [], {}),
-        archiveTaskMaker(env, PDF_OR_WEB.WEB, 'archive-upload-book', [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}),
-    ])
+    // See ARCHIVE_WEB_STEPS for all the steps.
+    const archiveStepsWithUpload = [...ARCHIVE_WEB_STEPS, buildUploadStep(true, false)]
+    const archiveWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, archiveStepsWithUpload.map(({name, inputs, outputs, env: envKeys}) => archiveTaskMaker(env, PDF_OR_WEB.WEB, name, inputs, outputs, envKeys)))
 
     console.warn('Hardcoding output-producer-resource to a specific version. This resource type should be absorbed into the pipeline repo')
     const resourceTypes = [
