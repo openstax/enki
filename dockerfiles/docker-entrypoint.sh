@@ -32,6 +32,7 @@ IO_ARCHIVE_BOOK="${IO_ARCHIVE_BOOK:-${data_dir}/assembled}"
 IO_ARCHIVE_JSONIFIED="${IO_ARCHIVE_JSONIFIED:-${data_dir}/jsonified}"
 IO_ARCHIVE_UPLOAD="${IO_ARCHIVE_UPLOAD:-${data_dir}/upload}"
 
+IO_BOOK="${IO_BOOK:-${data_dir}/book}"
 IO_RESOURCES="${IO_RESOURCES:-${data_dir}/resources/}"
 IO_UNUSED="${IO_UNUSED:-${data_dir}/unused-resources/}"
 IO_FETCHED="${IO_FETCHED:-${data_dir}/fetched-book-group/}"
@@ -53,9 +54,10 @@ function ensure_arg() {
     local pointer
     local value
     arg_name=$1
+    message=$2
     pointer=$arg_name # https://stackoverflow.com/a/55331060
     value="${!pointer}"
-    [[ $value ]] || die "Environment variable $arg_name is missing. Set it."
+    [[ $value ]] || die "Environment variable $arg_name is missing. Set it. ${message}"
 }
 
 function check_input_dir() {
@@ -74,6 +76,63 @@ function do_step() {
     step_name=$1
 
     case $step_name in
+        local-create-book-directory)
+            # This step is normally done by the concourse resource but for local development it is done here
+
+            collection_id=$2 # repo name or collection id
+            version=$3 # repo branch/tag/commit or archive collection version
+            recipe=$4
+            archive_server=$5
+
+            ensure_arg 2 'Specify repo name (or archive collection id)'
+            ensure_arg 3 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
+            ensure_arg 4 'Specify recipe name'
+            ensure_arg 5 'Specify archive server (e.g. cnx.org)'
+
+            check_output_dir $IO_BOOK
+
+            # Write out the files
+            cat '-123456' > $IO_BOOK/id # job_id
+            cat ${ARG_REPO_NAME:-$ARG_COLLECTION_ID} > $IO_BOOK/collection_id
+            cat ${ARG_GIT_REF:-$ARG_COLLECTION_VERSION} > $IO_BOOK/version
+            cat $ARG_RECIPE_NAME > $IO_BOOK/collection_style
+            cat $ARG_CONTENT_SERVER > $IO_BOOK/content_server
+            cat '"not_a_real_job_json_file"' > $IO_BOOK/job.json
+        ;;
+        archive-dequeue-book)
+            ensure_arg S3_QUEUE
+            ensure_arg ARG_CODE_VERSION
+            check_input_dir $IO_BOOK
+            check_output_dir $IO_BOOK
+
+            CONTENT_SOURCE=archive
+
+            exec 2> >(tee $IO_BOOK/stderr >&2)
+            book="$S3_QUEUE/$ARG_CODE_VERSION.web-hosting-queue.json"
+            if [[ ! -s "$book" ]]; then
+                echo "Book is empty"
+                exit 1
+            fi
+
+            case $CONTENT_SOURCE in
+                archive)
+                    echo -n "$(cat $book | jq -er '.collection_id')" >$IO_BOOK/collection_id
+                    echo -n "$(cat $book | jq -er '.server')" >$IO_BOOK/server
+                ;;
+                git)
+                    echo -n "$(cat $book | jq -r '.slug')" >$IO_BOOK/slug
+                    echo -n "$(cat $book | jq -r '.repo')" >$IO_BOOK/repo
+                ;;
+                *)
+                    echo "CONTENT_SOURCE unrecognized: $CONTENT_SOURCE"
+                    exit 1
+                ;;
+            esac
+
+            echo -n "$(cat $book | jq -r '.style')" >$IO_BOOK/style
+            echo -n "$(cat $book | jq -r '.version')" >$IO_BOOK/version
+            echo -n "$(cat $book | jq -r '.uuid')" >$IO_BOOK/uuid
+        ;;
         archive-fetch)
             book_version=latest
             book_server=cnx.org
@@ -244,6 +303,39 @@ function do_step() {
             echo "DONE: See book at https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml (maybe rename '-gatekeeper' to '-primary')"
         ;;
 
+        archive-report-book-complete)
+            ensure_arg CODE_VERSION
+            ensure_arg ARG_WEB_QUEUE_STATE_S3_BUCKET
+
+            ensure_arg AWS_ACCESS_KEY_ID
+            ensure_arg AWS_SECRET_ACCESS_KEY
+            echo "IO_BOOK=$IO_BOOK"
+            check_input_dir $IO_BOOK
+
+            CONTENT_SOURCE=archive
+            bucketPrefix=archive-dist
+            codeVersion=$CODE_VERSION
+            queueStateBucket=$ARG_WEB_QUEUE_STATE_S3_BUCKET
+
+            case $CONTENT_SOURCE in
+            archive)
+                book_id="$(cat $IO_BOOK/collection_id)"
+                ;;
+            git)
+                book_id="$(cat $IO_BOOK/slug)"
+                ;;
+            *)
+                echo "CONTENT_SOURCE unrecognized: $CONTENT_SOURCE"
+                exit 1
+                ;;
+            esac
+                        
+            version="$(cat $IO_BOOK/version)"
+            complete_filename=".${bucketPrefix}.$book_id@$version.complete"
+            try date -Iseconds > "/tmp/$complete_filename"
+
+            try aws s3 cp "/tmp/$complete_filename" "s3://${queueStateBucket}/${codeVersion}/$complete_filename"
+        ;;
 
         git-fetch)
             check_output_dir "${IO_FETCHED}"
@@ -508,9 +600,8 @@ function do_step() {
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_CODE_VERSION
             ensure_arg ARG_TARGET_SLUG_NAME
-
-            [[ "${AWS_ACCESS_KEY_ID}" != '' ]] || die "AWS_ACCESS_KEY_ID environment variable is missing. It is necessary for uploading"
-            [[ "${AWS_SECRET_ACCESS_KEY}" != '' ]] || die "AWS_SECRET_ACCESS_KEY environment variable is missing. It is necessary for uploading"
+            ensure_arg AWS_ACCESS_KEY_ID
+            ensure_arg AWS_SECRET_ACCESS_KEY
 
             s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
@@ -571,11 +662,11 @@ case $1 in
         ensure_arg ARG_COLLECTION_ID
         ensure_arg ARG_RECIPE_NAME
         
-        do_step_named archive-fetch ${ARG_COLLECTION_ID}
+        do_step_named archive-fetch
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
         do_step_named archive-link-extras
-        do_step_named archive-bake ${ARG_RECIPE_NAME}
+        do_step_named archive-bake
         do_step_named archive-mathify
         do_step_named archive-pdf
     ;;
@@ -586,19 +677,19 @@ case $1 in
         ensure_arg ARG_COLLECTION_ID
         ensure_arg ARG_RECIPE_NAME
 
-        do_step_named archive-fetch ${ARG_COLLECTION_ID}
+        do_step_named archive-fetch
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
-        do_step_named archive-bake ${ARG_RECIPE_NAME}
+        do_step_named archive-bake
         do_step_named archive-bake-metadata
         do_step_named archive-checksum
         do_step_named archive-disassemble
         do_step_named archive-patch-disassembled-links
         do_step_named archive-jsonify
         do_step_named archive-validate-xhtml
-        # do_step_named archive-upload-book ${ARG_S3_BUCKET_NAME} ${ARG_CODE_VERSION}
+        # do_step_named archive-upload-book
     ;;
     all-git-web)
 
@@ -613,16 +704,16 @@ case $1 in
         ensure_arg ARG_RECIPE_NAME
         ensure_arg ARG_TARGET_SLUG_NAME
 
-        do_step_named git-fetch ${ARG_REPO_NAME} ${ARG_GIT_REF} ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-fetch
         do_step_named git-fetch-metadata
-        do_step_named git-assemble ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-assemble-meta ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-bake ${ARG_RECIPE_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-bake-meta ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-link ${ARG_TARGET_SLUG_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-disassemble ${ARG_TARGET_SLUG_NAME}
-        do_step_named git-patch-disassembled-links ${ARG_TARGET_SLUG_NAME}
-        do_step_named git-jsonify ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-assemble
+        do_step_named git-assemble-meta
+        do_step_named git-bake
+        do_step_named git-bake-meta
+        do_step_named git-link
+        do_step_named git-disassemble
+        do_step_named git-patch-disassembled-links
+        do_step_named git-jsonify
         do_step_named git-validate-xhtml
     ;;
     all-git-pdf)
@@ -641,16 +732,16 @@ case $1 in
 
         [[ $ARG_TARGET_PDF_FILENAME ]] || ARG_TARGET_PDF_FILENAME='book.pdf'
 
-        do_step_named git-fetch ${ARG_REPO_NAME} ${ARG_GIT_REF} ${ARG_TARGET_SLUG_NAME}
+        do_step_named git-fetch
         do_step_named git-fetch-metadata
-        do_step_named git-assemble ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-assemble-meta ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-bake ${ARG_RECIPE_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-bake-meta ${ARG_OPT_ONLY_ONE_BOOK}
-        do_step_named git-link ${ARG_TARGET_SLUG_NAME} ${ARG_OPT_ONLY_ONE_BOOK}
+        do_step_named git-assemble
+        do_step_named git-assemble-meta
+        do_step_named git-bake
+        do_step_named git-bake-meta
+        do_step_named git-link
         
-        do_step_named git-mathify ${ARG_TARGET_SLUG_NAME}
-        do_step_named git-pdfify ${ARG_TARGET_SLUG_NAME} ${ARG_TARGET_PDF_FILENAME}
+        do_step_named git-mathify
+        do_step_named git-pdfify
     ;;
     *) # Assume the user is only running one step
         do_step $@

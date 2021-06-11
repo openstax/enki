@@ -57,8 +57,10 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     -e ARG_RECIPE_NAME \
     -e ARG_REPO_NAME \
     -e ARG_S3_BUCKET_NAME \
+    -e ARG_WEB_QUEUE_STATE_S3_BUCKET \
     -e ARG_TARGET_PDF_FILENAME \
     -e ARG_TARGET_SLUG_NAME \
+    -e S3_QUEUE \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]

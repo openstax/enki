@@ -2,11 +2,16 @@ import * as fs from 'fs'
 import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
 import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, archiveTaskMaker, PDF_OR_WEB } from './util'
-import { ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
+import { archiveDequeue, archiveReportComplete, ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
 
-const archiveStepsWithUpload = [...ARCHIVE_WEB_STEPS, buildUploadStep(false, true)]
+const archiveStepsWithUpload = [
+    archiveDequeue,
+    ...ARCHIVE_WEB_STEPS, 
+    buildUploadStep(false, true), 
+    archiveReportComplete
+]
 
 function makePipeline(envValues: KeyValue) {
     const resources = [
@@ -49,9 +54,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            toConcourseTask(envValues, 'dequeue-book', [RESOURCES.S3_QUEUE], [IO.BOOK], { CONTENT_SOURCE, S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }, readScript('script/dequeue_book.sh')),
             ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => archiveTaskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
-            toConcourseTask(envValues, 'report-book-complete', [IO.BOOK], [], {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}, readScript('script/report_book_complete.sh'))
         ]
     }
     return { jobs: [feeder, webBaker], resources }

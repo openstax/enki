@@ -1,4 +1,4 @@
-import { Env, IO } from "./util";
+import { Env, IO, RESOURCES } from "./util";
 
 export type NameInOutEnv = {
     name: string
@@ -22,6 +22,9 @@ export const ARCHIVE_WEB_STEPS: NameInOutEnv[] = [
     {name: 'archive-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_JSONIFIED, IO.ARTIFACTS], env: {}},
     {name: 'archive-validate-xhtml', inputs: [IO.BOOK, IO.ARCHIVE_JSONIFIED], outputs: [], env: {}}
 ]
+
+export const archiveDequeue = {name: 'archive-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }}
+export const archiveReportComplete = {name: 'archive-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, ARG_BUCKET_PREFIX: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
 
 export function buildUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
     return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
