@@ -91,7 +91,7 @@ export enum IO {
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
     RESOURCES = 'resources',
-    UNUSED = 'unused-resources',
+    UNUSED_RESOURCES = 'unused-resources',
     ASSEMBLED = 'assembled', // 'assembled-book-group',
     ASSEMBLE_META = 'assemble-meta', // 'assembled-metadata-group',
     BAKED = 'baked', // 'baked-book-group',

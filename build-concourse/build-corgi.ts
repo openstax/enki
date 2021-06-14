@@ -122,7 +122,7 @@ function makePipeline(env: KeyValue) {
 
     const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT, [
         gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-fetch', [IO.BOOK], [IO.FETCHED], {GH_SECRET_CREDS: false}),
-        gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED], {}),
+        gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED_RESOURCES], {}),
         gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-assemble', [IO.BOOK, IO.FETCHED], [IO.ASSEMBLED], {ARG_OPT_ONLY_ONE_BOOK: false}),
         gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-assemble-meta', [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], [IO.ASSEMBLE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
         gitTaskMaker(env, PDF_OR_WEB.PDF, 'git-bake', [IO.BOOK, IO.ASSEMBLED], [IO.BAKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
@@ -134,7 +134,7 @@ function makePipeline(env: KeyValue) {
     ])
     const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, [
         gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-fetch', [IO.BOOK], [IO.FETCHED], {GH_SECRET_CREDS: false}),
-        gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED], {}),
+        gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED_RESOURCES], {}),
         gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-assemble', [IO.BOOK, IO.FETCHED], [IO.ASSEMBLED], {ARG_OPT_ONLY_ONE_BOOK: false}),
         gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-assemble-meta', [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], [IO.ASSEMBLE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
         gitTaskMaker(env, PDF_OR_WEB.WEB, 'git-bake', [IO.BOOK, IO.ASSEMBLED], [IO.BAKED], {ARG_OPT_ONLY_ONE_BOOK: false}),

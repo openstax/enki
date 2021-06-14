@@ -31,14 +31,14 @@ This uses a little wrapper to hide all the docker commands
 # All-in-one
 #
 #  CLI   tempdir      command         col_id   recipe_name     version   server
-./cli.sh ./data/fizix all-archive-pdf col12006 college-physics
-./cli.sh ./data/socio all-archive-pdf col11407 sociology
-./cli.sh ./data/socio all-archive-web col11407 sociology
+./cli.sh ./data/fizix all-archive-pdf col12006 college-physics latest
+./cli.sh ./data/socio all-archive-pdf col11407 sociology       latest
+./cli.sh ./data/socio all-archive-web col11407 sociology       latest
 
 # All-in-one Git-based books
-#  CLI   tempdir         command     repo_name              gitref recipe      book_slug
-./cli.sh ./data/tin-bk   all-git-pdf 'philschatz/tiny-book' main   chemistry   book-slug1
-./cli.sh ./data/tin-bk   all-git-web 'philschatz/tiny-book' main   chemistry   book-slug1
+#  CLI   tempdir         command     repo_name/book_slug               recipe    gitref
+./cli.sh ./data/tin-bk   all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
+./cli.sh ./data/tin-bk   all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
 
 # Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
@@ -50,23 +50,28 @@ If you want to run a single step at a time specify it as the first argument. Add
 
 ```sh
 # Common steps
-ARG_COLLECTION_ID=col12006      ./cli.sh ./data/fizix archive-fetch
-                                ./cli.sh ./data/fizix archive-assemble
-                                ./cli.sh ./data/fizix archive-link-extras
-ARG_RECIPE_NAME=college-physics ./cli.sh ./data/fizix archive-bake
+./cli.sh ./data/socio local-create-book-directory col11407 sociology latest
+./cli.sh ./data/socio archive-look-up-book
+./cli.sh ./data/socio archive-fetch
+./cli.sh ./data/socio archive-assemble
+./cli.sh ./data/socio archive-link-extras
+./cli.sh ./data/socio archive-bake
 
 # PDF steps
-./cli.sh ./data/fizix archive-mathify
-./cli.sh ./data/fizix archive-pdf
+./cli.sh ./data/socio archive-mathify
+./cli.sh ./data/socio archive-pdf
 
 # Webhosting steps
-./cli.sh ./data/fizix archive-assemble-metadata
-./cli.sh ./data/fizix archive-bake-metadata
-./cli.sh ./data/fizix archive-checksum
-./cli.sh ./data/fizix archive-disassemble
-./cli.sh ./data/fizix archive-patch-disassembled-links
-./cli.sh ./data/fizix archive-jsonify
-./cli.sh ./data/fizix archive-validate-xhtml
+./cli.sh ./data/socio archive-assemble-metadata
+./cli.sh ./data/socio archive-bake-metadata
+./cli.sh ./data/socio archive-checksum
+./cli.sh ./data/socio archive-disassemble
+./cli.sh ./data/socio archive-patch-disassembled-links
+./cli.sh ./data/socio archive-jsonify
+./cli.sh ./data/socio archive-validate-xhtml
+
+# Concourse-only steps (AWS_ environemnt variables will likely need to be set)
+ARG_CODE_VERSION='main' ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state ./cli.sh ./data/socio archive-report-book-complete
 ```
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.

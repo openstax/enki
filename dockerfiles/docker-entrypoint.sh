@@ -6,6 +6,7 @@ set -e
 
 # Trace and log if TRACE_ON is set
 [[ ${TRACE_ON} ]] && set -x
+[[ ${TRACE_ON} ]] && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
@@ -25,39 +26,15 @@ try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
 source /openstax/venv/bin/activate
 
-# Directory defaults. local dev writes to /data/... and concourse overrides these temp directories
-data_dir="/data"
-IO_ARCHIVE_FETCHED="${IO_ARCHIVE_FETCHED:-${data_dir}/raw}"
-IO_ARCHIVE_BOOK="${IO_ARCHIVE_BOOK:-${data_dir}/assembled}"
-IO_ARCHIVE_JSONIFIED="${IO_ARCHIVE_JSONIFIED:-${data_dir}/jsonified}"
-IO_ARCHIVE_UPLOAD="${IO_ARCHIVE_UPLOAD:-${data_dir}/upload}"
-
-IO_BOOK="${IO_BOOK:-${data_dir}/book}"
-IO_RESOURCES="${IO_RESOURCES:-${data_dir}/resources/}"
-IO_UNUSED="${IO_UNUSED:-${data_dir}/unused-resources/}"
-IO_FETCHED="${IO_FETCHED:-${data_dir}/fetched-book-group/}"
-IO_ASSEMBLED="${IO_ASSEMBLED:-${data_dir}/assembled-book-group/}"
-IO_ASSEMBLE_META="${IO_ASSEMBLE_META:-${data_dir}/assembled-metadata-group/}"
-IO_BAKED="${IO_BAKED:-${data_dir}/baked-book-group/}"
-IO_BAKE_META="${IO_BAKE_META:-${data_dir}/baked-metadata-group/}"
-IO_LINKED="${IO_LINKED:-${data_dir}/linked-single/}"
-IO_MATHIFIED="${IO_MATHIFIED:-${data_dir}/mathified-single/}"
-IO_DISASSEMBLED="${IO_DISASSEMBLED:-${data_dir}/disassembled-single/}"
-IO_ARTIFACTS="${IO_ARTIFACTS:-${data_dir}/artifacts-single/}"
-IO_DISASSEMBLE_LINKED="${IO_DISASSEMBLE_LINKED:-${data_dir}/disassembled-linked-single/}"
-IO_JSONIFIED="${IO_JSONIFIED:-${data_dir}/jsonified-single/}"
-
-ARG_TARGET_PDF_FILENAME="${ARG_TARGET_PDF_FILENAME:-book.pdf}"
-
 function ensure_arg() {
     local arg_name
     local pointer
     local value
     arg_name=$1
-    message=$2
+    message=${2:-"Environment variable '$arg_name' is missing. Set it"}
     pointer=$arg_name # https://stackoverflow.com/a/55331060
     value="${!pointer}"
-    [[ $value ]] || die "Environment variable $arg_name is missing. Set it. ${message}"
+    [[ $value ]] || die "$message"
 }
 
 function check_input_dir() {
@@ -72,6 +49,23 @@ function check_output_dir() {
     [[ -d $1 ]] || die "Expected output directory to exist but it was missing. it needs to be added to the concourse job: '$1'"
 }
 
+function parse_book_dir() {
+    if [[ -d $IO_BOOK ]]; then
+
+        ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
+        ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
+
+        [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
+        [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
+        [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
+        ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
+
+        [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
+        [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
+        ARG_GIT_REF="$(cat $IO_BOOK/version)"
+    fi
+}
+
 function do_step() {
     step_name=$1
 
@@ -80,24 +74,67 @@ function do_step() {
             # This step is normally done by the concourse resource but for local development it is done here
 
             collection_id=$2 # repo name or collection id
-            version=$3 # repo branch/tag/commit or archive collection version
-            recipe=$4
-            archive_server=$5
+            recipe=$3
+            version=$4 # repo branch/tag/commit or archive collection version
+            archive_server=${5:-cnx.org}
 
-            ensure_arg 2 'Specify repo name (or archive collection id)'
-            ensure_arg 3 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
-            ensure_arg 4 'Specify recipe name'
-            ensure_arg 5 'Specify archive server (e.g. cnx.org)'
+            ensure_arg collection_id 'Specify repo name (or archive collection id)'
+            ensure_arg recipe 'Specify recipe name'
+            ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
+            ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
-            check_output_dir $IO_BOOK
+            [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
+
+            check_output_dir $INPUT_SOURCE_DIR
 
             # Write out the files
-            cat '-123456' > $IO_BOOK/id # job_id
-            cat ${ARG_REPO_NAME:-$ARG_COLLECTION_ID} > $IO_BOOK/collection_id
-            cat ${ARG_GIT_REF:-$ARG_COLLECTION_VERSION} > $IO_BOOK/version
-            cat $ARG_RECIPE_NAME > $IO_BOOK/collection_style
-            cat $ARG_CONTENT_SERVER > $IO_BOOK/content_server
-            cat '"not_a_real_job_json_file"' > $IO_BOOK/job.json
+            echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
+            echo "$recipe" > $INPUT_SOURCE_DIR/collection_style
+            echo "$version" > $INPUT_SOURCE_DIR/version
+            echo "$archive_server" > $INPUT_SOURCE_DIR/content_server
+            # Dummy files
+            echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
+            echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
+        ;;
+        archive-look-up-book)
+            ensure_arg INPUT_SOURCE_DIR
+
+            check_input_dir $INPUT_SOURCE_DIR
+            check_output_dir $IO_BOOK
+            
+            tail $INPUT_SOURCE_DIR/*
+            cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
+            cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
+
+            cp $INPUT_SOURCE_DIR/collection_id $IO_BOOK/collection_id
+            cp $INPUT_SOURCE_DIR/content_server $IO_BOOK/server
+
+            server_shortname="$(cat $INPUT_SOURCE_DIR/job.json | jq -r '.content_server.name')"
+            echo "$server_shortname" >$IO_BOOK/server_shortname
+            pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
+            echo "$pdf_filename" > $IO_BOOK/pdf_filename
+        ;;
+        git-look-up-book)
+            ensure_arg INPUT_SOURCE_DIR
+
+            check_input_dir $INPUT_SOURCE_DIR
+            check_output_dir $IO_BOOK
+
+            tail $INPUT_SOURCE_DIR/*
+            cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
+            cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
+
+            if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
+            else
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+            fi
+            pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
+            echo "$pdf_filename" > $IO_BOOK/pdf_filename
         ;;
         archive-dequeue-book)
             ensure_arg S3_QUEUE
@@ -134,16 +171,17 @@ function do_step() {
             echo -n "$(cat $book | jq -r '.uuid')" >$IO_BOOK/uuid
         ;;
         archive-fetch)
-            book_version=latest
-            book_server=cnx.org
+            parse_book_dir
 
             # Validate inputs
             ensure_arg ARG_COLLECTION_ID
+            ensure_arg ARG_COLLECTION_VERSION
+            ensure_arg ARG_ARCHIVE_SERVER
             check_output_dir "${IO_ARCHIVE_FETCHED}"
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             temp_dir=$(mktemp -d)
-            yes | try neb get -r -d "${temp_dir}/does-not-exist-yet-dir" "${book_server}" "${ARG_COLLECTION_ID}" "${book_version}"
+            yes | try neb get -r -d "${temp_dir}/does-not-exist-yet-dir" "$ARG_ARCHIVE_SERVER" "$ARG_COLLECTION_ID" "$ARG_COLLECTION_VERSION"
 
             try mv $temp_dir/does-not-exist-yet-dir/* $IO_ARCHIVE_FETCHED
 
@@ -304,18 +342,17 @@ function do_step() {
         ;;
 
         archive-report-book-complete)
-            ensure_arg CODE_VERSION
-            ensure_arg ARG_WEB_QUEUE_STATE_S3_BUCKET
+            ensure_arg ARG_CODE_VERSION
+            ensure_arg WEB_QUEUE_STATE_S3_BUCKET
 
             ensure_arg AWS_ACCESS_KEY_ID
             ensure_arg AWS_SECRET_ACCESS_KEY
-            echo "IO_BOOK=$IO_BOOK"
             check_input_dir $IO_BOOK
 
             CONTENT_SOURCE=archive
             bucketPrefix=archive-dist
-            codeVersion=$CODE_VERSION
-            queueStateBucket=$ARG_WEB_QUEUE_STATE_S3_BUCKET
+            codeVersion=$ARG_CODE_VERSION
+            queueStateBucket=$WEB_QUEUE_STATE_S3_BUCKET
 
             case $CONTENT_SOURCE in
             archive)
@@ -338,6 +375,7 @@ function do_step() {
         ;;
 
         git-fetch)
+            parse_book_dir
             check_output_dir "${IO_FETCHED}"
 
             ensure_arg ARG_REPO_NAME
@@ -389,14 +427,14 @@ function do_step() {
             check_input_dir "${IO_FETCHED}"
             check_output_dir "${IO_FETCHED}"
             check_output_dir "${IO_RESOURCES}"
-            check_output_dir "${IO_UNUSED}"
+            check_output_dir "${IO_UNUSED_RESOURCES}"
 
             
             try fetch-update-meta "${IO_FETCHED}/.git" "${IO_FETCHED}/modules" "${IO_FETCHED}/collections" "${ARG_GIT_REF}" "${IO_FETCHED}/canonical.json"
             try rm -rf "${IO_FETCHED}/.git"
             try rm -rf "$creds_dir"
 
-            try fetch-map-resources "${IO_FETCHED}/modules" "${IO_FETCHED}/media" . "${IO_UNUSED}"
+            try fetch-map-resources "${IO_FETCHED}/modules" "${IO_FETCHED}/media" . "${IO_UNUSED_RESOURCES}"
             # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
             try rm -d "${IO_FETCHED}/media"
         ;;
@@ -656,12 +694,8 @@ function do_step_named() {
 
 case $1 in
     all-archive-pdf)
-        ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
-        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
-
-        ensure_arg ARG_COLLECTION_ID
-        ensure_arg ARG_RECIPE_NAME
-        
+        do_step_named local-create-book-directory "${@:2}"
+        do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
@@ -671,12 +705,8 @@ case $1 in
         do_step_named archive-pdf
     ;;
     all-archive-web)
-        ARG_COLLECTION_ID=${ARG_COLLECTION_ID:-$2}
-        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$3}
-
-        ensure_arg ARG_COLLECTION_ID
-        ensure_arg ARG_RECIPE_NAME
-
+        do_step_named local-create-book-directory "${@:2}"
+        do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
         do_step_named archive-assemble
@@ -692,18 +722,8 @@ case $1 in
         # do_step_named archive-upload-book
     ;;
     all-git-web)
-
-        ARG_REPO_NAME=${ARG_REPO_NAME:-$2}
-        ARG_GIT_REF=${ARG_GIT_REF:-$3}
-        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$4}
-        ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-$5}
-        ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$6}
-
-        ensure_arg ARG_REPO_NAME
-        ensure_arg ARG_GIT_REF
-        ensure_arg ARG_RECIPE_NAME
-        ensure_arg ARG_TARGET_SLUG_NAME
-
+        do_step_named local-create-book-directory "${@:2}"
+        do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
         do_step_named git-assemble
@@ -714,24 +734,11 @@ case $1 in
         do_step_named git-disassemble
         do_step_named git-patch-disassembled-links
         do_step_named git-jsonify
-        do_step_named git-validate-xhtml
+        # do_step_named git-validate-xhtml
     ;;
     all-git-pdf)
-
-        ARG_REPO_NAME=${ARG_REPO_NAME:-$2}
-        ARG_GIT_REF=${ARG_GIT_REF:-$3}
-        ARG_RECIPE_NAME=${ARG_RECIPE_NAME:-$4}
-        ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-$5}
-        ARG_TARGET_PDF_FILENAME=${ARG_TARGET_PDF_FILENAME:-$6}
-        ARG_OPT_ONLY_ONE_BOOK=${ARG_OPT_ONLY_ONE_BOOK:-$7}
-
-        ensure_arg ARG_REPO_NAME
-        ensure_arg ARG_GIT_REF
-        ensure_arg ARG_RECIPE_NAME
-        ensure_arg ARG_TARGET_SLUG_NAME
-
-        [[ $ARG_TARGET_PDF_FILENAME ]] || ARG_TARGET_PDF_FILENAME='book.pdf'
-
+        do_step_named local-create-book-directory "${@:2}"
+        do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
         do_step_named git-assemble

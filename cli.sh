@@ -46,21 +46,23 @@ fi
 
 docker build -t ${image_name} .
 docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
-    -e GH_SECRET_CREDS \
-    -e AWS_ACCESS_KEY_ID \
-    -e AWS_SECRET_ACCESS_KEY \
-    -e AWS_SESSION_TOKEN \
-    -e TRACE_ON \
-    -e ARG_CODE_VERSION \
-    -e ARG_COLLECTION_ID \
-    -e ARG_GIT_REF \
-    -e ARG_RECIPE_NAME \
-    -e ARG_REPO_NAME \
-    -e ARG_S3_BUCKET_NAME \
-    -e ARG_WEB_QUEUE_STATE_S3_BUCKET \
-    -e ARG_TARGET_PDF_FILENAME \
-    -e ARG_TARGET_SLUG_NAME \
-    -e S3_QUEUE \
+    --env-file cli-env.txt \
+    --env GH_SECRET_CREDS \
+    --env AWS_ACCESS_KEY_ID \
+    --env AWS_SECRET_ACCESS_KEY \
+    --env AWS_SESSION_TOKEN \
+    --env TRACE_ON \
+    --env WEB_QUEUE_STATE_S3_BUCKET \
+    --env CODE_VERSION \ # Maybe remove all these args and only rely on 
+    --env ARG_CODE_VERSION \
+    --env ARG_COLLECTION_ID \
+    --env ARG_GIT_REF \
+    --env ARG_RECIPE_NAME \
+    --env ARG_REPO_NAME \
+    --env ARG_S3_BUCKET_NAME \
+    --env ARG_TARGET_PDF_FILENAME \
+    --env ARG_TARGET_SLUG_NAME \
+    --env S3_QUEUE \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]
