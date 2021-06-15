@@ -53,7 +53,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env AWS_SESSION_TOKEN \
     --env TRACE_ON \
     --env WEB_QUEUE_STATE_S3_BUCKET \
-    --env CODE_VERSION \ # Maybe remove all these args and only rely on 
+    --env CODE_VERSION \
     --env ARG_CODE_VERSION \
     --env ARG_COLLECTION_ID \
     --env ARG_GIT_REF \

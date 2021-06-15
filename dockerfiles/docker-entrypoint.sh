@@ -5,8 +5,7 @@
 set -e
 
 # Trace and log if TRACE_ON is set
-[[ ${TRACE_ON} ]] && set -x
-[[ ${TRACE_ON} ]] && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+[[ ${TRACE_ON} ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
@@ -50,20 +49,33 @@ function check_output_dir() {
 }
 
 function parse_book_dir() {
-    if [[ -d $IO_BOOK ]]; then
+    check_input_dir $IO_BOOK
 
-        ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
-        ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
+    ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
+    ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
 
-        [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
-        [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
-        [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
-        ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
+    [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
+    [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
+    [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
+    ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
 
-        [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
-        [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
-        ARG_GIT_REF="$(cat $IO_BOOK/version)"
-    fi
+    [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
+    [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
+    ARG_GIT_REF="$(cat $IO_BOOK/version)"
+}
+
+# Concourse-CI runs each step in a separate process so parse_book_dir() needs to
+# reset between each step
+function unset_book_vars() {
+    unset ARG_RECIPE_NAME
+    unset ARG_TARGET_PDF_FILENAME
+    unset ARG_COLLECTION_ID
+    unset ARG_ARCHIVE_SERVER
+    unset ARG_ARCHIVE_SHORTNAME
+    unset ARG_COLLECTION_VERSION
+    unset ARG_REPO_NAME
+    unset ARG_TARGET_SLUG_NAME
+    unset ARG_GIT_REF
 }
 
 function do_step() {
@@ -210,7 +222,7 @@ function do_step() {
             try python3 /openstax/bakery-scripts/scripts/link_extras.py "${IO_ARCHIVE_BOOK}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
         ;;
         archive-bake)
-
+            parse_book_dir
             # Validate commandline arguments
             ensure_arg ARG_RECIPE_NAME
 
@@ -233,6 +245,7 @@ function do_step() {
             try node /openstax/mathify/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
         ;;
         archive-pdf)
+            parse_book_dir
             ensure_arg ARG_TARGET_PDF_FILENAME
             check_input_dir "${IO_ARCHIVE_BOOK}"
             check_output_dir "${IO_ARTIFACTS}"
@@ -240,6 +253,7 @@ function do_step() {
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
         archive-pdf-metadata)
+            parse_book_dir
             ensure_arg CORGI_ARTIFACTS_S3_BUCKET
             ensure_arg ARG_TARGET_PDF_FILENAME
             check_output_dir "${IO_ARTIFACTS}"
@@ -248,6 +262,7 @@ function do_step() {
         ;;
 
         archive-bake-metadata)
+            parse_book_dir
             ensure_arg ARG_COLLECTION_ID
             check_input_dir "${IO_ARCHIVE_FETCHED}"
 
@@ -302,7 +317,7 @@ function do_step() {
             done
         ;;
         archive-upload-book)
-
+            parse_book_dir
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_CODE_VERSION
             ensure_arg AWS_ACCESS_KEY_ID
@@ -484,6 +499,7 @@ function do_step() {
         ;;
 
         git-bake)
+            parse_book_dir
             ensure_arg ARG_RECIPE_NAME
             check_input_dir "${IO_ASSEMBLED}"
             check_output_dir "${IO_BAKED}"
@@ -543,6 +559,7 @@ function do_step() {
         ;;
 
         git-link)
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_BAKED}"
             check_input_dir "${IO_BAKE_META}"
@@ -556,6 +573,7 @@ function do_step() {
         ;;
 
         git-disassemble)
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_LINKED}"
             check_input_dir "${IO_BAKE_META}"
@@ -565,6 +583,7 @@ function do_step() {
         ;;
 
         git-patch-disassembled-links)
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_DISASSEMBLED}"
             check_output_dir "${IO_DISASSEMBLE_LINKED}"
@@ -575,6 +594,7 @@ function do_step() {
         ;;
 
         git-jsonify)
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
             check_input_dir "${IO_DISASSEMBLE_LINKED}"
             check_output_dir "${IO_JSONIFIED}"
@@ -597,6 +617,7 @@ function do_step() {
             done
         ;;
         git-mathify)
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
 
             check_input_dir "${IO_LINKED}"
@@ -609,7 +630,7 @@ function do_step() {
             try node /openstax/mathify/typeset/start.js -i "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" -o "${IO_MATHIFIED}/$ARG_TARGET_SLUG_NAME.mathified.xhtml" -f svg
         ;;
         git-pdfify)
-
+            parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
             ensure_arg ARG_TARGET_PDF_FILENAME
 
@@ -630,7 +651,7 @@ function do_step() {
             echo "DONE: See book at ${pdf_url}"
         ;;
         git-upload-book)
-
+            parse_book_dir
             check_input_dir "${IO_JSONIFIED}"
             check_input_dir "${IO_RESOURCES}"
             check_output_dir "${IO_ARTIFACTS}"
@@ -688,6 +709,7 @@ function do_step_named() {
     step_name=$1
     say "==> Starting: $*"
     do_step $@
+    unset_book_vars
     say "==> Finished: $*"
 }
 

@@ -36,5 +36,5 @@ export function buildUploadStep(requireCorgiBucket: boolean, requireWebhostingBu
 }
 
 export function buildLookUpBook(gitOrArchive: GIT_OR_ARCHIVE, inputSource: RESOURCES): NameInOutEnv {
-    return {name: gitOrArchive == GIT_OR_ARCHIVE.GIT ? 'git-lookup-book' : 'archive-look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
+    return {name: gitOrArchive == GIT_OR_ARCHIVE.GIT ? 'git-look-up-book' : 'archive-look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
 }
