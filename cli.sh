@@ -42,7 +42,7 @@ fi
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
-[[ -d ${local_dir} ]] || mkdir "${local_dir}"
+[[ -d ${local_dir} ]] || mkdir --parents "${local_dir}"
 
 docker build -t ${image_name} .
 docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \

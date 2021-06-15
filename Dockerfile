@@ -84,6 +84,9 @@ RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
         && gem install bundler --no-document" # \
     # && echo '[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*' >> /home/gitpod/.bashrc.d/70-ruby
 RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
+ENV PATH=$PATH:/usr/local/rvm/rubies/ruby-${RUBY_VERSION}/bin/
+ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}
+ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global
 
 
 # ---------------------------
@@ -251,14 +254,12 @@ RUN set -x \
 COPY ./recipes/ /openstax/recipes/
 WORKDIR /openstax/recipes/
 
-RUN bash -lc " \
-    gem install bundler --no-document && \
+RUN gem install bundler --no-document && \
     gem install byebug --no-document && \
     bundle config set no-cache 'true' && \
-    bundle config set silence_root_warning 'true'"
+    bundle config set silence_root_warning 'true'
 
-RUN bash -lc " \
-    ./scripts/install_used_gem_versions"
+RUN ./scripts/install_used_gem_versions
 
 
 # ---------------------------
