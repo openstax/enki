@@ -312,6 +312,8 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'CODE_VERSION')
     defaultEnv(env, 'AWS_ACCESS_KEY_ID')
     defaultEnv(env, 'AWS_SECRET_ACCESS_KEY')
+    defaultEnv(env, 'DOCKER_REPOSITORY', true)
+    defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
     defaultEnv(env, 'DOCKERHUB_USERNAME', true)
     defaultEnv(env, 'DOCKERHUB_PASSWORD', true)
 

@@ -52,8 +52,7 @@ function parse_book_dir() {
     check_input_dir $IO_BOOK
 
     ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
-    ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
-
+    [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
     [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
     [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
