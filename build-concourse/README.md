@@ -65,13 +65,9 @@ cd ../ # main repo directory
 # Note: Use 'main' because the RANDOM_DEV_CODEVERSION_PREFIX related code assumes this tag name
 export TAG='localhost:5000/openstax/book-pipeline:main' && docker build --tag $TAG . && docker push $TAG
 
-# Swith to the output-producer-resource repository
-export TAG='localhost:5000/openstax/output-producer:latest' && docker build --tag $TAG . && docker push $TAG
-
-# Verify the images are in the registry:
+# Verify the image is in the registry:
 # http://localhost:5000/v2/_catalog
 # http://localhost:5000/v2/openstax/book-pipeline/tags/list    : verify that "main" exists
-# http://localhost:5000/v2/openstax/output-producer/tags/list  : verify that "latest" exists
 
 # Build the concourse pipeline to point to our local registry
 cd ./build-concourse/
@@ -249,8 +245,9 @@ This usually means the resource is not in the registry. Verify that the resource
 
 - http://localhost:5000/v2/_catalog
 - http://localhost:5000/v2/openstax/book-pipeline/tags/list    : verify that "main" exists
-- http://localhost:5000/v2/openstax/output-producer/tags/list  : verify that "latest" exists
-
 
 ## `failed to create volume`
 
+If you are running an archive job on Linux try setting `CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive` in docker-compose.yml. The archive jobs read/write to the same directories and the this method (which just copies everything between tasks) seems to work.
+
+Also, if you are running out of disk space consider running `docker volume prune` to remove any dangling volumes.
