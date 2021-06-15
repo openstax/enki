@@ -1,17 +1,12 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
+import { ARCHIVE_WEB_STEPS, buildLookUpBook, buildUploadStep, GIT_OR_ARCHIVE } from './step-definitions'
 import { KeyValue, DockerDetails, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO as IO, readScript, PDF_OR_WEB, expectEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, gitTaskMaker, archiveTaskMaker, Env, toDockerSourceSection } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
 const genericAbortMessage = 'Job was aborted.'
 const s3UploadFailMessage = 'Error occurred upload to S3.'
-
-enum GIT_OR_ARCHIVE {
-    GIT = 'git',
-    ARCHIVE = 'archive'
-}
 
 function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
@@ -71,12 +66,14 @@ function makePipeline(env: KeyValue) {
 
     const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
+        const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
+        const lookupBookTask = gitOrArchive === GIT_OR_ARCHIVE.ARCHIVE ? archiveTaskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env) : gitTaskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env)
         return wrapGenericCorgiJob(env, `PDF (${gitOrArchive})`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
                 }),
-                taskLookUpBook(resource, gitOrArchive),
+                lookupBookTask,
                 report(Status.PROCESSING),
                 ...tasks,
                 taskOverrideCommonLog(s3UploadFailMessage),
@@ -100,12 +97,15 @@ function makePipeline(env: KeyValue) {
 
     const buildArchiveOrGitWebJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
+        const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
+        const lookupBookTask = gitOrArchive === GIT_OR_ARCHIVE.ARCHIVE ? archiveTaskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env) : gitTaskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env)
+
         return wrapGenericCorgiJob(env, `Web Preview (${gitOrArchive})`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
                 }),
-                taskLookUpBook(resource, gitOrArchive),
+                lookupBookTask,
                 report(Status.PROCESSING),
                 ...tasks,
                 taskGenPreviewUrls(gitOrArchive)
