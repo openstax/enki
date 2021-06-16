@@ -639,10 +639,11 @@ function do_step() {
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_MATHIFIED}/${ARG_TARGET_SLUG_NAME}.mathified.xhtml"
         ;;
         git-pdfify-meta)
-            check_output_dir "${IO_ARTIFACTS}"
+            parse_book_dir
 
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_TARGET_PDF_FILENAME
+            check_output_dir "${IO_ARTIFACTS}"
 
             pdf_url="https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${ARG_TARGET_PDF_FILENAME}"
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
