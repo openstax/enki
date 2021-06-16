@@ -47,6 +47,7 @@ fi
 docker build -t ${image_name} .
 docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli-env.txt \
+    --env CI \
     --env GH_SECRET_CREDS \
     --env AWS_ACCESS_KEY_ID \
     --env AWS_SECRET_ACCESS_KEY \
@@ -63,6 +64,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env ARG_TARGET_PDF_FILENAME \
     --env ARG_TARGET_SLUG_NAME \
     --env S3_QUEUE \
+    --env START_AT_STEP \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]

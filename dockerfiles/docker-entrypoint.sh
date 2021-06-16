@@ -707,10 +707,17 @@ function do_step() {
 
 function do_step_named() {
     step_name=$1
-    say "==> Starting: $*"
-    do_step $@
-    unset_book_vars
-    say "==> Finished: $*"
+    if [[ $START_AT_STEP == $step_name ]]; then
+        unset START_AT_STEP
+    elif [[ $START_AT_STEP ]]; then
+        say "==> Skipping $*"
+    fi
+    if [[ ! $START_AT_STEP ]]; then
+        say "==> Starting: $*"
+        do_step $@
+        unset_book_vars
+        say "==> Finished: $*"
+    fi
 }
 
 

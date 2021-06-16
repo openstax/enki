@@ -76,6 +76,20 @@ ARG_CODE_VERSION='main' ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosti
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
 
+## Run steps beginning with a step
+
+Often developers will want to run all the steps beginning with a particular step.
+This is commonly used in order to skip the fetch step_ since the book has already been fetched.
+
+Use the `START_AT_STEP=` environment variable. Example:
+
+```sh
+START_AT_STEP=git-bake ./cli.sh ./data/tin-bk all-git-pdf
+
+# The arguments following all-git-pdf can be omitted since they are only used in the initial step
+```
+
+
 # Environment Variables
 
 This repository makes heavy use of environment variables. It uses them to pass information like which book and version to fetch as well as the directory to read/write to.
@@ -163,6 +177,20 @@ The pipeline-generation code uses a few additional environment variables:
 - [x] Create a pipeline in concourse
 - [x] Add the output-producer-resource repo into here
 - [ ] add back support for content servers and content versions
+- [x] verify the webhosting job uploaded: http://localhost:8080/teams/main/pipelines/webhosting/jobs/bakery/builds/4.1
+- [x] verify the pipeline resource runs instead of the output-producer-resource
+- [x] add the post-webhosting-push task of updating S3 to mark the job as done (check concourse-v6 for this task)
+    - a.k.a. add webhosting "report book complete" task which uploads to the Queue bucket (yet another bucket)
+- [x] combine gitTaskMaker and archiveTaskMaker into one generic taskMaker since the shell script will be tiny
+- [ ] add google docs pipeline-generation
+- [ ] auto-build a dependency graph image for documentation
+- [ ] webhosting for git books
+- [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
+- [ ] wire up codecov.io
+
+## Updates since I started
+
+- [ ] update XHTML validation so that it runs and prints all errors instead of just the first one. Triggered by talking about cnx#1575
 
 ## Future TODO work
 

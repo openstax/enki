@@ -1,4 +1,3 @@
-TRACE_ON=1
 INPUT_SOURCE_DIR=_book-input
 
 IO_BOOK=/data/book
