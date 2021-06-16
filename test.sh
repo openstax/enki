@@ -1,3 +1,5 @@
+set -e
+
 [[ -d ./data/test-book/ ]] && rm -rf ./data/test-book/
 
 CI=true                               ./cli.sh ./data/test-book/ all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
