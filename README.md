@@ -43,6 +43,13 @@ This uses a little wrapper to hide all the docker commands
 # Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
 ```
 
+## Run Tests
+
+```sh
+./test.sh
+# Open ./coverage/index.html in a browser to see coverage
+```
+
 ## Run one step
 
 If you want to run a single step at a time specify it as the first argument. Additional arguments are specified as environment variables.

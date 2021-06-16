@@ -10,7 +10,7 @@ set -e
 if [[ $1 == 'shell' ]]; then
     bash
 elif [[ ${CI} ]]; then
-    kcov /data/kcov-coverage-results/ docker-entrypoint.sh $@
+    kcov /data/_kcov-coverage-results/ docker-entrypoint.sh $@
 else
     docker-entrypoint.sh $@
 fi
