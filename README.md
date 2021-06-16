@@ -18,67 +18,55 @@ The code is organized as follows:
 
 ## Specific Use-cases
 
-There is a [./cli.sh](./cli.sh) which is used to build books locally.
-
-In [build-concourse/](./build-concourse/) running `npm start` will generate Concourse Pipeline YAML files for the different CORGI environments (production, staging, local) and different webhosting environments (production, sandbox, local).
+- There is a [./cli.sh](./cli.sh) which is used to build books locally.
+- In [build-concourse/](./build-concourse/) running `npm start` will generate Concourse Pipeline YAML files for the different CORGI environments (production, staging, local) and different webhosting environments (production, sandbox, local).
 
 
 # Local Instructions
 
-This uses a little wrapper to hide all the docker commands
+This uses a little wrapper to hide all the docker commands.
 
 ```sh
-# All-in-one
-#
-#  CLI   tempdir      command         col_id   recipe_name     version   server
-./cli.sh ./data/fizix all-archive-pdf col12006 college-physics latest
-./cli.sh ./data/socio all-archive-pdf col11407 sociology       latest
-./cli.sh ./data/socio all-archive-web col11407 sociology       latest
-
 # All-in-one Git-based books
-#  CLI   tempdir         command     repo_name/book_slug               recipe    gitref
-./cli.sh ./data/tin-bk   all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
-./cli.sh ./data/tin-bk   all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
+#  CLI   tempdir          command     repo_name/book_slug               recipe    gitref
+./cli.sh ./data/tin-bk/   all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
+./cli.sh ./data/tin-bk/   all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
+# GH_SECRET_CREDS='..' before running ./cli.sh for private repositories
 
-# Private repositories: Set GH_SECRET_CREDS='..' before running ./cli.sh
+# All-in-one Archive-based books
+#  CLI   tempdir       command         col_id   recipe          version   server
+./cli.sh ./data/fizix/ all-archive-pdf col12006 college-physics latest
+./cli.sh ./data/socio/ all-archive-pdf col11407 sociology       latest
+./cli.sh ./data/socio/ all-archive-web col11407 sociology       latest
 ```
 
 ## Run Tests
 
-```sh
-./test.sh
-# Open ./coverage/index.html in a browser to see coverage
-```
+1. Run `./test.sh`
+1. Open `./coverage/index.html` in a browser to see coverage
+
 
 ## Run one step
 
-If you want to run a single step at a time specify it as the first argument. Additional arguments are specified as environment variables.
-
+If you want to run a single step at a time specify it as the first argument.
 
 ```sh
 # Common steps
-./cli.sh ./data/socio local-create-book-directory col11407 sociology latest
-./cli.sh ./data/socio archive-look-up-book
-./cli.sh ./data/socio archive-fetch
-./cli.sh ./data/socio archive-assemble
-./cli.sh ./data/socio archive-link-extras
-./cli.sh ./data/socio archive-bake
+./cli.sh ./data/socio/ local-create-book-directory col11407 sociology latest
+./cli.sh ./data/socio/ archive-look-up-book
+./cli.sh ./data/socio/ archive-fetch
+./cli.sh ./data/socio/ archive-assemble
+./cli.sh ./data/socio/ archive-link-extras
+./cli.sh ./data/socio/ archive-bake
 
 # PDF steps
-./cli.sh ./data/socio archive-mathify
-./cli.sh ./data/socio archive-pdf
-
-# Webhosting steps
-./cli.sh ./data/socio archive-assemble-metadata
-./cli.sh ./data/socio archive-bake-metadata
-./cli.sh ./data/socio archive-checksum
-./cli.sh ./data/socio archive-disassemble
-./cli.sh ./data/socio archive-patch-disassembled-links
-./cli.sh ./data/socio archive-jsonify
-./cli.sh ./data/socio archive-validate-xhtml
+./cli.sh ./data/socio/ archive-mathify
+./cli.sh ./data/socio/ archive-pdf
 
 # Concourse-only steps (AWS_ environemnt variables will likely need to be set)
-ARG_CODE_VERSION='main' ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state ./cli.sh ./data/socio archive-report-book-complete
+ARG_CODE_VERSION='main' \
+ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state \
+./cli.sh ./data/socio/ archive-report-book-complete
 ```
 
 With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
@@ -92,41 +80,16 @@ Use the `START_AT_STEP=` environment variable. Example:
 
 ```sh
 START_AT_STEP=git-bake ./cli.sh ./data/tin-bk all-git-pdf
-
-# The arguments following all-git-pdf can be omitted since they are only used in the initial step
 ```
+
+**Note:** The arguments following all-git-pdf can be omitted since they are only used in the initial step
 
 
 # Environment Variables
 
-This repository makes heavy use of environment variables. It uses them to pass information like which book and version to fetch as well as the directory to read/write to.
+[dockerfiles/docker-entrypoint.sh](./dockerfiles/docker-entrypoint.sh) specifically makes heavy use of environment variables. It uses them to pass information like which book and version to fetch as well as the directory to read/write to.
 
 When running locally the directories by default read/write to subdirectories of [./data/](./data/) using a Docker volume mount. The pipelines that run in concourse use different directories since each one is an input/output directory specified in the Concourse-CI task.
-
-## Directories
-
-Archive-specific:
-
-- `IO_ARCHIVE_FETCHED`: ./data/raw
-- `IO_ARCHIVE_BOOK`: ./data/assembled
-- `IO_ARCHIVE_JSONIFIED`: ./data/jsonified
-- `IO_ARCHIVE_UPLOAD`: ./data/upload
-
-Git-specific:
-
-- `IO_RESOURCES`: ./data/resources/
-- `IO_UNUSED`: ./data/unused-resources/
-- `IO_FETCHED`: ./data/fetched-book-group/
-- `IO_ASSEMBLED`: ./data/assembled-book-group/
-- `IO_ASSEMBLE_META`: ./data/assembled-metadata-group/
-- `IO_BAKED`: ./data/baked-book-group/
-- `IO_BAKE_META`: ./data/baked-metadata-group/
-- `IO_LINKED`: ./data/linked-single/
-- `IO_MATHIFIED`: ./data/mathified-single/
-- `IO_DISASSEMBLED`: ./data/disassembled-single/
-- `IO_ARTIFACTS`: ./data/artifacts-single/
-- `IO_DISASSEMBLE_LINKED`: ./data/disassembled-linked-single/
-- `IO_JSONIFIED`: ./data/jsonified-single/
 
 ## Pipeline-specific Arguments
 
@@ -155,7 +118,8 @@ The CLI command (& docker steps) listen to a few optional environment variables,
 
 | Name | Use | Description |
 | :--- | :-- | :---------- |
-| `TRACE_ON=1` | Debug | Set to anything to enable trace output
+| `TRACE_ON` | Debug | Set to anything to enable trace output
+| `CI` | Test | Collect code coverage |
 | `GH_SECRET_CREDS=user1:skjdhfs...` | Git Clone | An Authorization token from GitHub to clone a private repository
 | `AWS_ACCESS_KEY_ID` | | AWS Upload | See `aws-access` for more
 | `AWS_SECRET_ACCESS_KEY` | | AWS Upload | See `aws-access` for more
