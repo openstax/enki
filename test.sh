@@ -10,4 +10,6 @@ CI=true START_AT_STEP=git-disassemble ./cli.sh ./data/test-book/ all-git-web 'ph
 mkdir ./coverage/
 mv ./data/test-book/_kcov-coverage-results/* ./coverage/
 
+echo "Open ./coverage/index.html in a browser to see the code coverage."
+
 # bash <(curl -s https://codecov.io/bash) -s ./coverage/
