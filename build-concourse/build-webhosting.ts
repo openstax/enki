@@ -1,7 +1,6 @@
 import * as fs from 'fs'
-import * as dedent from 'dedent'
 import * as yaml from 'js-yaml'
-import { IO, KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, archiveTaskMaker, PDF_OR_WEB } from './util'
+import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB } from './util'
 import { archiveDequeue, archiveReportComplete, ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
@@ -54,7 +53,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => archiveTaskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
+            ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => taskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
         ]
     }
     return { jobs: [feeder, webBaker], resources }

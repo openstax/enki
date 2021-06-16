@@ -1,13 +1,13 @@
-[[ -d $IO_COMMON_LOG ]] || (echo "Undefined Environment variable: IO_COMMON_LOG" && exit 1)
-[[ -d $IO_BOOK ]] || (echo "Undefined Environment variable: IO_BOOK" && exit 1)
-[[ -d $IO_ARTIFACTS ]] || (echo "Undefined Environment variable: IO_ARTIFACTS" && exit 1)
-[[ -d $IO_PREVIEW_URLS ]] || (echo "Undefined Environment variable: IO_PREVIEW_URLS" && exit 1)
-[[ $CONTENT_SOURCE ]] || (echo "Undefined Environment variable: CONTENT_SOURCE" && exit 1)
-[[ $CORGI_CLOUDFRONT_URL ]] || (echo "Undefined Environment variable: CORGI_CLOUDFRONT_URL" && exit 1)
-[[ $CODE_VERSION ]] || (echo "Undefined Environment variable: CODE_VERSION" && exit 1)
-[[ $PREVIEW_APP_URL_PREFIX ]] || (echo "Undefined Environment variable: PREVIEW_APP_URL_PREFIX" && exit 1)
-[[ $REX_PREVIEW_URL ]] || (echo "Undefined Environment variable: REX_PREVIEW_URL" && exit 1)
-[[ $REX_PROD_PREVIEW_URL ]] || (echo "Undefined Environment variable: REX_PROD_PREVIEW_URL" && exit 1)
+[[ -d $IO_COMMON_LOG ]] || { echo "Undefined Environment variable: IO_COMMON_LOG"; exit 1; }
+[[ -d $IO_BOOK ]] || { echo "Undefined Environment variable: IO_BOOK"; exit 1; }
+[[ -d $IO_ARTIFACTS ]] || { echo "Undefined Environment variable: IO_ARTIFACTS"; exit 1; }
+[[ -d $IO_PREVIEW_URLS ]] || { echo "Undefined Environment variable: IO_PREVIEW_URLS"; exit 1; }
+[[ $CONTENT_SOURCE ]] || { echo "Undefined Environment variable: CONTENT_SOURCE"; exit 1; }
+[[ $CORGI_CLOUDFRONT_URL ]] || { echo "Undefined Environment variable: CORGI_CLOUDFRONT_URL"; exit 1; }
+[[ $CODE_VERSION ]] || { echo "Undefined Environment variable: CODE_VERSION"; exit 1; }
+[[ $PREVIEW_APP_URL_PREFIX ]] || { echo "Undefined Environment variable: PREVIEW_APP_URL_PREFIX"; exit 1; }
+[[ $REX_PREVIEW_URL ]] || { echo "Undefined Environment variable: REX_PREVIEW_URL"; exit 1; }
+[[ $REX_PROD_PREVIEW_URL ]] || { echo "Undefined Environment variable: REX_PROD_PREVIEW_URL"; exit 1; }
 
 exec > >(tee $IO_COMMON_LOG/log >&2) 2>&1
 

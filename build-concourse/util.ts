@@ -264,11 +264,8 @@ export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
   }
-  const variantMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB) => toConcourseTask(env, `build-all-pdf-or-web=${pdfOrWeb}`, [IO.BOOK], [IO.COMMON_LOG, IO.ARTIFACTS_SINGLE], { AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, PDF_OR_WEB: pdfOrWeb, CORGI_ARTIFACTS_S3_BUCKET: true, CODE_VERSION: true, GH_SECRET_CREDS: false, REX_PREVIEW_URL: true, REX_PROD_PREVIEW_URL: true, COLUMNS: '80' }, readScript('script/build_pdf_or_web_from_archive_or_git.sh'))
-
-  const taskMaker = (script: string, env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => toConcourseTask(env, `task=${taskName} ${pdfOrWeb}`, ins, [...outs, IO.COMMON_LOG], { TASK_NAME: taskName, PDF_OR_WEB: pdfOrWeb, CODE_VERSION: true, ...envKeys }, script)
-  export const gitTaskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => taskMaker(readScript('script/run_git_task.sh'), env, pdfOrWeb, taskName, ins, outs, envKeys)
-  export const archiveTaskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => taskMaker(readScript('script/run_archive_task.sh'), env, pdfOrWeb, taskName, ins, outs, envKeys)
+  const _taskMaker = (script: string, env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => toConcourseTask(env, `task=${taskName} ${pdfOrWeb}`, ins, [...outs, IO.COMMON_LOG], { TASK_NAME: taskName, CODE_VERSION: true, ...envKeys }, script)
+  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => _taskMaker(readScript('script/run_task.bash'), env, pdfOrWeb, taskName, ins, outs, envKeys)
 
 
 type Settings = { 
