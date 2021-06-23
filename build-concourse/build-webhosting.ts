@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB, stepsToTasks } from './util'
-import { archiveDequeue, archiveReportComplete, ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD, buildUploadStep } from './step-definitions'
+import { ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
 

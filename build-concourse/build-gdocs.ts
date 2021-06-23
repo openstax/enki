@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { archiveDequeue, ARCHIVE_GDOC_STEPS, archiveReportComplete, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
+import { ARCHIVE_GDOC_STEPS, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
 import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, expect, stepsToTasks } from './util'
 
 function makePipeline(envValues: KeyValue) {
