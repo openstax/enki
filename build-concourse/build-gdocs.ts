@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { archiveDequeue, archiveGdocSteps, archiveReportComplete, ARCHIVE_WEB_STEPS, buildLookUpBook, buildUploadStep, GIT_OR_ARCHIVE } from './step-definitions'
-import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, expect } from './util'
+import { archiveDequeue, ARCHIVE_GDOC_STEPS, archiveReportComplete, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
+import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, expect, stepsToTasks } from './util'
 
 function makePipeline(envValues: KeyValue) {
     envValues.CODE_VERSION = process.env.CODE_VERSION
@@ -46,7 +46,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...archiveGdocSteps.map(({name,inputs,outputs,env}) => taskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
+            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_GDOC_STEPS),
         ]
     }
     return { jobs: [feeder, gdocBaker], resources }

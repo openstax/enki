@@ -1,16 +1,9 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB } from './util'
-import { archiveDequeue, archiveReportComplete, ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
+import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB, stepsToTasks } from './util'
+import { archiveDequeue, archiveReportComplete, ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD, buildUploadStep } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
-
-const archiveStepsWithUpload = [
-    archiveDequeue,
-    ...ARCHIVE_WEB_STEPS, 
-    buildUploadStep(false, true), 
-    archiveReportComplete
-]
 
 function makePipeline(envValues: KeyValue) {
     const resources = [
@@ -53,7 +46,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => taskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
+            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD),
         ]
     }
     return { jobs: [feeder, webBaker], resources }

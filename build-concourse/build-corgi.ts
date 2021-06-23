@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { ARCHIVE_WEB_STEPS, buildLookUpBook, buildUploadStep, GIT_OR_ARCHIVE } from './step-definitions'
-import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection } from './util'
+import { ARCHIVE_PDF_STEPS, ARCHIVE_WEB_STEPS_WITH_UPLOAD, buildLookUpBook, GIT_OR_ARCHIVE, GIT_PDF_STEPS, GIT_WEB_STEPS } from './step-definitions'
+import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -66,7 +66,7 @@ function makePipeline(env: KeyValue) {
     const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env)
+        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `PDF (${gitOrArchive})`, resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -97,7 +97,7 @@ function makePipeline(env: KeyValue) {
     const buildArchiveOrGitWebJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef.name, lookupBookDef.inputs, lookupBookDef.outputs, lookupBookDef.env)
+        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `Web Preview (${gitOrArchive})`, resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -118,43 +118,10 @@ function makePipeline(env: KeyValue) {
 
     }
 
-    const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT, [
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-fetch', [IO.BOOK], [IO.FETCHED], {GH_SECRET_CREDS: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED_RESOURCES], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-assemble', [IO.BOOK, IO.FETCHED], [IO.ASSEMBLED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-assemble-meta', [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], [IO.ASSEMBLE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-bake', [IO.BOOK, IO.ASSEMBLED], [IO.BAKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-bake-meta', [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], [IO.BAKE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-link', [IO.BOOK, IO.BAKED, IO.BAKE_META], [IO.LINKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-mathify', [IO.BOOK, IO.LINKED, IO.BAKED], [IO.MATHIFIED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-pdfify', [IO.BOOK, IO.MATHIFIED], [IO.ARTIFACTS], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'git-pdfify-meta', [IO.BOOK, IO.ARTIFACTS], [IO.ARTIFACTS], {CORGI_ARTIFACTS_S3_BUCKET: true}),
-    ])
-    const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, [
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-fetch', [IO.BOOK], [IO.FETCHED], {GH_SECRET_CREDS: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-fetch-metadata', [IO.BOOK, IO.FETCHED], [IO.FETCHED, IO.RESOURCES, IO.UNUSED_RESOURCES], {}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-assemble', [IO.BOOK, IO.FETCHED], [IO.ASSEMBLED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-assemble-meta', [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], [IO.ASSEMBLE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-bake', [IO.BOOK, IO.ASSEMBLED], [IO.BAKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-bake-meta', [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], [IO.BAKE_META], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-link', [IO.BOOK, IO.BAKED, IO.BAKE_META], [IO.LINKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-disassemble', [IO.BOOK, IO.LINKED, IO.BAKE_META], [IO.DISASSEMBLED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-patch-disassembled-links', [IO.BOOK, IO.DISASSEMBLED], [IO.DISASSEMBLE_LINKED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-jsonify', [IO.BOOK, IO.DISASSEMBLE_LINKED], [IO.JSONIFIED], {ARG_OPT_ONLY_ONE_BOOK: false}),
-        taskMaker(env, PDF_OR_WEB.WEB, 'git-upload-book', [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], [IO.ARTIFACTS], {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}),
-    ])
-    const archivePdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF, GIT_OR_ARCHIVE.ARCHIVE, [
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-fetch', [IO.BOOK], [IO.ARCHIVE_FETCHED], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-assemble', [IO.BOOK, IO.ARCHIVE_FETCHED], [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-link-extras', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-bake', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-mathify', [IO.BOOK, IO.ARCHIVE_BOOK], [IO.ARCHIVE_BOOK], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf', [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], [IO.ARTIFACTS], {}),
-        taskMaker(env, PDF_OR_WEB.PDF, 'archive-pdf-metadata', [IO.BOOK, IO.ARTIFACTS], [IO.ARTIFACTS], {CORGI_ARTIFACTS_S3_BUCKET: true}),
-    ])
-    // See ARCHIVE_WEB_STEPS for all the steps.
-    const archiveStepsWithUpload = [...ARCHIVE_WEB_STEPS, buildUploadStep(true, false)]
-    const archiveWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, archiveStepsWithUpload.map(({name, inputs, outputs, env: envKeys}) => taskMaker(env, PDF_OR_WEB.WEB, name, inputs, outputs, envKeys)))
+    const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
+    const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
+    const archivePdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.PDF, ARCHIVE_PDF_STEPS))
+    const archiveWebJob = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.WEB, ARCHIVE_WEB_STEPS_WITH_UPLOAD))
 
     const resourceTypes = [
         {
@@ -164,7 +131,7 @@ function makePipeline(env: KeyValue) {
         }
     ]
 
-    return { jobs: [gitPdfJob, gitWeb, archivePdfJob, archiveWeb], resources, resource_types: resourceTypes }
+    return { jobs: [gitPdfJob, gitWeb, archivePdfJob, archiveWebJob], resources, resource_types: resourceTypes }
 }
 
 function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {

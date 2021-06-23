@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { Step } from './step-definitions'
 
 const buildLogRetentionDays = 14
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -264,10 +265,10 @@ export const wrapGenericCorgiJob = (env: KeyValue, jobName: string, resource: RE
 export enum PDF_OR_WEB {
     PDF = 'pdf',
     WEB = 'web'
-  }
-  const _taskMaker = (script: string, env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => toConcourseTask(env, `task=${taskName} ${pdfOrWeb}`, ins, [...outs, IO.COMMON_LOG], { TASK_NAME: taskName, CODE_VERSION: true, ...envKeys }, script)
-  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, taskName: string, ins: string[], outs: string[], envKeys: Env) => _taskMaker(readScript('script/run_task.bash'), env, pdfOrWeb, taskName, ins, outs, envKeys)
+}
 
+  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, step: Step) => toConcourseTask(env, `task=${step.name} ${pdfOrWeb}`, step.inputs, [...step.outputs, IO.COMMON_LOG], { TASK_NAME: step.name, CODE_VERSION: true, ...step.env }, readScript('script/run_task.bash'))
+  
 
 type Settings = { 
     queueBucket: string,
@@ -321,6 +322,10 @@ export function loadEnv(pathToJson: string) {
     env.REX_PROD_PREVIEW_URL = 'https://rex-web-production.herokuapp.com'
 
     return env
+}
+
+export function stepsToTasks(env: KeyValue, pdfOrWeb: PDF_OR_WEB, steps: Step[]): ConcourseTask[] {
+    return steps.map(step => taskMaker(env, pdfOrWeb, step))
 }
 
 export type KeyValue = {
