@@ -1,18 +1,11 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB } from './util'
-import { archiveDequeue, archiveReportComplete, ARCHIVE_WEB_STEPS, buildUploadStep } from './step-definitions'
-
-const CONTENT_SOURCE = 'archive'
-
-const archiveStepsWithUpload = [
-    archiveDequeue,
-    ...ARCHIVE_WEB_STEPS, 
-    buildUploadStep(false, true), 
-    archiveReportComplete
-]
+import { archiveDequeue, archiveGdocSteps, archiveReportComplete, ARCHIVE_WEB_STEPS, buildLookUpBook, buildUploadStep, GIT_OR_ARCHIVE } from './step-definitions'
+import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, expect } from './util'
 
 function makePipeline(envValues: KeyValue) {
+    envValues.CODE_VERSION = process.env.CODE_VERSION
+
     const resources = [
         {
             name: RESOURCES.S3_QUEUE,
@@ -34,7 +27,7 @@ function makePipeline(envValues: KeyValue) {
             }
         }
     ]
-    
+
     const feeder = {
         name: 'feeder',
         plan: [{
@@ -43,8 +36,8 @@ function makePipeline(envValues: KeyValue) {
         }, toConcourseTask(envValues, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/check_feed.sh')),
         ]
     }
-    
-    const webBaker = {
+
+    const gdocBaker = {
         name: 'bakery',
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
@@ -53,10 +46,10 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...archiveStepsWithUpload.map(({name,inputs,outputs,env}) => taskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
+            ...archiveGdocSteps.map(({name,inputs,outputs,env}) => taskMaker(envValues, PDF_OR_WEB.WEB, name, inputs, outputs, env)),
         ]
     }
-    return { jobs: [feeder, webBaker], resources }
+    return { jobs: [feeder, gdocBaker], resources }
 }
 
 function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
@@ -64,8 +57,7 @@ function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
     fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
 }
 
-loadSaveAndDump('./env/webhosting-sandbox.json', './webhosting-sandbox.yml')
-loadSaveAndDump('./env/webhosting-production.json', './webhosting-production.yml')
+loadSaveAndDump('./env/gdocs-production.json', './gdocs-production.yml')
 
 process.env['CODE_VERSION'] = `${RANDOM_DEV_CODEVERSION_PREFIX}-${randId}`
-loadSaveAndDump('./env/webhosting-local.json', './webhosting-local.yml')
+loadSaveAndDump('./env/gdocs-local.json', './gdocs-local.yml')

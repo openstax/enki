@@ -40,6 +40,9 @@ This uses a little wrapper to hide all the docker commands.
 ./cli.sh ./data/socio/ all-archive-web col11407 sociology       latest
 ```
 
+To upload DOCX files to **Google Docs** follow the [instructions here](./google-docs.md). To build a Google Docs pipeline, run `npm run build-gdocs` in [./build-concourse/](./build-concourse/)
+
+
 ## Run Tests
 
 1. Run `./test.sh`
@@ -111,6 +114,10 @@ Only used for Legacy Archive-based books:
 
 - `ARG_COLLECTION_ID` : the collection id of the book you want to build
 
+Only used for GoogleDocs (GDocs) pipeline:
+
+- `GOOGLE_SERVICE_ACCOUNT_CREDENTIALS` : :warning: **How can developers create this?** [Maybe here](https://cloud.google.com/docs/authentication/production) but it's a different environment variable.
+- `GDOC_GOOGLE_FOLDER_ID` : :warning: How can a dev find one of these for testing?
 
 ## Optional Environment Variables
 
@@ -153,7 +160,7 @@ The pipeline-generation code uses a few additional environment variables:
 - [x] add the post-webhosting-push task of updating S3 to mark the job as done (check concourse-v6 for this task)
     - a.k.a. add webhosting "report book complete" task which uploads to the Queue bucket (yet another bucket)
 - [x] combine gitTaskMaker and archiveTaskMaker into one generic taskMaker since the shell script will be tiny
-- [ ] add google docs pipeline-generation
+- [x] add google docs pipeline-generation
 - [ ] auto-build a dependency graph image for documentation
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
@@ -168,3 +175,4 @@ The pipeline-generation code uses a few additional environment variables:
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
 - [ ] Move everything out of the pipeline and into the image
+- [ ] move pm2 into bakery-scripts/ instead of being installed globally in the Dockerfile

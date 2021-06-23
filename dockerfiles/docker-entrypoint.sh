@@ -388,6 +388,80 @@ function do_step() {
             try aws s3 cp "/tmp/$complete_filename" "s3://${queueStateBucket}/${codeVersion}/$complete_filename"
         ;;
 
+        archive-gdocify)
+            check_input_dir $IO_ARCHIVE_BOOK
+            check_input_dir $IO_ARCHIVE_FETCHED
+            check_output_dir $IO_ARCHIVE_GDOCIFIED
+
+            # This /content/ subdir is necessary so that gdocify can resolve the relative path to the resources (../resources/{sha})
+            [[ -d $IO_ARCHIVE_GDOCIFIED/content ]] || mkdir $IO_ARCHIVE_GDOCIFIED/content
+            try cp -R $IO_ARCHIVE_BOOK/resources $IO_ARCHIVE_GDOCIFIED/resources
+
+            book_slugs_file="/tmp/book-slugs.json"
+            try cat "$IO_ARCHIVE_FETCHED/approved-book-list.json" | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
+            try gdocify "$IO_ARCHIVE_BOOK" "$IO_ARCHIVE_GDOCIFIED/content" "$book_slugs_file"
+            try cp "$IO_ARCHIVE_BOOK"/*@*-metadata.json "$IO_ARCHIVE_GDOCIFIED/content"
+        ;;
+
+        archive-convert-docx)
+            check_input_dir $IO_ARCHIVE_GDOCIFIED
+            check_output_dir $IO_ARCHIVE_DOCX
+
+            pushd /openstax/bakery-scripts/scripts/
+            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
+            popd
+            try cp -r $IO_ARCHIVE_GDOCIFIED/* $IO_ARCHIVE_DOCX
+            book_dir="$IO_ARCHIVE_DOCX/content"
+            target_dir="$IO_ARCHIVE_DOCX/docx"
+            try mkdir -p "$target_dir"
+            cd "$book_dir"
+            for xhtmlfile in ./*@*.xhtml; do
+                xhtmlfile_basename=$(basename "$xhtmlfile")
+                metadata_filename="${xhtmlfile_basename%.*}"-metadata.json
+                docx_filename=$(cat "$metadata_filename" | jq -r '.slug').docx
+                mathmltable_tempfile="${xhtmlfile}.mathmltable.tmp"
+                try mathmltable2png "$xhtmlfile" "../resources" "$mathmltable_tempfile"
+                wrapped_tempfile="${xhtmlfile}.greybox.tmp"
+                try xsltproc --output "$wrapped_tempfile" /openstax/bakery-scripts/gdoc/wrap-in-greybox.xsl "$mathmltable_tempfile"
+                try pandoc --reference-doc="/openstax/bakery-scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="../../../$target_dir/$docx_filename" "$wrapped_tempfile"
+            done
+            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 stop mml2svg2png-json-rpc
+        ;;
+
+        archive-upload-docx)
+            ensure_arg GOOGLE_SERVICE_ACCOUNT_CREDENTIALS
+            ensure_arg GDOC_GOOGLE_FOLDER_ID
+
+            check_input_dir $IO_ARCHIVE_DOCX
+            check_input_dir $IO_ARCHIVE_FETCHED
+
+            set +x
+            echo "$GOOGLE_SERVICE_ACCOUNT_CREDENTIALS" > /tmp/service_account_credentials.json
+            # Secret credentials above, do not use set -x above this line.
+            [[ $TRACE_ON ]] && set -x
+
+            docx_dir="$IO_ARCHIVE_DOCX/docx"
+            book_metadata="$IO_ARCHIVE_FETCHED/metadata.json"
+            book_title="$(cat $book_metadata | jq -r '.title')"
+            try upload-docx "$docx_dir" "$book_title" "${GDOC_GOOGLE_FOLDER_ID}" /tmp/service_account_credentials.json
+        ;;
+        archive-notify-gdocs-done)
+            ensure_arg AWS_ACCESS_KEY_ID
+            ensure_arg AWS_SECRET_ACCESS_KEY
+            ensure_arg WEB_QUEUE_STATE_S3_BUCKET
+            ensure_arg ARG_CODE_VERSION
+
+            check_input_dir $IO_BOOK
+
+            statePrefix='gdoc'
+
+            collection_id="$(cat $IO_BOOK/collection_id)"
+            book_legacy_version="$(cat $IO_BOOK/version)"
+            complete_filename=".${statePrefix}.$collection_id@$book_legacy_version.complete"
+            try date -Iseconds > "/tmp/$complete_filename"
+            try aws s3 cp "/tmp/$complete_filename" "s3://${WEB_QUEUE_STATE_S3_BUCKET}/${ARG_CODE_VERSION}/$complete_filename"
+        ;;
+
         git-fetch)
             parse_book_dir
             check_output_dir "${IO_FETCHED}"
@@ -749,6 +823,26 @@ case $1 in
         do_step_named archive-jsonify
         do_step_named archive-validate-xhtml
         # do_step_named archive-upload-book
+    ;;
+    all-archive-gdoc)
+        do_step_named local-create-book-directory "${@:2}"
+        do_step_named archive-look-up-book
+        do_step_named archive-fetch
+        do_step_named archive-fetch-metadata
+        do_step_named archive-assemble
+        do_step_named archive-assemble-metadata
+        do_step_named archive-link-extras
+        do_step_named archive-bake
+        do_step_named archive-bake-metadata
+        do_step_named archive-checksum
+        do_step_named archive-disassemble
+        do_step_named archive-patch-disassembled-links
+        do_step_named archive-jsonify
+        do_step_named archive-validate-xhtml
+        do_step_named archive-gdocify
+        do_step_named archive-convert-docx
+        # do_step_named archive-upload-docx
+        # do_step_named archive-notify-gdocs-done
     ;;
     all-git-web)
         do_step_named local-create-book-directory "${@:2}"

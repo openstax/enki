@@ -182,7 +182,7 @@ RUN . /openstax/venv/bin/activate && pip3 install /openstax/bakery-scripts/scrip
 RUN npm --prefix /openstax/bakery-scripts/scripts install --production /openstax/bakery-scripts/scripts
 
 # TODO: Move this into bakery-scripts/scripts/package.json
-RUN npm install pm2@4.5.0
+RUN npm --prefix /openstax/bakery-scripts/scripts install pm2@4.5.0
 
 
 # ---------------------------
@@ -246,6 +246,14 @@ RUN set -x \
         xmlstarlet \
         ;
 
+# ---------------------------
+# Install Adobe color mapping files
+# ---------------------------
+RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccprofiles/win/AdobeICCProfilesCS4Win_end-user.zip \
+    && unzip -o -j "/tmp/AdobeICCProfiles.zip" "Adobe ICC Profiles (end-user)/CMYK/USWebCoatedSWOP.icc" -d /usr/share/color/icc/ \
+    && rm -f /tmp/AdobeICCProfiles.zip \
+    ;
+
 
 # ---------------------------
 # Install recipes
@@ -298,6 +306,7 @@ COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 COPY --from=build-xhtml-validator-stage /openstax/xhtml-validator/build/libs/xhtml-validator.jar /openstax/xhtml-validator/
 COPY --from=build-mathify-stage /openstax/mathify/ /openstax/mathify/
 COPY --from=build-python-stage /openstax/bakery-scripts/scripts /openstax/bakery-scripts/scripts
+COPY --from=build-python-stage /openstax/bakery-scripts/gdoc /openstax/bakery-scripts/gdoc
 COPY --from=build-python-stage /openstax/venv/ /openstax/venv/
 
 # Copy cnx-recipes styles
@@ -306,7 +315,10 @@ COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
 
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
-COPY ./dockerfiles/docker-entrypoint.sh ./dockerfiles/docker-entrypoint-with-kcov.sh /usr/bin/
+COPY ./dockerfiles/entrypointd.sh \
+    ./dockerfiles/docker-entrypoint.sh \
+    ./dockerfiles/docker-entrypoint-with-kcov.sh \
+    /usr/bin/
 
 
 ENV RUN_AS="app:app"

@@ -5,6 +5,8 @@ IO_ARCHIVE_FETCHED=/data/raw
 IO_ARCHIVE_BOOK=/data/assembled
 IO_ARCHIVE_JSONIFIED=/data/jsonified
 IO_ARCHIVE_UPLOAD=/data/upload
+IO_ARCHIVE_GDOCIFIED=/data/gdocified
+IO_ARCHIVE_DOCX=/data/docx
 
 IO_RESOURCES=/data/resources/
 IO_UNUSED_RESOURCES=/data/unused-resources/

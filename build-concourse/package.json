@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build-gdocs": "ts-node ./build-gdocs.ts",
     "start": "ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts"
   },
   "dependencies": {

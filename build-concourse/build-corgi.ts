@@ -168,6 +168,7 @@ function makePipeline(env: KeyValue) {
 }
 
 function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
+    console.log(`Writing pipeline YAML file to ${saveYamlFile}`)
     fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
 }
 

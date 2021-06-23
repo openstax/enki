@@ -3,5 +3,6 @@
 
 node_modules/
 
+build-concourse/gdocs-*.yml
 build-concourse/webhosting-*.yml
 build-concourse/corgi-*.yml

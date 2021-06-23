@@ -52,6 +52,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env AWS_ACCESS_KEY_ID \
     --env AWS_SECRET_ACCESS_KEY \
     --env AWS_SESSION_TOKEN \
+    --env GOOGLE_SERVICE_ACCOUNT_CREDENTIALS \
     --env TRACE_ON \
     --env WEB_QUEUE_STATE_S3_BUCKET \
     --env CODE_VERSION \
@@ -64,6 +65,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env ARG_TARGET_PDF_FILENAME \
     --env ARG_TARGET_SLUG_NAME \
     --env S3_QUEUE \
+    --env GDOC_GOOGLE_FOLDER_ID \
     --env START_AT_STEP \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 

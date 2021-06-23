@@ -38,3 +38,10 @@ export function buildUploadStep(requireCorgiBucket: boolean, requireWebhostingBu
 export function buildLookUpBook(gitOrArchive: GIT_OR_ARCHIVE, inputSource: RESOURCES): NameInOutEnv {
     return {name: gitOrArchive == GIT_OR_ARCHIVE.GIT ? 'git-look-up-book' : 'archive-look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
 }
+
+export const archiveGdocSteps = [
+    ...ARCHIVE_WEB_STEPS, // up to archive-validate-xhtml
+    {name: 'archive-gdocify', inputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}},
+    {name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}},
+    {name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}},
+]

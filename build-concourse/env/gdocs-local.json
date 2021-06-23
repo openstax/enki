@@ -1,0 +1,8 @@
+{
+    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "MAX_INFLIGHT_JOBS": 1,
+    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-gdocs-queue-state",
+    "PIPELINE_TICK_INTERVAL": "1h",
+    "MAX_BOOKS_PER_TICK": "1"
+}

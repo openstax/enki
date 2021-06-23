@@ -87,6 +87,7 @@ export enum IO {
     ARCHIVE_BOOK = 'archive-book',
     ARCHIVE_JSONIFIED = 'archive-jsonified',
     ARCHIVE_UPLOAD = 'archive-upload',
+    ARCHIVE_GDOCIFIED = 'archive-gdocified',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
@@ -313,6 +314,8 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
     defaultEnv(env, 'DOCKERHUB_USERNAME', true)
     defaultEnv(env, 'DOCKERHUB_PASSWORD', true)
+    defaultEnv(env, 'GDOC_GOOGLE_FOLDER_ID', true)
+    defaultEnv(env, 'GOOGLE_SERVICE_ACCOUNT_CREDENTIALS', true)
 
     env.REX_PREVIEW_URL = 'https://rex-web.herokuapp.com'
     env.REX_PROD_PREVIEW_URL = 'https://rex-web-production.herokuapp.com'
