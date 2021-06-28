@@ -44,7 +44,7 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
 
-docker build -t ${image_name} .
+[[ $SKIP_DOCKER_BUILD ]] || docker build -t ${image_name} .
 docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli-env.txt \
     --env CI \
@@ -67,6 +67,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env S3_QUEUE \
     --env GDOC_GOOGLE_FOLDER_ID \
     --env START_AT_STEP \
+    --env STOP_AT_STEP \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]

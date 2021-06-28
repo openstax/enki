@@ -10,7 +10,8 @@ set -e
 if [[ $1 == 'shell' ]]; then
     bash
 elif [[ ${CI} ]]; then
-    kcov /data/_kcov-coverage-results/ docker-entrypoint.sh $@
+    [[ -d /data/_kcov-coverage-results/ ]] || mkdir /data/_kcov-coverage-results/
+    kcov --skip-solibs --exit-first-process --include-path=/usr/bin/docker-entrypoint.sh /data/_kcov-coverage-results/ docker-entrypoint.sh $@
 else
     docker-entrypoint.sh $@
 fi

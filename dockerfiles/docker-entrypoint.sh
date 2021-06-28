@@ -408,7 +408,7 @@ function do_step() {
             check_output_dir $IO_ARCHIVE_DOCX
 
             pushd /openstax/bakery-scripts/scripts/
-            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
+            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
             popd
             try cp -r $IO_ARCHIVE_GDOCIFIED/* $IO_ARCHIVE_DOCX
             book_dir="$IO_ARCHIVE_DOCX/content"
@@ -784,6 +784,12 @@ function do_step_named() {
         unset START_AT_STEP
     elif [[ $START_AT_STEP ]]; then
         say "==> Skipping $*"
+    fi
+    if [[ $STOP_AT_STEP == $step_name ]]; then
+        say "==> Done because STOP_AT_STEP='${STOP_AT_STEP}'"
+        # Ensure no other steps run by setting START_AT_STEP to something invalid
+        START_AT_STEP='__nonexistent_step__'
+        exit 0
     fi
     if [[ ! $START_AT_STEP ]]; then
         say "==> Starting: $*"
