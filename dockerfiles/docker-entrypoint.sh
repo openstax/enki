@@ -517,41 +517,40 @@ function do_step() {
             check_output_dir "${IO_RESOURCES}"
             check_output_dir "${IO_UNUSED_RESOURCES}"
 
-            
-            try fetch-update-meta "${IO_FETCHED}/.git" "${IO_FETCHED}/modules" "${IO_FETCHED}/collections" "${ARG_GIT_REF}" "${IO_FETCHED}/canonical.json"
-            try rm -rf "${IO_FETCHED}/.git"
+            try cp -R "${IO_FETCHED}" "${IO_FETCH_META}"
+            try fetch-update-meta "${IO_FETCH_META}/.git" "${IO_FETCH_META}/modules" "${IO_FETCH_META}/collections" "${ARG_GIT_REF}" "${IO_FETCH_META}/canonical.json"
+            try rm -rf "${IO_FETCH_META}/.git"
             try rm -rf "$creds_dir"
 
-            try fetch-map-resources "${IO_FETCHED}/modules" "${IO_FETCHED}/media" . "${IO_UNUSED_RESOURCES}"
+            try fetch-map-resources "${IO_FETCH_META}/modules" "${IO_FETCH_META}/media" . "${IO_UNUSED_RESOURCES}"
             # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-            try rm -d "${IO_FETCHED}/media"
+            try rm -d "${IO_FETCH_META}/media"
         ;;
 
         git-assemble)
-            check_input_dir "${IO_FETCHED}"
+            check_input_dir "${IO_FETCH_META}"
             check_output_dir "${IO_ASSEMBLED}"
             
             shopt -s globstar nullglob
-            for collection in "${IO_FETCHED}/collections/"*; do
+            for collection in "${IO_FETCH_META}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                     if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                         continue
                     fi
                 fi
-                try cp "$collection" "${IO_FETCHED}/modules/collection.xml"
+                try cp "$collection" "${IO_FETCH_META}/modules/collection.xml"
 
-                try neb assemble "${IO_FETCHED}/modules" temp-assembly/
+                try neb assemble "${IO_FETCH_META}/modules" temp-assembly/
 
                 try cp "temp-assembly/collection.assembled.xhtml" "${IO_ASSEMBLED}/$slug_name.assembled.xhtml"
                 try rm -rf temp-assembly
-                try rm "${IO_FETCHED}/modules/collection.xml"
+                try rm "${IO_FETCH_META}/modules/collection.xml"
             done
             shopt -u globstar nullglob
         ;;
 
         git-assemble-meta)
-            check_input_dir "${IO_FETCHED}"
             check_input_dir "${IO_ASSEMBLED}"
             check_output_dir "${IO_ASSEMBLE_META}"
 

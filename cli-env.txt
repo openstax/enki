@@ -11,6 +11,7 @@ IO_ARCHIVE_DOCX=/data/docx
 IO_RESOURCES=/data/resources/
 IO_UNUSED_RESOURCES=/data/unused-resources/
 IO_FETCHED=/data/fetched-book-group/
+IO_FETCH_META=/data/fetchd-metadata-group/
 IO_ASSEMBLED=/data/assembled-book-group/
 IO_ASSEMBLE_META=/data/assembled-metadata-group/
 IO_BAKED=/data/baked-book-group/
