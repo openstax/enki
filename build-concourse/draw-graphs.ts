@@ -6,40 +6,43 @@ import { GIT_PDF_STEPS, GIT_WEB_STEPS, ARCHIVE_PDF_STEPS, ARCHIVE_GDOC_STEPS, AR
 const DIRS_TO_SKIP = new Set()
 DIRS_TO_SKIP.add('book')
 
-function ensureEdge<K, V>(map: Map<K,V>, key: K, value: () => V) {
-    if (!map.has(key)) {
-        const v = value()
-        map.set(key, v)
+function ensure<T>(v: T | undefined | null, message?: string) {
+    if (!message) message = `BUG: value was expected to be truthy but instead was ${v}`
+    if (v) {
         return v
     }
-    return map.get(key)
+    throw new Error(message)
 }
 
-type DirInOut = {
-    inputs: string[]
-    outputs: string[]
-}
-function initValue(): DirInOut {
-    return {inputs: [], outputs: []}
+type Edge = {
+    dirName: string
+    from: string
+    to: string
 }
 
-async function buildChart(steps: Step[], destFilename: string) {
-    console.log('Generating image file:', destFilename)
-    // Build all the nodes (Step)
+async function buildChart(steps: Step[], destFilename: string, additionalResource?: string) {
     const nodes: string[] = []
+    const edges: Edge[] = []
+    const prevOutputs = new Map<string, string>() // directory, stepName
 
-    // Build all the edges (Directory)
-    const edges = new Map<string, DirInOut>()
-    const prevOutputs = new Map<string, string>()
+    console.log('Generating image file:', destFilename)
+
+    // Add the concourse resources as inputs
+    if (additionalResource) {
+        steps.unshift({name: 'Misc Resources', inputs: [], outputs: [additionalResource], env: {}})
+    }
+
     steps.forEach(step => {
         nodes.push(step.name)
         step.inputs.forEach(dir => {
             if (DIRS_TO_SKIP.has(dir)) { return }
-            ensureEdge(edges, dir, initValue).inputs.push(step.name)
+            const from = ensure(prevOutputs.get(dir), `Step '${step.name}' has an input directory of '${dir}' but no previous step has that as an output directory`)
+            const to = step.name
+            edges.push({dirName: dir, from, to})
         })
         step.outputs.forEach(dir => {
             if (DIRS_TO_SKIP.has(dir)) { return }
-            ensureEdge(edges, dir, initValue).outputs.push(step.name)
+            prevOutputs.set(dir, step.name)
         })
     })
 
@@ -47,15 +50,9 @@ async function buildChart(steps: Step[], destFilename: string) {
         const nodeMap = new Map<string, Dot>()
         nodes.forEach(n => nodeMap.set(n, g.node(n)))
 
-        Array.from(edges.entries()).forEach(([edgeLabel, {inputs, outputs}]) => {
-            inputs.forEach(i => {
-                outputs.forEach(o => {
-                    if (o !== i) {
-                        g.edge([o,i], {
-                            [attribute.label]: edgeLabel
-                        })
-                    }
-                })
+        edges.forEach(({dirName, from, to}) => {
+            g.edge([from,to], {
+                [attribute.label]: dirName
             })
         });
       });
@@ -72,6 +69,6 @@ async function buildChart(steps: Step[], destFilename: string) {
     await buildChart(GIT_PDF_STEPS, './graphs/git-pdf.png')
     await buildChart(GIT_WEB_STEPS, './graphs/git-web.png')
     await buildChart(ARCHIVE_PDF_STEPS, './graphs/archive-pdf.png')
-    await buildChart(ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, './graphs/archive-web.png')
+    await buildChart(ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, './graphs/archive-web.png', 's3-queue')
     await buildChart(ARCHIVE_GDOC_STEPS, './graphs/archive-gdocs.png')
 })().then(null, console.error)
