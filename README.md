@@ -161,7 +161,8 @@ The pipeline-generation code uses a few additional environment variables:
     - a.k.a. add webhosting "report book complete" task which uploads to the Queue bucket (yet another bucket)
 - [x] combine gitTaskMaker and archiveTaskMaker into one generic taskMaker since the shell script will be tiny
 - [x] add google docs pipeline-generation
-- [ ] auto-build a dependency graph image for documentation
+- [ ] auto-build a dependency graph image for documentation [./build-concourse/graphs/](./build-concourse/graphs/)
+- [ ] auto-build the bash script
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [ ] wire up codecov.io

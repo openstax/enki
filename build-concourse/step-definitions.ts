@@ -144,7 +144,7 @@ export function buildLookUpBook(gitOrArchive: GIT_OR_ARCHIVE, inputSource: RESOU
 
 export const ARCHIVE_WEB_STEPS_WITH_UPLOAD = [...ARCHIVE_WEB_STEPS, buildUploadStep(true, false)]
 
-export const ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
+export const ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     get('archive-dequeue-book'),
     ...ARCHIVE_WEB_STEPS, 
     buildUploadStep(false, true), 
