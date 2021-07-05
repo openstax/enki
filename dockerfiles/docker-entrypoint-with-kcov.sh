@@ -9,6 +9,8 @@ set -e
 
 if [[ $1 == 'shell' ]]; then
     bash
+elif [[ $__CI_KCOV_MERGE_ALL__ ]]; then
+    kcov --merge $@
 elif [[ ${CI} ]]; then
     [[ -d /data/_kcov-coverage-results/ ]] || mkdir /data/_kcov-coverage-results/
     kcov --skip-solibs --exit-first-process --include-path=/usr/bin/docker-entrypoint.sh /data/_kcov-coverage-results/ docker-entrypoint.sh $@

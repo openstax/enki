@@ -68,6 +68,7 @@ docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env GDOC_GOOGLE_FOLDER_ID \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
+    --env __CI_KCOV_MERGE_ALL__ \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
 if [[ $2 == *pdf ]]

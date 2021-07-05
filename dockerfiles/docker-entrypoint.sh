@@ -37,19 +37,25 @@ function ensure_arg() {
 }
 
 function check_input_dir() {
-    [[ -d $1 ]] || die "Expected directory to exist but it was missing. Maybe an earlier step needs to run: '$1'"
+    [[ $1 ]] || die "This function takes exactly one argument and it is missing"
+    pointer=$1 # https://stackoverflow.com/a/55331060
+    dir_name="${!pointer}"
+    [[ -d $dir_name ]] || die "Expected directory to exist but it did not ($1='$dir_name'). Maybe an earlier step needs to run."
 }
 function check_output_dir() {
-    [[ $1 ]] || die "This output directory name is not set (it is an empty string)"
-    # Auto-create directories only in local dev mode. In Concourse Pipelines these directories should already exist.
-    if [[ $1 =~ ^\/data && ! -d $1 ]]; then
-        try mkdir -p $1
+    [[ $1 ]] || die "This function takes exactly one argument and it is missing"
+    pointer=$1 # https://stackoverflow.com/a/55331060
+    dir_name="${!pointer}"
+    [[ $dir_name ]] || die "This output directory name is not set ($1='$dir_name')"
+    # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
+    if [[ $dir_name =~ ^\/data && ! -d $dir_name ]]; then
+        try mkdir -p $dir_name
     fi
-    [[ -d $1 ]] || die "Expected output directory to exist but it was missing. it needs to be added to the concourse job: '$1'"
+    [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
 
 function parse_book_dir() {
-    check_input_dir $IO_BOOK
+    check_input_dir IO_BOOK
 
     ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
@@ -96,7 +102,7 @@ function do_step() {
 
             [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
 
-            check_output_dir $INPUT_SOURCE_DIR
+            check_output_dir INPUT_SOURCE_DIR
 
             # Write out the files
             echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
@@ -110,8 +116,8 @@ function do_step() {
         archive-look-up-book)
             ensure_arg INPUT_SOURCE_DIR
 
-            check_input_dir $INPUT_SOURCE_DIR
-            check_output_dir $IO_BOOK
+            check_input_dir INPUT_SOURCE_DIR
+            check_output_dir IO_BOOK
             
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
@@ -129,8 +135,8 @@ function do_step() {
         git-look-up-book)
             ensure_arg INPUT_SOURCE_DIR
 
-            check_input_dir $INPUT_SOURCE_DIR
-            check_output_dir $IO_BOOK
+            check_input_dir INPUT_SOURCE_DIR
+            check_output_dir IO_BOOK
 
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
@@ -150,8 +156,8 @@ function do_step() {
         archive-dequeue-book)
             ensure_arg S3_QUEUE
             ensure_arg ARG_CODE_VERSION
-            check_input_dir $IO_BOOK
-            check_output_dir $IO_BOOK
+            check_input_dir IO_BOOK
+            check_output_dir IO_BOOK
 
             CONTENT_SOURCE=archive
 
@@ -188,7 +194,7 @@ function do_step() {
             ensure_arg ARG_COLLECTION_ID
             ensure_arg ARG_COLLECTION_VERSION
             ensure_arg ARG_ARCHIVE_SERVER
-            check_output_dir "${IO_ARCHIVE_FETCHED}"
+            check_output_dir IO_ARCHIVE_FETCHED
 
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             temp_dir=$(mktemp -d)
@@ -246,8 +252,8 @@ function do_step() {
         archive-pdf)
             parse_book_dir
             ensure_arg ARG_TARGET_PDF_FILENAME
-            check_input_dir "${IO_ARCHIVE_BOOK}"
-            check_output_dir "${IO_ARTIFACTS}"
+            check_input_dir IO_ARCHIVE_BOOK
+            check_output_dir IO_ARTIFACTS
 
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
@@ -255,7 +261,7 @@ function do_step() {
             parse_book_dir
             ensure_arg CORGI_ARTIFACTS_S3_BUCKET
             ensure_arg ARG_TARGET_PDF_FILENAME
-            check_output_dir "${IO_ARTIFACTS}"
+            check_output_dir IO_ARTIFACTS
 
             echo -n "https://$CORGI_ARTIFACTS_S3_BUCKET.s3.amazonaws.com/$ARG_TARGET_PDF_FILENAME" > $IO_ARTIFACTS/pdf_url
         ;;
@@ -263,7 +269,7 @@ function do_step() {
         archive-bake-metadata)
             parse_book_dir
             ensure_arg ARG_COLLECTION_ID
-            check_input_dir "${IO_ARCHIVE_FETCHED}"
+            check_input_dir IO_ARCHIVE_FETCHED
 
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
@@ -292,9 +298,9 @@ function do_step() {
             try patch-same-book-links "$IO_ARCHIVE_BOOK" "$target_dir" "collection"
         ;;
         archive-jsonify)
-            check_input_dir "${IO_ARCHIVE_BOOK}"
-            check_output_dir "${IO_ARCHIVE_JSONIFIED}"
-            check_output_dir "${IO_ARTIFACTS}"
+            check_input_dir IO_ARCHIVE_BOOK
+            check_output_dir IO_ARCHIVE_JSONIFIED
+            check_output_dir IO_ARTIFACTS
 
             target_dir="$IO_ARCHIVE_JSONIFIED"
             
@@ -322,10 +328,10 @@ function do_step() {
             ensure_arg AWS_ACCESS_KEY_ID
             ensure_arg AWS_SECRET_ACCESS_KEY
 
-            check_input_dir "${IO_ARCHIVE_BOOK}"
-            check_input_dir "${IO_ARCHIVE_FETCHED}"
-            check_input_dir "${IO_ARCHIVE_JSONIFIED}"
-            check_output_dir "${IO_ARCHIVE_UPLOAD}"
+            check_input_dir IO_ARCHIVE_BOOK
+            check_input_dir IO_ARCHIVE_FETCHED
+            check_input_dir IO_ARCHIVE_JSONIFIED
+            check_output_dir IO_ARCHIVE_UPLOAD
 
             s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
@@ -361,7 +367,7 @@ function do_step() {
 
             ensure_arg AWS_ACCESS_KEY_ID
             ensure_arg AWS_SECRET_ACCESS_KEY
-            check_input_dir $IO_BOOK
+            check_input_dir IO_BOOK
 
             CONTENT_SOURCE=archive
             bucketPrefix=archive-dist
@@ -389,9 +395,9 @@ function do_step() {
         ;;
 
         archive-gdocify)
-            check_input_dir $IO_ARCHIVE_BOOK
-            check_input_dir $IO_ARCHIVE_FETCHED
-            check_output_dir $IO_ARCHIVE_GDOCIFIED
+            check_input_dir IO_ARCHIVE_BOOK
+            check_input_dir IO_ARCHIVE_FETCHED
+            check_output_dir IO_ARCHIVE_GDOCIFIED
 
             # This /content/ subdir is necessary so that gdocify can resolve the relative path to the resources (../resources/{sha})
             [[ -d $IO_ARCHIVE_GDOCIFIED/content ]] || mkdir $IO_ARCHIVE_GDOCIFIED/content
@@ -404,8 +410,8 @@ function do_step() {
         ;;
 
         archive-convert-docx)
-            check_input_dir $IO_ARCHIVE_GDOCIFIED
-            check_output_dir $IO_ARCHIVE_DOCX
+            check_input_dir IO_ARCHIVE_GDOCIFIED
+            check_output_dir IO_ARCHIVE_DOCX
 
             pushd /openstax/bakery-scripts/scripts/
             try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
@@ -432,8 +438,8 @@ function do_step() {
             ensure_arg GOOGLE_SERVICE_ACCOUNT_CREDENTIALS
             ensure_arg GDOC_GOOGLE_FOLDER_ID
 
-            check_input_dir $IO_ARCHIVE_DOCX
-            check_input_dir $IO_ARCHIVE_FETCHED
+            check_input_dir IO_ARCHIVE_DOCX
+            check_input_dir IO_ARCHIVE_FETCHED
 
             set +x
             echo "$GOOGLE_SERVICE_ACCOUNT_CREDENTIALS" > /tmp/service_account_credentials.json
@@ -451,7 +457,7 @@ function do_step() {
             ensure_arg WEB_QUEUE_STATE_S3_BUCKET
             ensure_arg ARG_CODE_VERSION
 
-            check_input_dir $IO_BOOK
+            check_input_dir IO_BOOK
 
             statePrefix='gdoc'
 
@@ -464,7 +470,7 @@ function do_step() {
 
         git-fetch)
             parse_book_dir
-            check_output_dir "${IO_FETCHED}"
+            check_output_dir IO_FETCHED
 
             ensure_arg ARG_REPO_NAME
             ensure_arg ARG_GIT_REF
@@ -512,12 +518,31 @@ function do_step() {
         ;;
 
         git-fetch-metadata)
-            check_input_dir "${IO_FETCHED}"
-            check_output_dir "${IO_FETCHED}"
-            check_output_dir "${IO_RESOURCES}"
-            check_output_dir "${IO_UNUSED_RESOURCES}"
+            check_input_dir IO_FETCHED
+            check_output_dir IO_FETCHED
+            check_output_dir IO_RESOURCES
+            check_output_dir IO_UNUSED_RESOURCES
 
             try cp -R "${IO_FETCHED}" "${IO_FETCH_META}"
+
+            # From https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
+            if [ ! -f $IO_FETCH_META/canonical.json ]; then
+                # Create a temporary ./archive-syncfile
+                try xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' --value-of '" "' --value-of '@collection-id' --nl < $IO_FETCH_META/META-INF/books.xml > $IO_FETCH_META/archive-syncfile
+
+                # Write the $IO_FETCH_META/canonical.json file out
+                [[ ! -f $IO_FETCH_META/canonical-temp.txt ]] || try rm $IO_FETCH_META/canonical-temp.txt
+                try echo '[' > $IO_FETCH_META/canonical.json
+                while read slug collid; do
+                    try echo "    \"${slug}\"" >> $IO_FETCH_META/canonical-temp.txt
+                done < $IO_FETCH_META/archive-syncfile
+                # Add a comma to every line except the last line https://stackoverflow.com/a/35021663
+                try sed '$!s/$/,/' $IO_FETCH_META/canonical-temp.txt >> $IO_FETCH_META/canonical.json
+                try rm $IO_FETCH_META/canonical-temp.txt
+                try echo ']' >> $IO_FETCH_META/canonical.json
+                try rm $IO_FETCH_META/archive-syncfile
+            fi
+
             try fetch-update-meta "${IO_FETCH_META}/.git" "${IO_FETCH_META}/modules" "${IO_FETCH_META}/collections" "${ARG_GIT_REF}" "${IO_FETCH_META}/canonical.json"
             try rm -rf "${IO_FETCH_META}/.git"
             try rm -rf "$creds_dir"
@@ -528,8 +553,8 @@ function do_step() {
         ;;
 
         git-assemble)
-            check_input_dir "${IO_FETCH_META}"
-            check_output_dir "${IO_ASSEMBLED}"
+            check_input_dir IO_FETCH_META
+            check_output_dir IO_ASSEMBLED
             
             shopt -s globstar nullglob
             for collection in "${IO_FETCH_META}/collections/"*; do
@@ -551,8 +576,8 @@ function do_step() {
         ;;
 
         git-assemble-meta)
-            check_input_dir "${IO_ASSEMBLED}"
-            check_output_dir "${IO_ASSEMBLE_META}"
+            check_input_dir IO_ASSEMBLED
+            check_output_dir IO_ASSEMBLE_META
 
             shopt -s globstar nullglob
             # Create an empty map file for invoking assemble-meta
@@ -573,8 +598,8 @@ function do_step() {
         git-bake)
             parse_book_dir
             ensure_arg ARG_RECIPE_NAME
-            check_input_dir "${IO_ASSEMBLED}"
-            check_output_dir "${IO_BAKED}"
+            check_input_dir IO_ASSEMBLED
+            check_output_dir IO_BAKED
 
             # FIXME: We assume that every book in the group uses the same style
             # This assumption will not hold true forever, and book style + recipe name should
@@ -612,9 +637,9 @@ function do_step() {
         ;;
 
         git-bake-meta)
-            check_input_dir "${IO_ASSEMBLE_META}"
-            check_input_dir "${IO_BAKED}"
-            check_output_dir "${IO_BAKE_META}"
+            check_input_dir IO_ASSEMBLE_META
+            check_input_dir IO_BAKED
+            check_output_dir IO_BAKE_META
 
             shopt -s globstar nullglob
             for collection in "${IO_BAKED}/"*.baked.xhtml; do
@@ -633,9 +658,9 @@ function do_step() {
         git-link)
             parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir "${IO_BAKED}"
-            check_input_dir "${IO_BAKE_META}"
-            check_output_dir "${IO_LINKED}"
+            check_input_dir IO_BAKED
+            check_input_dir IO_BAKE_META
+            check_output_dir IO_LINKED
 
             if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                 try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml" --mock-otherbook
@@ -647,9 +672,9 @@ function do_step() {
         git-disassemble)
             parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir "${IO_LINKED}"
-            check_input_dir "${IO_BAKE_META}"
-            check_output_dir "${IO_DISASSEMBLED}"
+            check_input_dir IO_LINKED
+            check_input_dir IO_BAKE_META
+            check_output_dir IO_DISASSEMBLED
 
             try disassemble "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" "${IO_BAKE_META}/$ARG_TARGET_SLUG_NAME.baked-metadata.json" "$ARG_TARGET_SLUG_NAME" "${IO_DISASSEMBLED}"
         ;;
@@ -657,8 +682,8 @@ function do_step() {
         git-patch-disassembled-links)
             parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir "${IO_DISASSEMBLED}"
-            check_output_dir "${IO_DISASSEMBLE_LINKED}"
+            check_input_dir IO_DISASSEMBLED
+            check_output_dir IO_DISASSEMBLE_LINKED
 
             try patch-same-book-links "${IO_DISASSEMBLED}" "${IO_DISASSEMBLE_LINKED}" "$ARG_TARGET_SLUG_NAME"
             try cp "${IO_DISASSEMBLED}"/*@*-metadata.json "${IO_DISASSEMBLE_LINKED}"
@@ -668,8 +693,8 @@ function do_step() {
         git-jsonify)
             parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir "${IO_DISASSEMBLE_LINKED}"
-            check_output_dir "${IO_JSONIFIED}"
+            check_input_dir IO_DISASSEMBLE_LINKED
+            check_output_dir IO_JSONIFIED
 
             try jsonify "${IO_DISASSEMBLE_LINKED}" "${IO_JSONIFIED}"
             try jsonschema -i "${IO_JSONIFIED}/${ARG_TARGET_SLUG_NAME}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
@@ -680,7 +705,7 @@ function do_step() {
         ;;
 
         git-validate-xhtml)
-            check_input_dir "${IO_DISASSEMBLE_LINKED}"
+            check_input_dir IO_DISASSEMBLE_LINKED
 
             for xhtmlfile in $(find ${IO_DISASSEMBLE_LINKED} -name '*.xhtml')
             do
@@ -692,9 +717,9 @@ function do_step() {
             parse_book_dir
             ensure_arg ARG_TARGET_SLUG_NAME
 
-            check_input_dir "${IO_LINKED}"
-            check_input_dir "${IO_BAKED}"
-            check_output_dir "${IO_MATHIFIED}"
+            check_input_dir IO_LINKED
+            check_input_dir IO_BAKED
+            check_output_dir IO_MATHIFIED
 
             # Style needed because mathjax will size converted math according to surrounding text
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_LINKED}"
@@ -706,8 +731,8 @@ function do_step() {
             ensure_arg ARG_TARGET_SLUG_NAME
             ensure_arg ARG_TARGET_PDF_FILENAME
 
-            check_input_dir "${IO_MATHIFIED}"
-            check_output_dir "${IO_ARTIFACTS}"
+            check_input_dir IO_MATHIFIED
+            check_output_dir IO_ARTIFACTS
 
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_MATHIFIED}/${ARG_TARGET_SLUG_NAME}.mathified.xhtml"
         ;;
@@ -716,7 +741,7 @@ function do_step() {
 
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_TARGET_PDF_FILENAME
-            check_output_dir "${IO_ARTIFACTS}"
+            check_output_dir IO_ARTIFACTS
 
             pdf_url="https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${ARG_TARGET_PDF_FILENAME}"
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
@@ -725,9 +750,9 @@ function do_step() {
         ;;
         git-upload-book)
             parse_book_dir
-            check_input_dir "${IO_JSONIFIED}"
-            check_input_dir "${IO_RESOURCES}"
-            check_output_dir "${IO_ARTIFACTS}"
+            check_input_dir IO_JSONIFIED
+            check_input_dir IO_RESOURCES
+            check_output_dir IO_ARTIFACTS
 
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_CODE_VERSION
