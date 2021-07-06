@@ -5,15 +5,15 @@
 set -e
 
 # Trace if DEBUG is set
-[[ ${TRACE_ON} ]] && set -x
+[[ $TRACE_ON ]] && set -x
 
 if [[ $1 == 'shell' ]]; then
     bash
 elif [[ $__CI_KCOV_MERGE_ALL__ ]]; then
     kcov --merge $@
-elif [[ ${CI} ]]; then
-    [[ -d /data/_kcov-coverage-results/ ]] || mkdir /data/_kcov-coverage-results/
-    kcov --skip-solibs --exit-first-process --include-path=/usr/bin/docker-entrypoint.sh /data/_kcov-coverage-results/ docker-entrypoint.sh $@
+elif [[ $KCOV_DIR != '' ]]; then
+    [[ -d /data/$KCOV_DIR ]] || mkdir /data/$KCOV_DIR
+    kcov --skip-solibs --exit-first-process --include-path=/dockerfiles/docker-entrypoint.sh /data/$KCOV_DIR docker-entrypoint.sh $@
 else
     docker-entrypoint.sh $@
 fi

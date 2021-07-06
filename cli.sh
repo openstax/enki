@@ -47,7 +47,7 @@ fi
 [[ $SKIP_DOCKER_BUILD ]] || docker build -t ${image_name} .
 docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli-env.txt \
-    --env CI \
+    --env KCOV_DIR \
     --env GH_SECRET_CREDS \
     --env AWS_ACCESS_KEY_ID \
     --env AWS_SECRET_ACCESS_KEY \

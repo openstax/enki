@@ -165,7 +165,7 @@ The pipeline-generation code uses a few additional environment variables:
 - [ ] auto-build the bash script
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
-- [x] wire up codecov.io
+- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/book-pipeline/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
 
 ## Updates since I started
 

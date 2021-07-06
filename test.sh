@@ -20,24 +20,23 @@ COVERAGE_DIR=./coverage
 mkdir $KCOV_COLLECTOR
 
 # Build git PDF and web
-CI=true                               ./cli.sh $BOOK_DIR all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
-mv $BOOK_DIR/_kcov-coverage-results $KCOV_COLLECTOR/_kcov_results_1
+KCOV_DIR=_kcov01                               ./cli.sh $BOOK_DIR all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
 export SKIP_DOCKER_BUILD=1
-CI=true START_AT_STEP=git-disassemble ./cli.sh $BOOK_DIR all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
-mv $BOOK_DIR/_kcov-coverage-results $KCOV_COLLECTOR/_kcov_results_2
+KCOV_DIR=_kcov02 START_AT_STEP=git-disassemble ./cli.sh $BOOK_DIR all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
+
+mv $BOOK_DIR/_kcov01 $BOOK_DIR/_kcov02 $KCOV_COLLECTOR
 
 # Build archive web, PDF, and docx
-CI=true                                      ./cli.sh $SOCI_DIR all-archive-web col11407 sociology latest
-mv $SOCI_DIR/_kcov-coverage-results $KCOV_COLLECTOR/_kcov_results_3
-CI=true START_AT_STEP=archive-mathify                                   ./cli.sh $SOCI_DIR all-archive-pdf
-mv $SOCI_DIR/_kcov-coverage-results $KCOV_COLLECTOR/_kcov_results_4
-CI=true START_AT_STEP=archive-gdocify STOP_AT_STEP=archive-convert-docx ./cli.sh $SOCI_DIR all-archive-gdoc
-mv $SOCI_DIR/_kcov-coverage-results $KCOV_COLLECTOR/_kcov_results_5
-# kcov causes this step to hang so skip the CI=true (probably the pm2 mathml2svg background process)
+KCOV_DIR=_kcov03                                      ./cli.sh $SOCI_DIR all-archive-web col11407 sociology latest
+KCOV_DIR=_kcov04 START_AT_STEP=archive-mathify                                   ./cli.sh $SOCI_DIR all-archive-pdf
+KCOV_DIR=_kcov05 START_AT_STEP=archive-gdocify STOP_AT_STEP=archive-convert-docx ./cli.sh $SOCI_DIR all-archive-gdoc
+# kcov causes this step to hang so skip the (probably the pm2 mathml2svg background process)
 START_AT_STEP=archive-convert-docx ./cli.sh $SOCI_DIR all-archive-gdoc
 
+mv $SOCI_DIR/_kcov03 $SOCI_DIR/_kcov04 $SOCI_DIR/_kcov05 $KCOV_COLLECTOR
+
 # Merge all the kcov reports into one
-__CI_KCOV_MERGE_ALL__=1 ./cli.sh $KCOV_COLLECTOR ./kcov-destination ./_kcov_results_1 ./_kcov_results_2 ./_kcov_results_3 ./_kcov_results_4 ./_kcov_results_5
+__CI_KCOV_MERGE_ALL__=1 ./cli.sh $KCOV_COLLECTOR ./kcov-destination ./_kcov01 ./_kcov02 ./_kcov03 ./_kcov04 ./_kcov05
 
 # Move coverage data out of the mounted volume the container used
 mkdir $COVERAGE_DIR
@@ -47,4 +46,4 @@ echo ""
 echo "DONE: Open $COVERAGE_DIR/index.html in a browser to see the code coverage."
 
 # Upload to codecov only if running inside CI
-[[ $CI ]] && bash <(curl -s https://codecov.io/bash) -s $COVERAGE_DIR
+[[ $CI || $CODECOV_TOKEN ]] && bash <(curl -s https://codecov.io/bash) -s $COVERAGE_DIR

@@ -314,14 +314,15 @@ COPY ./cnx-recipes/recipes/output/ /openstax/cnx-recipes-recipes-output/
 COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
 
+ENV PATH=$PATH:/dockerfiles/
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
 COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \
-    /usr/bin/
+    /dockerfiles/
 
 
 ENV RUN_AS="app:app"
-ENV ORIG_ENTRYPOINT='/usr/bin/docker-entrypoint-with-kcov.sh'
-ENTRYPOINT ["/usr/bin/entrypointd.sh"]
-HEALTHCHECK CMD /usr/bin/healthcheckd.sh
+ENV ORIG_ENTRYPOINT='/dockerfiles/docker-entrypoint-with-kcov.sh'
+ENTRYPOINT ["/dockerfiles/entrypointd.sh"]
+HEALTHCHECK CMD /dockerfiles/healthcheckd.sh
