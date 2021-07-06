@@ -18,8 +18,10 @@ say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
 yell() { >&2 say "$0: ${c_red}$*${c_none}"; }
 die() {
+  # LCOV_EXCL_START
   yell "$1"
   exit 112
+  # LCOV_EXCL_STOP
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
@@ -147,13 +149,16 @@ function do_step() {
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
             else
+                # LCOV_EXCL_START
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+                # LCOV_EXCL_STOP
             fi
             pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
             echo "$pdf_filename" > $IO_BOOK/pdf_filename
         ;;
         archive-dequeue-book)
+            # LCOV_EXCL_START
             ensure_arg S3_QUEUE
             ensure_arg ARG_CODE_VERSION
             check_input_dir IO_BOOK
@@ -186,6 +191,7 @@ function do_step() {
             echo -n "$(cat $book | jq -r '.style')" >$IO_BOOK/style
             echo -n "$(cat $book | jq -r '.version')" >$IO_BOOK/version
             echo -n "$(cat $book | jq -r '.uuid')" >$IO_BOOK/uuid
+            # LCOV_EXCL_STOP
         ;;
         archive-fetch)
             parse_book_dir
@@ -322,6 +328,7 @@ function do_step() {
             done
         ;;
         archive-upload-book)
+            # LCOV_EXCL_START
             parse_book_dir
             ensure_arg ARG_S3_BUCKET_NAME
             ensure_arg ARG_CODE_VERSION
@@ -359,9 +366,11 @@ function do_step() {
             try aws s3 cp "$IO_ARCHIVE_JSONIFIED/collection.toc.xhtml" "$toc_s3_link_xhtml"
 
             echo "DONE: See book at https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml (maybe rename '-gatekeeper' to '-primary')"
+            # LCOV_EXCL_STOP
         ;;
 
         archive-report-book-complete)
+            # LCOV_EXCL_START
             ensure_arg ARG_CODE_VERSION
             ensure_arg WEB_QUEUE_STATE_S3_BUCKET
 
@@ -392,6 +401,7 @@ function do_step() {
             try date -Iseconds > "/tmp/$complete_filename"
 
             try aws s3 cp "/tmp/$complete_filename" "s3://${queueStateBucket}/${codeVersion}/$complete_filename"
+            # LCOV_EXCL_STOP
         ;;
 
         archive-gdocify)
@@ -435,6 +445,7 @@ function do_step() {
         ;;
 
         archive-upload-docx)
+            # LCOV_EXCL_START
             ensure_arg GOOGLE_SERVICE_ACCOUNT_CREDENTIALS
             ensure_arg GDOC_GOOGLE_FOLDER_ID
 
@@ -450,8 +461,10 @@ function do_step() {
             book_metadata="$IO_ARCHIVE_FETCHED/metadata.json"
             book_title="$(cat $book_metadata | jq -r '.title')"
             try upload-docx "$docx_dir" "$book_title" "${GDOC_GOOGLE_FOLDER_ID}" /tmp/service_account_credentials.json
+            # LCOV_EXCL_STOP
         ;;
         archive-notify-gdocs-done)
+            # LCOV_EXCL_START
             ensure_arg AWS_ACCESS_KEY_ID
             ensure_arg AWS_SECRET_ACCESS_KEY
             ensure_arg WEB_QUEUE_STATE_S3_BUCKET
@@ -466,6 +479,7 @@ function do_step() {
             complete_filename=".${statePrefix}.$collection_id@$book_legacy_version.complete"
             try date -Iseconds > "/tmp/$complete_filename"
             try aws s3 cp "/tmp/$complete_filename" "s3://${WEB_QUEUE_STATE_S3_BUCKET}/${ARG_CODE_VERSION}/$complete_filename"
+            # LCOV_EXCL_STOP
         ;;
 
         git-fetch)
@@ -482,12 +496,14 @@ function do_step() {
             remote_url="https://github.com/${ARG_REPO_NAME}.git"
             
             if [[ ${GH_SECRET_CREDS} ]]; then
+                # LCOV_EXCL_START
                 creds_dir=tmp-gh-creds
                 creds_file="$creds_dir/gh-creds"
                 git config --global credential.helper "store --file=$creds_file"
                 mkdir "$creds_dir"
                 # Do not show creds
                 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+                # LCOV_EXCL_STOP
             fi
 
             # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
@@ -512,8 +528,7 @@ function do_step() {
             fi
 
             if [[ ! -f "${IO_FETCHED}/collections/${ARG_TARGET_SLUG_NAME}.collection.xml" ]]; then
-                echo "No matching book for slug in this repo"
-                exit 1
+                die "No matching book for slug in this repo" # LCOV_EXCL_LINE
             fi
         ;;
 
@@ -535,7 +550,7 @@ function do_step() {
                 try echo '[' > $IO_FETCH_META/canonical.json
                 while read slug collid; do
                     try echo "    \"${slug}\"" >> $IO_FETCH_META/canonical-temp.txt
-                done < $IO_FETCH_META/archive-syncfile
+                done < $IO_FETCH_META/archive-syncfile # LCOV_EXCL_LINE
                 # Add a comma to every line except the last line https://stackoverflow.com/a/35021663
                 try sed '$!s/$/,/' $IO_FETCH_META/canonical-temp.txt >> $IO_FETCH_META/canonical.json
                 try rm $IO_FETCH_META/canonical-temp.txt
@@ -616,7 +631,7 @@ function do_step() {
                 then
                     try cp "$style_file" "${IO_BAKED}/the-style-pdf.css"
                 else
-                    echo "Warning: Style Not Found" > "${IO_BAKED}/stderr"
+                    echo "Warning: Style Not Found" > "${IO_BAKED}/stderr" # LCOV_EXCL_LINE
             fi
 
             shopt -s globstar nullglob
@@ -663,7 +678,7 @@ function do_step() {
             check_output_dir IO_LINKED
 
             if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml" --mock-otherbook
+                try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml" --mock-otherbook # LCOV_EXCL_LINE
             else
                 try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml"
             fi
@@ -737,6 +752,7 @@ function do_step() {
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_MATHIFIED}/${ARG_TARGET_SLUG_NAME}.mathified.xhtml"
         ;;
         git-pdfify-meta)
+            # LCOV_EXCL_START
             parse_book_dir
 
             ensure_arg ARG_S3_BUCKET_NAME
@@ -747,8 +763,10 @@ function do_step() {
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
 
             echo "DONE: See book at ${pdf_url}"
+            # LCOV_EXCL_STOP
         ;;
         git-upload-book)
+            # LCOV_EXCL_START
             parse_book_dir
             check_input_dir IO_JSONIFIED
             check_input_dir IO_RESOURCES
@@ -788,17 +806,18 @@ function do_step() {
             try cp "$IO_JSONIFIED/$ARG_TARGET_SLUG_NAME.toc.xhtml" "$IO_ARTIFACTS/"
 
             echo "DONE: See book at https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml (maybe rename '-gatekeeper' to '-primary')"
+            # LCOV_EXCL_STOP
         ;;
 
         --help)
-            die "This script uses environment variables extensively to change where to read/write content from. See the top of this file for a complete list"
+            die "This script uses environment variables extensively to change where to read/write content from. See the top of this file for a complete list" # LCOV_EXCL_LINE
         ;;
         shell | /bin/bash)
-            bash
+            bash # LCOV_EXCL_LINE
         ;;
-        *) # All other arguments are an error
-            die "Invalid command. The first argument needs to be a command like 'fetch'. Instead, it was '${step_name}'"
-            shift
+        *) # LCOV_EXCL_LINE
+            # All other arguments are an error
+            die "Invalid command. The first argument needs to be a command like 'fetch'. Instead, it was '${step_name}'" # LCOV_EXCL_LINE
         ;;
     esac
 }
@@ -903,7 +922,8 @@ case $1 in
         do_step_named git-mathify
         do_step_named git-pdfify
     ;;
-    *) # Assume the user is only running one step
-        do_step $@
+    *) # LCOV_EXCL_LINE
+        # Assume the user is only running one step
+        do_step $@ # LCOV_EXCL_LINE
     ;;
 esac
