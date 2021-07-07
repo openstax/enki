@@ -331,10 +331,14 @@ function do_step() {
             done
         ;;
         archive-validate-xhtml)
+            failure=false
             for xhtmlfile in $(find $IO_ARCHIVE_JSONIFIED -name '*@*.xhtml')
             do
-                try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link || failure=true
             done
+            if $failure; then
+                exit 1
+            fi
         ;;
         archive-upload-book)
             # LCOV_EXCL_START
