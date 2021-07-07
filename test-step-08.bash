@@ -2,15 +2,17 @@
 set -e
 
 BOOK_DIR=./data/test-book
-SOCI_DIR=./data/test-socio
+SOCI_DIR=./data/test-soci
 KCOV_COLLECTOR=./data/kcov-collector
 COVERAGE_DIR=./coverage
 
 mv $BOOK_DIR/_kcov01 $BOOK_DIR/_kcov02 $KCOV_COLLECTOR
-mv $SOCI_DIR/_kcov03 $SOCI_DIR/_kcov04 $SOCI_DIR/_kcov05 $KCOV_COLLECTOR
+mv $SOCI_DIR/_kcov03 $SOCI_DIR/_kcov04 $SOCI_DIR/_kcov05 $SOCI_DIR/_kcov06 $KCOV_COLLECTOR
 
 # Merge all the kcov reports into one
-__CI_KCOV_MERGE_ALL__=1 ./cli.sh $KCOV_COLLECTOR ./kcov-destination ./_kcov01 ./_kcov02 ./_kcov03 ./_kcov04 ./_kcov05
+SKIP_DOCKER_BUILD=1 \
+__CI_KCOV_MERGE_ALL__=1 \
+./cli.sh $KCOV_COLLECTOR ./kcov-destination ./_kcov01 ./_kcov02 ./_kcov03 ./_kcov04 ./_kcov05 ./_kcov06
 
 # Move coverage data out of the mounted volume the container used
 mkdir $COVERAGE_DIR

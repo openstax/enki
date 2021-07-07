@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SOCI_DIR=./data/soci-book
+SOCI_DIR=./data/test-soci
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov03 \

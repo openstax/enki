@@ -2,7 +2,7 @@
 set -e
 
 BOOK_DIR=./data/test-book
-SOCI_DIR=./data/test-socio
+SOCI_DIR=./data/test-soci
 KCOV_COLLECTOR=./data/kcov-collector
 COVERAGE_DIR=./coverage
 

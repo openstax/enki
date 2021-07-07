@@ -71,6 +71,7 @@ docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
     --env ARG_TARGET_SLUG_NAME \
     --env S3_QUEUE \
     --env GDOC_GOOGLE_FOLDER_ID \
+    --env CORGI_ARTIFACTS_S3_BUCKET \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
     --env __CI_KCOV_MERGE_ALL__ \

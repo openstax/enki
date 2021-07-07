@@ -7,25 +7,34 @@ set -e
 # Trace and log if TRACE_ON is set
 [[ ${TRACE_ON} ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
-
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
-  declare -x c_red=$(tput setaf 1)
-  declare -x c_none=$(tput sgr0) # Keep this last so TRACE=true does not cause everything to be cyan
+    # LCOV_EXCL_START
+    declare -x c_red=$(tput setaf 1)
+    declare -x c_none=$(tput sgr0) # Keep this last so TRACE=true does not cause everything to be cyan
+    # LCOV_EXCL_STOP
 fi
 
 say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
 yell() { >&2 say "$0: ${c_red}$*${c_none}"; }
 die() {
-  # LCOV_EXCL_START
-  yell "$1"
-  exit 112
-  # LCOV_EXCL_STOP
+    # LCOV_EXCL_START
+    yell "$1"
+    exit 112
+    # LCOV_EXCL_STOP
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
-source /openstax/venv/bin/activate
+BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-/openstax/bakery-scripts}
+PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-/openstax/venv}
+RECIPES_ROOT=${RECIPES_ROOT:-/openstax/recipes}
+MATHIFY_ROOT=${MATHIFY_ROOT:-/openstax/mathify}
+CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-/openstax/cnx-recipes-recipes-output}
+CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-/openstax/cnx-recipes-styles-output}
+XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-/openstax/xhtml-validator}
+
+source $PYTHON_VENV_ROOT/bin/activate
 
 function ensure_arg() {
     local arg_name
@@ -230,16 +239,16 @@ function do_step() {
         archive-link-extras)
             book_server=archive.cnx.org
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/link-extras.js#L40
-            try python3 /openstax/bakery-scripts/scripts/link_extras.py "${IO_ARCHIVE_BOOK}" "${book_server}" /openstax/bakery-scripts/scripts/canonical-book-list.json
+            try python3 $BAKERY_SCRIPTS_ROOT/scripts/link_extras.py "${IO_ARCHIVE_BOOK}" "${book_server}" $BAKERY_SCRIPTS_ROOT/scripts/canonical-book-list.json
         ;;
         archive-bake)
             parse_book_dir
             # Validate commandline arguments
             ensure_arg ARG_RECIPE_NAME
 
-            try /openstax/recipes/bake_root -b "${ARG_RECIPE_NAME}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
 
-            style_file="/openstax/cnx-recipes-styles-output/${ARG_RECIPE_NAME}-pdf.css"
+            try $RECIPES_ROOT/bake_root -b "${ARG_RECIPE_NAME}" -r $CNX_RECIPES_RECIPES_ROOT/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
+            style_file="$CNX_RECIPES_STYLES_ROOT/${ARG_RECIPE_NAME}-pdf.css"
 
             [[ -f "${style_file}" ]] || yell "Warning: Could not find style file for recipe name '${ARG_RECIPE_NAME}'"
 
@@ -253,7 +262,7 @@ function do_step() {
             # Remove the mathified file if it already exists ecause the code assumes the file does not exist
             [[ -f "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" ]] && rm "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
 
-            try node /openstax/mathify/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
+            try node $MATHIFY_ROOT/typeset/start.js -i "${IO_ARCHIVE_BOOK}/collection.baked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml" -f svg 
         ;;
         archive-pdf)
             parse_book_dir
@@ -313,18 +322,18 @@ function do_step() {
             try mkdir -p $target_dir
             try jsonify "$IO_ARCHIVE_BOOK" "$target_dir"
             try cp "$target_dir/collection.toc.json" "$IO_ARTIFACTS/"
-            try jsonschema -i "$target_dir/collection.toc.json" /openstax/bakery-scripts/scripts/book-schema.json
+            try jsonschema -i "$target_dir/collection.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema.json
             for jsonfile in "$target_dir/"*@*.json; do
                 #ignore -metadata.json files
                 if [[ $jsonfile != *-metadata.json ]]; then
-                    try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
+                    try jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
                 fi
             done
         ;;
         archive-validate-xhtml)
             for xhtmlfile in $(find $IO_ARCHIVE_JSONIFIED -name '*@*.xhtml')
             do
-                try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
         ;;
         archive-upload-book)
@@ -420,11 +429,12 @@ function do_step() {
         ;;
 
         archive-convert-docx)
+            # LCOV_EXCL_START
             check_input_dir IO_ARCHIVE_GDOCIFIED
             check_output_dir IO_ARCHIVE_DOCX
 
-            pushd /openstax/bakery-scripts/scripts/
-            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
+            pushd $BAKERY_SCRIPTS_ROOT/scripts/
+            try $BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
             popd
             try cp -r $IO_ARCHIVE_GDOCIFIED/* $IO_ARCHIVE_DOCX
             book_dir="$IO_ARCHIVE_DOCX/content"
@@ -438,10 +448,13 @@ function do_step() {
                 mathmltable_tempfile="${xhtmlfile}.mathmltable.tmp"
                 try mathmltable2png "$xhtmlfile" "../resources" "$mathmltable_tempfile"
                 wrapped_tempfile="${xhtmlfile}.greybox.tmp"
-                try xsltproc --output "$wrapped_tempfile" /openstax/bakery-scripts/gdoc/wrap-in-greybox.xsl "$mathmltable_tempfile"
-                try pandoc --reference-doc="/openstax/bakery-scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="../../../$target_dir/$docx_filename" "$wrapped_tempfile"
+                
+                say "Converting to docx: $xhtmlfile_basename"
+                try xsltproc --output "$wrapped_tempfile" $BAKERY_SCRIPTS_ROOT/gdoc/wrap-in-greybox.xsl "$mathmltable_tempfile"
+                try pandoc --reference-doc="$BAKERY_SCRIPTS_ROOT/gdoc/custom-reference.docx" --from=html --to=docx --output="../../../$target_dir/$docx_filename" "$wrapped_tempfile"
             done
-            try /openstax/bakery-scripts/scripts/node_modules/.bin/pm2 stop mml2svg2png-json-rpc
+            try $BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2 stop mml2svg2png-json-rpc
+            # LCOV_EXCL_STOP
         ;;
 
         archive-upload-docx)
@@ -511,6 +524,7 @@ function do_step() {
             [[ ${ARG_GIT_REF} =~ ^[a-f0-9]{40}$ ]] && ARG_GIT_REF="@${ARG_GIT_REF}"
 
             if [[ ${ARG_GIT_REF} = @* ]]; then
+                # LCOV_EXCL_START
                 git_commit="${ARG_GIT_REF:1}"
                 GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${IO_FETCHED}"
                 pushd "${IO_FETCHED}"
@@ -523,6 +537,7 @@ function do_step() {
                     try git reset --hard "${git_commit}"
                 fi
                 popd
+                # LCOV_EXCL_STOP
             else
                 GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${ARG_GIT_REF}" "${IO_FETCHED}"
             fi
@@ -575,9 +590,7 @@ function do_step() {
             for collection in "${IO_FETCH_META}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                        continue
-                    fi
+                    [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]] && continue # LCOV_EXCL_LINE
                 fi
                 try cp "$collection" "${IO_FETCH_META}/modules/collection.xml"
 
@@ -600,9 +613,7 @@ function do_step() {
             for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                        continue
-                    fi
+                    [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]] && continue # LCOV_EXCL_LINE
                 fi
                 try assemble-meta "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" uuid-to-revised-map.json "${IO_ASSEMBLE_META}/${slug_name}.assembled-metadata.json"
             done
@@ -625,7 +636,7 @@ function do_step() {
             # work cycle.
 
             # FIXME: Separate style injection step from baking step. This is way too much work to change a line injected into the head tag
-            style_file="/openstax/cnx-recipes-styles-output/${ARG_RECIPE_NAME}-pdf.css"
+            style_file="$CNX_RECIPES_STYLES_ROOT/${ARG_RECIPE_NAME}-pdf.css"
 
             if [[ -f "$style_file" ]]
                 then
@@ -638,12 +649,10 @@ function do_step() {
             for collection in "${IO_ASSEMBLED}/"*.assembled.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                        continue
-                    fi
+                    [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]] && continue # LCOV_EXCL_LINE
                 fi
-                try /openstax/recipes/bake_root -b "${ARG_RECIPE_NAME}" -r /openstax/cnx-recipes-recipes-output/ -i "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" -o "${IO_BAKED}/$slug_name.baked.xhtml"
                 if [[ -f "$style_file" ]]
+                try $RECIPES_ROOT/bake_root -b "${ARG_RECIPE_NAME}" -r $CNX_RECIPES_RECIPES_ROOT/ -i "${IO_ASSEMBLED}/$slug_name.assembled.xhtml" -o "${IO_BAKED}/$slug_name.baked.xhtml"
                     then
                         try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "${IO_BAKED}/$slug_name.baked.xhtml"
                 fi
@@ -660,9 +669,7 @@ function do_step() {
             for collection in "${IO_BAKED}/"*.baked.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
                 if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                    if [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
-                        continue
-                    fi
+                    [[ "$slug_name" != "${ARG_OPT_ONLY_ONE_BOOK}" ]] && continue # LCOV_EXCL_LINE
                 fi
 
                 try bake-meta "${IO_ASSEMBLE_META}/$slug_name.assembled-metadata.json" "${IO_BAKED}/$slug_name.baked.xhtml" "" "" "${IO_BAKE_META}/$slug_name.baked-metadata.json"
@@ -712,21 +719,23 @@ function do_step() {
             check_output_dir IO_JSONIFIED
 
             try jsonify "${IO_DISASSEMBLE_LINKED}" "${IO_JSONIFIED}"
-            try jsonschema -i "${IO_JSONIFIED}/${ARG_TARGET_SLUG_NAME}.toc.json" /openstax/bakery-scripts/scripts/book-schema-git.json
+            try jsonschema -i "${IO_JSONIFIED}/${ARG_TARGET_SLUG_NAME}.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
 
             for jsonfile in "${IO_JSONIFIED}/"*@*.json; do
-                try jsonschema -i "$jsonfile" /openstax/bakery-scripts/scripts/page-schema.json
+                try jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
             done
         ;;
 
         git-validate-xhtml)
+            # LCOV_EXCL_START
             check_input_dir IO_DISASSEMBLE_LINKED
 
             for xhtmlfile in $(find ${IO_DISASSEMBLE_LINKED} -name '*.xhtml')
             do
                 say "XHTML-validating ${xhtmlfile}"
-                try java -cp /openstax/xhtml-validator/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
+                try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
             done
+            # LCOV_EXCL_STOP
         ;;
         git-mathify)
             parse_book_dir
@@ -739,7 +748,7 @@ function do_step() {
             # Style needed because mathjax will size converted math according to surrounding text
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_LINKED}"
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_MATHIFIED}"
-            try node /openstax/mathify/typeset/start.js -i "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" -o "${IO_MATHIFIED}/$ARG_TARGET_SLUG_NAME.mathified.xhtml" -f svg
+            try node $MATHIFY_ROOT/typeset/start.js -i "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" -o "${IO_MATHIFIED}/$ARG_TARGET_SLUG_NAME.mathified.xhtml" -f svg
         ;;
         git-pdfify)
             parse_book_dir

@@ -14,7 +14,7 @@ jobs:
       - name: Install graphviz and dot
         run: sudo apt-get install graphviz
       - name: Install submodules
-        run: SKIP_SUBMODULE_UPGRADE=1 ./update-submodules.sh
+        run: ./update-submodules.sh
       - name: update visual dependency graphs
         run: CI_TEST=true ./test-step-00.bash
       - name: prepare directories

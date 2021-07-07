@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SOCI_DIR=./data/soci-book
+SOCI_DIR=./data/test-soci
 
 # kcov causes this step to hang so skip the KCOV_DIR (probably the pm2 mathml2svg background process)
 SKIP_DOCKER_BUILD=1 \
