@@ -17,7 +17,7 @@ COVERAGE_DIR=./coverage
 [[ -d $KCOV_COLLECTOR ]] && rm -rf $KCOV_COLLECTOR
 [[ -d $COVERAGE_DIR ]] && rm -rf $COVERAGE_DIR
 
-mkdir $KCOV_COLLECTOR
+mkdir -p $KCOV_COLLECTOR
 
 # Build git PDF and web
 KCOV_DIR=_kcov01                               ./cli.sh $BOOK_DIR all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
