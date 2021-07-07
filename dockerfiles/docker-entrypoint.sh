@@ -893,7 +893,6 @@ case $1 in
         do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
-        do_step_named archive-validate-cnxml
         do_step_named archive-assemble
         do_step_named archive-link-extras
         do_step_named archive-bake
@@ -905,7 +904,6 @@ case $1 in
         do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
-        do_step_named archive-validate-cnxml
         do_step_named archive-assemble
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
@@ -944,7 +942,6 @@ case $1 in
         do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
-        do_step_named git-validate-cnxml
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
@@ -960,7 +957,6 @@ case $1 in
         do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
-        do_step_named git-validate-cnxml
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
