@@ -831,7 +831,7 @@ function do_step() {
             # shellcheck disable=SC2086
             validate-collxml $IO_ARCHIVE_FETCHED/collection.xml || failure=true
             # shellcheck disable=SC2086
-            validate-cnxml $IO_ARCHIVE_FETCHED/**/*.cnxml || failure=true
+            validate-cnxml $IO_ARCHIVE_FETCHED/**/index.cnxml || failure=true
 
             if $failure; then
                 exit 1
