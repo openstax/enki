@@ -143,6 +143,13 @@ The pipeline-generation code uses a few additional environment variables:
 | `DOCKERHUB_PASSWORD` | | Your DockerHub password in case you are rate-limited
 
 
+# CI/Gitpod Integration
+
+This runs in GitHub Actions for CI reasons but... if we created a custom GitHub Action using this repo then all the books could use it to generate PDFs/web and post them somewhere (maybe using AWS/Google/Azure environment variables) and add a CI status link.
+
+This runs in Gitpod but still needs a little work. Ideally, editing the files or checking out a different version of a submodule from within Gitpod should use that new code. Right now the Dockerfile contains all the instructions and the submodules are moved into an `/openstax/` directory and various `~/.nvm/` directories are moved elsewhere.
+
+
 # TODO list
 
 - [x] Build Archive PDF
