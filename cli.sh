@@ -47,7 +47,9 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
 
-[[ $SKIP_DOCKER_BUILD ]] || docker build -t ${image_name} .
+[[ $SKIP_DOCKER_BUILD ]] || {
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file ./Dockerfile.cli .
+}
 docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli-env.txt \
     --env KCOV_DIR \
