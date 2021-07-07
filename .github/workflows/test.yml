@@ -16,4 +16,4 @@ jobs:
       - name: Install submodules
         run: SKIP_SUBMODULE_UPGRADE=1 ./update-submodules.sh
       - name: Run Tests
-        run: ./test.sh
+        run: CI_TEST=true ./test.sh

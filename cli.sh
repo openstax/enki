@@ -41,11 +41,14 @@ fi
 [[ ${local_dir} ]] || ( >&2 echo "ERROR: A local temp directory for the book is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
+[[ $CI_TEST ]] || INTERACTIVE='--interactive'
+[[ $CI_TEST ]] || ENABLE_TTY='--tty'
+
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
 
 [[ $SKIP_DOCKER_BUILD ]] || docker build -t ${image_name} .
-docker run -it -v $(cd "${local_dir}"/; pwd):/data/ \
+docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli-env.txt \
     --env KCOV_DIR \
     --env GH_SECRET_CREDS \
