@@ -51,7 +51,7 @@ fi
     DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file ./Dockerfile.cli .
 }
 docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
-    --env-file cli-env.txt \
+    --env-file cli.env \
     --env KCOV_DIR \
     --env GH_SECRET_CREDS \
     --env AWS_ACCESS_KEY_ID \
