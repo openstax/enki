@@ -5,7 +5,7 @@ echo "WARN: Book Disassembly hangs without making a tweak. Comment a few lines a
 sleep 10
 
 # Draw the dependency graph PNG files
-(cd ./build-concourse/ && npm run draw-graphs)
+(cd ./build-concourse/ && npm install && npm run draw-graphs)
 
 BOOK_DIR=./data/test-book
 SOCI_DIR=./data/test-socio
