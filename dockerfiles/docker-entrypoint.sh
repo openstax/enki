@@ -821,6 +821,36 @@ function do_step() {
             echo "DONE: See book at https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${s3_bucket_prefix}/contents/$book_uuid@$book_version.xhtml (maybe rename '-gatekeeper' to '-primary')"
             # LCOV_EXCL_STOP
         ;;
+        archive-validate-cnxml)
+            check_input_dir IO_ARCHIVE_FETCHED
+
+            # Validate collections and modules without failing fast
+            failure=false
+
+            # The shellcheck disables that follow are due to desired / expected globbing
+            # shellcheck disable=SC2086
+            validate-collxml $IO_ARCHIVE_FETCHED/collection.xml || failure=true
+            # shellcheck disable=SC2086
+            validate-cnxml $IO_ARCHIVE_FETCHED/**/*.cnxml || failure=true
+
+            if $failure; then
+                exit 1
+            fi
+        ;;
+
+        git-validate-cnxml)
+            check_input_dir IO_FETCHED
+
+            # Validate collections and modules without failing fast
+            failure=false
+
+            validate-collxml $IO_FETCHED/collections/*.xml || failure=true
+            validate-cnxml $IO_FETCHED/modules/**/*.cnxml || failure=true
+
+            if $failure; then
+                exit 1
+            fi        
+        ;;
 
         --help)
             die "This script uses environment variables extensively to change where to read/write content from. See the top of this file for a complete list" # LCOV_EXCL_LINE
@@ -863,6 +893,7 @@ case $1 in
         do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
+        do_step_named archive-validate-cnxml
         do_step_named archive-assemble
         do_step_named archive-link-extras
         do_step_named archive-bake
@@ -874,6 +905,7 @@ case $1 in
         do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
+        do_step_named archive-validate-cnxml
         do_step_named archive-assemble
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
@@ -891,6 +923,7 @@ case $1 in
         do_step_named archive-look-up-book
         do_step_named archive-fetch
         do_step_named archive-fetch-metadata
+        do_step_named archive-validate-cnxml
         do_step_named archive-assemble
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
@@ -911,6 +944,7 @@ case $1 in
         do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
+        do_step_named git-validate-cnxml
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
@@ -926,6 +960,7 @@ case $1 in
         do_step_named git-look-up-book
         do_step_named git-fetch
         do_step_named git-fetch-metadata
+        do_step_named git-validate-cnxml
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
