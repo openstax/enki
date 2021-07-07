@@ -6,9 +6,11 @@ on:
 
 jobs:
   build:
-   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
   
-   steps:
-     - uses: actions/checkout@v2
-     - name: Run Tests
-       run: ./test.sh
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install graphviz and dot
+        run: sudo apt-get install graphviz
+      - name: Run Tests
+        run: ./test.sh
