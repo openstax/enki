@@ -2,7 +2,7 @@
   "scripts": {
     "build-gdocs": "ts-node ./build-gdocs.ts",
     "draw-graphs": "ts-node ./draw-graphs.ts",
-    "start": "ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts",
+    "start": "ts-node --transpile-only ./build-json.ts && ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts",
     "test": "npm start && npm run build-gdocs"
   },
   "dependencies": {

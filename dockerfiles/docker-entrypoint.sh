@@ -26,6 +26,7 @@ die() {
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
+STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-/step-config.json}
 BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-/openstax/bakery-scripts}
 PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-/openstax/venv}
 RECIPES_ROOT=${RECIPES_ROOT:-/openstax/recipes}
@@ -112,6 +113,11 @@ function do_step() {
     step_name=$1
 
     case $step_name in
+        --help)
+            steps=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
+            pipelines=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
+            die "Valid arguments are:\n$steps\n$pipelines"
+        ;;
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
@@ -137,8 +143,10 @@ function do_step() {
             # Dummy files
             echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
             echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
+
+            return
         ;;
-        archive-look-up-book)
+        look-up-book)
             ensure_arg INPUT_SOURCE_DIR
 
             check_input_dir INPUT_SOURCE_DIR
@@ -149,38 +157,63 @@ function do_step() {
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
             cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
 
-            cp $INPUT_SOURCE_DIR/collection_id $IO_BOOK/collection_id
-            cp $INPUT_SOURCE_DIR/content_server $IO_BOOK/server
-
-            server_shortname="$(cat $INPUT_SOURCE_DIR/job.json | jq -r '.content_server.name')"
-            echo "$server_shortname" >$IO_BOOK/server_shortname
-            pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
-            echo "$pdf_filename" > $IO_BOOK/pdf_filename
-        ;;
-        git-look-up-book)
-            ensure_arg INPUT_SOURCE_DIR
-
-            check_input_dir INPUT_SOURCE_DIR
-            check_output_dir IO_BOOK
-
-            tail $INPUT_SOURCE_DIR/*
-            cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
-            cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
-
-            if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
+            # Detect if this is a git book or an archive book.
+            # Git books have at least one slash in the collection_id
+            temp_collection_id=$(cat $INPUT_SOURCE_DIR/collection_id)
+            if [[ $temp_collection_id == */* ]]; then
+                # Git book
+                if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
+                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
+                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
+                else
+                    # LCOV_EXCL_START
+                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
+                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+                    # LCOV_EXCL_STOP
+                fi
+                pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
+                echo "$pdf_filename" > $IO_BOOK/pdf_filename
             else
-                # LCOV_EXCL_START
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
-                # LCOV_EXCL_STOP
+                # Archive book
+                cp $INPUT_SOURCE_DIR/collection_id $IO_BOOK/collection_id
+                cp $INPUT_SOURCE_DIR/content_server $IO_BOOK/server
+
+                server_shortname="$(cat $INPUT_SOURCE_DIR/job.json | jq -r '.content_server.name')"
+                echo "$server_shortname" >$IO_BOOK/server_shortname
+                pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
+                echo "$pdf_filename" > $IO_BOOK/pdf_filename
             fi
-            pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
-            echo "$pdf_filename" > $IO_BOOK/pdf_filename
+            
+            return
         ;;
-        archive-dequeue-book)
+    esac
+
+
+    # Check that the input dirs, output dirs, and environment variables are set before running the step:
+    step_entry=$(jq  -r ".steps.\"$step_name\""  < $STEP_CONFIG_FILE)
+
+    if [[ $step_entry == 'null' ]]; then
+        die "ERROR: Could not find step or pipeline named '$step_name'. Type --help to see a list of valid steps"
+    else
+        input_dirs=$(jq  -r ".steps.\"$step_name\".inputDirs|@sh"  < $STEP_CONFIG_FILE)
+        output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
+        required_envs=$(jq -r ".steps.\"$step_name\".requiredEnv|@sh" < $STEP_CONFIG_FILE)
+
+        for required_env in $required_envs; do
+            ensure_arg $required_env
+        done        
+        for input_dir in $input_dirs; do
+            check_input_dir $(echo $input_dir | tr -d "'")
+        done
+        for output_dir in $output_dirs; do
+            check_output_dir $(echo $output_dir | tr -d "'")
+        done
+
+    fi
+
+
+    case $step_name in
+         archive-dequeue-book)
             # LCOV_EXCL_START
             ensure_arg S3_QUEUE
             ensure_arg ARG_CODE_VERSION
@@ -579,7 +612,7 @@ function do_step() {
             check_output_dir IO_RESOURCES
             check_output_dir IO_UNUSED_RESOURCES
 
-            try cp -R "${IO_FETCHED}" "${IO_FETCH_META}"
+            try cp -R "${IO_FETCHED}/." "${IO_FETCH_META}"
 
             # From https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
             if [ ! -f $IO_FETCH_META/canonical.json ]; then
@@ -909,90 +942,17 @@ function do_step_named() {
 }
 
 
-case $1 in
-    all-archive-pdf)
-        do_step_named local-create-book-directory "${@:2}"
-        do_step_named archive-look-up-book
-        do_step_named archive-fetch
-        do_step_named archive-fetch-metadata
-        do_step_named archive-assemble
-        do_step_named archive-link-extras
-        do_step_named archive-bake
-        do_step_named archive-validate-xhtml-mathified
-        do_step_named archive-mathify
-        do_step_named archive-pdf
-    ;;
-    all-archive-web)
-        do_step_named local-create-book-directory "${@:2}"
-        do_step_named archive-look-up-book
-        do_step_named archive-fetch
-        do_step_named archive-fetch-metadata
-        do_step_named archive-assemble
-        do_step_named archive-assemble-metadata
-        do_step_named archive-link-extras
-        do_step_named archive-bake
-        do_step_named archive-bake-metadata
-        do_step_named archive-checksum
-        do_step_named archive-disassemble
-        do_step_named archive-patch-disassembled-links
-        do_step_named archive-jsonify
-        do_step_named archive-validate-xhtml-jsonify
-        # do_step_named archive-upload-book
-    ;;
-    all-archive-gdoc)
-        do_step_named local-create-book-directory "${@:2}"
-        do_step_named archive-look-up-book
-        do_step_named archive-fetch
-        do_step_named archive-fetch-metadata
-        do_step_named archive-validate-cnxml
-        do_step_named archive-assemble
-        do_step_named archive-assemble-metadata
-        do_step_named archive-link-extras
-        do_step_named archive-bake
-        do_step_named archive-validate-xhtml-mathified
-        do_step_named archive-bake-metadata
-        do_step_named archive-checksum
-        do_step_named archive-disassemble
-        do_step_named archive-patch-disassembled-links
-        do_step_named archive-jsonify
-        do_step_named archive-validate-xhtml-jsonify
-        do_step_named archive-gdocify
-        do_step_named archive-convert-docx
-        # do_step_named archive-upload-docx
-        # do_step_named archive-notify-gdocs-done
-    ;;
-    all-git-web)
-        do_step_named local-create-book-directory "${@:2}"
-        do_step_named git-look-up-book
-        do_step_named git-fetch
-        do_step_named git-fetch-metadata
-        do_step_named git-assemble
-        do_step_named git-assemble-meta
-        do_step_named git-bake
-        do_step_named git-bake-meta
-        do_step_named git-link
-        do_step_named git-disassemble
-        do_step_named git-patch-disassembled-links
-        do_step_named git-jsonify
-        do_step_named git-validate-xhtml-jsonify
-    ;;
-    all-git-pdf)
-        do_step_named local-create-book-directory "${@:2}"
-        do_step_named git-look-up-book
-        do_step_named git-fetch
-        do_step_named git-fetch-metadata
-        do_step_named git-assemble
-        do_step_named git-assemble-meta
-        do_step_named git-bake
-        do_step_named git-bake-meta
-        do_step_named git-link
-        
-        do_step_named git-mathify
-        do_step_named git-validate-xhtml-mathified
-        do_step_named git-pdfify
-    ;;
-    *) # LCOV_EXCL_LINE
-        # Assume the user is only running one step
-        do_step $@ # LCOV_EXCL_LINE
-    ;;
-esac
+# Try to find if the command is in the pipeline first
+first_arg=$1
+pipeline_steps=$(jq -r ".pipelines.\"$first_arg\"|@sh" < $STEP_CONFIG_FILE)
+
+if [[ $pipeline_steps = 'null' ]]; then
+    do_step_named $(echo $first_arg | tr -d "'")
+else
+    do_step_named local-create-book-directory "${@:2}"
+    do_step_named look-up-book
+    
+    for step_name in $pipeline_steps; do
+        do_step_named $(echo $step_name | tr -d "'")
+    done
+fi

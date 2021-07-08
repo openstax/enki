@@ -12,7 +12,7 @@ export type Step = {
     env: Env
 }
 
-const STEP_MAP = new Map<string, Step>()
+export const STEP_MAP = new Map<string, Step>()
 
 function get(stepName: string) {
     if (!STEP_MAP.has(stepName)) {
@@ -78,7 +78,7 @@ STEP_MAP.set('archive-report-book-complete', {name: 'archive-report-book-complet
 
 
 // These are used both by CORGI when building a preview and by the webhosting pipeline
-const ARCHIVE_WEB_STEPS: Step[] = [
+export const ARCHIVE_WEB_STEPS = [
     get('archive-fetch'),
     get('archive-fetch-metadata'),
     // get('archive-validate-cnxml'),
@@ -94,7 +94,7 @@ const ARCHIVE_WEB_STEPS: Step[] = [
     get('archive-validate-xhtml-jsonify'),
 ]
 
-export const GIT_PDF_STEPS: Step[] = [
+export const CLI_GIT_PDF_STEPS = [
     get('git-fetch'),
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
@@ -106,10 +106,13 @@ export const GIT_PDF_STEPS: Step[] = [
     get('git-mathify'),
     get('git-validate-xhtml-mathified'),
     get('git-pdfify'),
+]
+export const GIT_PDF_STEPS = [
+    ...CLI_GIT_PDF_STEPS,
     get('git-pdfify-meta'),
 ]
 
-export const GIT_WEB_STEPS: Step[] = [
+export const CLI_GIT_WEB_STEPS = [
     get('git-fetch'),
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
@@ -122,11 +125,13 @@ export const GIT_WEB_STEPS: Step[] = [
     get('git-patch-disassembled-links'),
     get('git-jsonify'),
     get('git-validate-xhtml-jsonify'),
+]
+export const GIT_WEB_STEPS = [
+    ...CLI_GIT_WEB_STEPS,
     get('git-upload-book'),
 ]
 
-
-export const ARCHIVE_PDF_STEPS: Step[] = [
+export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-fetch'),
     // get('archive-validate-cnxml'),
     get('archive-assemble'),
@@ -135,14 +140,19 @@ export const ARCHIVE_PDF_STEPS: Step[] = [
     get('archive-mathify'),
     get('archive-validate-xhtml-mathified'),
     get('archive-pdf'),
+]
+export const ARCHIVE_PDF_STEPS = [
+    ...CLI_ARCHIVE_PDF_STEPS,
     get('archive-pdf-metadata'),
 ]
 
-
-export const ARCHIVE_GDOC_STEPS = [
+export const CLI_ARCHIVE_GDOC_STEPS = [
     ...ARCHIVE_WEB_STEPS, // up to archive-validate-xhtml
     get('archive-gdocify'),
     get('archive-convert-docx'),
+]
+export const ARCHIVE_GDOC_STEPS = [
+    ...CLI_ARCHIVE_GDOC_STEPS,
     get('archive-upload-docx'),
 ]
 
