@@ -48,7 +48,7 @@ fi
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
 
 [[ $SKIP_DOCKER_BUILD ]] || {
-    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file ./Dockerfile.cli .
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file ./Dockerfile .
 }
 docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
     --env-file cli.env \
