@@ -176,6 +176,8 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [ ] move all the steps into a JSON file so it can be parsed in node and bash
 - [ ] move the bash code for each step into a separate bash file and ensure codecov checks it
 - [ ] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
+- [ ] add code coverage for the TypeScript files
+
 
 ## Updates since I started
 
