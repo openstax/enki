@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB, stepsToTasks } from './util'
-import { ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
+import { ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
 
@@ -46,7 +46,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_STEPS_WITH_DEQUEUE_AND_UPLOAD),
+            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD),
         ]
     }
     return { jobs: [feeder, webBaker], resources }

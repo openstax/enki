@@ -173,6 +173,9 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/book-pipeline/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
+- [ ] move all the steps into a JSON file so it can be parsed in node and bash
+- [ ] move the bash code for each step into a separate bash file and ensure codecov checks it
+- [ ] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
 
 ## Updates since I started
 
@@ -184,3 +187,4 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
 - [ ] Move everything out of the pipeline and into the image
 - [ ] move pm2 into bakery-scripts/ instead of being installed globally in the Dockerfile
+- [ ] move auth secret rotation into this repo. See https://github.com/openstax/output-producer-service/pull/355

@@ -65,6 +65,17 @@ function check_output_dir() {
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
 
+function do_xhtml_validate() {
+    failure=false
+    for xhtmlfile in $(find $1 -name "$2")
+    do
+        try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link || failure=true
+    done
+    if $failure; then
+        exit 1 # LCOV_EXCL_LINE
+    fi
+}
+
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
@@ -330,16 +341,6 @@ function do_step() {
                 fi
             done
         ;;
-        archive-validate-xhtml)
-            failure=false
-            for xhtmlfile in $(find $IO_ARCHIVE_JSONIFIED -name '*@*.xhtml')
-            do
-                try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link || failure=true
-            done
-            if $failure; then
-                exit 1
-            fi
-        ;;
         archive-upload-book)
             # LCOV_EXCL_START
             parse_book_dir
@@ -497,6 +498,20 @@ function do_step() {
             try date -Iseconds > "/tmp/$complete_filename"
             try aws s3 cp "/tmp/$complete_filename" "s3://${WEB_QUEUE_STATE_S3_BUCKET}/${ARG_CODE_VERSION}/$complete_filename"
             # LCOV_EXCL_STOP
+        ;;
+        archive-validate-xhtml-baked)
+            # LCOV_EXCL_START
+            do_xhtml_validate $IO_ARCHIVE_BOOK 'collection.baked.xhtml'
+            # LCOV_EXCL_STOP
+        ;;
+        archive-validate-xhtml-jsonify)
+            do_xhtml_validate $IO_ARCHIVE_JSONIFIED "$IO_ARCHIVE_JSONIFIED/*@*.xhtml"
+        ;;
+        git-validate-xhtml-baked)
+            do_xhtml_validate $IO_BAKED '*.baked.xhtml'
+        ;;
+        git-validate-xhtml-jsonify)
+            do_xhtml_validate $IO_JSONIFIED "*@*.xhtml"
         ;;
 
         git-fetch)
@@ -834,7 +849,7 @@ function do_step() {
             validate-cnxml $IO_ARCHIVE_FETCHED/**/index.cnxml || failure=true
 
             if $failure; then
-                exit 1
+                exit 1 # LCOV_EXCL_LINE
             fi
         ;;
 
@@ -848,7 +863,7 @@ function do_step() {
             validate-cnxml $IO_FETCHED/modules/**/*.cnxml || failure=true
 
             if $failure; then
-                exit 1
+                exit 1 # LCOV_EXCL_LINE
             fi        
         ;;
 
@@ -896,6 +911,7 @@ case $1 in
         do_step_named archive-assemble
         do_step_named archive-link-extras
         do_step_named archive-bake
+        do_step_named archive-validate-xhtml-baked
         do_step_named archive-mathify
         do_step_named archive-pdf
     ;;
@@ -913,7 +929,7 @@ case $1 in
         do_step_named archive-disassemble
         do_step_named archive-patch-disassembled-links
         do_step_named archive-jsonify
-        do_step_named archive-validate-xhtml
+        do_step_named archive-validate-xhtml-jsonify
         # do_step_named archive-upload-book
     ;;
     all-archive-gdoc)
@@ -926,12 +942,13 @@ case $1 in
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
         do_step_named archive-bake
+        do_step_named archive-validate-xhtml-baked
         do_step_named archive-bake-metadata
         do_step_named archive-checksum
         do_step_named archive-disassemble
         do_step_named archive-patch-disassembled-links
         do_step_named archive-jsonify
-        do_step_named archive-validate-xhtml
+        do_step_named archive-validate-xhtml-jsonify
         do_step_named archive-gdocify
         do_step_named archive-convert-docx
         # do_step_named archive-upload-docx
@@ -945,12 +962,13 @@ case $1 in
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
+        do_step_named git-validate-xhtml-baked
         do_step_named git-bake-meta
         do_step_named git-link
         do_step_named git-disassemble
         do_step_named git-patch-disassembled-links
         do_step_named git-jsonify
-        # do_step_named git-validate-xhtml
+        do_step_named git-validate-xhtml-jsonify
     ;;
     all-git-pdf)
         do_step_named local-create-book-directory "${@:2}"
@@ -960,6 +978,7 @@ case $1 in
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
+        do_step_named git-validate-xhtml-baked
         do_step_named git-bake-meta
         do_step_named git-link
         
