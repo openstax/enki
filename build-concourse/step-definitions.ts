@@ -30,7 +30,7 @@ STEP_MAP.set('archive-assemble-metadata', {name: 'archive-assemble-metadata', in
 STEP_MAP.set('archive-link-extras', {name: 'archive-link-extras', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 STEP_MAP.set('archive-bake', {name: 'archive-bake', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 STEP_MAP.set('archive-bake-metadata', {name: 'archive-bake-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], env: {}})
-STEP_MAP.set('archive-validate-xhtml-baked', {name: 'archive-validate-xhtml-baked', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.BOOK, IO.ARCHIVE_BOOK], env: {}})
+STEP_MAP.set('archive-validate-xhtml-mathified', {name: 'archive-validate-xhtml-mathified', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.BOOK, IO.ARCHIVE_BOOK], env: {}})
 STEP_MAP.set('archive-checksum', {name: 'archive-checksum', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], env: {}})
 STEP_MAP.set('archive-disassemble', {name: 'archive-disassemble', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 STEP_MAP.set('archive-patch-disassembled-links', {name: 'archive-patch-disassembled-links', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
@@ -45,7 +45,7 @@ STEP_MAP.set('git-assemble', {name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_M
 STEP_MAP.set('git-assemble-meta', {name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake', {name: 'git-bake', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.BAKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake-meta', {name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
-STEP_MAP.set('git-validate-xhtml-baked', {name: 'git-validate-xhtml-baked', inputs: [IO.BAKED], outputs: [], env: {}})
+STEP_MAP.set('git-validate-xhtml-mathified', {name: 'git-validate-xhtml-mathified', inputs: [IO.MATHIFIED], outputs: [], env: {}})
 STEP_MAP.set('git-link', {name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META], outputs: [IO.LINKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-mathify', {name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-pdfify', {name: 'git-pdfify', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [IO.ARTIFACTS], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
@@ -86,7 +86,6 @@ const ARCHIVE_WEB_STEPS: Step[] = [
     get('archive-assemble-metadata'),
     get('archive-link-extras'),
     get('archive-bake'),
-    get('archive-validate-xhtml-baked'),
     get('archive-bake-metadata'),
     get('archive-checksum'),
     get('archive-disassemble'),
@@ -102,10 +101,10 @@ export const GIT_PDF_STEPS: Step[] = [
     get('git-assemble'),
     get('git-assemble-meta'),
     get('git-bake'),
-    get('git-validate-xhtml-baked'),
     get('git-bake-meta'),
     get('git-link'),
     get('git-mathify'),
+    get('git-validate-xhtml-mathified'),
     get('git-pdfify'),
     get('git-pdfify-meta'),
 ]
@@ -117,7 +116,6 @@ export const GIT_WEB_STEPS: Step[] = [
     get('git-assemble'),
     get('git-assemble-meta'),
     get('git-bake'),
-    get('git-validate-xhtml-baked'),
     get('git-bake-meta'),
     get('git-link'),
     get('git-disassemble'),
@@ -134,8 +132,8 @@ export const ARCHIVE_PDF_STEPS: Step[] = [
     get('archive-assemble'),
     get('archive-link-extras'),
     get('archive-bake'),
-    get('archive-validate-xhtml-baked'),
     get('archive-mathify'),
+    get('archive-validate-xhtml-mathified'),
     get('archive-pdf'),
     get('archive-pdf-metadata'),
 ]

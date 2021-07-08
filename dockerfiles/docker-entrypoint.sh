@@ -67,9 +67,12 @@ function check_output_dir() {
 
 function do_xhtml_validate() {
     failure=false
-    for xhtmlfile in $(find $1 -name "$2")
+    dir_name=$1
+    file_pattern=$2
+    check=$3
+    for xhtmlfile in $(find $dir_name -name "$file_pattern")
     do
-        try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link || failure=true
+        try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" $check broken-link || failure=true
     done
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
@@ -499,19 +502,23 @@ function do_step() {
             try aws s3 cp "/tmp/$complete_filename" "s3://${WEB_QUEUE_STATE_S3_BUCKET}/${ARG_CODE_VERSION}/$complete_filename"
             # LCOV_EXCL_STOP
         ;;
-        archive-validate-xhtml-baked)
+        archive-validate-xhtml-mathified)
             # LCOV_EXCL_START
-            do_xhtml_validate $IO_ARCHIVE_BOOK 'collection.baked.xhtml'
+            check_input_dir IO_ARCHIVE_BOOK
+            do_xhtml_validate $IO_ARCHIVE_BOOK 'collection.mathified.xhtml' link-to-duplicate-id 
             # LCOV_EXCL_STOP
         ;;
         archive-validate-xhtml-jsonify)
-            do_xhtml_validate $IO_ARCHIVE_JSONIFIED "$IO_ARCHIVE_JSONIFIED/*@*.xhtml"
+            check_input_dir IO_ARCHIVE_JSONIFIED
+            do_xhtml_validate $IO_ARCHIVE_JSONIFIED "$IO_ARCHIVE_JSONIFIED/*@*.xhtml" duplicate-id 
         ;;
-        git-validate-xhtml-baked)
-            do_xhtml_validate $IO_BAKED '*.baked.xhtml'
+        git-validate-xhtml-mathified)
+            check_input_dir IO_MATHIFIED
+            do_xhtml_validate $IO_MATHIFIED '*.mathified.xhtml' link-to-duplicate-id 
         ;;
         git-validate-xhtml-jsonify)
-            do_xhtml_validate $IO_JSONIFIED "*@*.xhtml"
+            check_input_dir IO_JSONIFIED
+            do_xhtml_validate $IO_JSONIFIED "*@*.xhtml" duplicate-id 
         ;;
 
         git-fetch)
@@ -911,7 +918,7 @@ case $1 in
         do_step_named archive-assemble
         do_step_named archive-link-extras
         do_step_named archive-bake
-        do_step_named archive-validate-xhtml-baked
+        do_step_named archive-validate-xhtml-mathified
         do_step_named archive-mathify
         do_step_named archive-pdf
     ;;
@@ -942,7 +949,7 @@ case $1 in
         do_step_named archive-assemble-metadata
         do_step_named archive-link-extras
         do_step_named archive-bake
-        do_step_named archive-validate-xhtml-baked
+        do_step_named archive-validate-xhtml-mathified
         do_step_named archive-bake-metadata
         do_step_named archive-checksum
         do_step_named archive-disassemble
@@ -962,7 +969,6 @@ case $1 in
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
-        do_step_named git-validate-xhtml-baked
         do_step_named git-bake-meta
         do_step_named git-link
         do_step_named git-disassemble
@@ -978,11 +984,11 @@ case $1 in
         do_step_named git-assemble
         do_step_named git-assemble-meta
         do_step_named git-bake
-        do_step_named git-validate-xhtml-baked
         do_step_named git-bake-meta
         do_step_named git-link
         
         do_step_named git-mathify
+        do_step_named git-validate-xhtml-mathified
         do_step_named git-pdfify
     ;;
     *) # LCOV_EXCL_LINE
