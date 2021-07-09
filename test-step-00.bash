@@ -17,3 +17,6 @@ AWS_ACCESS_KEY_ID=dummyawskey \
 AWS_SECRET_ACCESS_KEY=dummyawssecret \
 GOOGLE_SERVICE_ACCOUNT_CREDENTIALS=dummygoogle \
 npm run build-gdocs
+
+# Fail if anything is not committed
+[[ $CI_TEST ]] && git diff && git diff-index --quiet HEAD

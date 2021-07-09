@@ -16,7 +16,7 @@ jobs:
       - name: Install graphviz and dot
         run: sudo apt-get install graphviz
       - name: Install submodules
-        run: ./update-submodules.sh
+        run: ./install-submodules.sh
       - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file
         run: CI_TEST=true ./test-step-00.bash
       - name: prepare directories and build container
