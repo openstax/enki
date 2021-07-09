@@ -215,7 +215,6 @@ function do_step() {
 
     if [[ $step_name == 'shell' || $step_name == '/bin/bash' ]]; then
         bash # LCOV_EXCL_LINE
-        return
     elif [[ -f $step_file ]]; then
         source $step_file
     else
