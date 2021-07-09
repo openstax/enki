@@ -117,7 +117,7 @@ function do_step() {
         --help)
             # LCOV_EXCL_START
             steps=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
-            pipelines=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
+            pipelines=$(jq -r ".pipelines|keys" < $STEP_CONFIG_FILE)
             die "Valid arguments are:\n$steps\n$pipelines"
             # LCOV_EXCL_STOP
         ;;
