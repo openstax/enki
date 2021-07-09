@@ -1,0 +1,483 @@
+{
+    "__note__": "This file is autogenerted. Do not edit it directly",
+    "steps": {
+        "archive-fetch": {
+            "inputDirs": [
+                "IO_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-fetch-metadata": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-validate-cnxml": {
+            "inputDirs": [
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
+        "archive-assemble": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-assemble-metadata": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_FETCHED",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-link-extras": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-bake": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-bake-metadata": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_FETCHED",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-validate-xhtml-mathified": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-checksum": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-disassemble": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-patch-disassembled-links": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-jsonify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_JSONIFIED",
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": []
+        },
+        "archive-validate-xhtml-jsonify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_JSONIFIED"
+            ],
+            "outputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "git-fetch": {
+            "inputDirs": [
+                "IO_BOOK"
+            ],
+            "outputDirs": [
+                "IO_FETCHED"
+            ],
+            "requiredEnv": []
+        },
+        "git-fetch-metadata": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_FETCH_META",
+                "IO_RESOURCES",
+                "IO_UNUSED_RESOURCES"
+            ],
+            "requiredEnv": []
+        },
+        "git-validate-cnxml": {
+            "inputDirs": [
+                "IO_FETCHED"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
+        "git-assemble": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META"
+            ],
+            "outputDirs": [
+                "IO_ASSEMBLED"
+            ],
+            "requiredEnv": []
+        },
+        "git-assemble-meta": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ASSEMBLED"
+            ],
+            "outputDirs": [
+                "IO_ASSEMBLE_META"
+            ],
+            "requiredEnv": []
+        },
+        "git-bake": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ASSEMBLED"
+            ],
+            "outputDirs": [
+                "IO_BAKED"
+            ],
+            "requiredEnv": []
+        },
+        "git-bake-meta": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ASSEMBLE_META",
+                "IO_BAKED"
+            ],
+            "outputDirs": [
+                "IO_BAKE_META"
+            ],
+            "requiredEnv": []
+        },
+        "git-validate-xhtml-mathified": {
+            "inputDirs": [
+                "IO_MATHIFIED"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
+        "git-link": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_BAKED",
+                "IO_BAKE_META"
+            ],
+            "outputDirs": [
+                "IO_LINKED"
+            ],
+            "requiredEnv": []
+        },
+        "git-mathify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_LINKED",
+                "IO_BAKED"
+            ],
+            "outputDirs": [
+                "IO_MATHIFIED"
+            ],
+            "requiredEnv": []
+        },
+        "git-pdfify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_MATHIFIED"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": []
+        },
+        "git-pdfify-meta": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARTIFACTS"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET"
+            ]
+        },
+        "git-disassemble": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_LINKED",
+                "IO_BAKE_META"
+            ],
+            "outputDirs": [
+                "IO_DISASSEMBLED"
+            ],
+            "requiredEnv": []
+        },
+        "git-patch-disassembled-links": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_DISASSEMBLED"
+            ],
+            "outputDirs": [
+                "IO_DISASSEMBLE_LINKED"
+            ],
+            "requiredEnv": []
+        },
+        "git-jsonify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_DISASSEMBLE_LINKED"
+            ],
+            "outputDirs": [
+                "IO_JSONIFIED"
+            ],
+            "requiredEnv": []
+        },
+        "git-validate-xhtml-jsonify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_JSONIFIED"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
+        "git-upload-book": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_JSONIFIED",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        },
+        "archive-mathify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-pdf": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": []
+        },
+        "archive-pdf-metadata": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARTIFACTS"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET"
+            ]
+        },
+        "archive-gdocify": {
+            "inputDirs": [
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_GDOCIFIED"
+            ],
+            "requiredEnv": []
+        },
+        "archive-convert-docx": {
+            "inputDirs": [
+                "IO_ARCHIVE_GDOCIFIED"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_DOCX"
+            ],
+            "requiredEnv": []
+        },
+        "archive-upload-docx": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_DOCX"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_GDOCIFIED"
+            ],
+            "requiredEnv": [
+                "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        },
+        "archive-dequeue-book": {
+            "inputDirs": [
+                "IO_S3_QUEUE"
+            ],
+            "outputDirs": [
+                "IO_BOOK"
+            ],
+            "requiredEnv": [
+                "S3_QUEUE",
+                "CODE_VERSION"
+            ]
+        },
+        "archive-report-book-complete": {
+            "inputDirs": [
+                "IO_BOOK"
+            ],
+            "outputDirs": [],
+            "requiredEnv": [
+                "CODE_VERSION",
+                "WEB_QUEUE_STATE_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        }
+    },
+    "pipelines": {
+        "all-git-pdf": [
+            "git-fetch",
+            "git-fetch-metadata",
+            "git-assemble",
+            "git-assemble-meta",
+            "git-bake",
+            "git-bake-meta",
+            "git-link",
+            "git-mathify",
+            "git-validate-xhtml-mathified",
+            "git-pdfify"
+        ],
+        "all-git-web": [
+            "git-fetch",
+            "git-fetch-metadata",
+            "git-assemble",
+            "git-assemble-meta",
+            "git-bake",
+            "git-bake-meta",
+            "git-link",
+            "git-disassemble",
+            "git-patch-disassembled-links",
+            "git-jsonify",
+            "git-validate-xhtml-jsonify"
+        ],
+        "all-archive-pdf": [
+            "archive-fetch",
+            "archive-assemble",
+            "archive-link-extras",
+            "archive-bake",
+            "archive-mathify",
+            "archive-validate-xhtml-mathified",
+            "archive-pdf"
+        ],
+        "all-archive-web": [
+            "archive-fetch",
+            "archive-fetch-metadata",
+            "archive-assemble",
+            "archive-assemble-metadata",
+            "archive-link-extras",
+            "archive-bake",
+            "archive-bake-metadata",
+            "archive-checksum",
+            "archive-disassemble",
+            "archive-patch-disassembled-links",
+            "archive-jsonify",
+            "archive-validate-xhtml-jsonify"
+        ],
+        "all-archive-gdoc": [
+            "archive-fetch",
+            "archive-fetch-metadata",
+            "archive-assemble",
+            "archive-assemble-metadata",
+            "archive-link-extras",
+            "archive-bake",
+            "archive-bake-metadata",
+            "archive-checksum",
+            "archive-disassemble",
+            "archive-patch-disassembled-links",
+            "archive-jsonify",
+            "archive-validate-xhtml-jsonify",
+            "archive-gdocify",
+            "archive-convert-docx"
+        ]
+    }
+}

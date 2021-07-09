@@ -19,6 +19,7 @@ elif [[ $KCOV_DIR != '' ]]; then
         --include-path=/dockerfiles/docker-entrypoint.sh,/dockerfiles/steps/ \
         /data/$KCOV_DIR \
         docker-entrypoint.sh $@
+    sleep 1 # Wait for files to flush?
 else
     docker-entrypoint.sh $@
 fi
