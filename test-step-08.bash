@@ -7,6 +7,7 @@ KCOV_COLLECTOR=./data/kcov-collector
 COVERAGE_DIR=./coverage
 
 mv \
+    $BOOK_DIR/_kcov01 \
     $BOOK_DIR/_kcov02-a \
     $BOOK_DIR/_kcov02-b \
     $BOOK_DIR/_kcov03 \
@@ -21,6 +22,7 @@ mv \
 SKIP_DOCKER_BUILD=1 \
 __CI_KCOV_MERGE_ALL__=1 \
 ./cli.sh $KCOV_COLLECTOR ./kcov-destination \
+    ./_kcov01 \
     ./_kcov02-a \
     ./_kcov02-b \
     ./_kcov03 \

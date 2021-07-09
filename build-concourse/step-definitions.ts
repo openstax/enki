@@ -65,8 +65,8 @@ STEP_MAP.set('archive-pdf-metadata', {name: 'archive-pdf-metadata', inputs: [IO.
 
 // ARCHIVE_GDOC_STEPS
 STEP_MAP.set('archive-gdocify', {name: 'archive-gdocify', inputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}})
-STEP_MAP.set('archive-convert-docx', {name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}})
-STEP_MAP.set('archive-upload-docx', {name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+STEP_MAP.set('archive-convert-docx', {name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_DOCX], env: {}})
+STEP_MAP.set('archive-upload-docx', {name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_DOCX], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
 STEP_MAP.set('archive-dequeue-book', {name: 'archive-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }})

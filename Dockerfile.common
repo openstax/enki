@@ -313,6 +313,7 @@ COPY ./cnx-recipes/styles/output/ /openstax/cnx-recipes-styles-output/
 
 ENV PATH=$PATH:/dockerfiles/
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
+COPY ./dockerfiles/steps /dockerfiles/steps
 COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \
