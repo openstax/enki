@@ -188,11 +188,11 @@ function do_step() {
         ;;
     esac
 
-
     # Check that the input dirs, output dirs, and environment variables are set before running the step:
-    step_entry=$(jq  -r ".steps.\"$step_name\""  < $STEP_CONFIG_FILE)
 
-    if [[ $step_entry == 'null' ]]; then
+    step_entry=$(jq  -r ".steps.\"$step_name\"|not|not" < $STEP_CONFIG_FILE)
+
+    if [[ "$step_entry" == 'false' ]]; then
         die "ERROR: Could not find step or pipeline named '$step_name'. Type --help to see a list of valid steps"
     else
         input_dirs=$(jq  -r ".steps.\"$step_name\".inputDirs|@sh"  < $STEP_CONFIG_FILE)
@@ -200,7 +200,7 @@ function do_step() {
         required_envs=$(jq -r ".steps.\"$step_name\".requiredEnv|@sh" < $STEP_CONFIG_FILE)
 
         for required_env in $required_envs; do
-            ensure_arg $required_env
+            ensure_arg $(echo $required_env | tr -d "'")
         done        
         for input_dir in $input_dirs; do
             check_input_dir $(echo $input_dir | tr -d "'")
@@ -208,18 +208,12 @@ function do_step() {
         for output_dir in $output_dirs; do
             check_output_dir $(echo $output_dir | tr -d "'")
         done
-
     fi
 
 
     case $step_name in
          archive-dequeue-book)
             # LCOV_EXCL_START
-            ensure_arg S3_QUEUE
-            ensure_arg ARG_CODE_VERSION
-            check_input_dir IO_BOOK
-            check_output_dir IO_BOOK
-
             CONTENT_SOURCE=archive
 
             exec 2> >(tee $IO_BOOK/stderr >&2)
@@ -252,18 +246,11 @@ function do_step() {
         archive-fetch)
             parse_book_dir
 
-            # Validate inputs
-            ensure_arg ARG_COLLECTION_ID
-            ensure_arg ARG_COLLECTION_VERSION
-            ensure_arg ARG_ARCHIVE_SERVER
-            check_output_dir IO_ARCHIVE_FETCHED
-
             # https://github.com/openstax/output-producer-service/blob/master/bakery/src/tasks/fetch-book.js#L38
             temp_dir=$(mktemp -d)
             yes | try neb get -r -d "${temp_dir}/does-not-exist-yet-dir" "$ARG_ARCHIVE_SERVER" "$ARG_COLLECTION_ID" "$ARG_COLLECTION_VERSION"
 
             try mv $temp_dir/does-not-exist-yet-dir/* $IO_ARCHIVE_FETCHED
-
         ;;
         archive-fetch-metadata)
             book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
@@ -290,9 +277,6 @@ function do_step() {
         ;;
         archive-bake)
             parse_book_dir
-            # Validate commandline arguments
-            ensure_arg ARG_RECIPE_NAME
-
 
             try $RECIPES_ROOT/bake_root -b "${ARG_RECIPE_NAME}" -r $CNX_RECIPES_RECIPES_ROOT/ -i "${IO_ARCHIVE_BOOK}/collection.linked.xhtml" -o "${IO_ARCHIVE_BOOK}/collection.baked.xhtml"
             style_file="$CNX_RECIPES_STYLES_ROOT/${ARG_RECIPE_NAME}-pdf.css"
@@ -313,26 +297,15 @@ function do_step() {
         ;;
         archive-pdf)
             parse_book_dir
-            ensure_arg ARG_TARGET_PDF_FILENAME
-            check_input_dir IO_ARCHIVE_BOOK
-            check_output_dir IO_ARTIFACTS
-
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_ARCHIVE_BOOK}/collection.mathified.xhtml"
         ;;
         archive-pdf-metadata)
             parse_book_dir
-            ensure_arg CORGI_ARTIFACTS_S3_BUCKET
-            ensure_arg ARG_TARGET_PDF_FILENAME
-            check_output_dir IO_ARTIFACTS
-
             echo -n "https://$CORGI_ARTIFACTS_S3_BUCKET.s3.amazonaws.com/$ARG_TARGET_PDF_FILENAME" > $IO_ARTIFACTS/pdf_url
         ;;
 
         archive-bake-metadata)
             parse_book_dir
-            ensure_arg ARG_COLLECTION_ID
-            check_input_dir IO_ARCHIVE_FETCHED
-
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
             book_uuid="$(cat $book_metadata | jq -r '.id')"
             book_version="$(cat $book_metadata | jq -r '.version')"
@@ -360,10 +333,6 @@ function do_step() {
             try patch-same-book-links "$IO_ARCHIVE_BOOK" "$target_dir" "collection"
         ;;
         archive-jsonify)
-            check_input_dir IO_ARCHIVE_BOOK
-            check_output_dir IO_ARCHIVE_JSONIFIED
-            check_output_dir IO_ARTIFACTS
-
             target_dir="$IO_ARCHIVE_JSONIFIED"
             
             try mkdir -p $target_dir
@@ -380,16 +349,6 @@ function do_step() {
         archive-upload-book)
             # LCOV_EXCL_START
             parse_book_dir
-            ensure_arg ARG_S3_BUCKET_NAME
-            ensure_arg ARG_CODE_VERSION
-            ensure_arg AWS_ACCESS_KEY_ID
-            ensure_arg AWS_SECRET_ACCESS_KEY
-
-            check_input_dir IO_ARCHIVE_BOOK
-            check_input_dir IO_ARCHIVE_FETCHED
-            check_input_dir IO_ARCHIVE_JSONIFIED
-            check_output_dir IO_ARCHIVE_UPLOAD
-
             s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
             book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
@@ -421,13 +380,6 @@ function do_step() {
 
         archive-report-book-complete)
             # LCOV_EXCL_START
-            ensure_arg ARG_CODE_VERSION
-            ensure_arg WEB_QUEUE_STATE_S3_BUCKET
-
-            ensure_arg AWS_ACCESS_KEY_ID
-            ensure_arg AWS_SECRET_ACCESS_KEY
-            check_input_dir IO_BOOK
-
             CONTENT_SOURCE=archive
             bucketPrefix=archive-dist
             codeVersion=$ARG_CODE_VERSION
@@ -455,10 +407,6 @@ function do_step() {
         ;;
 
         archive-gdocify)
-            check_input_dir IO_ARCHIVE_BOOK
-            check_input_dir IO_ARCHIVE_FETCHED
-            check_output_dir IO_ARCHIVE_GDOCIFIED
-
             # This /content/ subdir is necessary so that gdocify can resolve the relative path to the resources (../resources/{sha})
             [[ -d $IO_ARCHIVE_GDOCIFIED/content ]] || mkdir $IO_ARCHIVE_GDOCIFIED/content
             try cp -R $IO_ARCHIVE_BOOK/resources $IO_ARCHIVE_GDOCIFIED/resources
@@ -471,9 +419,6 @@ function do_step() {
 
         archive-convert-docx)
             # LCOV_EXCL_START
-            check_input_dir IO_ARCHIVE_GDOCIFIED
-            check_output_dir IO_ARCHIVE_DOCX
-
             pushd $BAKERY_SCRIPTS_ROOT/scripts/
             try $BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
             popd
@@ -500,12 +445,6 @@ function do_step() {
 
         archive-upload-docx)
             # LCOV_EXCL_START
-            ensure_arg GOOGLE_SERVICE_ACCOUNT_CREDENTIALS
-            ensure_arg GDOC_GOOGLE_FOLDER_ID
-
-            check_input_dir IO_ARCHIVE_DOCX
-            check_input_dir IO_ARCHIVE_FETCHED
-
             set +x
             echo "$GOOGLE_SERVICE_ACCOUNT_CREDENTIALS" > /tmp/service_account_credentials.json
             # Secret credentials above, do not use set -x above this line.
@@ -519,49 +458,32 @@ function do_step() {
         ;;
         archive-notify-gdocs-done)
             # LCOV_EXCL_START
-            ensure_arg AWS_ACCESS_KEY_ID
-            ensure_arg AWS_SECRET_ACCESS_KEY
-            ensure_arg WEB_QUEUE_STATE_S3_BUCKET
-            ensure_arg ARG_CODE_VERSION
-
-            check_input_dir IO_BOOK
-
             statePrefix='gdoc'
-
             collection_id="$(cat $IO_BOOK/collection_id)"
             book_legacy_version="$(cat $IO_BOOK/version)"
             complete_filename=".${statePrefix}.$collection_id@$book_legacy_version.complete"
+
             try date -Iseconds > "/tmp/$complete_filename"
             try aws s3 cp "/tmp/$complete_filename" "s3://${WEB_QUEUE_STATE_S3_BUCKET}/${ARG_CODE_VERSION}/$complete_filename"
             # LCOV_EXCL_STOP
         ;;
         archive-validate-xhtml-mathified)
             # LCOV_EXCL_START
-            check_input_dir IO_ARCHIVE_BOOK
             do_xhtml_validate $IO_ARCHIVE_BOOK 'collection.mathified.xhtml' link-to-duplicate-id 
             # LCOV_EXCL_STOP
         ;;
         archive-validate-xhtml-jsonify)
-            check_input_dir IO_ARCHIVE_JSONIFIED
             do_xhtml_validate $IO_ARCHIVE_JSONIFIED "$IO_ARCHIVE_JSONIFIED/*@*.xhtml" duplicate-id 
         ;;
         git-validate-xhtml-mathified)
-            check_input_dir IO_MATHIFIED
             do_xhtml_validate $IO_MATHIFIED '*.mathified.xhtml' link-to-duplicate-id 
         ;;
         git-validate-xhtml-jsonify)
-            check_input_dir IO_JSONIFIED
             do_xhtml_validate $IO_JSONIFIED "*@*.xhtml" duplicate-id 
         ;;
 
         git-fetch)
             parse_book_dir
-            check_output_dir IO_FETCHED
-
-            ensure_arg ARG_REPO_NAME
-            ensure_arg ARG_GIT_REF
-            ensure_arg ARG_TARGET_SLUG_NAME
-
             [[ "${ARG_GIT_REF}" == latest ]] && ARG_GIT_REF=main
             [[ "${ARG_REPO_NAME}" == */* ]] || ARG_REPO_NAME="openstax/${ARG_REPO_NAME}"
 
@@ -574,7 +496,9 @@ function do_step() {
                 git config --global credential.helper "store --file=$creds_file"
                 mkdir "$creds_dir"
                 # Do not show creds
+                set +x
                 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+                [[ $TRACE_ON ]] && set -x
                 # LCOV_EXCL_STOP
             fi
 
@@ -607,11 +531,6 @@ function do_step() {
         ;;
 
         git-fetch-metadata)
-            check_input_dir IO_FETCHED
-            check_output_dir IO_FETCHED
-            check_output_dir IO_RESOURCES
-            check_output_dir IO_UNUSED_RESOURCES
-
             try cp -R "${IO_FETCHED}/." "${IO_FETCH_META}"
 
             # From https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
@@ -642,9 +561,6 @@ function do_step() {
         ;;
 
         git-assemble)
-            check_input_dir IO_FETCH_META
-            check_output_dir IO_ASSEMBLED
-            
             shopt -s globstar nullglob
             for collection in "${IO_FETCH_META}/collections/"*; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
@@ -663,9 +579,6 @@ function do_step() {
         ;;
 
         git-assemble-meta)
-            check_input_dir IO_ASSEMBLED
-            check_output_dir IO_ASSEMBLE_META
-
             shopt -s globstar nullglob
             # Create an empty map file for invoking assemble-meta
             echo "{}" > uuid-to-revised-map.json
@@ -682,10 +595,6 @@ function do_step() {
 
         git-bake)
             parse_book_dir
-            ensure_arg ARG_RECIPE_NAME
-            check_input_dir IO_ASSEMBLED
-            check_output_dir IO_BAKED
-
             # FIXME: We assume that every book in the group uses the same style
             # This assumption will not hold true forever, and book style + recipe name should
             # be pulled from fetched-book-group (while still allowing injection w/ CLI)
@@ -720,10 +629,6 @@ function do_step() {
         ;;
 
         git-bake-meta)
-            check_input_dir IO_ASSEMBLE_META
-            check_input_dir IO_BAKED
-            check_output_dir IO_BAKE_META
-
             shopt -s globstar nullglob
             for collection in "${IO_BAKED}/"*.baked.xhtml; do
                 slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
@@ -738,10 +643,6 @@ function do_step() {
 
         git-link)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir IO_BAKED
-            check_input_dir IO_BAKE_META
-            check_output_dir IO_LINKED
 
             if [[ -n "${ARG_OPT_ONLY_ONE_BOOK}" ]]; then
                 try link-single "${IO_BAKED}" "${IO_BAKE_META}" "${ARG_TARGET_SLUG_NAME}" "${IO_LINKED}/${ARG_TARGET_SLUG_NAME}.linked.xhtml" --mock-otherbook # LCOV_EXCL_LINE
@@ -752,19 +653,12 @@ function do_step() {
 
         git-disassemble)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir IO_LINKED
-            check_input_dir IO_BAKE_META
-            check_output_dir IO_DISASSEMBLED
 
             try disassemble "${IO_LINKED}/$ARG_TARGET_SLUG_NAME.linked.xhtml" "${IO_BAKE_META}/$ARG_TARGET_SLUG_NAME.baked-metadata.json" "$ARG_TARGET_SLUG_NAME" "${IO_DISASSEMBLED}"
         ;;
 
         git-patch-disassembled-links)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir IO_DISASSEMBLED
-            check_output_dir IO_DISASSEMBLE_LINKED
 
             try patch-same-book-links "${IO_DISASSEMBLED}" "${IO_DISASSEMBLE_LINKED}" "$ARG_TARGET_SLUG_NAME"
             try cp "${IO_DISASSEMBLED}"/*@*-metadata.json "${IO_DISASSEMBLE_LINKED}"
@@ -773,9 +667,6 @@ function do_step() {
 
         git-jsonify)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-            check_input_dir IO_DISASSEMBLE_LINKED
-            check_output_dir IO_JSONIFIED
 
             try jsonify "${IO_DISASSEMBLE_LINKED}" "${IO_JSONIFIED}"
             try jsonschema -i "${IO_JSONIFIED}/${ARG_TARGET_SLUG_NAME}.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
@@ -787,8 +678,6 @@ function do_step() {
 
         git-validate-xhtml)
             # LCOV_EXCL_START
-            check_input_dir IO_DISASSEMBLE_LINKED
-
             for xhtmlfile in $(find ${IO_DISASSEMBLE_LINKED} -name '*.xhtml')
             do
                 say "XHTML-validating ${xhtmlfile}"
@@ -798,11 +687,6 @@ function do_step() {
         ;;
         git-mathify)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-
-            check_input_dir IO_LINKED
-            check_input_dir IO_BAKED
-            check_output_dir IO_MATHIFIED
 
             # Style needed because mathjax will size converted math according to surrounding text
             try cp "${IO_BAKED}/the-style-pdf.css" "${IO_LINKED}"
@@ -811,40 +695,20 @@ function do_step() {
         ;;
         git-pdfify)
             parse_book_dir
-            ensure_arg ARG_TARGET_SLUG_NAME
-            ensure_arg ARG_TARGET_PDF_FILENAME
-
-            check_input_dir IO_MATHIFIED
-            check_output_dir IO_ARTIFACTS
 
             try prince -v --output="${IO_ARTIFACTS}/${ARG_TARGET_PDF_FILENAME}" "${IO_MATHIFIED}/${ARG_TARGET_SLUG_NAME}.mathified.xhtml"
         ;;
         git-pdfify-meta)
-            # LCOV_EXCL_START
             parse_book_dir
-
-            ensure_arg ARG_S3_BUCKET_NAME
-            ensure_arg ARG_TARGET_PDF_FILENAME
-            check_output_dir IO_ARTIFACTS
 
             pdf_url="https://${ARG_S3_BUCKET_NAME}.s3.amazonaws.com/${ARG_TARGET_PDF_FILENAME}"
             try echo -n "${pdf_url}" > "${IO_ARTIFACTS}/pdf_url"
 
             echo "DONE: See book at ${pdf_url}"
-            # LCOV_EXCL_STOP
         ;;
         git-upload-book)
             # LCOV_EXCL_START
             parse_book_dir
-            check_input_dir IO_JSONIFIED
-            check_input_dir IO_RESOURCES
-            check_output_dir IO_ARTIFACTS
-
-            ensure_arg ARG_S3_BUCKET_NAME
-            ensure_arg ARG_CODE_VERSION
-            ensure_arg ARG_TARGET_SLUG_NAME
-            ensure_arg AWS_ACCESS_KEY_ID
-            ensure_arg AWS_SECRET_ACCESS_KEY
 
             s3_bucket_prefix="apps/archive/${ARG_CODE_VERSION}"
 
@@ -877,8 +741,6 @@ function do_step() {
             # LCOV_EXCL_STOP
         ;;
         archive-validate-cnxml)
-            check_input_dir IO_ARCHIVE_FETCHED
-
             # Validate collections and modules without failing fast
             failure=false
 
