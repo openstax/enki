@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-# # Draw the dependency graph PNG files
 cd ./build-concourse/
 npm install
-npm run draw-graphs
 
 # Build concourse pipelines with dummy credentials just to make sure it runs
 CODE_VERSION=dummycodeversion \
@@ -23,3 +21,6 @@ if [[ $CI_TEST ]]; then
     git diff
     git diff-index --quiet HEAD
 fi
+
+# Draw the dependency graph PNG files (these will cause bit-jitter)
+npm run draw-graphs
