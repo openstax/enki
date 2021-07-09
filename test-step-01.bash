@@ -12,7 +12,3 @@ COVERAGE_DIR=./coverage
 [[ -d $COVERAGE_DIR ]] && rm -rf $COVERAGE_DIR
 
 mkdir -p $KCOV_COLLECTOR
-
-set +e
-KCOV_DIR=_kcov01 ./cli.sh $BOOK_DIR --help > /dev/null
-exit 0
