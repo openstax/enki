@@ -9,6 +9,4 @@ COVERAGE_DIR=./coverage
 [[ -d $SOCI_DIR ]] && rm -rf $SOCI_DIR
 [[ -d $COVERAGE_DIR ]] && rm -rf $COVERAGE_DIR
 
-set +e
 KCOV_DIR=_kcov01 ./cli.sh $BOOK_DIR --help > /dev/null
-exit 0 

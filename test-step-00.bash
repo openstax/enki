@@ -19,4 +19,7 @@ GOOGLE_SERVICE_ACCOUNT_CREDENTIALS=dummygoogle \
 npm run build-gdocs
 
 # Fail if anything is not committed
-[[ $CI_TEST ]] && git diff && git diff-index --quiet HEAD
+if [[ $CI_TEST ]]; then
+    git diff
+    git diff-index --quiet HEAD
+fi

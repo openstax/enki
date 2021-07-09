@@ -117,7 +117,8 @@ function do_step() {
         --help)
             steps=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
             pipelines=$(jq -r ".pipelines|keys" < $STEP_CONFIG_FILE)
-            die "Valid arguments are:\n$steps\n$pipelines"
+            say "Valid arguments are:\n$steps\n$pipelines"
+            return
         ;;
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
