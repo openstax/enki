@@ -3,7 +3,8 @@
     "build-gdocs": "ts-node ./build-gdocs.ts",
     "draw-graphs": "ts-node ./draw-graphs.ts",
     "start": "ts-node --transpile-only ./build-json.ts && ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts",
-    "test": "npm start && npm run build-gdocs"
+    "test": "npm start && npm run build-gdocs && npm run draw-graphs",
+    "coverage": "nyc npm run test"
   },
   "dependencies": {
     "@ts-graphviz/node": "^0.4.0",
@@ -13,5 +14,8 @@
     "ts-graphviz": "^0.15.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
+  },
+  "devDependencies": {
+    "nyc": "^15.1.0"
   }
 }

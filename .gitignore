@@ -3,6 +3,8 @@
 
 node_modules/
 
+build-concourse/.nyc_output/
+
 build-concourse/gdocs-*.yml
 build-concourse/webhosting-*.yml
 build-concourse/corgi-*.yml

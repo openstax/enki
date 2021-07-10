@@ -169,24 +169,20 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [x] combine gitTaskMaker and archiveTaskMaker into one generic taskMaker since the shell script will be tiny
 - [x] add google docs pipeline-generation
 - [x] auto-build a dependency graph image for documentation [./build-concourse/graphs/](./build-concourse/graphs/)
-- [ ] auto-build the bash script
+- [x] auto-build the bash script
+- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/book-pipeline/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
+- [x] move all the steps into a JSON file so it can be parsed in node and bash
+- [x] move the bash code for each step into a separate bash file and ensure codecov checks it
+- [x] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
+- [x] add code coverage for the TypeScript files
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
-- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/book-pipeline/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
-- [ ] move all the steps into a JSON file so it can be parsed in node and bash
-- [ ] move the bash code for each step into a separate bash file and ensure codecov checks it
-- [ ] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
-- [ ] add code coverage for the TypeScript files
-
-
-## Updates since I started
-
-- [ ] update XHTML validation so that it runs and prints all errors instead of just the first one. Triggered by talking about cnx#1575
 
 ## Future TODO work
 
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
-- [ ] Move everything out of the pipeline and into the image
+- [x] Move everything out of the pipeline and into the image
+- [ ] shellcheck the bash scripts
 - [ ] move pm2 into bakery-scripts/ instead of being installed globally in the Dockerfile
 - [ ] move auth secret rotation into this repo. See https://github.com/openstax/output-producer-service/pull/355
