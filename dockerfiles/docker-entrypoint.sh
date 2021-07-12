@@ -120,6 +120,10 @@ function do_step() {
             say "Valid arguments are:\n$steps\n$pipelines"
             return
         ;;
+        shell | '/bin/bash')
+            bash # LCOV_EXCL_LINE
+            return
+        ;;
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
@@ -214,9 +218,7 @@ function do_step() {
 
     step_file="$DOCKERFILES_ROOT/steps/$step_name.bash"
 
-    if [[ $step_name == 'shell' || $step_name == '/bin/bash' ]]; then
-        bash # LCOV_EXCL_LINE
-    elif [[ -f $step_file ]]; then
+    if [[ -f $step_file ]]; then
         source $step_file
     else
         die "Invalid command. The first argument needs to be a command like 'fetch'. Instead, it was '${step_name}'" # LCOV_EXCL_LINE

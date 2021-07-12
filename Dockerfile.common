@@ -26,8 +26,23 @@ RUN set -x \
     libxcb-dri3-0 libdrm2 libgbm1 \
     # ... for cnx-easybake:
     build-essential libicu-dev pkg-config python3-dev \
+    # ---------------------------
+    # Dependencies that are not needed to prepare
+    # the other steps but are necessary to run the code.
+    # ---------------------------
+    libdw-dev \
+    libxtst6 \
+    # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
+    xmlstarlet \
     ;
 
+# ---------------------------
+# Install Adobe color mapping files
+# ---------------------------
+RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccprofiles/win/AdobeICCProfilesCS4Win_end-user.zip \
+    && unzip -o -j "/tmp/AdobeICCProfiles.zip" "Adobe ICC Profiles (end-user)/CMYK/USWebCoatedSWOP.icc" -d /usr/share/color/icc/ \
+    && rm -f /tmp/AdobeICCProfiles.zip \
+    ;
 
 # ---------------------------
 # Install princexml
@@ -46,20 +61,22 @@ RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_
 ENV JQ_VERSION='1.6'
 ENV PANDOC_VERSION='2.11.3.2'
 
-RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key && \
-    wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc && \
-    wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 && \
-    gpg --import /tmp/jq-release.key && \
-    gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 && \
-    cp /tmp/jq-linux64 /usr/bin/jq && \
-    chmod +x /usr/bin/jq && \
-    rm -f /tmp/jq-release.key && \
-    rm -f /tmp/jq-linux64.asc && \
-    rm -f /tmp/jq-linux64
+RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key \
+    && wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc \
+    && wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 \
+    && gpg --import /tmp/jq-release.key \
+    && gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 \
+    && cp /tmp/jq-linux64 /usr/bin/jq \
+    && chmod +x /usr/bin/jq \
+    && rm -f /tmp/jq-release.key \
+    && rm -f /tmp/jq-linux64.asc \
+    && rm -f /tmp/jq-linux64 \
+    ;
 
-RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb && \
-    dpkg -i /tmp/pandoc.deb && \
-    rm -f /tmp/pandoc.deb
+RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb \
+    && dpkg -i /tmp/pandoc.deb \
+    && rm -f /tmp/pandoc.deb \
+    ;
 
 
 # Remove unnecessary apt and temp files
@@ -219,11 +236,12 @@ RUN apt-get update \
         zlib1g-dev \
         ;
 
-RUN mkdir /kcov-src/build && \
-    cd /kcov-src/build && \
-    cmake -G 'Ninja' .. && \
-    cmake --build . && \
-    cmake --build . --target install
+RUN mkdir /kcov-src/build \
+    && cd /kcov-src/build \
+    && cmake -G 'Ninja' .. \
+    && cmake --build . \
+    && cmake --build . --target install \
+    ;
 
 
 # ===========================
@@ -232,43 +250,17 @@ RUN mkdir /kcov-src/build && \
 FROM base as runner
 
 # ---------------------------
-# Install dependencies that
-# are not needed to prepare
-# the other steps but are
-# necessary to run the code.
-# ---------------------------
-RUN set -x \
-    ### Git ###
-    add-apt-repository -y ppa:git-core/ppa \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y \
-        git \
-        libdw-dev \
-        libxtst6 \
-        # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
-        xmlstarlet \
-        ;
-
-# ---------------------------
-# Install Adobe color mapping files
-# ---------------------------
-RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccprofiles/win/AdobeICCProfilesCS4Win_end-user.zip \
-    && unzip -o -j "/tmp/AdobeICCProfiles.zip" "Adobe ICC Profiles (end-user)/CMYK/USWebCoatedSWOP.icc" -d /usr/share/color/icc/ \
-    && rm -f /tmp/AdobeICCProfiles.zip \
-    ;
-
-
-# ---------------------------
 # Install recipes
 # ---------------------------
 
 COPY ./recipes/ $PROJECT_ROOT/recipes/
 WORKDIR $PROJECT_ROOT/recipes/
 
-RUN gem install bundler --no-document && \
-    gem install byebug --no-document && \
-    bundle config set no-cache 'true' && \
-    bundle config set silence_root_warning 'true'
+RUN gem install bundler --no-document \
+    && gem install byebug --no-document \
+    && bundle config set no-cache 'true' \
+    && bundle config set silence_root_warning 'true' \
+    ;
 
 RUN ./scripts/install_used_gem_versions
 
