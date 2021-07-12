@@ -183,6 +183,7 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 
 ## Future TODO work
 
+- [ ] shellcheck entrypoint bash scripts
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
 - [ ] move pm2 into bakery-scripts/ instead of being installed globally in the Dockerfile
