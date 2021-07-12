@@ -4,6 +4,7 @@ set -e
 SOCI_DIR=./data/test-soci
 
 xhtml_files_dir="$SOCI_DIR/gdocified/content"
+# shellcheck disable=SC2206
 files=($xhtml_files_dir/*.xhtml)
 keep_file="${files[0]}"
 

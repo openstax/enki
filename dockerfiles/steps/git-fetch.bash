@@ -25,16 +25,16 @@ if [[ ${ARG_GIT_REF} = @* ]]; then
     # LCOV_EXCL_START
     git_commit="${ARG_GIT_REF:1}"
     GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "${remote_url}" "${IO_FETCHED}"
-    pushd "${IO_FETCHED}"
+    try pushd "${IO_FETCHED}"
     try git reset --hard "${git_commit}"
     # If the commit was not recent, try cloning the whole repo
     if [[ $? != 0 ]]; then
-        popd
+        try popd
         GIT_TERMINAL_PROMPT=0 try git clone "${remote_url}" "${IO_FETCHED}"
-        pushd "${IO_FETCHED}"
+        try pushd "${IO_FETCHED}"
         try git reset --hard "${git_commit}"
     fi
-    popd
+    try popd
     # LCOV_EXCL_STOP
 else
     GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "${remote_url}" --branch "${ARG_GIT_REF}" "${IO_FETCHED}"

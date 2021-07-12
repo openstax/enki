@@ -175,6 +175,9 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [x] move the bash code for each step into a separate bash file and ensure codecov checks it
 - [x] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
 - [x] add code coverage for the TypeScript files
+- [x] Move everything out of the pipeline and into the image
+- [x] shellcheck the bash scripts (`shellcheck --severity=warning ./dockerfiles/steps/*`)
+- [ ] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 
@@ -182,7 +185,5 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 
 - [ ] Read book list from `META-INF/books.xml` instead of `ls *.collection.xml` using xmlstarlet
 - [ ] Consistent if;then, quotes (or not) around variables, and curly braces around variables
-- [x] Move everything out of the pipeline and into the image
-- [ ] shellcheck the bash scripts
 - [ ] move pm2 into bakery-scripts/ instead of being installed globally in the Dockerfile
 - [ ] move auth secret rotation into this repo. See https://github.com/openstax/output-producer-service/pull/355

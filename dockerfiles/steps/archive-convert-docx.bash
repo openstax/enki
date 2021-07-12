@@ -1,12 +1,12 @@
 # LCOV_EXCL_START
-pushd $BAKERY_SCRIPTS_ROOT/scripts/
+try pushd $BAKERY_SCRIPTS_ROOT/scripts/
 try $BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000 &
-popd
+try popd
 try cp -r $IO_ARCHIVE_GDOCIFIED/. $IO_ARCHIVE_DOCX
 book_dir="$IO_ARCHIVE_DOCX/content"
 target_dir="$IO_ARCHIVE_DOCX/docx"
 try mkdir -p "$target_dir"
-cd "$book_dir"
+try cd "$book_dir"
 for xhtmlfile in ./*@*.xhtml; do
     xhtmlfile_basename=$(basename "$xhtmlfile")
     metadata_filename="${xhtmlfile_basename%.*}"-metadata.json

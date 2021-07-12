@@ -8,7 +8,7 @@ if [ ! -f $IO_FETCH_META/canonical.json ]; then
     # Write the $IO_FETCH_META/canonical.json file out
     [[ ! -f $IO_FETCH_META/canonical-temp.txt ]] || try rm $IO_FETCH_META/canonical-temp.txt
     try echo '[' > $IO_FETCH_META/canonical.json
-    while read slug collid; do
+    while read slug; do
         try echo "    \"${slug}\"" >> $IO_FETCH_META/canonical-temp.txt
     done < $IO_FETCH_META/archive-syncfile # LCOV_EXCL_LINE
     # Add a comma to every line except the last line https://stackoverflow.com/a/35021663
@@ -20,7 +20,6 @@ fi
 
 try fetch-update-meta "${IO_FETCH_META}/.git" "${IO_FETCH_META}/modules" "${IO_FETCH_META}/collections" "${ARG_GIT_REF}" "${IO_FETCH_META}/canonical.json"
 try rm -rf "${IO_FETCH_META}/.git"
-try rm -rf "$creds_dir"
 
 try fetch-map-resources "${IO_FETCH_META}/modules" "${IO_FETCH_META}/media" . "${IO_UNUSED_RESOURCES}"
 # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
