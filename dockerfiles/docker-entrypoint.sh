@@ -26,15 +26,17 @@ die() {
 }
 try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
+[[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
+
 STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-/step-config.json}
 DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
-BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-/openstax/bakery-scripts}
-PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-/openstax/venv}
-RECIPES_ROOT=${RECIPES_ROOT:-/openstax/recipes}
-MATHIFY_ROOT=${MATHIFY_ROOT:-/openstax/mathify}
-CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-/openstax/cnx-recipes-recipes-output}
-CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-/openstax/cnx-recipes-styles-output}
-XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-/openstax/xhtml-validator}
+BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/bakery-scripts}
+PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
+RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/recipes}
+MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
+CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes-recipes-output}
+CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes-styles-output}
+XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator}
 
 source $PYTHON_VENV_ROOT/bin/activate
 

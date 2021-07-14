@@ -9,7 +9,6 @@ FROM buildpack-deps:focal as base
 # ---------------------------
 
 RUN set -x \
-    # && echo deb http://archive.ubuntu.com/ubuntu universe multiverse >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
     # ... for princexml:
@@ -121,8 +120,9 @@ RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh |
 
 ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 
-
-ENV PROJECT_ROOT=/openstax
+# Use this so that gitpod directories are the same.
+# TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
+ENV PROJECT_ROOT=/workspace/book-pipeline
 
 # -----------------------
 # Create Virtualenv
@@ -254,15 +254,15 @@ FROM base as runner
 # ---------------------------
 
 COPY ./recipes/ $PROJECT_ROOT/recipes/
-WORKDIR $PROJECT_ROOT/recipes/
 
-RUN gem install bundler --no-document \
+RUN cd $PROJECT_ROOT/recipes/ \
+    && gem install bundler --no-document \
     && gem install byebug --no-document \
     && bundle config set no-cache 'true' \
     && bundle config set silence_root_warning 'true' \
     ;
 
-RUN ./scripts/install_used_gem_versions
+RUN $PROJECT_ROOT/recipes/scripts/install_used_gem_versions
 
 
 # ---------------------------
