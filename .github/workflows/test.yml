@@ -11,8 +11,15 @@ jobs:
   
     steps:
       - uses: actions/checkout@v2
+      # Agressive cache invalidation: https://github.com/satackey/action-docker-layer-caching/issues/55
+      - run: echo "WEEK=$(date +%U)" >> $GITHUB_ENV
       - uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
         continue-on-error: true
+        with:
+          key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
+          restore-keys: |
+            ${{ github.workflow }}-${{ env.WEEK }}-
       - name: Install graphviz and dot
         run: sudo apt-get install graphviz
       - name: Install submodules
