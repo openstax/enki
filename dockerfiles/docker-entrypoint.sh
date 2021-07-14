@@ -122,9 +122,9 @@ function do_step() {
             say "Valid arguments are:\n$steps\n$pipelines"
             return
         ;;
-        shell | '/bin/bash')
+        shell | '/bin/bash' | '/bin/sh')
             bash # LCOV_EXCL_LINE
-            return
+            return # LCOV_EXCL_LINE
         ;;
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
