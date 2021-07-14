@@ -30,6 +30,3 @@ echo "DONE: Open $COVERAGE_DIR/index.html in a browser to see the code coverage.
 
 # Upload to codecov only if running inside CI
 [[ $CI || $CODECOV_TOKEN ]] && bash <(curl -s https://codecov.io/bash) -s $COVERAGE_DIR
-
-# Lint the bash scripts
-shellcheck --severity=warning ./dockerfiles/steps/*

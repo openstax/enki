@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
 
-cd $BAKERY_SRC_ROOT
-source $PROJECT_ROOT/venv/bin/activate && pip3 install -r scripts/requirements.txt
+# shellcheck disable=SC1090
+source $PROJECT_ROOT/venv/bin/activate
+
+pip3 install -r $BAKERY_SRC_ROOT/scripts/requirements.txt

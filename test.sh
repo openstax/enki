@@ -10,3 +10,4 @@ TRACE_ON=$TRACE_ON ./test-step-05.bash
 TRACE_ON=$TRACE_ON ./test-step-06.bash
 TRACE_ON=$TRACE_ON ./test-step-07.bash
 TRACE_ON=$TRACE_ON ./test-step-08.bash
+TRACE_ON=$TRACE_ON ./test-step-09.bash
