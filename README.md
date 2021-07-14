@@ -182,6 +182,7 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
+- [ ] remove virtualenv and install python packages to the system (unless it's bad practice)
 
 ## Future TODO work
 

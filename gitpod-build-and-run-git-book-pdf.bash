@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if [[ ! $GITPOD_HOST && ! $VIRTUAL_ENV ]]; then
+    echo -e 'Not running in a virtual environment or inside gitpod. This script will install python packages globally so exiting just to be safe.'
+    exit 1
+fi
+
 # This is essentially each step in the Dockerfile.common but without the COPY lines.
 
 
