@@ -14,7 +14,7 @@ if [[ -f "$style_file" ]]
     then
         try cp "$style_file" "${IO_BAKED}/the-style-pdf.css"
     else
-        echo "Warning: Style Not Found" > "${IO_BAKED}/stderr" # LCOV_EXCL_LINE
+        die "Warning: Style Not Found in '$style_file'" # LCOV_EXCL_LINE
 fi
 
 shopt -s globstar nullglob

@@ -26,6 +26,8 @@ The code is organized as follows:
 
 This uses a little wrapper to hide all the docker commands.
 
+**Note:** If you are running this inside gitpod then you can replace `./cli.sh ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh`
+
 ```sh
 # All-in-one Git-based books
 #  CLI   tempdir          command     repo_name/book_slug               recipe    gitref
@@ -177,7 +179,7 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [x] add code coverage for the TypeScript files
 - [x] Move everything out of the pipeline and into the image
 - [x] shellcheck the bash scripts (`shellcheck --severity=warning ./dockerfiles/steps/*`)
-- [ ] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
+- [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 

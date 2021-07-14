@@ -16,8 +16,8 @@ for xhtmlfile in ./*@*.xhtml; do
     wrapped_tempfile="${xhtmlfile}.greybox.tmp"
     
     say "Converting to docx: $xhtmlfile_basename"
-    try xsltproc --output "$wrapped_tempfile" $BAKERY_SCRIPTS_ROOT/gdoc/wrap-in-greybox.xsl "$mathmltable_tempfile"
-    try pandoc --reference-doc="$BAKERY_SCRIPTS_ROOT/gdoc/custom-reference.docx" --from=html --to=docx --output="../../../$target_dir/$docx_filename" "$wrapped_tempfile"
+    try xsltproc --output "$wrapped_tempfile" $BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl "$mathmltable_tempfile"
+    try pandoc --reference-doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="../../../$target_dir/$docx_filename" "$wrapped_tempfile"
 done
 try $BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2 stop mml2svg2png-json-rpc
 # LCOV_EXCL_STOP

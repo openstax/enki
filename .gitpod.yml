@@ -1,2 +1,4 @@
 image:
   file: Dockerfile.common
+tasks:
+  - command: ./gitpod-build-and-run-git-book-pdf.bash

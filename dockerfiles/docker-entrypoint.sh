@@ -30,13 +30,13 @@ try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
 
 STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-/step-config.json}
 DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
-BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/bakery-scripts}
+BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/output-producer-service/bakery/src}
 PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
 RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/recipes}
 MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
-CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes-recipes-output}
-CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes-styles-output}
-XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator}
+CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes/recipes/output}
+CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes/styles/output}
+XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build/libs}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -63,7 +63,7 @@ function check_output_dir() {
     dir_name="${!pointer}"
     [[ $dir_name ]] || die "This output directory name is not set ($1='$dir_name')"
     # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
-    if [[ $dir_name =~ ^\/data && ! -d $dir_name ]]; then
+    if [[ $dir_name =~ \/data\/ && ! -d $dir_name ]]; then
         try mkdir -p $dir_name
     fi
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"

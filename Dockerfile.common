@@ -111,12 +111,10 @@ ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-$
 
 # Source: https://github.com/gitpod-io/workspace-images/blob/master/full/Dockerfile#L139
 ENV NODE_VERSION=14.16.1
-RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | PROFILE=/dev/null bash \
-    && bash -c ". $HOME/.nvm/nvm.sh \
-        && nvm install $NODE_VERSION \
-        && nvm alias default $NODE_VERSION \
-        && npm install -g typescript yarn node-gyp"
-    # && echo ". ~/.nvm/nvm-lazy.sh"  >> /home/gitpod/.bashrc.d/50-node
+
+COPY                ./dockerfiles/build/build-system-node.env \
+        $PROJECT_ROOT/dockerfiles/build/build-system-node.env
+RUN .   $PROJECT_ROOT/dockerfiles/build/build-system-node.env
 
 ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 
@@ -128,9 +126,9 @@ ENV PROJECT_ROOT=/workspace/book-pipeline
 # Create Virtualenv
 # -----------------------
 
-RUN python3 -m venv $PROJECT_ROOT/venv && \
-  . $PROJECT_ROOT/venv/bin/activate && \
-  pip3 install --no-cache-dir -U 'pip<20'
+COPY            ./dockerfiles/build/build-system-venv.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
 
 
 # ---------------------------
@@ -140,10 +138,12 @@ RUN python3 -m venv $PROJECT_ROOT/venv && \
 FROM base as build-mathify-stage
 
 COPY ./mathify/package.json ./mathify/package-lock.json $PROJECT_ROOT/mathify/
-WORKDIR $PROJECT_ROOT/mathify/
-RUN npm ci
-COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 
+COPY            ./dockerfiles/build/build-stage-mathify.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
+
+COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 
 # ===========================
 # Install Python Packages
@@ -157,11 +157,16 @@ FROM base AS build-python-stage
 # ---------------------------
 
 COPY ./cnx-easybake/requirements/main.txt $PROJECT_ROOT/cnx-easybake/requirements/
-WORKDIR $PROJECT_ROOT/cnx-easybake/
-RUN . $PROJECT_ROOT/venv/bin/activate && python3 -m pip install -r requirements/main.txt
+
+COPY            ./dockerfiles/build/build-stage-easybake-3rdparty.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-3rdparty.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-3rdparty.bash
 
 COPY ./cnx-easybake/ $PROJECT_ROOT/cnx-easybake/
-RUN . $PROJECT_ROOT/venv/bin/activate && python3 -m pip install "."
+
+COPY            ./dockerfiles/build/build-stage-easybake-install.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-install.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-install.bash
 
 
 # ---------------------------
@@ -169,39 +174,37 @@ RUN . $PROJECT_ROOT/venv/bin/activate && python3 -m pip install "."
 # ---------------------------
 
 COPY ./nebuchadnezzar/requirements $PROJECT_ROOT/nebuchadnezzar/requirements
-WORKDIR $PROJECT_ROOT/nebuchadnezzar/
-# Install Python Dependencies
-RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
-    && pip3 install -U setuptools wheel \
-    && pip3 install -r ./requirements/main.txt
+
+COPY            ./dockerfiles/build/build-stage-neb-3rdparty.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
 
 COPY ./nebuchadnezzar/ $PROJECT_ROOT/nebuchadnezzar/
 
-# Install neb
-RUN . $PROJECT_ROOT/venv/bin/activate \
-    && pip3 install .
+COPY            ./dockerfiles/build/build-stage-neb-install.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
 
 
 # -----------------------
 # Install bakery-scripts
 # -----------------------
 
-ENV BAKERY_SCRIPTS_ROOT=./output-producer-service/bakery/src/scripts
+ENV HOST_BAKERY_SRC_ROOT=./output-producer-service/bakery/src
+ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/output-producer-service/bakery/src
 
-COPY $BAKERY_SCRIPTS_ROOT/requirements.txt $PROJECT_ROOT/bakery-scripts/scripts/
-WORKDIR $PROJECT_ROOT/bakery-scripts/
+COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $BAKERY_SRC_ROOT/scripts/
 
-RUN . $PROJECT_ROOT/venv/bin/activate && pip3 install -r scripts/requirements.txt
+COPY            ./dockerfiles/build/build-stage-bakery-3rdparty.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
 
-COPY $BAKERY_SCRIPTS_ROOT/*.py $BAKERY_SCRIPTS_ROOT/*.js $BAKERY_SCRIPTS_ROOT/*.json $PROJECT_ROOT/bakery-scripts/scripts/
-COPY $BAKERY_SCRIPTS_ROOT/gdoc/ $PROJECT_ROOT/bakery-scripts/gdoc/
+COPY $HOST_BAKERY_SRC_ROOT/scripts/*.py $HOST_BAKERY_SRC_ROOT/scripts/*.js $HOST_BAKERY_SRC_ROOT/scripts/*.json $BAKERY_SRC_ROOT/scripts/
+COPY $HOST_BAKERY_SRC_ROOT/scripts/gdoc/ $BAKERY_SRC_ROOT/scripts/gdoc/
 
-RUN . $PROJECT_ROOT/venv/bin/activate && pip3 install $PROJECT_ROOT/bakery-scripts/scripts/.
-RUN npm --prefix $PROJECT_ROOT/bakery-scripts/scripts install --production $PROJECT_ROOT/bakery-scripts/scripts
-
-# TODO: Move this into bakery-scripts/scripts/package.json
-RUN npm --prefix $PROJECT_ROOT/bakery-scripts/scripts install pm2@4.5.0
+COPY            ./dockerfiles/build/build-stage-bakery-install.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-install.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-install.bash
 
 
 # ---------------------------
@@ -209,10 +212,10 @@ RUN npm --prefix $PROJECT_ROOT/bakery-scripts/scripts install pm2@4.5.0
 # ---------------------------
 FROM base AS build-xhtml-validator-stage
 COPY ./xhtml-validator/ $PROJECT_ROOT/xhtml-validator/
-WORKDIR $PROJECT_ROOT/xhtml-validator
 
-RUN ./gradlew jar
-# FROM validator/validator:20.3.16
+COPY            ./dockerfiles/build/build-stage-xhtmlvalidator.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-xhtmlvalidator.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-xhtmlvalidator.sh
 
 
 # ---------------------------
@@ -255,14 +258,9 @@ FROM base as runner
 
 COPY ./recipes/ $PROJECT_ROOT/recipes/
 
-RUN cd $PROJECT_ROOT/recipes/ \
-    && gem install bundler --no-document \
-    && gem install byebug --no-document \
-    && bundle config set no-cache 'true' \
-    && bundle config set silence_root_warning 'true' \
-    ;
-
-RUN $PROJECT_ROOT/recipes/scripts/install_used_gem_versions
+COPY            ./dockerfiles/build/build-stage-recipes.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
 
 
 # ---------------------------
@@ -292,18 +290,22 @@ COPY --from=base-scratch / /
 # ---------------------------
 # Copy the stages over
 # ---------------------------
+
+# This variable is JUST used for the COPY instructions below
+ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/output-producer-service/bakery/src
+
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
-COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/
+COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar
 COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ $PROJECT_ROOT/mathify/
-COPY --from=build-python-stage $PROJECT_ROOT/bakery-scripts/scripts $PROJECT_ROOT/bakery-scripts/scripts
-COPY --from=build-python-stage $PROJECT_ROOT/bakery-scripts/gdoc $PROJECT_ROOT/bakery-scripts/gdoc
+COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
+COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc
 COPY --from=build-python-stage $PROJECT_ROOT/venv/ $PROJECT_ROOT/venv/
 
 # Copy cnx-recipes styles
-COPY ./cnx-recipes/recipes/output/ $PROJECT_ROOT/cnx-recipes-recipes-output/
-COPY ./cnx-recipes/styles/output/ $PROJECT_ROOT/cnx-recipes-styles-output/
+COPY ./cnx-recipes/recipes/output/ $PROJECT_ROOT/cnx-recipes/recipes/output/
+COPY ./cnx-recipes/styles/output/ $PROJECT_ROOT/cnx-recipes/styles/output/
 
 
 ENV PATH=$PATH:/dockerfiles/

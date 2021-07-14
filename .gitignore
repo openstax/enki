@@ -8,3 +8,7 @@ build-concourse/.nyc_output/
 build-concourse/gdocs-*.yml
 build-concourse/webhosting-*.yml
 build-concourse/corgi-*.yml
+
+
+# Files generated inside the container and therefore need to be ignored when opened inside Gitpod
+/venv/
