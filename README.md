@@ -1,5 +1,7 @@
 # About
 
+[![Codecov](https://img.shields.io/codecov/c/github/openstax/book-pipeline)](https://app.codecov.io/gh/openstax/book-pipeline) [![Gitpod](https://img.shields.io/badge/gitpod-ready%20to%20code-lightgrey)](https://gitpod.io/#https://github.com/openstax/book-pipeline)
+
 We build books in a pipeline of steps. These steps are written in different languages and sometimes run on a server and other times run locally.
 
 In order to support both use-cases, all the steps are included in one Docker container and parameters are specified as environment variables.
