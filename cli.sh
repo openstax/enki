@@ -43,7 +43,7 @@ fi
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
 [[ $CI_TEST ]] || INTERACTIVE='--interactive'
-[[ $CI_TEST ]] || ENABLE_TTY='--tty'
+[[ $CI_TEST ]] || [ -t 0 ] && ENABLE_TTY='--tty' # https://serverfault.com/a/753459
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
