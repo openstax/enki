@@ -7,6 +7,7 @@ set -e
 # Trace if TRACE_ON is set
 [[ ${TRACE_ON} ]] && set -x
 
+my_dirname="$(cd $(dirname "$0"); pwd)"
 image_name=my_image
 local_dir=$1
 
@@ -48,10 +49,10 @@ fi
 [[ -d ${local_dir} ]] || mkdir -p "${local_dir}"
 
 [[ $SKIP_DOCKER_BUILD ]] || {
-    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file ./Dockerfile .
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag ${image_name} --file $my_dirname/Dockerfile $my_dirname/.
 }
 docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
-    --env-file cli.env \
+    --env-file $my_dirname/cli.env \
     --env KCOV_DIR \
     --env GH_SECRET_CREDS \
     --env AWS_ACCESS_KEY_ID \

@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e
+[[ $0 != "-bash" ]] && cd "$(dirname "$0")"
+[[ ${TRACE_ON} ]] && set -x
 
-DATA_ROOT=./data
-BOOK_DIR_NAME=./test-book
-SOCI_DIR_NAME=./test-soci
-COVERAGE_DIR=./coverage
+DATA_ROOT=../data
+BOOK_DIR_NAME=../test-book
+SOCI_DIR_NAME=../test-soci
+COVERAGE_DIR=../coverage
 
 # Merge all the kcov reports into one
 SKIP_DOCKER_BUILD=1 \
 __CI_KCOV_MERGE_ALL__=1 \
-./cli.sh $DATA_ROOT ./kcov-destination \
+../cli.sh $DATA_ROOT ../kcov-destination \
     $BOOK_DIR_NAME/_kcov01 \
     $BOOK_DIR_NAME/_kcov02-a \
     $BOOK_DIR_NAME/_kcov02-b \

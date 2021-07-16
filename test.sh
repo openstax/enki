@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+cd "$(dirname "$0")"
 
 # Generate the Dockerfile out of multiple parts for the CLI (as opposed to the gitpod contianer)
 # Used to use https://github.com/edrevo/dockerfile-plus but that was caching the included file
@@ -13,17 +14,17 @@ echo '\n# vvvvvvvvvvv Dockerfile.cli-endmatter vvvvvvvvvvvv' >> Dockerfile
 cat Dockerfile.cli-endmatter >> Dockerfile
 
 # Verify the Dockerfile is committed into git
-if [ "$CI_TEST" -eq 'true' ]; then
+if [ -n "$CI_TEST" ]; then
     git diff-index --quiet HEAD
 fi
 
-TRACE_ON=$TRACE_ON ./test-step-00.bash
-TRACE_ON=$TRACE_ON ./test-step-01.bash
-TRACE_ON=$TRACE_ON ./test-step-02.bash
-TRACE_ON=$TRACE_ON ./test-step-03.bash
-TRACE_ON=$TRACE_ON ./test-step-04.bash
-TRACE_ON=$TRACE_ON ./test-step-05.bash
-TRACE_ON=$TRACE_ON ./test-step-06.bash
-TRACE_ON=$TRACE_ON ./test-step-07.bash
-TRACE_ON=$TRACE_ON ./test-step-08.bash
-TRACE_ON=$TRACE_ON ./test-step-09.bash
+TRACE_ON=$TRACE_ON ./test/test-step-00.bash
+TRACE_ON=$TRACE_ON ./test/test-step-01.bash
+TRACE_ON=$TRACE_ON ./test/test-step-02.bash
+TRACE_ON=$TRACE_ON ./test/test-step-03.bash
+TRACE_ON=$TRACE_ON ./test/test-step-04.bash
+TRACE_ON=$TRACE_ON ./test/test-step-05.bash
+TRACE_ON=$TRACE_ON ./test/test-step-06.bash
+TRACE_ON=$TRACE_ON ./test/test-step-07.bash
+TRACE_ON=$TRACE_ON ./test/test-step-08.bash
+TRACE_ON=$TRACE_ON ./test/test-step-09.bash
