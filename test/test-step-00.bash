@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
-[[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 [[ ${TRACE_ON} ]] && set -x
+[[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 cd ../build-concourse/
 npm install
