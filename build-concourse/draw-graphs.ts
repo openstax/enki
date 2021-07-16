@@ -7,11 +7,14 @@ const DIRS_TO_SKIP = new Set()
 DIRS_TO_SKIP.add('book')
 
 function ensure<T>(v: T | undefined | null, message?: string) {
+    /* istanbul ignore if */
     if (!message) message = `BUG: value was expected to be truthy but instead was ${v}`
+    /* istanbul ignore else */
     if (v) {
         return v
+    } else {
+        throw new Error(message)
     }
-    throw new Error(message)
 }
 
 type Edge = {

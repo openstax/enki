@@ -4,7 +4,8 @@
     "draw-graphs": "ts-node ./draw-graphs.ts",
     "start": "ts-node --transpile-only ./build-json.ts && ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts",
     "test": "npm start && npm run build-gdocs && npm run draw-graphs",
-    "coverage": "nyc npm run test"
+    "coverage": "nyc npm run test",
+    "postcoverage": "nyc report --reporter html --report-dir ../coverage/"
   },
   "dependencies": {
     "@ts-graphviz/node": "^0.4.0",

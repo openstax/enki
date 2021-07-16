@@ -14,4 +14,5 @@ GOOGLE_SERVICE_ACCOUNT_CREDENTIALS=dummygoogle \
 npm --prefix ../build-concourse/ run coverage
 
 # Move so codecov finds it
+[[ -d ../.nyc_output ]] && rm -rf ../.nyc_output
 mv ../build-concourse/.nyc_output ../

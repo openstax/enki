@@ -119,6 +119,7 @@ export type TaskNode = {
 }
 
 export const expect = <T>(v: T | null | undefined, message: string = 'BUG/ERROR: This value is expected to exist'): T => {
+    /* istanbul ignore if */
     if (v == null) {
         throw new Error(message)
     }
@@ -134,7 +135,9 @@ export const populateEnv = (env: KeyValue, envKeys: Env) => {
         const value = envKeys[key]
         if (value === true) {
             ret[key] = expect(env[key], `Expected environment variable '${key}' to be set but it was not.`)
-        } else if (value === false) {
+        } else 
+        /* istanbul ignore else */
+        if (value === false) {
             ret[key] = env[key]
         } else if(typeof value === 'string') {
             ret[key] = value
@@ -155,6 +158,7 @@ function toDockerTag(codeVersion: string) {
     return codeVersion.startsWith(RANDOM_DEV_CODEVERSION_PREFIX) ? 'main' : codeVersion
 }
 export function toDockerSourceSection(env: KeyValue) {
+    /* istanbul ignore next */
     return {
         insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
         repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
@@ -280,18 +284,13 @@ type Settings = {
     isDev: boolean
 }
 
-export const expectEnv = (name: string) => {
-    if (process.env[name]) {
-        return process.env[name]
-    }
-    throw new Error(`Missing Environment variable: ${name}.`)
-}
 const rand = (len: number) => Math.random().toString().substr(2, len)
 export const randId = rand(7)
 export const RANDOM_DEV_CODEVERSION_PREFIX = 'random-dev-codeversion'
 
 function defaultEnv(env: KeyValue, key: string, optional?: boolean) {
     const v = process.env[key] || env[key]
+    /* istanbul ignore if */
     if (!v && !optional) {
         throw new Error(`ERROR: Missing environment variable: ${key}`)
     }

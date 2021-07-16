@@ -15,6 +15,7 @@ export type Step = {
 export const STEP_MAP = new Map<string, Step>()
 
 function get(stepName: string) {
+    /* istanbul ignore if */
     if (!STEP_MAP.has(stepName)) {
         throw new Error(`BUG: Missing step named '${stepName}'`)
     }
