@@ -182,6 +182,7 @@ This runs in Gitpod but still needs a little work. Ideally, editing the files or
 - [x] Move everything out of the pipeline and into the image
 - [x] shellcheck the bash scripts (`shellcheck --severity=warning ./dockerfiles/steps/*`)
 - [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
+- [ ] Update the readme to show where the magic files are and how they fit together
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [ ] remove virtualenv and install python packages to the system (unless it's bad practice)

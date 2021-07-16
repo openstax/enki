@@ -10,7 +10,7 @@ SOCI_DIR_NAME=./test-soci
 COVERAGE_DIR=../coverage
 
 # Merge all the kcov reports into one
-# SKIP_DOCKER_BUILD=1 \
+SKIP_DOCKER_BUILD=1 \
 __CI_KCOV_MERGE_ALL__=1 \
 ../cli.sh $DATA_ROOT ./kcov-destination \
     $BOOK_DIR_NAME/_kcov01 \
