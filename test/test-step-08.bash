@@ -32,4 +32,11 @@ echo ""
 echo "DONE: Open $COVERAGE_DIR/index.html in a browser to see the code coverage."
 
 # Upload to codecov only if running inside CI
-[[ $CI || $CODECOV_TOKEN ]] && bash <(curl -s https://codecov.io/bash) -s $COVERAGE_DIR
+if [[ $CI || $CODECOV_TOKEN ]]; then
+    cd ..
+    echo "Printing first few lines of coverage/lcov.info"
+    echo $(pwd)
+    head ./coverage/lcov.info
+    
+    bash <(curl -s https://codecov.io/bash) -s ./coverage
+fi
