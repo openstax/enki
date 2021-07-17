@@ -25,7 +25,7 @@ __CI_KCOV_MERGE_ALL__=1 \
     ;
 
 # Move coverage data out of the mounted volume the container used
-mkdir $COVERAGE_DIR
+[[ -d $COVERAGE_DIR ]] || mkdir $COVERAGE_DIR
 cp -R $DATA_ROOT/kcov-destination/* $COVERAGE_DIR
 
 echo ""
