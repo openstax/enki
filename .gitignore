@@ -1,7 +1,7 @@
 /coverage/
 /data/
 
-/.nyc_output/
+/build-concourse/.nyc_output/
 
 /build-concourse/node_modules/
 /build-concourse/gdocs-*.yml
