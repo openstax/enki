@@ -13,5 +13,15 @@ AWS_SECRET_ACCESS_KEY=dummyawssecret \
 GOOGLE_SERVICE_ACCOUNT_CREDENTIALS=dummygoogle \
 npm --prefix ../build-concourse/ run coverage
 
+
+echo "The current directory"
+echo $(pwd)
+ls .
+echo "and what is in the coverage directory:"
+ls ../coverage
+echo "Printing first few lines of coverage/lcov.info"
+head ../coverage/lcov.info
+
+
 # Make the LCOV file absolute so codecov understands it
 sed -i.bak "s@SF:@SF:$(cd ../build-concourse;pwd)/@" ../coverage/lcov.info
