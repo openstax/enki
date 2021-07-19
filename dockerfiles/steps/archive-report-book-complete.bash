@@ -1,7 +1,7 @@
 # LCOV_EXCL_START
 CONTENT_SOURCE=archive
 bucketPrefix=archive-dist
-codeVersion=$ARG_CODE_VERSION
+codeVersion=$CODE_VERSION
 queueStateBucket=$WEB_QUEUE_STATE_S3_BUCKET
 
 case $CONTENT_SOURCE in

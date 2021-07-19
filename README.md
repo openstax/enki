@@ -2,33 +2,31 @@
 
 [![Codecov](https://img.shields.io/codecov/c/github/openstax/book-pipeline)](https://app.codecov.io/gh/openstax/book-pipeline) [![Gitpod](https://img.shields.io/badge/gitpod-ready%20to%20code-lightgrey)](https://gitpod.io/#https://github.com/openstax/book-pipeline)
 
-We build books in a pipeline of steps. These steps are written in different languages and sometimes run on a server and other times run locally.
+We build books in a pipeline of steps. These steps are written in different languages and need to run on a server as well as locally for development.
+
+## Features:
+
+- Dependency Graph explicitly in code (concourse steps, local steps, and graphical documentation are all kept in sync)
+- Scripts for the build steps allows using a Dockerfile as well as rebuilding if code is updated by a developer (like if this repo is running as a container in Gitpod)
+- Integration tests and code coverage
 
 In order to support both use-cases, all the steps are included in one Docker container and parameters are specified as environment variables.
 
-Environment variables are used because each step may use different subsets of arguments and the author is not very familiar with parsing commandline arguments in bash.
-
-Additionally, intput/output directores for each step are specified as environment variables because local development does not need different directories but the production buils in concourse-CI use different input/output directories for each step.
+Input/output directores for each step are specified as environment variables because local development does not need different directories but the production buils in concourse-CI use different input/output directories for each step.
 
 The code is organized as follows:
 
-- [Dockerfile](./Dockerfile) contains a multi-stage build and builds all the code necessary to build a PDF or the webhosting JSON
-- [dockerfiles/docker-entrypoint.sh](./dockerfiles/docker-entrypoint.sh) contains the code for each step (e.g. fetch, assemble, bake, mathify) as well as convenience `all-*` steps which are only for local development
+- [Dockerfile](./Dockerfile) contains a multi-stage build and builds all the code necessary to build a PDF, webhosting JSON, or DOCX files ready to upload to Google Docs
+- [dockerfiles/steps/](./dockerfiles/steps/) contains the code for each step (e.g. fetch, assemble, bake, mathify) as well as convenience `all-*` steps which are only for local development
 - [cli.sh](./cli.sh) is the start for developers building books locally on their machine
-- [build-concourse/](./build-concourse/) contains scripts that generate Concourse pipeline YAML files which for each environment and pin the pipeline to a specific code version
-
-
-## Specific Use-cases
-
-- There is a [./cli.sh](./cli.sh) which is used to build books locally.
-- In [build-concourse/](./build-concourse/) running `npm start` will generate Concourse Pipeline YAML files for the different CORGI environments (production, staging, local) and different webhosting environments (production, sandbox, local).
+- [build-concourse/](./build-concourse/) contains scripts (`npm start`) that generate Concourse Pipeline YAML files for the different CORGI environments (production, staging, local) and different webhosting environments (production, sandbox, local).
 
 
 # Local Instructions
 
 This uses a little wrapper to hide all the docker commands.
 
-**Note:** If you are running this inside gitpod then you can replace `./cli.sh ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh`
+**Note:** If you are running this inside a container (like gitpod) then you can replace `./cli.sh ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh` (no data directory necessary, it will be `/data/`)
 
 ```sh
 # All-in-one Git-based books
@@ -44,6 +42,8 @@ This uses a little wrapper to hide all the docker commands.
 ./cli.sh ./data/socio/ all-archive-web col11407 sociology       latest
 ```
 
+## Google Docs
+
 To upload DOCX files to **Google Docs** follow the [instructions here](./google-docs.md). To build a Google Docs pipeline, run `npm run build-gdocs` in [./build-concourse/](./build-concourse/)
 
 
@@ -55,7 +55,7 @@ To upload DOCX files to **Google Docs** follow the [instructions here](./google-
 
 ## Run one step
 
-If you want to run a single step at a time specify it as the first argument.
+If you want to run a single step at a time specify it as the first argument. Later steps use files in the data directory to remember which book & version is being used.
 
 ```sh
 # Common steps
@@ -71,12 +71,12 @@ If you want to run a single step at a time specify it as the first argument.
 ./cli.sh ./data/socio/ archive-pdf
 
 # Concourse-only steps (AWS_ environemnt variables will likely need to be set)
-ARG_CODE_VERSION='main' \
+CODE_VERSION='main' \
 ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state \
 ./cli.sh ./data/socio/ archive-report-book-complete
 ```
 
-With the above command, docker will use the `$(pwd)/data/${TEMP_NAME}/` directory to read/write files during each step.
+With the above command, docker will use the `$(pwd)/data/...` directory to read/write files during each step.
 
 ## Run steps beginning with a step
 
@@ -100,7 +100,7 @@ When running locally the directories by default read/write to subdirectories of 
 
 ## Pipeline-specific Arguments
 
-- `ARG_CODE_VERSION`
+- `CODE_VERSION`
 - `ARG_S3_BUCKET_NAME`
 
 ## Job-specific Arguments

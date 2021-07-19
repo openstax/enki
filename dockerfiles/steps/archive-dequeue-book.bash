@@ -2,7 +2,7 @@
 CONTENT_SOURCE=archive
 
 exec 2> >(tee $IO_BOOK/stderr >&2)
-book="$S3_QUEUE/$ARG_CODE_VERSION.web-hosting-queue.json"
+book="$S3_QUEUE/$CODE_VERSION.web-hosting-queue.json"
 if [[ ! -s "$book" ]]; then
     echo "Book is empty"
     exit 1
