@@ -53,21 +53,20 @@ fi
 }
 docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "${local_dir}"/; pwd):/data/ \
     --env-file $my_dirname/cli.env \
-    --env KCOV_DIR \
+    --env TRACE_ON \
+    --env CODE_VERSION \
     --env GH_SECRET_CREDS \
     --env AWS_ACCESS_KEY_ID \
     --env AWS_SECRET_ACCESS_KEY \
     --env AWS_SESSION_TOKEN \
     --env GOOGLE_SERVICE_ACCOUNT_CREDENTIALS \
-    --env TRACE_ON \
     --env WEB_QUEUE_STATE_S3_BUCKET \
-    --env CODE_VERSION \
-    --env ARG_S3_BUCKET_NAME \
     --env S3_QUEUE \
     --env GDOC_GOOGLE_FOLDER_ID \
     --env CORGI_ARTIFACTS_S3_BUCKET \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
+    --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
     --rm ${image_name} "${@:2}" # Args after the 1st one
 
