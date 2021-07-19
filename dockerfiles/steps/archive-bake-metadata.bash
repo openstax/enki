@@ -1,5 +1,5 @@
 parse_book_dir
-book_metadata="${IO_ARCHIVE_FETCHED}/metadata.json"
+book_metadata="$IO_ARCHIVE_FETCHED/metadata.json"
 book_uuid="$(cat $book_metadata | jq -r '.id')"
 book_version="$(cat $book_metadata | jq -r '.version')"
 book_legacy_id="$(cat $book_metadata | jq -r '.legacy_id')"

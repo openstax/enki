@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-[[ ${TRACE_ON} ]] && set -x
+[[ $TRACE_ON ]] && set -x
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 BOOK_DIR=../data/test-book

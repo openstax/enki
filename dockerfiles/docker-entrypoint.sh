@@ -5,7 +5,7 @@
 set -e
 
 # Trace and log if TRACE_ON is set
-[[ ${TRACE_ON} ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+[[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
 if [[ $(tput colors) -ge 8 ]]; then
@@ -17,14 +17,14 @@ fi
 
 say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
-yell() { >&2 say "$0: ${c_red}$*${c_none}"; }
+yell() { >&2 say "$0: $c_red$*$c_none"; }
 die() {
     # LCOV_EXCL_START
     yell "$1"
     exit 112
     # LCOV_EXCL_STOP
 }
-try() { "$@" || die "${c_red}ERROR: could not run [$*]${c_none}" 112; }
+try() { "$@" || die "$c_redERROR: could not run [$*]$c_none" 112; }
 
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
@@ -223,7 +223,7 @@ function do_step() {
     if [[ -f $step_file ]]; then
         source $step_file
     else
-        die "Invalid command. The first argument needs to be a command like 'fetch'. Instead, it was '${step_name}'" # LCOV_EXCL_LINE
+        die "Invalid command. The first argument needs to be a command like 'fetch'. Instead, it was '$step_name'" # LCOV_EXCL_LINE
     fi
 }
 
@@ -235,7 +235,7 @@ function do_step_named() {
         say "==> Skipping $*"
     fi
     if [[ $STOP_AT_STEP == $step_name ]]; then
-        say "==> Done because STOP_AT_STEP='${STOP_AT_STEP}'"
+        say "==> Done because STOP_AT_STEP='$STOP_AT_STEP'"
         # Ensure no other steps run by setting START_AT_STEP to something invalid
         START_AT_STEP='__nonexistent_step__'
         exit 0

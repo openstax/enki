@@ -29,11 +29,11 @@ esac
 book_uuid=$(jq -r '.id' "$book_metadata")
 book_version=$(jq -r '.version' "$book_metadata")
 
-rex_archive_param="?archive=${CORGI_CLOUDFRONT_URL}/${PREVIEW_APP_URL_PREFIX}/${CODE_VERSION}"
+rex_archive_param="?archive=$CORGI_CLOUDFRONT_URL/$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
 first_page_slug=$(jq -r '.tree.contents[0].slug' "$book_metadata")
-rex_url="${REX_PREVIEW_URL}/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
-rex_prod_url="${REX_PROD_PREVIEW_URL}/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
+rex_url="$REX_PREVIEW_URL/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
+rex_prod_url="$REX_PROD_PREVIEW_URL/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
 
 jq \
     --arg rex_url $rex_url \

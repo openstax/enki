@@ -18,8 +18,8 @@ git)
 esac
             
 version="$(cat $IO_BOOK/version)"
-complete_filename=".${bucketPrefix}.$book_id@$version.complete"
+complete_filename=".$bucketPrefix.$book_id@$version.complete"
 try date -Iseconds > "/tmp/$complete_filename"
 
-try aws s3 cp "/tmp/$complete_filename" "s3://${queueStateBucket}/${codeVersion}/$complete_filename"
+try aws s3 cp "/tmp/$complete_filename" "s3://$queueStateBucket/$codeVersion/$complete_filename"
 # LCOV_EXCL_STOP

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-[[ ${TRACE_ON} ]] && set -x
+[[ $TRACE_ON ]] && set -x
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 # Use --prefix to keep the .nyc_output at the root for codecov

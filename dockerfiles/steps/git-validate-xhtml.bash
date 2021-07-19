@@ -1,7 +1,7 @@
 # LCOV_EXCL_START
 while IFS= read -r -d '' xhtmlfile
 do
-    say "XHTML-validating ${xhtmlfile}"
+    say "XHTML-validating $xhtmlfile"
     try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" duplicate-id broken-link
-done <   <(find ${IO_DISASSEMBLE_LINKED} -name '*.xhtml' -print0)
+done <   <(find $IO_DISASSEMBLE_LINKED -name '*.xhtml' -print0)
 # LCOV_EXCL_STOP
