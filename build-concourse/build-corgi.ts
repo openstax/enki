@@ -65,7 +65,7 @@ function makePipeline(env: KeyValue) {
 
     const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
-        const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
+        const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `PDF (${gitOrArchive})`, resource, {
             do: [
@@ -96,7 +96,7 @@ function makePipeline(env: KeyValue) {
 
     const buildArchiveOrGitWebJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
-        const lookupBookDef = buildLookUpBook(gitOrArchive, resource)
+        const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `Web Preview (${gitOrArchive})`, resource, {
             do: [

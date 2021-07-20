@@ -68,7 +68,7 @@ If you want to run a single step at a time specify it as the first argument. Lat
 ```sh
 # Common steps
 ./cli.sh ./data/socio/ local-create-book-directory col11407 sociology latest
-./cli.sh ./data/socio/ archive-look-up-book
+./cli.sh ./data/socio/ look-up-book
 ./cli.sh ./data/socio/ archive-fetch
 ./cli.sh ./data/socio/ archive-assemble
 ./cli.sh ./data/socio/ archive-link-extras
@@ -192,6 +192,7 @@ This repo can be used as the image in a gitpod environment. All of code to build
 - [x] shellcheck the bash scripts (`shellcheck --severity=warning ./dockerfiles/steps/*`)
 - [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
 - [x] Update the readme to show where the magic files are and how they fit together
+- [ ] lint TypeScript files
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [ ] remove virtualenv and install python packages to the system (unless it's bad practice)
