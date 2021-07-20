@@ -220,6 +220,7 @@
         },
         "git-validate-xhtml-mathified": {
             "inputDirs": [
+                "IO_BOOK",
                 "IO_MATHIFIED"
             ],
             "outputDirs": [],

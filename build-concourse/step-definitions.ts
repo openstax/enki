@@ -46,7 +46,7 @@ STEP_MAP.set('git-assemble', {name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_M
 STEP_MAP.set('git-assemble-meta', {name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake', {name: 'git-bake', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.BAKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake-meta', {name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
-STEP_MAP.set('git-validate-xhtml-mathified', {name: 'git-validate-xhtml-mathified', inputs: [IO.MATHIFIED], outputs: [], env: {}})
+STEP_MAP.set('git-validate-xhtml-mathified', {name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
 STEP_MAP.set('git-link', {name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META], outputs: [IO.LINKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-mathify', {name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-pdfify', {name: 'git-pdfify', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [IO.ARTIFACTS], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
