@@ -97,6 +97,7 @@ export enum IO {
     RESOURCES = 'resources',
     UNUSED_RESOURCES = 'unused-resources',
     ASSEMBLED = 'assembled', // 'assembled-book-group',
+    ZYBOOKS = 'zybooks',
     ASSEMBLE_META = 'assemble-meta', // 'assembled-metadata-group',
     BAKED = 'baked', // 'baked-book-group',
     BAKE_META = 'bake-meta', // 'baked-metadata-group',

@@ -187,10 +187,20 @@
             ],
             "requiredEnv": []
         },
-        "git-assemble-meta": {
+        "git-zybooks": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_ASSEMBLED"
+            ],
+            "outputDirs": [
+                "IO_ZYBOOKS"
+            ],
+            "requiredEnv": []
+        },
+        "git-assemble-meta": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ZYBOOKS"
             ],
             "outputDirs": [
                 "IO_ASSEMBLE_META"
@@ -420,6 +430,7 @@
             "git-fetch",
             "git-fetch-metadata",
             "git-assemble",
+            "git-zybooks",
             "git-assemble-meta",
             "git-bake",
             "git-bake-meta",
@@ -432,6 +443,7 @@
             "git-fetch",
             "git-fetch-metadata",
             "git-assemble",
+            "git-zybooks",
             "git-assemble-meta",
             "git-bake",
             "git-bake-meta",

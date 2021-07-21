@@ -43,7 +43,8 @@ STEP_MAP.set('git-fetch', {name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FE
 STEP_MAP.set('git-fetch-metadata', {name: 'git-fetch-metadata', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.RESOURCES, IO.UNUSED_RESOURCES], env: {}})
 STEP_MAP.set('git-validate-cnxml', {name: 'git-validate-cnxml', inputs: [IO.FETCHED], outputs: [], env: {}})
 STEP_MAP.set('git-assemble', {name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
-STEP_MAP.set('git-assemble-meta', {name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
+STEP_MAP.set('git-zybooks', {name: 'git-zybooks', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ZYBOOKS], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
+STEP_MAP.set('git-assemble-meta', {name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ZYBOOKS], outputs: [IO.ASSEMBLE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake', {name: 'git-bake', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.BAKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-bake-meta', {name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 STEP_MAP.set('git-validate-xhtml-mathified', {name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
@@ -97,6 +98,7 @@ export const CLI_GIT_PDF_STEPS = [
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
     get('git-assemble'),
+    get('git-zybooks'),
     get('git-assemble-meta'),
     get('git-bake'),
     get('git-bake-meta'),
@@ -115,6 +117,7 @@ export const CLI_GIT_WEB_STEPS = [
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
     get('git-assemble'),
+    get('git-zybooks'),
     get('git-assemble-meta'),
     get('git-bake'),
     get('git-bake-meta'),
