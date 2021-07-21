@@ -8,7 +8,7 @@ for collection in "$IO_FETCH_META/collections/"*; do
 
     try neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
-    try cp "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug_name.assembled.xhtml"
+    try cp "temp-assembly/collection.assembled.xhtml" "$IO_PRE_ZYBOOKS/$slug_name.assembled.xhtml"
     try rm -rf temp-assembly
     try rm "$IO_FETCH_META/modules/collection.xml"
 done

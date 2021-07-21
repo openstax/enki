@@ -183,17 +183,19 @@
                 "IO_FETCH_META"
             ],
             "outputDirs": [
-                "IO_ASSEMBLED"
+                "IO_PRE_ZYBOOKS"
             ],
             "requiredEnv": []
         },
         "git-zybooks": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_ASSEMBLED"
+                "IO_PRE_ZYBOOKS",
+                "IO_RESOURCES"
             ],
             "outputDirs": [
-                "IO_ZYBOOKS"
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
             ],
             "requiredEnv": [
                 "CODE_VERSION"
@@ -202,7 +204,7 @@
         "git-assemble-meta": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_ZYBOOKS"
+                "IO_ASSEMBLED"
             ],
             "outputDirs": [
                 "IO_ASSEMBLE_META"

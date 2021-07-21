@@ -49,7 +49,7 @@
                 </j:string>
             </j:map>
         </xsl:variable>
-        <xsl:message>Generating {$filename}</xsl:message>
+        <xsl:message>Generating zybooks JSON file: {$filename}</xsl:message>
         <xsl:result-document href="{$filename}">
             <xsl:value-of select="xml-to-json($json, map{'indent':true()})" />
         </xsl:result-document>
@@ -89,6 +89,10 @@
             <xsl:apply-templates select="node()"/>
         </pre>
     </xsl:template>
+
+    <!-- Discard these because they are stored in the JSON -->
+    <xsl:template match="*[@data-element-type='initial']"/>
+    <xsl:template match="*[@data-element-type='solution']"/>
 
     <!-- Identity Transform -->
     <xsl:template name="identity" match="@*|node()">
