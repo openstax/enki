@@ -197,9 +197,7 @@
                 "IO_ASSEMBLED",
                 "IO_RESOURCES"
             ],
-            "requiredEnv": [
-                "CODE_VERSION"
-            ]
+            "requiredEnv": []
         },
         "git-assemble-meta": {
             "inputDirs": [

@@ -8,6 +8,7 @@
 #
 # ./cli.sh data/tin-bk/ all-git-pdf philschatz/tiny-book/book-slug1 chemistry zybooks
 
+zybooks_xpath='//*[@data-interactive="coderunner-py"]'
 my_directory=/dockerfiles/steps
 
 shopt -s globstar nullglob
@@ -16,10 +17,18 @@ for collection in "$IO_PRE_ZYBOOKS/"*.assembled.xhtml; do
     if [[ -n "$ARG_OPT_ONLY_ONE_BOOK" ]]; then
         [[ "$slug_name" != "$ARG_OPT_ONLY_ONE_BOOK" ]] && continue # LCOV_EXCL_LINE
     fi
-    try java -jar /usr/share/java/Saxon-HE.jar -xsl:$my_directory/git-zybooks.xslt -s:$IO_PRE_ZYBOOKS/$slug_name.assembled.xhtml -o:$IO_ASSEMBLED/$slug_name.assembled.xhtml CODE_VERSION=$CODE_VERSION
 
+    # If this book ended up having zybooks content in it then make sure CODE_VERSION was set
+    has_coderunner=$(xmlstarlet 'select' --text --template --if "$zybooks_xpath" --output 'true' --else --output 'false' $IO_ASSEMBLED/$slug_name.assembled.xhtml)
+    if [[ $has_coderunner == 'true' ]]; then
+        [[ $CODE_VERSION ]] || die "This appears to be a zybooks book but a CODE_VERSION was not specified. xpath='$zybooks_xpath' element detected"
+
+        try java -jar /usr/share/java/Saxon-HE.jar -xsl:$my_directory/git-zybooks.xslt -s:$IO_PRE_ZYBOOKS/$slug_name.assembled.xhtml -o:$IO_ASSEMBLED/$slug_name.assembled.xhtml CODE_VERSION=$CODE_VERSION
+    fi
+
+    # Generic "move files into ../resources/" code:
     for filename_src_value in $(xmlstarlet 'select' --text --template --value-of '//@src' $IO_ASSEMBLED/$slug_name.assembled.xhtml); do
-        # TODO Do not assume the file is in the same director. Make it work with relative paths
+        # TODO Do not assume the file is in the same directory. Make it work with relative paths
         old_filepath=$IO_ASSEMBLED/$filename_src_value
         [[ -f $old_filepath ]] || die "Could not find file $old_filepath"
 
