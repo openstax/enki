@@ -193,6 +193,8 @@ This repo can be used as the image in a gitpod environment. All of code to build
 - [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
 - [x] Update the readme to show where the magic files are and how they fit together
 - [ ] lint TypeScript files
+- [ ] get vscode to recognize the filesystem imports in the TypeScript files
+- [ ] combine `cli.env` and `gitpod.env` to just one file that uses `./data/`
 - [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [ ] remove virtualenv and install python packages to the system (unless it's bad practice)
