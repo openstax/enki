@@ -55,13 +55,14 @@ function check_input_dir() {
     [[ $1 ]] || die "This function takes exactly one argument and it is missing"
     pointer=$1 # https://stackoverflow.com/a/55331060
     dir_name="${!pointer}"
+    [[ $dir_name ]] || die "This input directory environment variable is not set ($1='$dir_name')"
     [[ -d $dir_name ]] || die "Expected directory to exist but it did not ($1='$dir_name'). Maybe an earlier step needs to run."
 }
 function check_output_dir() {
     [[ $1 ]] || die "This function takes exactly one argument and it is missing"
     pointer=$1 # https://stackoverflow.com/a/55331060
     dir_name="${!pointer}"
-    [[ $dir_name ]] || die "This output directory name is not set ($1='$dir_name')"
+    [[ $dir_name ]] || die "This output directory environment variable is not set ($1='$dir_name')"
     # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
     if [[ $dir_name =~ \/data\/ && ! -d $dir_name ]]; then
         try mkdir -p $dir_name
