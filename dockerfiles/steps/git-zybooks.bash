@@ -16,7 +16,7 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     if [[ -n "$ARG_OPT_ONLY_ONE_BOOK" ]]; then
         [[ "$slug_name" != "$ARG_OPT_ONLY_ONE_BOOK" ]] && continue # LCOV_EXCL_LINE
     fi
-    try java -jar /usr/share/java/Saxon-HE.jar -xsl:$my_directory/git-zybooks.xslt -s:$IO_ASSEMBLED/$slug_name.assembled.xhtml -o:$IO_ZYBOOKS/$slug_name.assembled.xhtml
+    try java -jar /usr/share/java/Saxon-HE.jar -xsl:$my_directory/git-zybooks.xslt -s:$IO_ASSEMBLED/$slug_name.assembled.xhtml -o:$IO_ZYBOOKS/$slug_name.assembled.xhtml CODE_VERSION=$CODE_VERSION
 done
 shopt -u globstar nullglob
 

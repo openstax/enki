@@ -283,6 +283,8 @@ COPY            ./dockerfiles/build/build-stage-recipes.sh \
 RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
 
 
+RUN apt-get install -y libsaxonhe-java
+
 # ---------------------------
 # Install the Concourse Resource
 # ---------------------------

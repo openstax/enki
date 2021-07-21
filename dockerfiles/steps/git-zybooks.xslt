@@ -15,6 +15,8 @@
 
     <xsl:output method="xml" indent="yes" omit-xml-declaration="yes" />
 
+    <xsl:param name="CODE_VERSION" as="xs:string"/>
+
     <!-- <xsl:template match="*[@data:interactive='coderunner-py']"> -->
     <xsl:template match="*[@data-interactive='coderunner-py']">
         <xsl:variable name="id" select="generate-id()"/>
@@ -58,7 +60,12 @@
             <xsl:apply-templates select="@*|node()"/>
 
             <div data-wrapper-for-responsiveness-key="yes">
-                <iframe src="{$filename}" data-prepend-url="/apps/coderunner-py/index.html" data-querystring-param-name="src"/>
+                <iframe 
+                    src="{$filename}"
+                    data-prepend-url="/apps/coderunner-py/index.html"
+                    data-querystring-param-name="src"
+                    data-code-version="{$CODE_VERSION}"
+                    />
             </div>
         </xsl:copy>
     </xsl:template>

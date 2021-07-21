@@ -195,7 +195,9 @@
             "outputDirs": [
                 "IO_ZYBOOKS"
             ],
-            "requiredEnv": []
+            "requiredEnv": [
+                "CODE_VERSION"
+            ]
         },
         "git-assemble-meta": {
             "inputDirs": [
