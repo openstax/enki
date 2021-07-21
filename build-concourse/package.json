@@ -1,9 +1,12 @@
 {
   "scripts": {
-    "build-gdocs": "ts-node ./build-gdocs.ts",
-    "draw-graphs": "ts-node ./draw-graphs.ts",
-    "start": "ts-node --transpile-only ./build-json.ts && ts-node ./build-corgi.ts && ts-node ./build-webhosting.ts",
-    "test": "npm start && npm run build-gdocs && npm run draw-graphs",
+    "build:json": "ts-node --transpile-only ./build-json.ts",
+    "build:gdocs": "ts-node ./build-gdocs.ts",
+    "build:graphs": "ts-node ./build-graphs.ts",
+    "build:corgi": "ts-node ./build-corgi.ts",
+    "build:webhosting": "ts-node ./build-webhosting.ts",
+    "start": "npm run build:json && npm run build:corgi && npm run build:webhosting",
+    "test": "npm start && npm run build:gdocs && npm run build:graphs",
     "coverage": "nyc npm run test",
     "postcoverage": "nyc report --reporter lcov --reporter html --report-dir ../coverage/"
   },

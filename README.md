@@ -52,7 +52,7 @@ To clone private repositories you will need to set `GH_SECRET_CREDS`. To do that
 
 ## Google Docs
 
-To upload DOCX files to **Google Docs** follow the [instructions here](./google-docs.md). To build a Google Docs pipeline, run `npm run build-gdocs` in [./build-concourse/](./build-concourse/)
+To upload DOCX files to **Google Docs** follow the [instructions here](./google-docs.md). To build a Google Docs pipeline, run `npm run build:gdocs` in [./build-concourse/](./build-concourse/)
 
 
 ## Run Tests
