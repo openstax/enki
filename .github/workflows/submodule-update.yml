@@ -1,0 +1,27 @@
+# https://stackoverflow.com/a/65895910
+name: Submodule Update
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+  - cron: '50 * * * *'
+
+jobs:
+  submodule-update:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Update submodule
+      run: ./install-submodules.sh --update
+    - name: Create Pull Request
+      id: cpr
+      uses: peter-evans/create-pull-request@v3
+      with:
+        commit-message: Updated submodule.
+        signoff: true
+        branch: app/updated-submodules
+        delete-branch: true
+        title: 'Update submodule'
