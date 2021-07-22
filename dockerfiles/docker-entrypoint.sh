@@ -77,7 +77,7 @@ function do_xhtml_validate() {
     check=$3
     for xhtmlfile in $(find $dir_name -name "$file_pattern")
     do
-        try java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" $check broken-link || failure=true
+        java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main "$xhtmlfile" $check broken-link || failure=true
     done
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
