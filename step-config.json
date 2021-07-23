@@ -33,8 +33,7 @@
                 "IO_ARCHIVE_FETCHED"
             ],
             "outputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
+                "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
         },
@@ -45,8 +44,7 @@
                 "IO_ARCHIVE_BOOK"
             ],
             "outputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
+                "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
         },
@@ -77,8 +75,7 @@
                 "IO_ARCHIVE_BOOK"
             ],
             "outputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
+                "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
         },
@@ -101,8 +98,7 @@
             ],
             "outputDirs": [
                 "IO_BOOK",
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
+                "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
         },
@@ -410,6 +406,21 @@
             "requiredEnv": [
                 "CODE_VERSION",
                 "WEB_QUEUE_STATE_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        },
+        "archive-upload-book": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_FETCHED",
+                "IO_ARCHIVE_JSONIFIED",
+                "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_UPLOAD"
+            ],
+            "requiredEnv": [
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]
