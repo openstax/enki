@@ -40,12 +40,12 @@ set({name: 'archive-assemble-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO
 set({name: 'archive-link-extras', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-bake', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-bake-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-validate-xhtml-mathified', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.BOOK, IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-checksum', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.BOOK, IO.ARCHIVE_BOOK], env: {}})
+set({name: 'archive-validate-xhtml-mathified', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
+set({name: 'archive-checksum', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-disassemble', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-patch-disassembled-links', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_JSONIFIED, IO.ARTIFACTS], env: {}})
-set({name: 'archive-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_JSONIFIED], outputs: [IO.BOOK, IO.ARCHIVE_BOOK], env: {}})
+set({name: 'archive-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_JSONIFIED], outputs: [IO.ARCHIVE_BOOK], env: {}})
 
 // GIT_PDF_STEPS
 set({name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false}})

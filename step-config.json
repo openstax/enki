@@ -85,7 +85,6 @@
                 "IO_ARCHIVE_BOOK"
             ],
             "outputDirs": [
-                "IO_BOOK",
                 "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
@@ -97,7 +96,6 @@
                 "IO_ARCHIVE_FETCHED"
             ],
             "outputDirs": [
-                "IO_BOOK",
                 "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
@@ -140,7 +138,6 @@
                 "IO_ARCHIVE_JSONIFIED"
             ],
             "outputDirs": [
-                "IO_BOOK",
                 "IO_ARCHIVE_BOOK"
             ],
             "requiredEnv": []
