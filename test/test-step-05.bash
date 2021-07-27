@@ -10,7 +10,7 @@ SOCI_DIR=../data/test-soci
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov05-a \
-START_AT_STEP=archive-assemble \
+START_AT_STEP=archive-link-extras \
 ../cli.sh $SOCI_DIR all-archive-pdf
 
 SKIP_DOCKER_BUILD=1 \
