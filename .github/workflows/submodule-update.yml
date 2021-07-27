@@ -1,11 +1,11 @@
 # https://stackoverflow.com/a/65895910
-name: Submodule Update
+name: Weekly Submodule Update
 
 on:
   push:
     branches: [ main ]
   schedule:
-  - cron: '50 * * * *'
+  - cron: '0 4 * * 0'
 
 jobs:
   submodule-update:
