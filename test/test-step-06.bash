@@ -5,16 +5,19 @@ set -e
 
 SOCI_DIR=../data/test-soci
 
-# The all-archive-web checksum step mangles the assembled.xhtml file so we have to start over
-[[ -f $SOCI_DIR/assembled/collection.assembled.xhtml ]] && rm $SOCI_DIR/assembled/collection.assembled.xhtml
+xhtml_files_dir="$SOCI_DIR/archive-gdocified/content"
+# shellcheck disable=SC2206
+files=($xhtml_files_dir/*.xhtml)
+keep_file="${files[0]}"
 
-SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov06-a \
-START_AT_STEP=archive-link-extras \
-../cli.sh $SOCI_DIR all-archive-pdf
+mv $keep_file $keep_file.keep
 
+echo "Note: Removing all xhtml files except one to speed up this test step: $keep_file"
+# find "$xhtml_files_dir" ! -name "$keep_file" -name '*.xhtml' -type f -exec rm -f {} +
+rm -rf $xhtml_files_dir/*.xhtml
+mv $keep_file.keep $keep_file
+
+# kcov causes this step to hang so skip the KCOV_DIR (probably the pm2 mathml2svg background process)
 SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov06-b \
-CORGI_ARTIFACTS_S3_BUCKET=dummy-test-bucket \
-ARG_TARGET_PDF_FILENAME=dummy-test-pdf-filename \
-../cli.sh $SOCI_DIR archive-pdf-metadata
+START_AT_STEP=archive-convert-docx \
+../cli.sh $SOCI_DIR all-archive-gdoc

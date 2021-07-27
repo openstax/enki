@@ -20,8 +20,8 @@ __CI_KCOV_MERGE_ALL__=1 \
     $SOCI_DIR_NAME/_kcov04-a \
     $SOCI_DIR_NAME/_kcov04-b \
     $SOCI_DIR_NAME/_kcov05 \
-    $SOCI_DIR_NAME/_kcov06-a \
-    $SOCI_DIR_NAME/_kcov06-b \
+    $SOCI_DIR_NAME/_kcov07-a \
+    $SOCI_DIR_NAME/_kcov07-b \
     ;
 
 # Move coverage data out of the mounted volume the container used
