@@ -3,7 +3,7 @@ click>=7.1.2
 cnxml>=3.1.6
 cnx-epub>=0.29.0
 cnx-litezip>=1.6.0
-cnx-transforms>=1.2.2
+cnx-transforms>=1.2.3
 docker>=4.2.2
 pip
 requests>=2.24.0
