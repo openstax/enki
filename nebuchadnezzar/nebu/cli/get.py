@@ -11,12 +11,14 @@ from lxml import etree
 from pathlib import Path
 from aiohttp import ClientSession, ClientTimeout
 
+
 from ..logger import logger
 from ._common import common_params, confirm, build_archive_url, calculate_sha1
 from .exceptions import (MissingContent,
                          ExistingOutputDir,
                          OldContent,
                          )
+from .session import NebSession
 
 
 DEFAULT_REQUEST_LIMIT = 8
@@ -59,10 +61,8 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
     # Create a request session with retries if there's failed DNS lookups,
     # socket connections and connection timeouts.
     # See https://stackoverflow.com/questions/33895739/
-    session = requests.Session()
+    session = NebSession()
     session.verify = not insecure
-    adapter = requests.adapters.HTTPAdapter(max_retries=5)
-    session.mount('https://', adapter)
 
     col_metadata = get_collection_metadata(session,
                                            base_url,

@@ -1,6 +1,7 @@
 import requests
 import backoff
 
+
 class NebSession(requests.Session):
     def __init__(self):
         super(NebSession, self).__init__()
@@ -10,7 +11,6 @@ class NebSession(requests.Session):
                 "User-Agent": "OpenStax Nebuchadnezzar Client"
             }
         )
-    
 
     @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError)
     def request(self, *args, **kwargs):
