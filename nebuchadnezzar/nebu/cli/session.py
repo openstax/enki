@@ -7,10 +7,11 @@ class NebSession(requests.Session):
 
         self.headers.update(
             {
-                "User-Agent": f"OpenStax Nebuchadnezzar Client"
+                "User-Agent": "OpenStax Nebuchadnezzar Client"
             }
         )
     
+
+    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError)
     def request(self, *args, **kwargs):
         return super(NebSession, self).request(*args, **kwargs)
-
