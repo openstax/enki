@@ -261,6 +261,7 @@ def store_sha1(sha1, write_dir, filename):
     with (write_dir / '.sha1sum').open('a') as s:
         s.write('{}  {}\n'.format(sha1, filename))
 
+
 @backoff.on_exception(backoff.expo,
                       aiohttp.ClientError,
                       max_tries=10)
@@ -274,6 +275,7 @@ async def do_with_retried_request_while(session,
     async with session.get(url, ssl=ssl) as response:
         if not condition(response):
             return await do(response)
+
 
 async def _write_contents(tree,
                           base_url,

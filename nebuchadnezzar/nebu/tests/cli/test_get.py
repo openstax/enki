@@ -1038,57 +1038,6 @@ class TestGetCmd:
         msg = "content unavailable for '{}/{}'".format(col_id, col_version)
         assert msg in result.output
 
-    def test_internal_server_error(self,
-                                   capsys,
-                                   requests_mock,
-                                   mock_aioresponses,
-                                   datadir):
-        """At one point in time, modules which contained unicode characters
-         (used to) get ascii-encoded on dowload, and then we fixed it, but
-        this became an issue when detecting files that have changed because
-        the sha1 hash differs. This code tests that the hashing is done after
-        encoding.
-
-        See: https://github.com/openstax/cnx/issues/273
-        """
-        out_dir = Path(str(datadir))
-        base_url = 'https://archive.cnx.org'
-        node = {'id': 'foo'}
-        legacy_id = 'm68234'
-        resource_id = '9d85db7'
-
-        # Mock the request for the json data
-        metadata = {
-            'legacy_id': legacy_id,
-            'mediaType': 'application/vnd.org.cnx.module',
-            'resources': [
-                {
-                    "filename": "index.cnxml",
-                    "id": resource_id,
-                    "media_type": "application/octet-stream"
-                },
-            ],
-        }
-        url = '{}/contents/{}'.format(base_url, node['id'])
-        mock_aioresponses.get(url, payload=metadata)
-
-        url = '{}/resources/{}'.format(base_url, resource_id)
-        # Downloads the ascii-encoded module
-        mock_aioresponses.get(url,
-                              repeat=True,
-                              body='Internal Server Error',
-                              status=503)
-
-        # Call the target
-        try:
-            loop = asyncio.get_event_loop()
-            coro = _write_contents(node, base_url, out_dir)
-            loop.run_until_complete(coro)
-        except RuntimeError:
-            assert 'Max retries exceeded' in capsys.readouterr().err
-        else:
-            assert False
-
     def test_sha1_with_non_utf8_content(self,
                                         requests_mock,
                                         mock_aioresponses,
