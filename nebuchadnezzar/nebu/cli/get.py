@@ -265,11 +265,11 @@ def store_sha1(sha1, write_dir, filename):
 @backoff.on_exception(backoff.expo,
                       aiohttp.ClientError,
                       max_tries=10)
-async def do_with_retried_request_while(session,
-                                        url,
-                                        condition,
-                                        do,
-                                        insecure=False):
+async def do_with_condition_request(session,
+                                    url,
+                                    condition,
+                                    do,
+                                    insecure=False):
     ssl = False if insecure else None
 
     async with session.get(url, ssl=ssl) as response:
@@ -296,7 +296,7 @@ async def _write_contents(tree,
                     return {}
                 return await response.json()
 
-            return await do_with_retried_request_while(
+            return await do_with_condition_request(
                 session=session,
                 url=content_meta_url,
                 condition=lambda resp: resp.status in (503, 504),
@@ -420,7 +420,7 @@ async def _write_contents(tree,
 
         async def read_response(response):
             return await response.read()
-        resp = await do_with_retried_request_while(
+        resp = await do_with_condition_request(
             session=session,
             url=resource_url,
             condition=lambda resp: resp.status in (503, 504),
@@ -441,7 +441,7 @@ async def _write_contents(tree,
 
         async def read_response(response):
             return await response.read()
-        resp = await do_with_retried_request_while(
+        resp = await do_with_condition_request(
             session=session,
             url=content_url,
             condition=lambda resp: resp.status in (503, 504),
