@@ -3,14 +3,14 @@ from itertools import groupby
 from traceback import print_tb
 import sys
 
+import aiohttp
+import backoff
 import click
 import requests
 import json
 
 from lxml import etree
 from pathlib import Path
-from aiohttp import ClientSession, ClientTimeout
-
 
 from ..logger import logger
 from ._common import common_params, confirm, build_archive_url, calculate_sha1
@@ -261,35 +261,19 @@ def store_sha1(sha1, write_dir, filename):
     with (write_dir / '.sha1sum').open('a') as s:
         s.write('{}  {}\n'.format(sha1, filename))
 
-
+@backoff.on_exception(backoff.expo,
+                      aiohttp.ClientError,
+                      max_tries=10)
 async def do_with_retried_request_while(session,
                                         url,
                                         condition,
-                                        max_retries,
                                         do,
-                                        sleep_time=0.5,
                                         insecure=False):
-    retries = 0
-    while retries <= max_retries:
-        try:
-            # Oddly, aiohttp ClienSession seems to want ssl=None (the default
-            # value) when you want it to check certs, but any other boolean
-            # value will cause it to ignore. Accordingly, we'll pass False to
-            # ignore cert check and None otherwise.
-            ssl = False if insecure else None
+    ssl = False if insecure else None
 
-            async with session.get(
-                    url,
-                    ssl=ssl,
-                    timeout=ClientTimeout(total=30, connect=10)) as response:
-                if not condition(response):
-                    return await do(response)
-        except asyncio.TimeoutError:  # pragma: no cover
-            pass
-        retries += 1
-        await asyncio.sleep(sleep_time)
-    raise Exception(f'Max retries exceeded: {url}')
-
+    async with session.get(url, ssl=ssl) as response:
+        if not condition(response):
+            return await do(response)
 
 async def _write_contents(tree,
                           base_url,
@@ -314,7 +298,6 @@ async def _write_contents(tree,
                 session=session,
                 url=content_meta_url,
                 condition=lambda resp: resp.status in (503, 504),
-                max_retries=4,
                 do=response_json,
                 insecure=insecure)
 
@@ -439,7 +422,6 @@ async def _write_contents(tree,
             session=session,
             url=resource_url,
             condition=lambda resp: resp.status in (503, 504),
-            max_retries=4,
             do=read_response,
             insecure=insecure)
         filepath = write_dir / filename
@@ -461,7 +443,6 @@ async def _write_contents(tree,
             session=session,
             url=content_url,
             condition=lambda resp: resp.status in (503, 504),
-            max_retries=4,
             do=read_response,
             insecure=insecure)
         filepath = write_dir / filename
@@ -480,7 +461,7 @@ async def _write_contents(tree,
 
     initial_url = f'{base_url}/contents/{tree["id"]}'
 
-    session = ClientSession(headers={"Connection": "close"})
+    session = aiohttp.ClientSession(headers={"Connection": "close"})
     semaphore = asyncio.Semaphore(request_limit)
     coro = fetch_content_meta_node(session, tree, initial_url, out_dir)
 
