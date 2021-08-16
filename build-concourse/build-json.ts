@@ -7,10 +7,20 @@ const toName = (s: Step) => s.name
 const toCase = (s: string) => `IO_${s.toUpperCase().replace(/-/g, '_')}`
 const mapEnv = (e: Env) => Object.entries(e).filter(([_, isRequired]) => isRequired).map(([envName]) => envName)
 
-const steps = Array.from(STEP_MAP.entries()).map(([k, s]) => ([k, {inputDirs: s.inputs.map(toCase), outputDirs: s.outputs.map(toCase), requiredEnv: mapEnv(s.env)}]))
+// Older NodeJS versions do not implement Object.fromEntries()
+function fromEntries(entries: Iterable<readonly any[]>) {
+    const ret = {}
+    for (const entry of entries) {
+        ret[entry[0]] = entry[1]
+    }
+    return ret
+}
+
+const stepEntries = Array.from(STEP_MAP.entries()).map(([k, s]) => ([k, {inputDirs: s.inputs.map(toCase), outputDirs: s.outputs.map(toCase), requiredEnv: mapEnv(s.env)}]))
+const steps = fromEntries(stepEntries)
 const json = {
     __note__: "This file is autogenerted. Do not edit it directly",
-    steps: Object.fromEntries(steps),
+    steps,
     pipelines: {
         'all-git-pdf': CLI_GIT_PDF_STEPS.map(toName),
         'all-git-web': CLI_GIT_WEB_STEPS.map(toName),
