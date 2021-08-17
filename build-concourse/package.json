@@ -2,7 +2,7 @@
   "scripts": {
     "build:json": "ts-node --transpile-only ./build-json.ts",
     "build:gdocs": "ts-node ./build-gdocs.ts",
-    "build:graphs": "ts-node ./build-graphs.ts",
+    "build:graphs": "command -v dot && ts-node ./build-graphs.ts || echo 'graphviz does not seem to be installed (\"dot\" not found): https://github.com/ts-graphviz/ts-graphviz. Skipping graph generation' && sleep 10",
     "build:corgi": "ts-node ./build-corgi.ts",
     "build:webhosting": "ts-node ./build-webhosting.ts",
     "start": "npm run build:json && npm run build:corgi && npm run build:webhosting",
