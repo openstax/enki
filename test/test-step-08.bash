@@ -16,6 +16,7 @@ __CI_KCOV_MERGE_ALL__=1 \
     $BOOK_DIR_NAME/_kcov01 \
     $BOOK_DIR_NAME/_kcov02-a \
     $BOOK_DIR_NAME/_kcov02-b \
+    $BOOK_DIR_NAME/_kcov02-c \
     $BOOK_DIR_NAME/_kcov03 \
     $SOCI_DIR_NAME/_kcov04-a \
     $SOCI_DIR_NAME/_kcov04-b \
