@@ -4,4 +4,6 @@ set -e
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 # Lint the bash scripts
-shellcheck --severity=warning ../dockerfiles/steps/* ../dockerfiles/build/*
+if [[ $(command -v shellcheck) ]]; then
+    shellcheck --severity=warning ../dockerfiles/steps/* ../dockerfiles/build/*
+fi
