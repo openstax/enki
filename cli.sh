@@ -39,6 +39,12 @@ then
     fi
 fi
 
+if [[ $1 == '--help' ]]; then
+    echo "Check out the README for this repo to get help on usage!"
+    echo 'The args are: {tempdir} {command} {repo_name/book_slug} {recipe} {gitref}'
+    exit 0
+fi
+
 [[ $local_dir ]] || ( >&2 echo "ERROR: A local temp directory for the book is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
