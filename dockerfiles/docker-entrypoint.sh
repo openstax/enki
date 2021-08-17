@@ -254,7 +254,9 @@ function do_step_named() {
 first_arg=$1
 pipeline_steps=$(jq -r ".pipelines.\"$first_arg\"|@sh" < $STEP_CONFIG_FILE)
 
-if [[ $pipeline_steps = 'null' ]]; then
+if [[ $first_arg == local-create-book-directory ]]; then
+    do_step_named local-create-book-directory "${@:2}"
+elif [[ $pipeline_steps = 'null' ]]; then
     do_step_named $(echo $first_arg | tr -d "'")
 else
     do_step_named local-create-book-directory "${@:2}"

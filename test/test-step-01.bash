@@ -10,4 +10,4 @@ COVERAGE_DIR=../coverage
 [[ -d $BOOK_DIR ]] && rm -rf $BOOK_DIR
 [[ -d $SOCI_DIR ]] && rm -rf $SOCI_DIR
 
-KCOV_DIR=_kcov01 ../cli.sh $BOOK_DIR --help > /dev/null
+KCOV_DIR=_kcov01 ../cli.sh $BOOK_DIR --help
