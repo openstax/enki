@@ -43,7 +43,7 @@ In https://drive.google.com create a new Folder (e.g. “Test GDocs Root” ) an
 Use the book-pipeline CLI to generate DOCX files for a book. For example: (the exact syntax is subject to change):
 
 ```sh
-./cli.js ./data/socio all-archive-gdoc col11407 sociology latest
+./cli.js ./data/socio all-archive-gdoc col11762 sociology latest
 ```
 
 ## Upload the DOCX files to Google Drive
