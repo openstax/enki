@@ -105,6 +105,11 @@ ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}
 ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global
 
 
+# Use this so that gitpod directories are the same.
+# TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
+ENV PROJECT_ROOT=/workspace/book-pipeline
+
+
 # ---------------------------
 # Install node
 # ---------------------------
@@ -118,9 +123,6 @@ RUN .   $PROJECT_ROOT/dockerfiles/build/build-system-node.env
 
 ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 
-# Use this so that gitpod directories are the same.
-# TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
-ENV PROJECT_ROOT=/workspace/book-pipeline
 
 # -----------------------
 # Create Virtualenv
