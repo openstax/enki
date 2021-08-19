@@ -113,8 +113,8 @@ export const CLI_GIT_PDF_STEPS = [
     get('git-bake-meta'),
     get('git-link'),
     get('git-mathify'),
-    get('git-link-rex'),
     get('git-validate-xhtml-mathified'),
+    get('git-link-rex'),
     get('git-pdfify'),
 ]
 export const GIT_PDF_STEPS = [
@@ -149,8 +149,8 @@ export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-link-extras'),
     get('archive-bake'),
     get('archive-mathify'),
-    get('archive-link-rex'),
     get('archive-validate-xhtml-mathified'),
+    get('archive-link-rex'),
     get('archive-pdf'),
 ]
 export const ARCHIVE_PDF_STEPS = [

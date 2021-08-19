@@ -455,8 +455,8 @@
             "git-bake-meta",
             "git-link",
             "git-mathify",
-            "git-link-rex",
             "git-validate-xhtml-mathified",
+            "git-link-rex",
             "git-pdfify"
         ],
         "all-git-web": [
@@ -479,8 +479,8 @@
             "archive-link-extras",
             "archive-bake",
             "archive-mathify",
-            "archive-link-rex",
             "archive-validate-xhtml-mathified",
+            "archive-link-rex",
             "archive-pdf"
         ],
         "all-archive-web": [
