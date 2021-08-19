@@ -46,8 +46,8 @@ Then try the following to build PDFs and other formats:
 # All-in-one Archive-based books
 #  CLI   tempdir       command         col_id   recipe          version   server
 ./cli.sh ./data/fizix/ all-archive-pdf col12006 college-physics latest
-./cli.sh ./data/socio/ all-archive-pdf col11407 sociology       latest
-./cli.sh ./data/socio/ all-archive-web col11407 sociology       latest
+./cli.sh ./data/socio/ all-archive-pdf col11762 sociology       latest
+./cli.sh ./data/socio/ all-archive-web col11762 sociology       latest
 ```
 
 **Note:** If you are running this inside a container (like gitpod) then you can replace `./cli.sh ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh` (no data directory necessary, it will be `/data/`)
@@ -167,7 +167,7 @@ If you want to run a single step at a time specify it as the first argument. Lat
 
 ```sh
 # Common steps
-./cli.sh ./data/socio/ local-create-book-directory col11407 sociology latest
+./cli.sh ./data/socio/ local-create-book-directory col11762 sociology latest
 ./cli.sh ./data/socio/ look-up-book
 ./cli.sh ./data/socio/ archive-fetch
 ./cli.sh ./data/socio/ archive-assemble
