@@ -222,7 +222,7 @@ const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) 
             do: [
                 taskStatusCheck(env, {
                     resource: resource,
-                    processingStates: [Status.ASSIGNED, Status.PROCESSING],
+                    processingStates: [Status.QUEUED, Status.ASSIGNED, Status.PROCESSING],
                     completedStates: [Status.FAILED, Status.SUCCEEDED],
                     abortedStates: [Status.ABORTED]
                 })
