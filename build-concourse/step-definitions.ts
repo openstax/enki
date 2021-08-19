@@ -58,7 +58,8 @@ set({name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outpu
 set({name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
 set({name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META], outputs: [IO.LINKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
-set({name: 'git-pdfify', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [IO.ARTIFACTS], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
+set({name: 'git-link-rex', inputs: [IO.BOOK, IO.MATHIFIED, IO.FETCHED], outputs: [IO.REX_LINKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
+set({name: 'git-pdfify', inputs: [IO.BOOK, IO.REX_LINKED], outputs: [IO.ARTIFACTS], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-pdfify-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // GIT_WEB_STEPS
@@ -70,6 +71,7 @@ set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], out
 
 // ARCHIVE_PDF_STEPS
 set({name: 'archive-mathify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
+set({name: 'archive-link-rex', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-pdf', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'archive-pdf-metadata', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
@@ -112,6 +114,7 @@ export const CLI_GIT_PDF_STEPS = [
     get('git-link'),
     get('git-mathify'),
     get('git-validate-xhtml-mathified'),
+    get('git-link-rex'),
     get('git-pdfify'),
 ]
 export const GIT_PDF_STEPS = [
@@ -140,12 +143,14 @@ export const GIT_WEB_STEPS = [
 
 export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-fetch'),
+    get('archive-fetch-metadata'), // used by archive-link-rex
     // get('archive-validate-cnxml'),
     get('archive-assemble'),
     get('archive-link-extras'),
     get('archive-bake'),
     get('archive-mathify'),
     get('archive-validate-xhtml-mathified'),
+    get('archive-link-rex'),
     get('archive-pdf'),
 ]
 export const ARCHIVE_PDF_STEPS = [

@@ -241,10 +241,21 @@
             ],
             "requiredEnv": []
         },
+        "git-link-rex": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_MATHIFIED",
+                "IO_FETCHED"
+            ],
+            "outputDirs": [
+                "IO_REX_LINKED"
+            ],
+            "requiredEnv": []
+        },
         "git-pdfify": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_MATHIFIED"
+                "IO_REX_LINKED"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"
@@ -321,6 +332,17 @@
             "inputDirs": [
                 "IO_BOOK",
                 "IO_ARCHIVE_BOOK"
+            ],
+            "outputDirs": [
+                "IO_ARCHIVE_BOOK"
+            ],
+            "requiredEnv": []
+        },
+        "archive-link-rex": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARCHIVE_BOOK",
+                "IO_ARCHIVE_FETCHED"
             ],
             "outputDirs": [
                 "IO_ARCHIVE_BOOK"
@@ -434,6 +456,7 @@
             "git-link",
             "git-mathify",
             "git-validate-xhtml-mathified",
+            "git-link-rex",
             "git-pdfify"
         ],
         "all-git-web": [
@@ -451,11 +474,13 @@
         ],
         "all-archive-pdf": [
             "archive-fetch",
+            "archive-fetch-metadata",
             "archive-assemble",
             "archive-link-extras",
             "archive-bake",
             "archive-mathify",
             "archive-validate-xhtml-mathified",
+            "archive-link-rex",
             "archive-pdf"
         ],
         "all-archive-web": [

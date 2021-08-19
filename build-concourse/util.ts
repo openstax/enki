@@ -102,6 +102,7 @@ export enum IO {
     BAKE_META = 'bake-meta', // 'baked-metadata-group',
     LINKED = 'linked', // 'linked-single',
     MATHIFIED = 'mathified', // 'mathified-single',
+    REX_LINKED = 'rex-linked',
     DISASSEMBLED = 'disassembled', // 'disassembled-single',
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
@@ -221,7 +222,7 @@ const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) 
             do: [
                 taskStatusCheck(env, {
                     resource: resource,
-                    processingStates: [Status.ASSIGNED, Status.PROCESSING],
+                    processingStates: [Status.QUEUED, Status.ASSIGNED, Status.PROCESSING],
                     completedStates: [Status.FAILED, Status.SUCCEEDED],
                     abortedStates: [Status.ABORTED]
                 })
