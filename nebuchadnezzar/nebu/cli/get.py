@@ -184,7 +184,15 @@ def get_collection_metadata(session,
 
     # Request the collection's metadata by requests the legacy url,
     # which is redirected to the metadata url.
-    resp = session.get(url)
+    resp = session.get(url, allow_redirects=False)
+
+    # Users outside the US encountered an error instead of
+    # following the redirect so we explicitly follow it
+    # in this case.
+    if (resp.status_code == 301 or resp.status_code == 302):
+        url = resp.headers['Location']
+        resp = session.get(url, allow_redirects=False)
+
     if resp.status_code >= 400:
         raise MissingContent(col_id, req_version)
     col_metadata = resp.json()

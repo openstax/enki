@@ -12,6 +12,7 @@ class NebSession(requests.Session):
             }
         )
 
-    @backoff.on_exception(backoff.expo, requests.exceptions.ConnectionError)
+    @backoff.on_exception(backoff.expo,
+                          requests.exceptions.ConnectionError, max_tries=6)
     def request(self, *args, **kwargs):
         return super(NebSession, self).request(*args, **kwargs)
