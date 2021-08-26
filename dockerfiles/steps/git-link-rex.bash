@@ -11,3 +11,4 @@ book_slugs_file="/tmp/book-slugs.json"
 try cat $abl_file | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
 
 try link-rex "$IO_MATHIFIED/$ARG_TARGET_SLUG_NAME.mathified.xhtml" "$book_slugs_file" "$target_dir" "$filename"
+try cp "$IO_MATHIFIED/the-style-pdf.css" "$IO_REX_LINKED"
