@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.7.0
+-----
+
+- Update the injected exercise HTML format
+
 9.6.0
 -----
 
