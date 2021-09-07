@@ -55,6 +55,9 @@ RUN set -x \
     libxtst6 \
     # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
     xmlstarlet \
+    # For debugging
+    vim \
+    nano \
     ;
 
 # ---------------------------
@@ -335,6 +338,7 @@ COPY ./cnx-recipes/styles/output/ $PROJECT_ROOT/cnx-recipes/styles/output/
 ENV PATH=$PATH:/dockerfiles/
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
 COPY ./dockerfiles/steps /dockerfiles/steps
+COPY ./dockerfiles/build /dockerfiles/build
 COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \

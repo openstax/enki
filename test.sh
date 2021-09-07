@@ -2,8 +2,6 @@
 set -e
 cd "$(dirname "$0")"
 
-./build-dockerfile.sh
-
 # Verify the Dockerfile is committed into git
 if [ -n "$CI_TEST" ]; then
     git diff-index --quiet HEAD
