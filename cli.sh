@@ -54,6 +54,8 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $local_dir ]] || mkdir -p "$local_dir"
 
+$my_dirname/build-dockerfile.sh
+
 [[ $SKIP_DOCKER_BUILD ]] || {
     DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $my_dirname/Dockerfile $my_dirname/.
 }
