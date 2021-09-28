@@ -2,7 +2,7 @@
 Change Log
 ==========
 
-9.8.0
+9.10.0
 -----
 
 - Add cases for selecting injected exercise links
