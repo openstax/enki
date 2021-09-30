@@ -70,6 +70,16 @@ function check_output_dir() {
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
 
+function read_style() {
+    # Read from IO_BOOK/style if it exists
+    if [ -e $IO_BOOK/style ]; then
+        cat $IO_BOOK/style
+    # Otherwise read from META-INF/bookx.xml
+    else 
+        echo $(xmlstarlet sel -t --match '//*[@style]' --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+    fi
+}
+
 function do_xhtml_validate() {
     failure=false
     dir_name=$1
@@ -87,7 +97,7 @@ function do_xhtml_validate() {
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
+    ARG_RECIPE_NAME=read_style
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
     [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
@@ -164,7 +174,7 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
