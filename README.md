@@ -41,7 +41,7 @@ Then try the following to build PDFs and other formats:
 #  CLI   tempdir          command     repo_name/book_slug               recipe    gitref
 ./cli.sh ./data/tin-bk/   all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
 ./cli.sh ./data/tin-bk/   all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
-# GH_SECRET_CREDS='..' before running ./cli.sh for private repositories
+# **NOTE:** See "Private Repositories" for cloning from private repositories
 
 # All-in-one Archive-based books
 #  CLI   tempdir       command         col_id   recipe          version   server
@@ -54,7 +54,19 @@ Then try the following to build PDFs and other formats:
 
 ## Private Repositories
 
-To clone private repositories you will need to set `GH_SECRET_CREDS`. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` and run the cli.
+To clone private repositories there are 2 options:
+
+### Set a GitHub token
+
+This is how production works but it can be annoying to clone a whole book all the time.
+
+You will need to set a `GH_SECRET_CREDS` environment variable. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` and run the cli.
+
+### Sideload the book
+
+If you already have the files locally, you can specify a path to them and the CLI will sideload them in instead of fetching from GitHub.
+
+To use this method, set the `SIDELOAD_PATH` environment variable to where the book is.
 
 ## Google Docs
 
@@ -83,6 +95,7 @@ These are only used by some steps and are mostly used for authentication to uplo
 
 | Name | Use | Description |
 | :--- | :-- | :---------- |
+| `SIDELOAD_PATH` | Git Clone | Instead of cloning the repo, copy the book from a local directory instead
 | `GH_SECRET_CREDS={token}:x-oauth-basic` | Git Clone | GitHub Auth token to clone private repositories. [Create one](https://github.com/settings/tokens) and ensure the `repo` scope is selected.
 | `AWS_ACCESS_KEY_ID` | AWS Upload | See `aws-access` for more
 | `AWS_SECRET_ACCESS_KEY` | AWS Upload | See `aws-access` for more

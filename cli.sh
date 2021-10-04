@@ -48,18 +48,33 @@ fi
 [[ $local_dir ]] || ( >&2 echo "ERROR: A local temp directory for the book is required as the first argument" && exit 111)
 [[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
 
-[[ $CI_TEST ]] || INTERACTIVE='--interactive'
-[[ $CI_TEST ]] || [ -t 0 ] && ENABLE_TTY='--tty' # https://serverfault.com/a/753459
+[[ $CI_TEST ]] || interactive='--interactive'
+[[ $CI_TEST ]] || [ -t 0 ] && enable_tty='--tty' # https://serverfault.com/a/753459
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $local_dir ]] || mkdir -p "$local_dir"
+
+# specify a directory to sideload the book from instead of cloning from github
+[[ $SIDELOAD_PATH ]] && {
+    if [[ -d $SIDELOAD_PATH ]]; then
+        echo "Sideloading book from ${SIDELOAD_PATH}"
+        LOCAL_SIDELOAD_REPO_PATH='/sideload-book/'
+        abs_dir=$(cd "$SIDELOAD_PATH"; pwd)
+        sideload_book_arg="--volume=$abs_dir:/sideload-book/"
+    else
+        echo "Could not sideload because directory does not exist"
+        exit 1
+    fi
+}
 
 $my_dirname/build-dockerfile.sh
 
 [[ $SKIP_DOCKER_BUILD ]] || {
     DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $my_dirname/Dockerfile $my_dirname/.
 }
-docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "$local_dir"/; pwd):/data/ \
+docker run $interactive $enable_tty \
+    $sideload_book_arg \
+    --volume=$(cd "$local_dir"/; pwd):/data/ \
     --env-file $my_dirname/cli.env \
     --env TRACE_ON \
     --env CODE_VERSION \
@@ -74,6 +89,7 @@ docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "$local_dir"/; pwd):/data/ \
     --env CORGI_ARTIFACTS_S3_BUCKET \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
+    --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
     --rm $image_name "${@:2}" # Args after the 1st one
