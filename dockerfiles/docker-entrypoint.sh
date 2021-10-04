@@ -97,7 +97,7 @@ function do_xhtml_validate() {
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    ARG_RECIPE_NAME=read_style
+    ARG_RECIPE_NAME=$(read_style)
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
     [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
@@ -174,7 +174,9 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
+            if [$recipe != "default"]; then
+                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
+            fi
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
