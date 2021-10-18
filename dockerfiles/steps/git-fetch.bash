@@ -46,5 +46,7 @@ else
 fi
 
 if [[ ! -f "$IO_FETCHED/collections/$ARG_TARGET_SLUG_NAME.collection.xml" ]]; then
+    echo "Possible books:"
+    ls $IO_FETCHED/collections/*.collection.xml
     die "No matching book for slug in this repo" # LCOV_EXCL_LINE
 fi
