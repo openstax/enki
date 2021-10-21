@@ -137,9 +137,7 @@
                 "IO_BOOK",
                 "IO_ARCHIVE_JSONIFIED"
             ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
+            "outputDirs": [],
             "requiredEnv": []
         },
         "git-fetch": {
