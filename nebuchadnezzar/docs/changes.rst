@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.11.0
+-----
+
+- Add support for double-underline
+
 9.10.0
 -----
 
