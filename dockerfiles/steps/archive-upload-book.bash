@@ -1,6 +1,7 @@
 # LCOV_EXCL_START
 parse_book_dir
-s3_bucket_prefix="apps/archive/$CODE_VERSION"
+
+s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
 book_metadata="$IO_ARCHIVE_FETCHED/metadata.json"
 resources_dir="$IO_ARCHIVE_BOOK/resources"

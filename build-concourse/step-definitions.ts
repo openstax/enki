@@ -67,7 +67,7 @@ set({name: 'git-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], output
 set({name: 'git-patch-disassembled-links', inputs: [IO.BOOK, IO.DISASSEMBLED], outputs: [IO.DISASSEMBLE_LINKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-jsonify', inputs: [IO.BOOK, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.JSONIFIED], outputs: [], env: {}})
-set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // ARCHIVE_PDF_STEPS
 set({name: 'archive-mathify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
@@ -169,7 +169,7 @@ export const ARCHIVE_GDOC_STEPS = [
 ]
 
 function buildUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
-    return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_UPLOAD], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
+    return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_UPLOAD], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
 }
 
 export function buildLookUpBook(inputSource: RESOURCES): Step {

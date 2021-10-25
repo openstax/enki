@@ -6,5 +6,6 @@
     "CORGI_API_URL_ALSO_UNUSED": "https://corgi-staging.openstax.org/api",
     "CORGI_API_URL": "http://smocker:8080/api",
     "CORGI_ARTIFACTS_S3_BUCKET": "ce-phil",
-    "CORGI_CLOUDFRONT_URL": "https://gibberish"
+    "CORGI_CLOUDFRONT_URL": "https://gibberish",
+    "PREVIEW_APP_URL_PREFIX": "apps/archive-localdev"
 }

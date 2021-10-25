@@ -4,6 +4,7 @@
     "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
     "WEB_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
+    "PREVIEW_APP_URL_PREFIX": "apps/archive-localdev",
     "PIPELINE_TICK_INTERVAL": "1h",
     "MAX_BOOKS_PER_TICK": "1"
 }
