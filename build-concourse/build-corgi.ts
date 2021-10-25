@@ -61,7 +61,7 @@ function makePipeline(env: KeyValue) {
     ]
 
     const taskOverrideCommonLog = (message: string) => toConcourseTask(env, 'override-common-log', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/override_common_log.sh'))
-    const taskGenPreviewUrls = (contentSource: GIT_OR_ARCHIVE) => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CONTENT_SOURCE: contentSource, CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: 'apps/archive-preview', CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
+    const taskGenPreviewUrls = (contentSource: GIT_OR_ARCHIVE) => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CONTENT_SOURCE: contentSource, CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
 
     const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
@@ -134,13 +134,10 @@ function makePipeline(env: KeyValue) {
     return { jobs: [gitPdfJob, gitWeb, archivePdfJob, archiveWebJob], resources, resource_types: resourceTypes }
 }
 
-function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
+export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
     console.log(`Writing pipeline YAML file to ${saveYamlFile}`)
     fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
 }
 
 loadSaveAndDump('./env/corgi-staging.json', './corgi-staging.yml')
 loadSaveAndDump('./env/corgi-production.json', './corgi-production.yml')
-
-process.env['CODE_VERSION'] = `${RANDOM_DEV_CODEVERSION_PREFIX}-${randId}`
-loadSaveAndDump('./env/corgi-local.json', './corgi-local.yml')
