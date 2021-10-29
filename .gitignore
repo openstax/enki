@@ -1,5 +1,6 @@
 /coverage/
 /data/
+/build/
 
 /build-concourse/.nyc_output/
 

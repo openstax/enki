@@ -1,12 +1,15 @@
 # About
 
-Running `npm start` will generate Concourse Pipeline YAML files for the following:
+Running `npm run build` will generate Concourse Pipeline YAML files for the following:
 
 - corgi-production.yml
 - corgi-staging.yml
-- corgi-local.yml (only for local testing)
 - webhosting-production.yml
 - webhosting-sandbox.yml
+
+Running `npm run build:local` will generate all of the previous plus the following:
+
+- corgi-local.yml (only for local testing)
 - webhosting-local.yml (only for local testing)
 
 The `*-local.yml` files differ in the following ways:
@@ -25,7 +28,7 @@ The `*-local.yml` files differ in the following ways:
 1. Make it executable by running `chmod 755 ~/Downloads/fly`
 1. Authenticate through the commandline by running `~/Downloads/fly --target local login --concourse-url http://localhost:8080` and opening the link that it prints out
 
-Now you can build a pipeline using `npm start` and upload it to concourse.
+Now you can build a pipeline using `npm run build` and upload it to concourse.
 
 
 # Pipeline.yml Build Alternatives
@@ -45,12 +48,12 @@ If you are not testing the upload parts you can provide dummy values for the fol
 Since we are not changing the image we can use the images on dockerhub.
 DockerHub does have a rate limit. If you start too many jobs, Concourse will provide a cryptic error.
 
-At that point you can switch to **Option B** or provide your `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD` credentials (as environment variables) when running `npm start` and those will be injected into the pipeline.yml files. A local registry is **strongly encouraged**.
+At that point you can switch to **Option B** or provide your `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD` credentials (as environment variables) when running `npm run build` and those will be injected into the pipeline.yml files. A local registry is **strongly encouraged**.
 
 Run the following to build the Cnocourse Pipeline.yml files:
 
 ```sh
-CODE_VERSION=main npm start
+CODE_VERSION=main npm run build
 ```
 
 Upload the `corgi-local.yml` (and `webhost-local.yml` if you want) instructions are in the next section.
@@ -71,7 +74,7 @@ export TAG='localhost:5000/openstax/book-pipeline:main' && docker build --tag $T
 
 # Build the concourse pipeline to point to our local registry
 cd ./build-concourse/
-DOCKER_REPOSITORY='openstax/book-pipeline' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm start
+DOCKER_REPOSITORY='openstax/book-pipeline' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm run build
 
 # Send the pipeline definition to concourse (next section)
 ```

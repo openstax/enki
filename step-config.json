@@ -322,6 +322,7 @@
             ],
             "requiredEnv": [
                 "CORGI_ARTIFACTS_S3_BUCKET",
+                "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]
@@ -438,6 +439,7 @@
                 "IO_ARCHIVE_UPLOAD"
             ],
             "requiredEnv": [
+                "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]

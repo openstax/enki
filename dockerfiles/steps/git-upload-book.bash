@@ -1,7 +1,7 @@
 # LCOV_EXCL_START
 parse_book_dir
 
-s3_bucket_prefix="apps/archive/$CODE_VERSION"
+s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
 # Parse the UUID and versions from the book metadata since it will be accessible
 # for any pipeline (web-hosting or web-preview) and to be self-consistent

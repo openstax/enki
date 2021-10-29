@@ -3,8 +3,9 @@
   "CORGI_API_URL": "https://corgi-staging.openstax.org/api",
   "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
   "CORGI_CLOUDFRONT_URL": "https://cops.sandbox.openstax.org",
-  "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-key-id))",
-  "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-access-key))",
+  "PREVIEW_APP_URL_PREFIX": "apps/archive-preview",
+  "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
+  "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
   "GH_SECRET_CREDS": "git:((github-api-token))",
   "DOCKERHUB_USERNAME": "((ce-dockerhub-id))",
   "DOCKERHUB_PASSWORD": "((ce-dockerhub-token))"

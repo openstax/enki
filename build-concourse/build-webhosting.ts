@@ -52,13 +52,10 @@ function makePipeline(envValues: KeyValue) {
     return { jobs: [feeder, webBaker], resources }
 }
 
-function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
+export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
     console.log(`Writing pipeline YAML file to ${saveYamlFile}`)
     fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
 }
 
 loadSaveAndDump('./env/webhosting-sandbox.json', './webhosting-sandbox.yml')
 loadSaveAndDump('./env/webhosting-production.json', './webhosting-production.yml')
-
-process.env['CODE_VERSION'] = `${RANDOM_DEV_CODEVERSION_PREFIX}-${randId}`
-loadSaveAndDump('./env/webhosting-local.json', './webhosting-local.yml')
