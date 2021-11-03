@@ -32,6 +32,7 @@ This uses a little wrapper to hide all the docker commands.
 
 1. Clone this repositoriy
 1. Ensure submodules are checked out by running `./install-submodules.sh`
+1. (Optional) Copy the .env.example and fill in the values and source the environment. 
 1. Run the tests: `./test.sh` to verify everything works
 
 Then try the following to build PDFs and other formats:
