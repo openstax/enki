@@ -15,6 +15,12 @@ if [[ $GH_SECRET_CREDS ]]; then
     echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
     [[ $TRACE_ON ]] && set -x
     # LCOV_EXCL_STOP
+else
+    echo "--------------------------------------------------------"
+    echo "Warning: GH_SECRET_CREDS is not set to anything."
+    echo "   This is only necessary for private repos."
+    echo "   If you get an error cloning, this might be the cause."
+    echo "--------------------------------------------------------"
 fi
 
 # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
