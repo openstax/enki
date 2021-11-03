@@ -6,6 +6,7 @@ build-concourse/
 coverage/
 data/
 test/
+build/
 
 
 .gitignore
@@ -20,3 +21,4 @@ google-docs.md
 install-submodules.sh
 README.md
 test.sh
+.env

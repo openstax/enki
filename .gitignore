@@ -1,7 +1,6 @@
 /coverage/
 /data/
 /build/
-
 /build-concourse/.nyc_output/
 
 /build-concourse/node_modules/
@@ -12,3 +11,5 @@
 
 # Files generated inside the container and therefore need to be ignored when opened inside Gitpod
 /venv/
+
+.env
