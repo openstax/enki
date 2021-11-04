@@ -253,7 +253,8 @@
         "git-pdfify": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_REX_LINKED"
+                "IO_REX_LINKED",
+                "IO_RESOURCES"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"
