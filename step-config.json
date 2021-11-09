@@ -178,6 +178,14 @@
             ],
             "requiredEnv": []
         },
+        "git-validate-references": {
+            "inputDirs": [
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
         "git-assemble-meta": {
             "inputDirs": [
                 "IO_BOOK",
@@ -451,6 +459,7 @@
             "git-fetch-metadata",
             "git-assemble",
             "git-assemble-meta",
+            "git-validate-references",
             "git-bake",
             "git-bake-meta",
             "git-link",
@@ -464,6 +473,7 @@
             "git-fetch-metadata",
             "git-assemble",
             "git-assemble-meta",
+            "git-validate-references",
             "git-bake",
             "git-bake-meta",
             "git-link",

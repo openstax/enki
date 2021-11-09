@@ -8,7 +8,7 @@ set -e
 [[ $TRACE_ON ]] && set -x
 
 my_dirname="$(cd $(dirname "$0"); pwd)"
-image_name=my_image
+image_name=richb-press
 local_dir=$1
 
 # Books use more memory than Docker's default. Check if it is low and inform the user
