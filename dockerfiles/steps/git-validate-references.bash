@@ -8,8 +8,9 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
         [[ "$slug_name" != "$ARG_OPT_ONLY_ONE_BOOK" ]] && continue # LCOV_EXCL_LINE
     fi
 
-    # cat "$IO_ASSEMBLED/$slug_name.assembled.xhtml" | grep "src"
+    set +e
     try xmlstarlet sel -t --match '//*[@src]' --value-of '@src' --nl < "$IO_ASSEMBLED/$slug_name.assembled.xhtml" > /tmp/references
+    set -e
 
     while read reference_url; do
         if [[ $reference_url =~ ^https?:\/\/ ]]; then
