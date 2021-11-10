@@ -20,8 +20,8 @@ jobs:
       id: cpr
       uses: peter-evans/create-pull-request@v3
       with:
-        commit-message: Updated submodule.
+        commit-message: Update submodules
         signoff: true
-        branch: app/updated-submodules
+        branch: update-submodules
         delete-branch: true
-        title: 'Update submodule'
+        title: 'Update submodules'
