@@ -18,12 +18,14 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
             continue
         fi
         if [[ ! -f "$IO_ASSEMBLED/$reference_url" ]]; then
+            # LCOV_EXCL_START
             abs_path=$(realpath "$IO_ASSEMBLED/$reference_url")
             die "$reference_url invalid reference. A file does not exist at this location '$abs_path'"
+            # LCOV_EXCL_STOP
         else
             say "$reference_url valid reference"
         fi
-    done < /tmp/references
+    done < /tmp/references # LCOV_EXCL_LINE
 done
 
 shopt -u globstar nullglob
