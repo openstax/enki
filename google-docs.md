@@ -1,6 +1,6 @@
 # Development Steps
 
-To upload to Google Docs in development you can follow these steps. We will need to obtain Google API credentials (`GOOGLE_SERVICE_ACCOUNT_CREDENTIALS`) and a Google Docs Folder (`GDOC_GOOGLE_FOLDER_ID`) to upload to. We will use these 2 environment variables with https://github.com/openstax/book-pipeline to generate DOCX files and then upload them to Google.
+To upload to Google Docs in development you can follow these steps. We will need to obtain Google API credentials (`GOOGLE_SERVICE_ACCOUNT_CREDENTIALS`) and a Google Docs Folder (`GDOC_GOOGLE_FOLDER_ID`) to upload to. We will use these 2 environment variables to generate DOCX files and then upload them to Google.
 
 ## Obtain GOOGLE_SERVICE_ACCOUNT_CREDENTIALS
 
@@ -40,15 +40,15 @@ In https://drive.google.com create a new Folder (e.g. “Test GDocs Root” ) an
 
 ## Build some DOCX files
 
-Use the book-pipeline CLI to generate DOCX files for a book. For example: (the exact syntax is subject to change):
+Use the [CLI](./cli.sh) to generate DOCX files for a book. For example: (the exact syntax is subject to change):
 
 ```sh
-./cli.js ./data/socio all-archive-gdoc col11762 sociology latest
+./cli.sh ./data/socio all-archive-gdoc col11762 sociology latest
 ```
 
 ## Upload the DOCX files to Google Drive
 
-Run the following (from https://github.com/openstax/book-pipeline) to Upload to Google Drive:
+Run the following to Upload to Google Drive:
 
 ```sh
 GDOC_GOOGLE_FOLDER_ID='kqj24h9s8fsdfh_98324hkajehr' \

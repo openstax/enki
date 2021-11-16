@@ -132,7 +132,7 @@ ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-$
 
 # Use this so that gitpod directories are the same.
 # TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
-ENV PROJECT_ROOT=/workspace/book-pipeline
+ENV PROJECT_ROOT=/workspace/richb-press
 
 
 # ---------------------------

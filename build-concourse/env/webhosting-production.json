@@ -1,5 +1,5 @@
 {
-    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "DOCKER_REPOSITORY": "openstax/richb-press",
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_ACCESS_KEY_ID": "((prod-web-hosting-content-gatekeeper-access-key-id))",
     "AWS_SECRET_ACCESS_KEY": "((prod-web-hosting-content-gatekeeper-secret-access-key))",

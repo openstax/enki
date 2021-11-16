@@ -1,6 +1,6 @@
 {
     "SKIP_TORPEDO_TASK": "true",
-    "DOCKER_REPOSITORY": "openstax/book-pipeline",
+    "DOCKER_REPOSITORY": "openstax/richb-press",
     "DOCKER_REGISTRY_HOST": null,
     "CORGI_API_URL_UNUSED_FOR_NOW": "http://backend/api",
     "CORGI_API_URL_ALSO_UNUSED": "https://corgi-staging.openstax.org/api",
