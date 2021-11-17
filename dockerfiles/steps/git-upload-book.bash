@@ -15,12 +15,12 @@ try aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_p
 try copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
 
 # Copy subdirectories (Interactives)
-for dirname in $(ls "$IO_RESOURCES"); do
-    # Ensure dirname is a directory
-    if [[ -d "$IO_RESOURCES/$dirname" ]]; then
-        try aws s3 cp --recursive "$IO_RESOURCES/$dirname" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/resources/$dirname"
-    fi
+shopt -s globstar nullglob
+for subdir in "$IO_RESOURCES"/*/; do
+    dirname=$(basename $subdir)
+    try aws s3 cp --recursive "$subdir" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/resources/$dirname"
 done
+shopt -u globstar nullglob
 
 #######################################
 # UPLOAD BOOK LEVEL FILES LAST
