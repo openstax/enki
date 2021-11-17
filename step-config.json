@@ -331,6 +331,7 @@
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
+                "CODE_VERSION",
                 "CORGI_ARTIFACTS_S3_BUCKET",
                 "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",

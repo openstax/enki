@@ -72,6 +72,8 @@ docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "$local_dir"/; pwd):/data/ \
     --env S3_QUEUE \
     --env GDOC_GOOGLE_FOLDER_ID \
     --env CORGI_ARTIFACTS_S3_BUCKET \
+    --env PREVIEW_APP_URL_PREFIX \
+    --env ARG_S3_BUCKET_NAME \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
     --env KCOV_DIR \
