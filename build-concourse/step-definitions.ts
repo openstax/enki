@@ -52,7 +52,7 @@ set({name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRE
 set({name: 'git-fetch-metadata', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.RESOURCES, IO.UNUSED_RESOURCES], env: {}})
 set({name: 'git-validate-cnxml', inputs: [IO.FETCHED], outputs: [], env: {}})
 set({name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
-set({name: 'git-validate-references', inputs: [IO.ASSEMBLED, IO.RESOURCES], outputs: [], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
+set({name: 'git-validate-references', inputs: [IO.BOOK, IO.ASSEMBLED, IO.RESOURCES], outputs: [], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-bake', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.BAKED], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
 set({name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {ARG_OPT_ONLY_ONE_BOOK: false}})
