@@ -180,6 +180,7 @@
         },
         "git-validate-references": {
             "inputDirs": [
+                "IO_BOOK",
                 "IO_ASSEMBLED",
                 "IO_RESOURCES"
             ],
