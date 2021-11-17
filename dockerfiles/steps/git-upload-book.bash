@@ -14,6 +14,14 @@ for xhtmlfile in "$IO_JSONIFIED/"*@*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(
 try aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
 try copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
 
+# Copy subdirectories (Interactives)
+for dirname in $(ls "$IO_RESOURCES"); do
+    # Ensure dirname is a directory
+    if [[ -d "$IO_RESOURCES/$dirname" ]]; then
+        try aws s3 cp --recursive "$IO_RESOURCES/$dirname" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/resources/$dirname"
+    fi
+done
+
 #######################################
 # UPLOAD BOOK LEVEL FILES LAST
 # so that if an error is encountered
