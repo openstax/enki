@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { KeyValue, loadEnv, randId, RANDOM_DEV_CODEVERSION_PREFIX, readScript, RESOURCES, toConcourseTask, expect, taskMaker, PDF_OR_WEB, stepsToTasks } from './util'
-import { ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
+import { ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
 
 const CONTENT_SOURCE = 'archive'
 
@@ -28,17 +28,17 @@ function makePipeline(envValues: KeyValue) {
         }
     ]
     
-    const feeder = {
-        name: 'feeder',
+    const archiveFeeder = {
+        name: 'archive-feeder',
         plan: [{
             get: RESOURCES.TICKER,
             trigger: true,
-        }, toConcourseTask(envValues, 'check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/check_feed.sh')),
+        }, toConcourseTask(envValues, 'archive-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/archive_check_feed.sh')),
         ]
     }
     
-    const webBaker = {
-        name: 'bakery',
+    const archiveWebBaker = {
+        name: 'archive-bakery',
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
             {
@@ -49,7 +49,30 @@ function makePipeline(envValues: KeyValue) {
             ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD),
         ]
     }
-    return { jobs: [feeder, webBaker], resources }
+
+    const gitFeeder = {
+        name: 'git-feeder',
+        plan: [{
+            get: RESOURCES.TICKER,
+            trigger: true,
+        }, toConcourseTask(envValues, 'git-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/git_check_feed.sh')),
+        ]
+    }
+    
+    const gitWebBaker = {
+        name: 'git-bakery',
+        max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
+        plan: [
+            {
+                get: RESOURCES.S3_QUEUE,
+                trigger: true,
+                version: 'every'
+            },
+            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD),
+        ]
+    }
+
+    return { jobs: [archiveFeeder, archiveWebBaker, gitFeeder, gitWebBaker], resources }
 }
 
 export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
