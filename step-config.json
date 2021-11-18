@@ -437,6 +437,30 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "git-dequeue-book": {
+            "inputDirs": [
+                "IO_S3_QUEUE"
+            ],
+            "outputDirs": [
+                "IO_BOOK"
+            ],
+            "requiredEnv": [
+                "S3_QUEUE",
+                "CODE_VERSION"
+            ]
+        },
+        "git-report-book-complete": {
+            "inputDirs": [
+                "IO_BOOK"
+            ],
+            "outputDirs": [],
+            "requiredEnv": [
+                "CODE_VERSION",
+                "WEB_QUEUE_STATE_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        },
         "archive-upload-book": {
             "inputDirs": [
                 "IO_BOOK",
