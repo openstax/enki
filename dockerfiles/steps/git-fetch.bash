@@ -4,28 +4,24 @@ parse_book_dir
 
 remote_url="https://github.com/$ARG_REPO_NAME.git"
 
+# LCOV_EXCL_START
 # Do not show creds
 set +x
 if [[ $GH_SECRET_CREDS ]]; then
-    # LCOV_EXCL_START
-    [[ $TRACE_ON ]] && set -x # Turn on logging again
     creds_dir=tmp-gh-creds
     creds_file="$creds_dir/gh-creds"
     git config --global credential.helper "store --file=$creds_file"
     mkdir "$creds_dir"
-    # Do not show creds
-    set +x
     echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
-    [[ $TRACE_ON ]] && set -x
-    # LCOV_EXCL_STOP
 else
-    [[ $TRACE_ON ]] && set -x # Turn on logging again
     echo "--------------------------------------------------------"
     echo "Warning: GH_SECRET_CREDS is not set to anything."
     echo "   This is only necessary for private repos."
     echo "   If you get an error cloning, this might be the cause."
     echo "--------------------------------------------------------"
 fi
+[[ $TRACE_ON ]] && set -x
+# LCOV_EXCL_STOP
 
 # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
 # Or, https://stackoverflow.com/a/7662531

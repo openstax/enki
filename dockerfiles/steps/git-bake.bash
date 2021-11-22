@@ -7,6 +7,22 @@ parse_book_dir
 # especially since they shouldn't care about link-extras correctness during their
 # work cycle.
 
+function read_style() {
+    slug_name=$1
+    # Read from IO_BOOK/style if it exists
+    if [ -e $IO_BOOK/style ]; then
+        cat $IO_BOOK/style # LCOV_EXCL_LINE
+    # Otherwise read from META-INF/books.xml
+    else
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+        if [[ $style_name == '' ]]; then
+            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+        else
+            echo "$style_name"
+        fi
+    fi
+}
+
 shopt -s globstar nullglob
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
