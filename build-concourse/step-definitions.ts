@@ -84,6 +84,8 @@ set({name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_DOCX], outputs: [
 // Concourse-specific steps
 set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }})
 set({name: 'archive-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }})
+set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 set(buildUploadStep(false, false))
 
@@ -186,4 +188,11 @@ export const ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     ...ARCHIVE_WEB_STEPS, 
     buildUploadStep(false, true), 
     get('archive-report-book-complete')
+]
+
+export const GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
+    get('git-dequeue-book'),
+    ...GIT_WEB_STEPS, 
+    buildUploadStep(false, true), 
+    get('git-report-book-complete')
 ]

@@ -66,7 +66,7 @@ cd ../ # main repo directory
 
 # Build the Docker image and upload it to local registry
 # Note: Use 'main' because the RANDOM_DEV_CODEVERSION_PREFIX related code assumes this tag name
-export TAG='localhost:5000/openstax/richb-press:main' && docker build --tag $TAG . && docker push $TAG
+export DOCKER_BUILDKIT=1 TAG='localhost:5000/openstax/richb-press:main' && docker build --tag $TAG . && docker push $TAG
 
 # Verify the image is in the registry:
 # http://localhost:5000/v2/_catalog
@@ -248,6 +248,10 @@ This usually means the resource is not in the registry. Verify that the resource
 
 - http://localhost:5000/v2/_catalog
 - http://localhost:5000/v2/openstax/richb-press/tags/list    : verify that "main" exists
+
+## `check did not return a version`
+
+Same error as above. The registry might have _a_ tag of the repo but not _the_ tag  that is specified in the pipeline.yml file. Use the URLs above to see which tags are available
 
 ## `failed to create volume`
 
