@@ -74,9 +74,14 @@ function read_style() {
     # Read from IO_BOOK/style if it exists
     if [ -e $IO_BOOK/style ]; then
         cat $IO_BOOK/style
-    # Otherwise read from META-INF/bookx.xml
-    else 
-        echo $(xmlstarlet sel -t --match '//*[@style]' --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+    # Otherwise read from META-INF/books.xml
+    else
+        style_name=$(xmlstarlet sel -t --match '//*[@style]' --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+        if [[ $style_name == '' ]]; then
+            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)"
+        else
+            echo "$style_name"
+        fi
     fi
 }
 
@@ -174,7 +179,7 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            if [$recipe != "default"]; then
+            if [[ $recipe != "default" ]]; then
                 cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
             fi
 
