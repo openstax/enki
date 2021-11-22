@@ -15,7 +15,6 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     fi
 
     # use xmlstarlet to pull out the style file unless this ran in CORGI and the CORGI job has an override
-    echo "slug_name=$slug_name"
     style_name=$(read_style $slug_name)
     style_file="$CNX_RECIPES_STYLES_ROOT/$style_name-pdf.css"
 
