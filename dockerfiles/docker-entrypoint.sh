@@ -71,12 +71,13 @@ function check_output_dir() {
 }
 
 function read_style() {
+    slug_name=$1
     # Read from IO_BOOK/style if it exists
     if [ -e $IO_BOOK/style ]; then
         cat $IO_BOOK/style
     # Otherwise read from META-INF/books.xml
     else
-        style_name=$(xmlstarlet sel -t --match '//*[@style]' --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
         if [[ $style_name == '' ]]; then
             die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)"
         else
@@ -102,7 +103,11 @@ function do_xhtml_validate() {
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    ARG_RECIPE_NAME=$(read_style)
+    # This is ONLY used for archive books. git books use read_style to get the style from the META-INF/books.xml
+    if [ -e $IO_BOOK/style ]; then
+        ARG_RECIPE_NAME=$(cat $IO_BOOK/style)
+    fi
+
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
     [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
