@@ -50,6 +50,7 @@ Then try the following to build PDFs and other formats:
 ./cli.sh ./data/socio/ all-archive-pdf col11762 sociology       latest
 ./cli.sh ./data/socio/ all-archive-web col11762 sociology       latest
 ```
+**Note:** To use the style in `META-INF/books.xml` use the _magic_ recipe named `default`
 
 **Note:** If you are running this inside a container (like gitpod) then you can replace `./cli.sh ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh` (no data directory necessary, it will be `/data/`)
 

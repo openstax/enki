@@ -70,6 +70,22 @@ function check_output_dir() {
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
 
+function read_style() {
+    slug_name=$1
+    # Read from IO_BOOK/style if it exists
+    if [ -e $IO_BOOK/style ]; then
+        cat $IO_BOOK/style # LCOV_EXCL_LINE
+    # Otherwise read from META-INF/books.xml
+    else
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+        if [[ $style_name == '' ]]; then
+            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+        else
+            echo "$style_name"
+        fi
+    fi
+}
+
 function do_xhtml_validate() {
     failure=false
     dir_name=$1
@@ -87,7 +103,11 @@ function do_xhtml_validate() {
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    ARG_RECIPE_NAME="$(cat $IO_BOOK/style)"
+    # This is ONLY used for archive books. git books use read_style to get the style from the META-INF/books.xml
+    if [ -e $IO_BOOK/style ]; then
+        ARG_RECIPE_NAME=$(cat $IO_BOOK/style)
+    fi
+
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
     [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
@@ -164,7 +184,9 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
+            if [[ $recipe != "default" ]]; then
+                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
+            fi
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
