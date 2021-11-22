@@ -1,7 +1,7 @@
 import * as path from "path";
 import { digraph, attribute, Dot } from "ts-graphviz";
 import { exportToFile } from "@ts-graphviz/node";
-import { GIT_PDF_STEPS, GIT_WEB_STEPS, ARCHIVE_PDF_STEPS, ARCHIVE_GDOC_STEPS, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, Step } from './step-definitions'
+import { GIT_PDF_STEPS, GIT_WEB_STEPS, ARCHIVE_PDF_STEPS, ARCHIVE_GDOC_STEPS, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, Step, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
 
 const DIRS_TO_SKIP = new Set()
 DIRS_TO_SKIP.add('book')
@@ -72,6 +72,7 @@ async function buildChart(steps: Step[], destFilename: string, additionalResourc
     await buildChart(GIT_PDF_STEPS, './graphs/git-pdf.png')
     await buildChart(GIT_WEB_STEPS, './graphs/git-web.png')
     await buildChart(ARCHIVE_PDF_STEPS, './graphs/archive-pdf.png')
-    await buildChart(ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, './graphs/archive-web.png', 's3-queue')
+    await buildChart(ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, './graphs/archive-web.png', 's3-archive-queue')
+    await buildChart(GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, './graphs/git-web.png', 's3-git-queue')
     await buildChart(ARCHIVE_GDOC_STEPS, './graphs/archive-gdocs.png')
 })().then(null, console.error)

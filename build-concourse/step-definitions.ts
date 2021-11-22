@@ -82,12 +82,12 @@ set({name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.
 set({name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_DOCX], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
-set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }})
+set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_ARCHIVE_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_ARCHIVE_QUEUE, CODE_VERSION: true }})
 set({name: 'archive-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
-set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_QUEUE, CODE_VERSION: true }})
+set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
 set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
-set(buildUploadStep(false, false))
+set(buildArchiveUploadStep(false, false))
 
 // These are used both by CORGI when building a preview and by the webhosting pipeline
 export const ARCHIVE_WEB_STEPS = [
@@ -173,26 +173,30 @@ export const ARCHIVE_GDOC_STEPS = [
     get('archive-upload-docx'),
 ]
 
-function buildUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
+function buildArchiveUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
     return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_UPLOAD], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
+}
+
+function buildGitUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
+    return {name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.ARTIFACTS, IO.RESOURCES], outputs: [], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
 }
 
 export function buildLookUpBook(inputSource: RESOURCES): Step {
     return {name: 'look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
 }
 
-export const ARCHIVE_WEB_STEPS_WITH_UPLOAD = [...ARCHIVE_WEB_STEPS, buildUploadStep(true, false)]
+export const ARCHIVE_WEB_STEPS_WITH_UPLOAD = [...ARCHIVE_WEB_STEPS, buildArchiveUploadStep(true, false)]
 
 export const ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     get('archive-dequeue-book'),
     ...ARCHIVE_WEB_STEPS, 
-    buildUploadStep(false, true), 
+    buildArchiveUploadStep(false, true), 
     get('archive-report-book-complete')
 ]
 
 export const GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     get('git-dequeue-book'),
     ...GIT_WEB_STEPS, 
-    buildUploadStep(false, true), 
+    buildGitUploadStep(false, true), 
     get('git-report-book-complete')
 ]
