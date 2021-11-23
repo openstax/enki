@@ -69,7 +69,8 @@ export type ConcourseTask = {
 }
 
 export enum RESOURCES {
-    S3_QUEUE = 's3-queue',
+    S3_GIT_QUEUE = 's3-git-queue',
+    S3_ARCHIVE_QUEUE = 's3-archive-queue',
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
     OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
@@ -217,6 +218,7 @@ const taskStatusCheck = (env: KeyValue, taskArgs: TaskArgs) => {
 const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) => {
     const reporter = reportToOutputProducer(resource)
     const steps = [step]
+    /* istanbul ignore else */
     if (!env.SKIP_TORPEDO_TASK) {
         steps.push({
             do: [

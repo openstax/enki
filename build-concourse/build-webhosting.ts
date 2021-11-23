@@ -8,14 +8,26 @@ const CONTENT_SOURCE = 'archive'
 function makePipeline(envValues: KeyValue) {
     const resources = [
         {
-            name: RESOURCES.S3_QUEUE,
+            name: RESOURCES.S3_ARCHIVE_QUEUE,
             source: {
                 access_key_id: envValues.AWS_ACCESS_KEY_ID,
                 secret_access_key: envValues.AWS_SECRET_ACCESS_KEY,
                 session_token: envValues.AWS_SESSION_TOKEN,
                 bucket: envValues.WEB_QUEUE_STATE_S3_BUCKET,
                 initial_version: 'initializing',
-                versioned_file: `${envValues.CODE_VERSION}.web-hosting-queue.json`
+                versioned_file: `${envValues.CODE_VERSION}.web-hosting-archive-queue.json`
+            },
+            type: 's3',
+        },
+        {
+            name: RESOURCES.S3_GIT_QUEUE,
+            source: {
+                access_key_id: envValues.AWS_ACCESS_KEY_ID,
+                secret_access_key: envValues.AWS_SECRET_ACCESS_KEY,
+                session_token: envValues.AWS_SESSION_TOKEN,
+                bucket: envValues.WEB_QUEUE_STATE_S3_BUCKET,
+                initial_version: 'initializing',
+                versioned_file: `${envValues.CODE_VERSION}.web-hosting-git-queue.json`
             },
             type: 's3',
         },
@@ -42,7 +54,7 @@ function makePipeline(envValues: KeyValue) {
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
             {
-                get: RESOURCES.S3_QUEUE,
+                get: RESOURCES.S3_ARCHIVE_QUEUE,
                 trigger: true,
                 version: 'every'
             },
@@ -64,7 +76,7 @@ function makePipeline(envValues: KeyValue) {
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
             {
-                get: RESOURCES.S3_QUEUE,
+                get: RESOURCES.S3_GIT_QUEUE,
                 trigger: true,
                 version: 'every'
             },

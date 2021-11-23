@@ -4,23 +4,26 @@ parse_book_dir
 
 remote_url="https://github.com/$ARG_REPO_NAME.git"
 
-if [[ $GH_SECRET_CREDS ]]; then
+# kcov barfs when "set -x" is called so we just skip all of this authentication
+if [[ $KCOV_DIR == '' ]]; then
     # LCOV_EXCL_START
-    creds_dir=tmp-gh-creds
-    creds_file="$creds_dir/gh-creds"
-    git config --global credential.helper "store --file=$creds_file"
-    mkdir "$creds_dir"
     # Do not show creds
     set +x
-    echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+    if [[ $GH_SECRET_CREDS ]]; then
+        creds_dir=tmp-gh-creds
+        creds_file="$creds_dir/gh-creds"
+        git config --global credential.helper "store --file=$creds_file"
+        mkdir "$creds_dir"
+        echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+    else
+        echo "--------------------------------------------------------"
+        echo "Warning: GH_SECRET_CREDS is not set to anything."
+        echo "   This is only necessary for private repos."
+        echo "   If you get an error cloning, this might be the cause."
+        echo "--------------------------------------------------------"
+    fi
     [[ $TRACE_ON ]] && set -x
-    # LCOV_EXCL_STOP
-else
-    echo "--------------------------------------------------------"
-    echo "Warning: GH_SECRET_CREDS is not set to anything."
-    echo "   This is only necessary for private repos."
-    echo "   If you get an error cloning, this might be the cause."
-    echo "--------------------------------------------------------"
+    # LCOV_EXCL_END
 fi
 
 # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit

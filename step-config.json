@@ -417,7 +417,7 @@
         },
         "archive-dequeue-book": {
             "inputDirs": [
-                "IO_S3_QUEUE"
+                "IO_S3_ARCHIVE_QUEUE"
             ],
             "outputDirs": [
                 "IO_BOOK"
@@ -441,7 +441,7 @@
         },
         "git-dequeue-book": {
             "inputDirs": [
-                "IO_S3_QUEUE"
+                "IO_S3_GIT_QUEUE"
             ],
             "outputDirs": [
                 "IO_BOOK"

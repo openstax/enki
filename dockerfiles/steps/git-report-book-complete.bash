@@ -1,9 +1,9 @@
 # LCOV_EXCL_START
-bucketPrefix=archive-dist
+bucketPrefix=git-dist
 codeVersion=$CODE_VERSION
 queueStateBucket=$WEB_QUEUE_STATE_S3_BUCKET
 
-book_id="$(cat $IO_BOOK/collection_id)"
+book_id="$(cat $IO_BOOK/repo)"
 version="$(cat $IO_BOOK/version)"
 complete_filename=".$bucketPrefix.$book_id@$version.complete"
 try date -Iseconds > "/tmp/$complete_filename"

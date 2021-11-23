@@ -70,22 +70,6 @@ function check_output_dir() {
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
 
-function read_style() {
-    slug_name=$1
-    # Read from IO_BOOK/style if it exists
-    if [ -e $IO_BOOK/style ]; then
-        cat $IO_BOOK/style # LCOV_EXCL_LINE
-    # Otherwise read from META-INF/books.xml
-    else
-        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
-        if [[ $style_name == '' ]]; then
-            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-        else
-            echo "$style_name"
-        fi
-    fi
-}
-
 function do_xhtml_validate() {
     failure=false
     dir_name=$1
