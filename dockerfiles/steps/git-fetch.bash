@@ -5,7 +5,7 @@ parse_book_dir
 remote_url="https://github.com/$ARG_REPO_NAME.git"
 
 # kcov barfs when "set -x" is called so we just skip all of this authentication
-if [[ $KCOV_DIR != '' ]]; then
+if [[ $KCOV_DIR == '' ]]; then
     # LCOV_EXCL_START
     # Do not show creds
     set +x
