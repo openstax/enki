@@ -218,6 +218,7 @@ const taskStatusCheck = (env: KeyValue, taskArgs: TaskArgs) => {
 const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) => {
     const reporter = reportToOutputProducer(resource)
     const steps = [step]
+    /* istanbul ignore else */
     if (!env.SKIP_TORPEDO_TASK) {
         steps.push({
             do: [
