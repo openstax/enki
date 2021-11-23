@@ -4,16 +4,27 @@ parse_book_dir
 
 remote_url="https://github.com/$ARG_REPO_NAME.git"
 
-creds_dir=tmp-gh-creds
-creds_file="$creds_dir/gh-creds"
-git config --global credential.helper "store --file=$creds_file"
-mkdir "$creds_dir"
-# LCOV_EXCL_START
-# Do not show creds
-set +x
-echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
-[[ $TRACE_ON ]] && set -x
-# LCOV_EXCL_END
+# kcov barfs when "set -x" is called so we just skip all of this authentication
+if [[ $KCOV_DIR != '' ]]; then
+    # LCOV_EXCL_START
+    # Do not show creds
+    set +x
+    if [[ $GH_SECRET_CREDS ]]; then
+        creds_dir=tmp-gh-creds
+        creds_file="$creds_dir/gh-creds"
+        git config --global credential.helper "store --file=$creds_file"
+        mkdir "$creds_dir"
+        echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
+    else
+        echo "--------------------------------------------------------"
+        echo "Warning: GH_SECRET_CREDS is not set to anything."
+        echo "   This is only necessary for private repos."
+        echo "   If you get an error cloning, this might be the cause."
+        echo "--------------------------------------------------------"
+    fi
+    [[ $TRACE_ON ]] && set -x
+    # LCOV_EXCL_END
+fi
 
 # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
 # Or, https://stackoverflow.com/a/7662531
@@ -22,11 +33,6 @@ echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
 if [[ $ARG_GIT_REF = @* ]]; then
     # LCOV_EXCL_START
     git_commit="${ARG_GIT_REF:1}"
-    # echo "--------------------------------------------------------"
-    # echo "Warning: GH_SECRET_CREDS may not set to anything."
-    # echo "   This is only necessary for private repos."
-    # echo "   If you get an error cloning, this might be the cause."
-    # echo "--------------------------------------------------------"
     GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "$remote_url" "$IO_FETCHED"
     try pushd "$IO_FETCHED"
     try git reset --hard "$git_commit"
