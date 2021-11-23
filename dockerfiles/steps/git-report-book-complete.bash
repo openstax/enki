@@ -1,5 +1,5 @@
 # LCOV_EXCL_START
-bucketPrefix=archive-dist
+bucketPrefix=git-dist
 codeVersion=$CODE_VERSION
 queueStateBucket=$WEB_QUEUE_STATE_S3_BUCKET
 
