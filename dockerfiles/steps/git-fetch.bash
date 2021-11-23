@@ -8,10 +8,12 @@ creds_dir=tmp-gh-creds
 creds_file="$creds_dir/gh-creds"
 git config --global credential.helper "store --file=$creds_file"
 mkdir "$creds_dir"
+# LCOV_EXCL_START
 # Do not show creds
 set +x
 echo "https://$GH_SECRET_CREDS@github.com" > "$creds_file" 2>&1
 [[ $TRACE_ON ]] && set -x
+# LCOV_EXCL_END
 
 # If ARG_GIT_REF starts with '@' then it is a commit and check out the individual commit
 # Or, https://stackoverflow.com/a/7662531
