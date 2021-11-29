@@ -177,10 +177,6 @@ function buildArchiveUploadStep(requireCorgiBucket: boolean, requireWebhostingBu
     return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_UPLOAD], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
 }
 
-function buildGitUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
-    return {name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.ARTIFACTS, IO.RESOURCES], outputs: [], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
-}
-
 export function buildLookUpBook(inputSource: RESOURCES): Step {
     return {name: 'look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
 }
@@ -197,6 +193,5 @@ export const ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
 export const GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     get('git-dequeue-book'),
     ...GIT_WEB_STEPS, 
-    buildGitUploadStep(false, true), 
     get('git-report-book-complete')
 ]
