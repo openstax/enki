@@ -11,20 +11,26 @@ set -e
 if [[ $(tput colors) -ge 8 ]]; then
     # LCOV_EXCL_START
     declare -x c_red=$(tput setaf 1)
+    declare -x c_green=$(tput setaf 2)
+    declare -x c_yellow=$(tput setaf 3)
+    declare -x c_blue=$(tput setaf 4)
+    declare -x c_purple=$(tput setaf 5)
+    declare -x c_cyan=$(tput setaf 6)
     declare -x c_none=$(tput sgr0) # Keep this last so TRACE=true does not cause everything to be cyan
     # LCOV_EXCL_STOP
 fi
 
-say() { echo -e "$1"; }
 # https://stackoverflow.com/a/25515370
-yell() { >&2 say "$0: $c_red$*$c_none"; }
+say() { echo -e "${c_green}$*${c_none}"; }
+warn() { echo -e "${c_yellow}$*${c_none}"; }
+yell() { >&2 echo -e "$0: $c_red$*$c_none"; }
 die() {
     # LCOV_EXCL_START
     yell "$1"
     exit 112
     # LCOV_EXCL_STOP
 }
-try() { "$@" || die "$c_redERROR: could not run [$*]$c_none" 112; }
+try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
