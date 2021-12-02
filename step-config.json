@@ -200,6 +200,7 @@
         "git-bake": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_ASSEMBLED"
             ],
             "outputDirs": [
