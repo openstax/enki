@@ -194,7 +194,7 @@ function do_step() {
                 fi
                 # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
                 if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
-                    rm $IO_BOOK/slug
+                    rm $IO_BOOK/slug # LCOV_EXCL_LINE
                 fi
 
                 pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
