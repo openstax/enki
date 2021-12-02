@@ -26,9 +26,6 @@ function read_style() {
 shopt -s globstar nullglob
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-    if [[ -n "$ARG_OPT_ONLY_ONE_BOOK" ]]; then
-        [[ "$slug_name" != "$ARG_OPT_ONLY_ONE_BOOK" ]] && continue # LCOV_EXCL_LINE
-    fi
 
     # use xmlstarlet to pull out the style file unless this ran in CORGI and the CORGI job has an override
     style_name=$(read_style $slug_name)

@@ -1,7 +1,26 @@
 parse_book_dir
 
-if [[ -n "$ARG_OPT_ONLY_ONE_BOOK" ]]; then
-    try link-single "$IO_BAKED" "$IO_BAKE_META" "$ARG_TARGET_SLUG_NAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.linked.xhtml" --mock-otherbook # LCOV_EXCL_LINE
-else
-    try link-single "$IO_BAKED" "$IO_BAKE_META" "$ARG_TARGET_SLUG_NAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.linked.xhtml"
+repo_root=$IO_FETCH_META
+col_sep='|'
+# https://stackoverflow.com/a/31838754
+xpath_sel="//*[@slug]" # All the book entries
+if [[ $ARG_TARGET_SLUG_NAME ]]; then
+    xpath_sel="//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]"
 fi
+while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
+    IFS=$col_sep read -r slug href style <<< "$line"
+    path="$repo_root/META-INF/$href"
+
+    # ------------------------------------------
+    # Available Variables: slug href style path
+    # ------------------------------------------
+    # --------- Code starts here
+
+
+
+    try link-single "$IO_BAKED" "$IO_BAKE_META" "$slug" "$IO_LINKED/$slug.linked.xhtml"
+
+
+
+    # --------- Code ends here
+done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
