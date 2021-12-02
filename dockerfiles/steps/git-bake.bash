@@ -14,7 +14,7 @@ function read_style() {
         cat $IO_BOOK/style # LCOV_EXCL_LINE
     # Otherwise read from META-INF/books.xml
     else
-        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCH_META/META-INF/books.xml)
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
         if [[ $style_name == '' ]]; then
             die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
         else
