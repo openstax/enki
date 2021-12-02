@@ -5,10 +5,18 @@ try wget "$book_slugs_url" -O "/tmp/approved-book-list.json"
 
 
 target_dir="$IO_REX_LINKED"
-filename="$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
 abl_file="/tmp/approved-book-list.json"
 book_slugs_file="/tmp/book-slugs.json"
 try cat $abl_file | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
 
-try link-rex "$IO_MATHIFIED/$ARG_TARGET_SLUG_NAME.mathified.xhtml" "$book_slugs_file" "$target_dir" "$filename"
+shopt -s globstar nullglob
+for collection in "$IO_MATHIFIED/"*.mathified.xhtml; do
+    slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+
+    try link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
+
+done
+shopt -u globstar nullglob
+
+
 try cp "$IO_MATHIFIED/the-style-pdf.css" "$IO_REX_LINKED"

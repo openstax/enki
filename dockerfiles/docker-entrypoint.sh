@@ -174,7 +174,7 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            if [[ $recipe != "default" ]]; then
+            if [[ $recipe != "default" && $recipe != "*" ]]; then
                 cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
             fi
 
@@ -192,6 +192,11 @@ function do_step() {
                     cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
                     # LCOV_EXCL_STOP
                 fi
+                # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
+                if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
+                    rm $IO_BOOK/slug
+                fi
+
                 pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
                 echo "$pdf_filename" > $IO_BOOK/pdf_filename
             else
