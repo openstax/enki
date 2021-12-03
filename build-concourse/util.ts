@@ -276,7 +276,7 @@ export enum PDF_OR_WEB {
     WEB = 'web'
 }
 
-  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, step: Step) => toConcourseTask(env, `task=${step.name} ${pdfOrWeb}`, step.inputs, [...step.outputs, IO.COMMON_LOG], { TASK_NAME: step.name, CODE_VERSION: true, ...step.env }, readScript('script/run_task.bash'))
+  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, step: Step) => toConcourseTask(env, step.name, step.inputs, [...step.outputs, IO.COMMON_LOG], { TASK_NAME: step.name, CODE_VERSION: true, ...step.env }, readScript('script/run_task.bash'))
   
 
 type Settings = { 
