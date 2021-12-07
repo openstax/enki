@@ -40,8 +40,9 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
 
 
     if [[ -f "$style_file" ]]
-    try $RECIPES_ROOT/bake_root -b "$style_name" -r $CNX_RECIPES_RECIPES_ROOT/ -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml"
         then
+            export VERBOSE=$TRACE_ON
+            try $RECIPES_ROOT/bake_root -b "$style_name" -r $CNX_RECIPES_RECIPES_ROOT/ -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml"
             try sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"the-style-pdf.css\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
     fi
 done
