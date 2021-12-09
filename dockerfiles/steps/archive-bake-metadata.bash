@@ -8,7 +8,7 @@ book_ident_hash="$book_uuid@$book_version"
 book_license="$(cat $book_metadata | jq '.license')"
 target_dir="$IO_ARCHIVE_BOOK"
 book_slugs_file="/tmp/book-slugs.json"
-cat "$IO_ARCHIVE_FETCHED/approved-book-list.json" | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
+cat "$IO_ARCHIVE_FETCHED/approved-book-list.json" | jq '[.approved_books[]|select(has("collection_id"))]|map(.books)|flatten' > "$book_slugs_file"
 cat "$IO_ARCHIVE_BOOK/collection.assembled-metadata.json" | \
     jq --arg ident_hash "$book_ident_hash" --arg uuid "$book_uuid" --arg version "$book_version" --argjson license "$book_license" \
     --arg legacy_id "$book_legacy_id" --arg legacy_version "$book_legacy_version" \
