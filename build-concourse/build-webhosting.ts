@@ -45,7 +45,7 @@ function makePipeline(envValues: KeyValue) {
         plan: [{
             get: RESOURCES.TICKER,
             trigger: true,
-        }, toConcourseTask(envValues, 'archive-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/archive_check_feed.sh')),
+        }, toConcourseTask(envValues, 'archive-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, ABL_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/archive_check_feed.sh')),
         ]
     }
     
@@ -67,7 +67,7 @@ function makePipeline(envValues: KeyValue) {
         plan: [{
             get: RESOURCES.TICKER,
             trigger: true,
-        }, toConcourseTask(envValues, 'git-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, WEB_FEED_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/git_check_feed.sh')),
+        }, toConcourseTask(envValues, 'git-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, ABL_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/git_check_feed.sh')),
         ]
     }
     

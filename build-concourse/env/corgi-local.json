@@ -5,7 +5,7 @@
     "CORGI_API_URL_UNUSED_FOR_NOW": "http://backend/api",
     "CORGI_API_URL_ALSO_UNUSED": "https://corgi-staging.openstax.org/api",
     "CORGI_API_URL": "http://smocker:8080/api",
-    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
     "CORGI_CLOUDFRONT_URL": "https://gibberish",
     "PREVIEW_APP_URL_PREFIX": "apps/archive-localdev"

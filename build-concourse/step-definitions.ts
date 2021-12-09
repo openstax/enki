@@ -33,7 +33,7 @@ function set(step: Step) {
 
 // ARCHIVE_WEB_STEPS
 set({name: 'archive-fetch', inputs: [IO.BOOK], outputs: [IO.ARCHIVE_FETCHED], env: {}})
-set({name: 'archive-fetch-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_FETCHED], env: {WEB_FEED_FILE_URL: true}})
+set({name: 'archive-fetch-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_FETCHED], env: {ABL_FILE_URL: true}})
 set({name: 'archive-validate-cnxml', inputs: [IO.ARCHIVE_FETCHED], outputs: [], env: {}})
 set({name: 'archive-assemble', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-assemble-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})

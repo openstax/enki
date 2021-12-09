@@ -19,7 +19,7 @@
                 "IO_ARCHIVE_FETCHED"
             ],
             "requiredEnv": [
-                "WEB_FEED_FILE_URL"
+                "ABL_FILE_URL"
             ]
         },
         "archive-validate-cnxml": {

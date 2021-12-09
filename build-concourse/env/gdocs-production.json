@@ -3,7 +3,7 @@
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_ACCESS_KEY_ID": "((prod-web-hosting-content-gatekeeper-access-key-id))",
     "AWS_SECRET_ACCESS_KEY": "((prod-web-hosting-content-gatekeeper-secret-access-key))",
-    "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+    "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-web-hosting-content-queue-state",
     "PIPELINE_TICK_INTERVAL": "12h",
     "MAX_BOOKS_PER_TICK": "50",

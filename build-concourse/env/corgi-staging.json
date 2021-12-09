@@ -4,7 +4,7 @@
   "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
   "CORGI_CLOUDFRONT_URL": "https://cops.sandbox.openstax.org",
   "PREVIEW_APP_URL_PREFIX": "apps/archive-preview",
-  "WEB_FEED_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
+  "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json",
   "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
   "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
   "GH_SECRET_CREDS": "git:((github-api-token))",
