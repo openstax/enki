@@ -18,7 +18,9 @@
             "outputDirs": [
                 "IO_ARCHIVE_FETCHED"
             ],
-            "requiredEnv": []
+            "requiredEnv": [
+                "WEB_FEED_FILE_URL"
+            ]
         },
         "archive-validate-cnxml": {
             "inputDirs": [
