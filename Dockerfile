@@ -273,6 +273,17 @@ RUN mkdir /kcov-src/build \
     && cmake --build . --target install \
     ;
 
+FROM base as build-jo-stage
+
+ENV JO_VERSION=1.4
+RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo-source.tar.gz \
+    && tar -xvzf jo-source.tar.gz \
+    && cd ./jo-$JO_VERSION \
+    && autoreconf -i \
+    && ./configure \
+    && make check \
+    && make install \
+    ;
 
 # ===========================
 # The Final Stage
@@ -321,6 +332,7 @@ COPY --from=base-scratch / /
 # This variable is JUST used for the COPY instructions below
 ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/output-producer-service/bakery/src
 
+COPY --from=build-jo-stage /usr/local/bin/jo /usr/local/bin/jo
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
