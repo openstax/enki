@@ -7,7 +7,7 @@ try wget "$book_slugs_url" -O "/tmp/approved-book-list.json"
 target_dir="$IO_REX_LINKED"
 abl_file="/tmp/approved-book-list.json"
 book_slugs_file="/tmp/book-slugs.json"
-try cat $abl_file | jq ".approved_books|map(.books)|flatten" > "$book_slugs_file"
+try cat $abl_file | jq '[.approved_books[]|select(has("collection_id"))]|map(.books)|flatten' > "$book_slugs_file"
 
 shopt -s globstar nullglob
 for collection in "$IO_MATHIFIED/"*.mathified.xhtml; do
