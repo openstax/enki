@@ -18,7 +18,9 @@
             "outputDirs": [
                 "IO_ARCHIVE_FETCHED"
             ],
-            "requiredEnv": []
+            "requiredEnv": [
+                "ABL_FILE_URL"
+            ]
         },
         "archive-validate-cnxml": {
             "inputDirs": [

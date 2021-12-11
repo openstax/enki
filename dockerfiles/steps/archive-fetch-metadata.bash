@@ -1,5 +1,4 @@
-book_slugs_url='https://raw.githubusercontent.com/openstax/content-manager-approved-books/master/approved-book-list.json'
-try wget "$book_slugs_url" -O "$IO_ARCHIVE_FETCHED/approved-book-list.json"
+try wget "$ABL_FILE_URL" -O "$IO_ARCHIVE_FETCHED/approved-book-list.json"
 
 # Verify the ABL schema version is what subsequent tasks expect
 EXPECTED_ABL_VER=2
