@@ -59,7 +59,7 @@ set({name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outpu
 set({name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
 set({name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META], outputs: [IO.LINKED], env: {}})
 set({name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {}})
-set({name: 'git-link-rex', inputs: [IO.BOOK, IO.MATHIFIED, IO.FETCHED], outputs: [IO.REX_LINKED], env: {}})
+set({name: 'git-link-rex', inputs: [IO.BOOK, IO.MATHIFIED, IO.FETCHED, IO.FETCH_META], outputs: [IO.REX_LINKED], env: {}})
 set({name: 'git-pdfify', inputs: [IO.BOOK, IO.REX_LINKED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'git-pdfify-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
