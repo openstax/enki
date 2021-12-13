@@ -259,11 +259,43 @@ function do_step_named() {
         exit 0
     fi
     if [[ ! $START_AT_STEP ]]; then
+        prepare_directories $step_name
         say "==> Starting: $*"
         do_step $@
         unset_book_vars
         say "==> Finished: $*"
     fi
+}
+
+UNUSED_IN_THIS_STEP_CONCOURSE=".UNUSED_IN_THIS_STEP_CONCOURSE"
+
+function prepare_directories() {
+    step_name=$1
+
+    input_dirs=$(jq  -r ".steps.\"$step_name\".inputDirs|@sh"  < $STEP_CONFIG_FILE)
+    output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
+
+    [[ $step_name == 'look-up-book' ]] && input_dirs='INPUT_SOURCE_DIR'
+    input_output_dirs="$input_dirs $output_dirs"
+
+    # Rename all directories *.UNUSED_IN_THIS_STEP_CONCOURSE and then rename the ones used by the step back
+    child_dirs=$(find . -maxdepth 1 -mindepth 1 -type d)
+    for child_dir in $child_dirs; do
+        if [[ ${child_dir: -${#UNUSED_IN_THIS_STEP_CONCOURSE}} != $UNUSED_IN_THIS_STEP_CONCOURSE ]]; then
+            [[ -d "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" ]] && try rm -rf "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE"
+            try mv "$child_dir" "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE"
+        fi
+    done
+
+    for io_name in $input_output_dirs; do
+        io_name=$(echo $io_name | tr -d "'")  # unquote from jq
+        pointer=$io_name # https://stackoverflow.com/a/55331060
+        child_dir="${!pointer}"
+
+        if [[ -d "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" ]]; then
+            try mv "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" "$child_dir"
+        fi
+    done
 }
 
 
