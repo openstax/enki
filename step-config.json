@@ -255,7 +255,8 @@
             "inputDirs": [
                 "IO_BOOK",
                 "IO_MATHIFIED",
-                "IO_FETCHED"
+                "IO_FETCHED",
+                "IO_FETCH_META"
             ],
             "outputDirs": [
                 "IO_REX_LINKED"
