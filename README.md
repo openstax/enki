@@ -56,7 +56,7 @@ Then try the following to build PDFs and other formats:
 
 ## Private Repositories
 
-To clone private repositories you will need to set `GH_SECRET_CREDS`. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` and run the cli.
+To clone private repositories you will need to set `GH_SECRET_CREDS`. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` in the `.env` file (see [example](./.env.example) and run the cli.
 
 ## Google Docs
 
@@ -65,33 +65,15 @@ To upload DOCX files to **Google Docs** follow the [instructions here](./google-
 
 # Environment Variables
 
-[dockerfiles/docker-entrypoint.sh](./dockerfiles/docker-entrypoint.sh) specifically makes heavy use of environment variables. It uses them to pass information like which book and version to fetch as well as the directory to read/write to.
+This project uses environment variables extensively to set things like:
 
-When running locally the directories by default read/write to subdirectories of `./data/` using a Docker volume mount. The pipelines that run in concourse use different directories since each one is an input/output directory specified in the Concourse-CI task.
+- Trace Logging
+- Mounting a custom `recipes/` directory
+- Skipping certain steps
+- AWS authentication credentials
+- Google authentication credentials
 
-
-## Common Environment Variables
-
-| Name | Use | Description |
-| :--- | :-- | :---------- |
-| `CODE_VERSION` | | The code version to use when generating the concourse pipeline files
-| `TRACE_ON=1` | Debug | Set to anything to enable trace output
-| `START_AT_STEP` | Dev | Skip time-consuming steps like fetch by setting this
-
-
-## Authentication Secrets
-
-These are only used by some steps and are mostly used for authentication to upload files (except for GH_SECRET_CREDS):
-
-| Name | Use | Description |
-| :--- | :-- | :---------- |
-| `GH_SECRET_CREDS={token}:x-oauth-basic` | Git Clone | GitHub Auth token to clone private repositories. [Create one](https://github.com/settings/tokens) and ensure the `repo` scope is selected.
-| `AWS_ACCESS_KEY_ID` | AWS Upload | See `aws-access` for more
-| `AWS_SECRET_ACCESS_KEY` | AWS Upload | See `aws-access` for more
-| `AWS_SESSION_TOKEN` | AWS Upload | See `aws-access` for more
-| `GOOGLE_SERVICE_ACCOUNT_CREDENTIALS` | Google Docs Upload | See [./google-docs.md](./google-docs.md)
-| `GDOC_GOOGLE_FOLDER_ID` | Google Docs Upload | See [./google-docs.md](./google-docs.md)
-
+See [./.env.example](./.env.example) for all the environment variables and examples.
 
 ## Artifact and Queue Buckets
 
@@ -113,14 +95,6 @@ The pipeline-generation code uses a few additional environment variables:
 | :--- | :-- | :---------- |
 | `DOCKERHUB_USERNAME` | | Your DockerHub username in case you are rate-limited
 | `DOCKERHUB_PASSWORD` | | Your DockerHub password in case you are rate-limited
-
-
-## Internal environment variables
-
-| Name | Use | Description |
-| :--- | :-- | :---------- |
-| `KCOV_DIR` | Test | Name of the subdirectory in `/data/` to write kcov coverage data to |
-| `__CI_KCOV_MERGE_ALL__=1` | Test | Use kcov in the container to merge multiple kcov reports (one for each test) together into one
 
 
 # Features
