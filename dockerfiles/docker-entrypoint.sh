@@ -259,43 +259,80 @@ function do_step_named() {
         exit 0
     fi
     if [[ ! $START_AT_STEP ]]; then
-        prepare_directories $step_name
+        if [[ $LOCAL_ATTIC_DIR ]]; then
+            say "==> Preparing: $*"
+            simulate_dirs_before $step_name
+        fi
         say "==> Starting: $*"
         do_step $@
-        unset_book_vars
+        if [[ $LOCAL_ATTIC_DIR ]]; then
+            say "==> Finishing: $*"
+            simulate_dirs_after $step_name
+            unset_book_vars
+        fi
         say "==> Finished: $*"
     fi
 }
 
-UNUSED_IN_THIS_STEP_CONCOURSE=".UNUSED_IN_THIS_STEP_CONCOURSE"
-
-function prepare_directories() {
+function simulate_dirs_before() {
     step_name=$1
 
     input_dirs=$(jq  -r ".steps.\"$step_name\".inputDirs|@sh"  < $STEP_CONFIG_FILE)
-    output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
-
     [[ $step_name == 'look-up-book' ]] && input_dirs='INPUT_SOURCE_DIR'
-    input_output_dirs="$input_dirs $output_dirs"
 
-    # Rename all directories *.UNUSED_IN_THIS_STEP_CONCOURSE and then rename the ones used by the step back
-    child_dirs=$(find . -maxdepth 1 -mindepth 1 -type d)
-    for child_dir in $child_dirs; do
-        if [[ ${child_dir: -${#UNUSED_IN_THIS_STEP_CONCOURSE}} != $UNUSED_IN_THIS_STEP_CONCOURSE ]]; then
-            [[ -d "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" ]] && try rm -rf "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE"
-            try mv "$child_dir" "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE"
-        fi
-    done
+    # Copy directories from the attic into the workspace
+    if [[ $input_dirs != null ]]; then
+        for io_name in $input_dirs; do
+            io_name=$(echo $io_name | tr -d "'")  # unquote from jq
+            pointer=$io_name # https://stackoverflow.com/a/55331060
+            child_dir_path="${!pointer}"
 
-    for io_name in $input_output_dirs; do
-        io_name=$(echo $io_name | tr -d "'")  # unquote from jq
-        pointer=$io_name # https://stackoverflow.com/a/55331060
-        child_dir="${!pointer}"
+            if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
+                [[ -d $child_dir_path ]] && die "BUG: We should not have directories checked out from the attic at this point. Maybe turn this into a warning in the future"
+                try cp -R "$LOCAL_ATTIC_DIR/$io_name" "$child_dir_path"
+            else
+                try mkdir "$child_dir_path"
+            fi
+        done
+    fi
+}
 
-        if [[ -d "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" ]]; then
-            try mv "$child_dir$UNUSED_IN_THIS_STEP_CONCOURSE" "$child_dir"
-        fi
-    done
+function simulate_dirs_after() {
+    step_name=$1
+
+    input_dirs=$(jq  -r ".steps.\"$step_name\".inputDirs|@sh"  < $STEP_CONFIG_FILE)
+    output_dirs=$(jq  -r ".steps.\"$step_name\".outputDirs|@sh"  < $STEP_CONFIG_FILE)
+
+    [[ $step_name == 'local-create-book-directory' ]] && output_dirs='INPUT_SOURCE_DIR'
+    [[ $step_name == 'look-up-book' ]] && output_dirs='IO_BOOK'
+
+    # Copy output directories into the attic (for use by later steps)
+    if [[ $output_dirs != null ]]; then
+        [[ -d $LOCAL_ATTIC_DIR ]] || mkdir -p $LOCAL_ATTIC_DIR # create dir if does not exist
+
+        for io_name in $output_dirs; do
+            io_name=$(echo $io_name | tr -d "'")  # unquote from jq
+            pointer=$io_name # https://stackoverflow.com/a/55331060
+            child_dir_path="${!pointer}"
+
+            if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
+                try rm -rf "$LOCAL_ATTIC_DIR/$io_name"
+            fi 
+            try mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
+        done
+    fi
+
+    # Remove any input-only directories
+    if [[ $input_dirs != null ]]; then
+        for io_name in $input_dirs; do
+            io_name=$(echo $io_name | tr -d "'")  # unquote from jq
+            pointer=$io_name # https://stackoverflow.com/a/55331060
+            child_dir_path="${!pointer}"
+
+            try rm -rf "$child_dir_path"
+        done
+    fi
+ 
 }
 
 
