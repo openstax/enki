@@ -7,6 +7,23 @@ set -e
 # Trace if TRACE_ON is set
 [[ $TRACE_ON ]] && set -x
 
+current_dir=$(pwd)
+if [[ $DOTENV_PATH ]]; then
+    [[ $DOTENV_PATH != /* ]] && DOTENV_PATH=$(cd $current_dir/$(dirname "$DOTENV_PATH") && pwd)
+else
+    DOTENV_PATH="$current_dir/.env"
+fi
+
+# Parse .env file if it exists
+# https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
+[[ -f $DOTENV_PATH ]] && {
+    echo "Using environment variables from $DOTENV_PATH"
+    export $(echo $(cat $DOTENV_PATH | sed 's/#.*//g' | sed 's/\r//g' | xargs))
+}
+
+# Trace if TRACE_ON is set
+[[ $TRACE_ON ]] && set -x
+
 my_dirname="$(cd $(dirname "$0"); pwd)"
 image_name=richb-press
 local_dir=$1
@@ -56,10 +73,17 @@ fi
 
 $my_dirname/build-dockerfile.sh
 
+[[ $RECIPES_ROOT ]] && {
+    [[ $RECIPES_ROOT != /* ]] && RECIPES_ROOT=$(cd $current_dir/$RECIPES_ROOT && pwd)
+    opt_mount_recipes="--volume=$RECIPES_ROOT:/workspace/richb-press/recipes/"
+}
+
 [[ $SKIP_DOCKER_BUILD ]] || {
     DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $my_dirname/Dockerfile $my_dirname/.
 }
-docker run $INTERACTIVE $ENABLE_TTY --volume=$(cd "$local_dir"/; pwd):/data/ \
+docker run $INTERACTIVE $ENABLE_TTY \
+    --volume=$(cd "$local_dir"/; pwd):/data/ \
+    $opt_mount_recipes \
     --env-file $my_dirname/cli.env \
     --env TRACE_ON \
     --env CODE_VERSION \
