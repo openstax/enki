@@ -106,5 +106,5 @@ docker run $INTERACTIVE $ENABLE_TTY \
 
 if [[ $2 == *pdf ]]
 then
-    >&2 echo "The PDF is available somewhere in either $local_dir/assembled/collection.pdf or $local_dir/artifacts-single/book.pdf"
+    >&2 echo "The PDF is available near $local_dir/_attic/IO_ARTIFACTS/book.pdf"
 fi
