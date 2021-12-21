@@ -11,12 +11,6 @@ START_AT_STEP=git-disassemble \
 ../cli.sh $BOOK_DIR all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
 
 
-SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov03 \
-START_AT_STEP=git-disassemble \
-../cli.sh $BOOK_DIR all-git-web 'philschatz/tiny-book/book-slug1' chemistry long-lived-branch-for-testing
-
-
 # Verify we can build a commit that is not on the main branch
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov03 \

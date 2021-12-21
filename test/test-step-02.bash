@@ -18,3 +18,23 @@ KCOV_DIR=_kcov02-b \
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-c \
 ../cli.sh $BOOK_DIR git-validate-cnxml
+
+
+# ################################
+# Clone a branch, 
+# build the PDF URL,
+# and verify it is URL-encoded
+# ################################
+
+SKIP_DOCKER_BUILD=1 \
+../cli.sh $BOOK_DIR all-git-pdf 'philschatz/tiny-book/book-slug1' default long-lived-branch-for-testing-with-#-char
+
+SKIP_DOCKER_BUILD=1 \
+../cli.sh $BOOK_DIR git-pdfify-meta
+
+expected_pdf_filename='book-slug1-long-lived-branch-for-testing-with-%23-char-git--123456.pdf'
+actual_pdf_url=$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/pdf_url)
+actual_pdf_filename=$(basename "$actual_pdf_url")
+[[ $expected_pdf_filename == $actual_pdf_filename ]] || {
+    echo "PDF URL was not escaped. Expected '$expected_pdf_filename' but got '$actual_pdf_filename'"
+}
