@@ -75,6 +75,11 @@ else
     fi
 fi
 
+# Clean up the temporary credentials file if it exists
+if [[ -f $creds_file ]]; then
+    try rm $creds_file # LCOV_EXCL_LINE
+fi
+
 # If the user wants to build one book then check that the book exists
 # so we can error early.
 if [[ $ARG_TARGET_SLUG_NAME ]]; then
