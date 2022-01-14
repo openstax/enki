@@ -9,7 +9,7 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     book_json_file="$IO_JSONIFIED/$slug_name.toc.json"
     books_json_append=$(jq -c '.book_json' <<< "$manifest")
     # Memorize book json file with cat before overwrite
-    jq '. + '"$books_json_append" <<< $(cat $book_json_file) > $book_json_file
+    jq '. + '"$books_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
 
     try jsonschema -i "$IO_JSONIFIED/$slug_name.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
 

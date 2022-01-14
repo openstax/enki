@@ -37,9 +37,9 @@ done
 
 # NOTE: Information in `book_json` is directly appended to the book json in git-jsonify
 jo \
-    book_json=$(jo \
+    book_json="$(jo \
         repo_schema_verion=$schema_version \
-    ) \
+    )" \
     slugs_json="$slugs_json" \
 > $jsonified_manifest_file
 
