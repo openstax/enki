@@ -66,7 +66,7 @@ set({name: 'git-pdfify-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTI
 // GIT_WEB_STEPS
 set({name: 'git-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLED], env: {}})
 set({name: 'git-patch-disassembled-links', inputs: [IO.BOOK, IO.DISASSEMBLED], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
-set({name: 'git-jsonify', inputs: [IO.BOOK, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
+set({name: 'git-jsonify', inputs: [IO.BOOK, IO.FETCH_META, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
 set({name: 'git-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.JSONIFIED], outputs: [], env: {}})
 set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 

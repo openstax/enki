@@ -310,6 +310,7 @@
         "git-jsonify": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCH_META",
                 "IO_DISASSEMBLE_LINKED"
             ],
             "outputDirs": [

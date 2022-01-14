@@ -18,6 +18,12 @@ if [ ! -f $IO_FETCH_META/canonical.json ]; then
     try rm $IO_FETCH_META/archive-syncfile
 fi
 
+books_xml="$IO_FETCH_META/META-INF/books.xml"
+unbaked_books_json="$IO_FETCH_META/META-INF/books.json"
+
+version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < $books_xml)
+jo version=$version > $unbaked_books_json
+
 try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
 try rm -rf "$IO_FETCH_META/.git"
 
