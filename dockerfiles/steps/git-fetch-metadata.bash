@@ -18,11 +18,30 @@ if [ ! -f $IO_FETCH_META/canonical.json ]; then
     try rm $IO_FETCH_META/archive-syncfile
 fi
 
-books_xml="$IO_FETCH_META/META-INF/books.xml"
-unbaked_books_json="$IO_FETCH_META/META-INF/books.json"
+# Get information we want out of the books.xml
+manifest_file="$IO_FETCH_META/META-INF/books.xml"
+jsonified_manifest_file="$IO_FETCH_META/books.xml.json"
+col_sep='|'
+schema_version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < $manifest_file)
+slugs_json="{}"
+slugs=$(try xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -o "$col_sep" -v '@href' -o "$col_sep" -v '@style' -n < $manifest_file)
 
-version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < $books_xml)
-jo version=$version > $unbaked_books_json
+# Build a json object mapping slug names to slug information
+# i.e. jq -r '."book-slug1".style' to get the style of book-slug1
+for line in $slugs; do
+    IFS=$col_sep read -r slug href style <<< "$line"
+    slug_info=$(jo href=$href style=$style)
+    slug_json=$(jo $slug=$slug_info)
+    slugs_json=$(jq '. +'"$slug_json" <<< "$slugs_json")
+done
+
+# NOTE: Information in `book_json` is directly appended to the book json in git-jsonify
+jo \
+    book_json=$(jo \
+        repo_schema_verion=$schema_version \
+    ) \
+    slugs_json="$slugs_json" \
+> $jsonified_manifest_file
 
 try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
 try rm -rf "$IO_FETCH_META/.git"
