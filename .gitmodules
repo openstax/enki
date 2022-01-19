@@ -1,19 +1,19 @@
 [submodule "mathify"]
 	path = mathify
 	url = https://github.com/openstax/mathify
-	branch = master
+	branch = main
 [submodule "princexml"]
 	path = princexml
 	url = https://github.com/openstax/princexml
-	branch = master
+	branch = main
 [submodule "nebuchadnezzar"]
 	path = nebuchadnezzar
 	url = https://github.com/openstax/nebuchadnezzar
-	branch = master
+	branch = main
 [submodule "cnx-easybake"]
 	path = cnx-easybake
 	url = https://github.com/openstax/cnx-easybake
-	branch = master
+	branch = main
 [submodule "recipes"]
 	path = recipes
 	url = https://github.com/openstax/recipes
@@ -21,16 +21,16 @@
 [submodule "output-producer-service"]
 	path = output-producer-service
 	url = https://github.com/openstax/output-producer-service
-	branch = master
+	branch = main
 [submodule "cnx-recipes"]
 	path = cnx-recipes
 	url = https://github.com/openstax/cnx-recipes
-	branch = master
+	branch = main
 [submodule "xhtml-validator"]
 	path = xhtml-validator
 	url = https://github.com/openstax/xhtml-validator
-	branch = trunk
+	branch = main
 [submodule "output-producer-resource"]
 	path = output-producer-resource
 	url = https://github.com/openstax/output-producer-resource
-	branch = master
+	branch = main
