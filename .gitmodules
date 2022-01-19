@@ -2,10 +2,6 @@
 	path = mathify
 	url = https://github.com/openstax/mathify
 	branch = master
-[submodule "princexml"]
-	path = princexml
-	url = https://github.com/openstax/princexml
-	branch = master
 [submodule "nebuchadnezzar"]
 	path = nebuchadnezzar
 	url = https://github.com/openstax/nebuchadnezzar
