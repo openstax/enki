@@ -1,0 +1,19 @@
+{
+    "name": "Local Dev",
+    "build": {
+      "dockerfile": "../Dockerfile",
+      "context": "..",
+      // "target": "dev-env",
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/code,type=bind,consistency=default",
+    "mounts": [],
+    "workspaceFolder": "/code",
+    "extensions": [
+      "MS-vsliveshare.vsliveshare-pack"
+    ],
+    "settings": {
+      "files.trimTrailingWhitespace": true,
+      "files.insertFinalNewline": true,
+      "terminal.integrated.scrollback": 100000
+    }
+  }
