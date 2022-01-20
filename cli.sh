@@ -25,7 +25,7 @@ fi
 [[ $TRACE_ON ]] && set -x
 
 my_dirname="$(cd $(dirname "$0"); pwd)"
-image_name=richb-press
+image_name=enki
 local_dir=$1
 
 # Books use more memory than Docker's default. Check if it is low and inform the user
@@ -75,7 +75,7 @@ $my_dirname/build-dockerfile.sh
 
 [[ $RECIPES_ROOT ]] && {
     [[ $RECIPES_ROOT != /* ]] && RECIPES_ROOT=$(cd $current_dir/$RECIPES_ROOT && pwd)
-    opt_mount_recipes="--volume=$RECIPES_ROOT:/workspace/richb-press/recipes/"
+    opt_mount_recipes="--volume=$RECIPES_ROOT:/workspace/enki/recipes/"
 }
 
 [[ $SKIP_DOCKER_BUILD ]] || {
