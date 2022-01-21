@@ -24,3 +24,21 @@ try rm -rf "$IO_FETCH_META/.git"
 try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
 # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
 try rm -d "$IO_FETCH_META/media"
+
+# Copy web styles to the resources directory created by fetch-map-resources
+style_resource_root="resources/styles"
+[[ ! -e "$style_resource_root" ]] && mkdir -p "$style_resource_root"
+while read -r style_name; do
+    web_style="$style_name-rex-web.css"
+    style_src="$CNX_RECIPES_STYLES_ROOT/$web_style"
+    style_dst="$style_resource_root/$web_style"
+    if [[ ! -f $style_dst ]]; then
+        # Check for resources that are not (1) online, or (2) encoded with data uri
+        # Right now we assume no dependencies, but this may need to be revisited
+        deps="$(awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
+        if [[ $deps ]]; then
+            die "Found unexpected dependencies in $style_src" # LCOV_EXCL_LINE
+        fi
+        try cp "$style_src" "$style_dst"
+    fi
+done < <(try xmlstarlet sel -t -m '//*[@slug]' -v '@style' -n < "$IO_FETCH_META/META-INF/books.xml")
