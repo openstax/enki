@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.12.0
+
+- Include Error context when exercise has more than one link
+
 9.11.0
 -----
 
