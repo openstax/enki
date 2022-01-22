@@ -5,9 +5,9 @@
       "context": "..",
       // "target": "dev-env",
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/code,type=bind,consistency=default",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/richb-press,type=bind,consistency=default",
     "mounts": [],
-    "workspaceFolder": "/code",
+    "workspaceFolder": "/workspace/richb-press",
     "extensions": [
       "MS-vsliveshare.vsliveshare-pack"
     ],

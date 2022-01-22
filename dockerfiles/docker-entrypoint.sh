@@ -35,14 +35,14 @@ try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
 STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-$PROJECT_ROOT/step-config.json}
-DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
+DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-$PROJECT_ROOT/dockerfiles}
 BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/output-producer-service/bakery/src}
-PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
+PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$VENV_ROOT}
 RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/recipes}
-MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
+MATHIFY_ROOT=${MATHIFY_ROOT:-/openstax-built/mathify}
 CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes/recipes/output}
 CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes/styles/output}
-XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build/libs}
+XHTML_VALIDATOR_JAR=${XHTML_VALIDATOR_JAR:-/openstax-built/xhtml-validator.jar}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -83,7 +83,7 @@ function do_xhtml_validate() {
     check=$3
     for xhtmlfile in $(find $dir_name -name "$file_pattern")
     do
-        java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
+        java -cp $XHTML_VALIDATOR_JAR org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
     done
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
@@ -151,7 +151,7 @@ function do_step() {
             ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
             [[ ! $INPUT_SOURCE_DIR ]] && die "Bug: Missing environment variable INPUT_SOURCE_DIR"
-            [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
+            [[ -d $INPUT_SOURCE_DIR ]] || mkdir -p $INPUT_SOURCE_DIR
 
             check_output_dir INPUT_SOURCE_DIR
 
