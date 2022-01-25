@@ -6,4 +6,6 @@ set -e
 # Lint the bash scripts
 if [[ $(command -v shellcheck) ]]; then
     shellcheck --severity=warning ../dockerfiles/steps/* ../dockerfiles/build/*
+else
+    echo "Warning: Linting failed, shellcheck not found"
 fi
