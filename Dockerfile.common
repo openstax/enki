@@ -130,7 +130,7 @@ ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
 # -----------------------
 # Create Virtualenv
 # -----------------------
-
+ENV VENV_ROOT=/openstax-built/venv
 COPY            ./dockerfiles/build/build-system-venv.sh \
     $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
 RUN $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
@@ -288,18 +288,19 @@ COPY ./output-producer-resource $PROJECT_ROOT/output-producer-resource/
 WORKDIR $PROJECT_ROOT/output-producer-resource/
 
 RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
+    && . $VENV_ROOT/bin/activate \
     && python3 setup.py sdist \
     && pip3 install dist/output-producer-resource-*.tar.gz
 
 RUN mkdir -p /opt/resource
 RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
+    && . $VENV_ROOT/bin/activate \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
 
 
-RUN mv /root/.nvm $PROJECT_ROOT/nvm
-ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
+ENV NVM_ROOT=/openstax-built/nvm
+RUN mv /root/.nvm $NVM_ROOT
+ENV PATH=$PATH:$NVM_ROOT/versions/node/v$NODE_VERSION/bin/
 
 COPY --from=base-scratch / /
 
@@ -314,11 +315,11 @@ COPY --from=build-jo-stage /usr/local/bin/jo /usr/local/bin/jo
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
-COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar
-COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ $PROJECT_ROOT/mathify/
+COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar /openstax-built/xhtml-validator.jar
+COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ /openstax-built/mathify/
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc
-COPY --from=build-python-stage $PROJECT_ROOT/venv/ $PROJECT_ROOT/venv/
+COPY --from=build-python-stage $VENV_ROOT/ $VENV_ROOT/
 
 # Copy cnx-recipes styles
 COPY ./cnx-recipes/recipes/output/ $PROJECT_ROOT/cnx-recipes/recipes/output/

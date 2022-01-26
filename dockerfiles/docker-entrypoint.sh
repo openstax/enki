@@ -35,14 +35,14 @@ try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
 STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-$PROJECT_ROOT/step-config.json}
-DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
+DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-$PROJECT_ROOT/dockerfiles}
 BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/output-producer-service/bakery/src}
-PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
+PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$VENV_ROOT}
 RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/recipes}
-MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
+MATHIFY_ROOT=${MATHIFY_ROOT:-/openstax-built/mathify}
 CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes/recipes/output}
 CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes/styles/output}
-XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build/libs}
+XHTML_VALIDATOR_JAR=${XHTML_VALIDATOR_JAR:-/openstax-built/xhtml-validator.jar}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -83,7 +83,7 @@ function do_xhtml_validate() {
     check=$3
     for xhtmlfile in $(find $dir_name -name "$file_pattern")
     do
-        java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
+        java -cp $XHTML_VALIDATOR_JAR org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
     done
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
@@ -150,7 +150,8 @@ function do_step() {
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
             ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
-            [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
+            [[ ! $INPUT_SOURCE_DIR ]] && die "Bug: Missing environment variable INPUT_SOURCE_DIR"
+            [[ -d $INPUT_SOURCE_DIR ]] || mkdir -p $INPUT_SOURCE_DIR
 
             check_output_dir INPUT_SOURCE_DIR
 
@@ -170,12 +171,12 @@ function do_step() {
 
             check_input_dir INPUT_SOURCE_DIR
             check_output_dir IO_BOOK
-            
+
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
             if [[ $recipe != "default" && $recipe != "*" ]]; then
-                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
+                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
             fi
 
             # Detect if this is a git book or an archive book.
@@ -209,7 +210,7 @@ function do_step() {
                 pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
                 echo "$pdf_filename" > $IO_BOOK/pdf_filename
             fi
-            
+
             return
         ;;
     esac
@@ -227,7 +228,7 @@ function do_step() {
 
         for required_env in $required_envs; do
             ensure_arg $(echo $required_env | tr -d "'")
-        done        
+        done
         for input_dir in $input_dirs; do
             check_input_dir $(echo $input_dir | tr -d "'")
         done
@@ -325,7 +326,7 @@ function simulate_dirs_after() {
 
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
                 try rm -rf "$LOCAL_ATTIC_DIR/$io_name"
-            fi 
+            fi
             try mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
         done
     fi
@@ -340,7 +341,7 @@ function simulate_dirs_after() {
             try rm -rf "$child_dir_path"
         done
     fi
- 
+
 }
 
 
@@ -355,7 +356,7 @@ elif [[ $pipeline_steps = 'null' ]]; then
 else
     do_step_named local-create-book-directory "${@:2}"
     do_step_named look-up-book
-    
+
     for step_name in $pipeline_steps; do
         do_step_named $(echo $step_name | tr -d "'")
     done
