@@ -32,7 +32,7 @@ while read -r slug_name; do
     style_name=$(read_style "$slug_name")
     web_style="$style_name-rex-web.css"
     style_src="$CNX_RECIPES_STYLES_ROOT/$web_style"
-    style_dst="$style_resource_root/$web_style"
+    style_dst="$style_resource_root/$style_name-web.css"
     if [[ ! -f "$style_dst" ]]; then
         # Check for resources that are not (1) online, or (2) encoded with data uri
         # Right now we assume no dependencies, but this may need to be revisited

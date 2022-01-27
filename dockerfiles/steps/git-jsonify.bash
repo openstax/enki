@@ -2,7 +2,7 @@ parse_book_dir
 
 try jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
 
-repo_schema_version=$(try xmlstarlet sel -t -m '//*[@version]' -v '@version' < $IO_FETCHED/META-INF/books.xml)
+repo_schema_version=$(try xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCHED/META-INF/books.xml")
 
 shopt -s globstar nullglob
 for collection in "$IO_JSONIFIED/"*.toc.json; do
@@ -11,14 +11,13 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     style_name=$(read_style "$slug_name")
 
     # Glob here to avoid hardcoding web style file suffix
-    style_file="$(ls -1 "$IO_RESOURCES/styles/$style_name"*.css)"
-    # Die if the glob does not match exactly one file
-    if [[ $(wc -l <<< "$style_file") != 1 ]]; then
+    style_file=("$IO_RESOURCES/styles/$style_name"*.css)
+    if [[ ${#style_file[@]} != 1 ]]; then
         die "Could not find exact match for $style_name in IO_RESOURCES" # LCOV_EXCL_LINE
     fi
-    style_href="resources/styles/$(basename $style_file)"
+    style_href="resources/styles/$(basename "${style_file[0]}")"
 
-    book_json_append=$(jo repo_schema_version=$repo_schema_version style_name=$style_name style_href=$style_href)
+    book_json_append=$(jo repo_schema_version=$repo_schema_version style_name="$style_name" style_href="$style_href")
     # Add our new information to the books json file, then overwrite the books json file
     try jq '. + '"$book_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
 
