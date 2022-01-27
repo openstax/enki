@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.13.0
+
+- add data-type to code elements
+
 9.12.0
 
 - Include Error context when exercise has more than one link
