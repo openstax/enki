@@ -33,7 +33,7 @@ while read -r slug_name; do
     web_style="$style_name-rex-web.css"
     style_src="$CNX_RECIPES_STYLES_ROOT/$web_style"
     style_dst="$style_resource_root/$style_name-web.css"
-    if [[ ! -f "$style_dst" ]]; then
+    if [[ -f "$style_src" && ! -f "$style_dst" ]]; then
         # Check for resources that are not (1) online, or (2) encoded with data uri
         # Right now we assume no dependencies, but this may need to be revisited
         deps="$(awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"

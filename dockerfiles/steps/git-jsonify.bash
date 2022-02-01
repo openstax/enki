@@ -9,13 +9,16 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
     book_json_file="$IO_JSONIFIED/$slug_name.toc.json"
     style_name=$(read_style "$slug_name")
+    style_href=null
 
     # Glob here to avoid hardcoding web style file suffix
     style_file=("$IO_RESOURCES/styles/$style_name"*.css)
-    if [[ ${#style_file[@]} != 1 ]]; then
+    style_count=${#style_file[@]}
+    if [[ $style_count -gt 1 ]]; then
         die "Could not find exact match for $style_name in IO_RESOURCES" # LCOV_EXCL_LINE
+    elif [[ $style_count == 1 ]]; then
+        style_href="resources/styles/$(basename "${style_file[0]}")"
     fi
-    style_href="resources/styles/$(basename "${style_file[0]}")"
 
     book_json_append=$(jo repo_schema_version=$repo_schema_version style_name="$style_name" style_href="$style_href")
     # Add our new information to the books json file, then overwrite the books json file
