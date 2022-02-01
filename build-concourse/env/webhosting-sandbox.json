@@ -1,5 +1,5 @@
 {
-    "DOCKER_REPOSITORY": "openstax/richb-press",
+    "DOCKER_REPOSITORY": "openstax/enki",
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
     "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",

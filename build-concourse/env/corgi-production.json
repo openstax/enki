@@ -1,5 +1,5 @@
 {
-  "DOCKER_REPOSITORY": "openstax/richb-press",
+  "DOCKER_REPOSITORY": "openstax/enki",
   "CORGI_API_URL": "https://corgi.openstax.org/api",
   "CORGI_ARTIFACTS_S3_BUCKET": "openstax-cops-artifacts",
   "CORGI_CLOUDFRONT_URL": "https://openstax.org",

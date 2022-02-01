@@ -33,7 +33,7 @@ Now you can build a pipeline using `npm run build:local` and upload it to concou
 
 # Pipeline.yml Build Alternatives
 
-If you are changing code inside the docker image you will need to upload the image to a local registry (see **Option B**). If you are not editing code inside the image then you can use the [main tag on dockerhub](https://hub.docker.com/r/openstax/richb-press/tags) by following the instructions in **Option A**.
+If you are changing code inside the docker image you will need to upload the image to a local registry (see **Option B**). If you are not editing code inside the image then you can use the [main tag on dockerhub](https://hub.docker.com/r/openstax/enki/tags) by following the instructions in **Option A**.
 
 In both cases you will want to set the AWS credentials which will be used to upload to S3 (e.g. `source /path/to/set_aws_creds -r sandbox:full-admin -t ######`).
 
@@ -66,15 +66,15 @@ cd ../ # main repo directory
 
 # Build the Docker image and upload it to local registry
 # Note: Use 'main' because the RANDOM_DEV_CODEVERSION_PREFIX related code assumes this tag name
-export DOCKER_BUILDKIT=1 TAG='localhost:5000/openstax/richb-press:main' && docker build --tag $TAG . && docker push $TAG
+export DOCKER_BUILDKIT=1 TAG='localhost:5000/openstax/enki:main' && docker build --tag $TAG . && docker push $TAG
 
 # Verify the image is in the registry:
 # http://localhost:5000/v2/_catalog
-# http://localhost:5000/v2/openstax/richb-press/tags/list    : verify that "main" exists
+# http://localhost:5000/v2/openstax/enki/tags/list    : verify that "main" exists
 
 # Build the concourse pipeline to point to our local registry
 cd ./build-concourse/
-DOCKER_REPOSITORY='openstax/richb-press' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm run build:local
+DOCKER_REPOSITORY='openstax/enki' DOCKER_REGISTRY_HOST='registry:5000' CODE_VERSION='main' npm run build:local
 
 # Send the pipeline definition to concourse (next section)
 ```
@@ -247,7 +247,7 @@ CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
 This usually means the resource is not in the registry. Verify that the resource definition in the pipeline.yml file is correct. If you are using a local registry, you can use these API links to see which images are in the local registry:
 
 - http://localhost:5000/v2/_catalog
-- http://localhost:5000/v2/openstax/richb-press/tags/list    : verify that "main" exists
+- http://localhost:5000/v2/openstax/enki/tags/list    : verify that "main" exists
 
 ## `check did not return a version`
 
