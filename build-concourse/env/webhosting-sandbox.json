@@ -3,7 +3,7 @@
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
     "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
-    "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/staging/approved-book-list.json",
+    "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
     "WEB_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
