@@ -5,20 +5,17 @@ parse_book_dir
 
 function read_style() {
     slug_name=$1
-    style_name=''
-    # Read from IO_BOOK/style if it exists
-    [[ -f $IO_BOOK/style ]] && style_name=$(cat $IO_BOOK/style)
-
-    # Otherwise read from META-INF/books.xml
-    if [[ ! $style_name || $style_name = 'default' ]]; then
-        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-        if [[ $style_name == '' ]]; then
-            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-        else
-            echo "$style_name"
-        fi
+    if [[ ! -f $IO_BOOK/style ]]; then
+        die "Style not specified. File does not exist '$IO_BOOK/style'" # LCOV_EXCL_LINE
     else
-        echo "$style_name" # LCOV_EXCL_LINE
+        style_name=$(cat $IO_BOOK/style)
+        if [[ ! $style_name || $style_name == 'default' ]]; then
+            style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
+            if [[ $style_name == '' ]]; then
+                die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+            fi
+        fi
+        echo $style_name
     fi
 }
 
