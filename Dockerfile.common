@@ -269,14 +269,14 @@ RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo
 FROM base as runner
 
 # ---------------------------
-# Install recipes
+# Install cookbook
 # ---------------------------
 
-COPY ./recipes/ $PROJECT_ROOT/recipes/
+COPY ./cookbook/ $PROJECT_ROOT/cookbook/
 
-COPY            ./dockerfiles/build/build-stage-recipes.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
+COPY            ./dockerfiles/build/build-stage-cookbook.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-cookbook.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-cookbook.sh
 
 
 # ---------------------------
