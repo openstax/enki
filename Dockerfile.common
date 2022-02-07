@@ -335,3 +335,4 @@ COPY ./dockerfiles/entrypointd.sh \
     /dockerfiles/
 
 COPY ./step-config.json $PROJECT_ROOT
+
