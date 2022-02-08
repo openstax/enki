@@ -27,16 +27,20 @@ try rm -d "$IO_FETCH_META/media"
 
 # Copy web styles to the resources directory created by fetch-map-resources
 style_resource_root="resources/styles"
+generic_style="webview-generic.css"
 [[ ! -e "$style_resource_root" ]] && mkdir -p "$style_resource_root"
 while read -r slug_name; do
     style_name=$(read_style "$slug_name")
-    web_style="$style_name-rex-web.css"
+    web_style="$style_name-web.css"
+    if [[ ! -f "$CNX_RECIPES_STYLES_ROOT/$web_style" ]]; then
+        web_style="$generic_style"
+    fi
     style_src="$CNX_RECIPES_STYLES_ROOT/$web_style"
-    style_dst="$style_resource_root/$style_name-web.css"
-    if [[ -f "$style_src" && ! -f "$style_dst" ]]; then
+    style_dst="$style_resource_root/$web_style"
+    if [[ ! -f "$style_dst" ]]; then
         # Check for resources that are not (1) online, or (2) encoded with data uri
         # Right now we assume no dependencies, but this may need to be revisited
-        deps="$(awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
+        deps="$(try awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
         if [[ $deps ]]; then
             die "Found unexpected dependencies in $style_src" # LCOV_EXCL_LINE
         fi
