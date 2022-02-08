@@ -174,9 +174,7 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            if [[ $recipe != "default" && $recipe != "*" ]]; then
-                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
-            fi
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
