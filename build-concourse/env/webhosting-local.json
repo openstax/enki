@@ -1,5 +1,5 @@
 {
-    "DOCKER_REPOSITORY": "openstax/richb-press",
+    "DOCKER_REPOSITORY": "openstax/enki",
     "MAX_INFLIGHT_JOBS": 1,
     "DOCKER_REGISTRY_HOST": null,
     "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",

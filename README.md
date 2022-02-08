@@ -1,6 +1,6 @@
 # About
 
-[![Codecov](https://img.shields.io/codecov/c/github/openstax/richb-press)](https://app.codecov.io/gh/openstax/richb-press) [![Gitpod](https://img.shields.io/badge/gitpod-ready%20to%20code-lightgrey)](https://gitpod.io/#https://github.com/openstax/richb-press)
+[![Codecov](https://img.shields.io/codecov/c/github/openstax/enki)](https://app.codecov.io/gh/openstax/enki) [![Gitpod](https://img.shields.io/badge/gitpod-ready%20to%20code-lightgrey)](https://gitpod.io/#https://github.com/openstax/enki)
 
 We build books in a pipeline of steps. These steps are written in different languages and need to run on a server as well as locally for development.
 
@@ -212,7 +212,7 @@ This repo can be used as the image in a gitpod environment. All of code to build
 - [x] add google docs pipeline-generation
 - [x] auto-build a dependency graph image for documentation [./build-concourse/graphs/](./build-concourse/graphs/)
 - [x] auto-build the bash script
-- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/richb-press/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
+- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/enki/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
 - [x] move all the steps into a JSON file so it can be parsed in node and bash
 - [x] move the bash code for each step into a separate bash file and ensure codecov checks it
 - [x] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step

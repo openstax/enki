@@ -37,5 +37,4 @@ services:
   smocker:
     image: thiht/smocker
     ports:
-      - 8000:8080
       - 8081:8081
