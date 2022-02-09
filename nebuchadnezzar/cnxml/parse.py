@@ -72,7 +72,7 @@ def lookup_license_text(license_url):
             'Creative Commons Attribution-NonCommercial License',
         'http://creativecommons.org/licenses/by-sa/1.0':
             'Creative Commons Attribution-ShareAlike License',
-        'http://creativecommons.org/licenses/by/2.0/':
+        'http://creativecommons.org/licenses/by/2.0':
             'Creative Commons Attribution License',
         'http://creativecommons.org/licenses/by-nd/2.0':
             'Creative Commons Attribution-NoDerivs License',
@@ -82,16 +82,16 @@ def lookup_license_text(license_url):
             'Creative Commons Attribution-NonCommercial License',
         'http://creativecommons.org/licenses/by-sa/2.0':
             'Creative Commons Attribution-ShareAlike License',
-        'http://creativecommons.org/licenses/by/3.0/':
+        'http://creativecommons.org/licenses/by/3.0':
             'Creative Commons Attribution License',
-        'http://creativecommons.org/licenses/by/4.0/':
+        'http://creativecommons.org/licenses/by/4.0':
             'Creative Commons Attribution License',
-        'http://creativecommons.org/licenses/by-nc-sa/4.0/':
+        'http://creativecommons.org/licenses/by-nc-sa/4.0':
             'Creative Commons Attribution-NonCommercial-ShareAlike License',
     }
-    license_text = switcher.get(license_url, None)
+    license_text = switcher.get(license_url.rstrip('/'), None)
     if license_text is None:
-        raise Exception('unkonwn license')
+        raise Exception(f'unsupported license URL {license_url}')
     return license_text
 
 
