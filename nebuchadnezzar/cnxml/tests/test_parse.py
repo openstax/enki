@@ -1,7 +1,7 @@
 import pytest
 from lxml import etree
 
-from cnxml.parse import NSMAP, parse_metadata
+from cnxml.parse import NSMAP, parse_metadata, lookup_license_text
 
 
 @pytest.fixture
@@ -231,3 +231,9 @@ def test_parse_with_optional_metadata():
     }
     # Verify the metadata
     assert props == expected_props
+
+
+def test_invalid_license_url():
+    with pytest.raises(Exception) as e:
+        lookup_license_text('http://www.example.com/')
+    assert 'Invalid license url' in str(e)
