@@ -177,7 +177,6 @@ def test_parse_with_minimal_metadata():
         'language': None,
         'license_url': None,
         'license_text': None,
-        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
