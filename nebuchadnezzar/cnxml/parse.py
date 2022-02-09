@@ -90,8 +90,6 @@ def lookup_license_text(license_url):
             'Creative Commons Attribution-NonCommercial-ShareAlike License',
     }
     license_text = switcher.get(license_url.rstrip('/'), None)
-    if license_text is None:
-        raise Exception(f'unsupported license URL {license_url}')
     return license_text
 
 
