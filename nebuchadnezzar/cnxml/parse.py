@@ -59,6 +59,26 @@ def _squash_to_text(elm, remove_namespaces=False):
     value = ''.join(value)
     return value
 
+def lookup_license_text(license_url):
+    switcher = {
+        'http://creativecommons.org/licenses/by/1.0': 'Creative Commons Attribution License',
+        'http://creativecommons.org/licenses/by-nd/1.0': 'Creative Commons Attribution-NoDerivs License',
+        'http://creativecommons.org/licenses/by-nd-nc/1.0': 'Creative Commons Attribution-NoDerivs-NonCommercial License',
+        'http://creativecommons.org/licenses/by-nc/1.0': 'Creative Commons Attribution-NonCommercial License',
+        'http://creativecommons.org/licenses/by-sa/1.0': 'Creative Commons Attribution-ShareAlike License',
+        'http://creativecommons.org/licenses/by/2.0/': 'Creative Commons Attribution License',
+        'http://creativecommons.org/licenses/by-nd/2.0': 'Creative Commons Attribution-NoDerivs License',
+        'http://creativecommons.org/licenses/by-nd-nc/2.0': 'Creative Commons Attribution-NoDerivs-NonCommercial License',
+        'http://creativecommons.org/licenses/by-nc/2.0': 'Creative Commons Attribution-NonCommercial License',
+        'http://creativecommons.org/licenses/by-sa/2.0': 'Creative Commons Attribution-ShareAlike License',
+        'http://creativecommons.org/licenses/by/3.0/': 'Creative Commons Attribution License',
+        'http://creativecommons.org/licenses/by/4.0/': 'Creative Commons Attribution License',
+        'http://creativecommons.org/licenses/by-nc-sa/4.0/': 'Creative Commons Attribution-NonCommercial-ShareAlike License',
+    }
+    license_text = switcher.get(license_url, None)
+    if license_text is None:
+        raise Exception('unkonwn license')
+    return license_text
 
 def parse_metadata(elm_tree):
     """Given an element-like object (:mod:`lxml.etree`)
@@ -75,6 +95,7 @@ def parse_metadata(elm_tree):
         (_maybe(xpath(xp)) or "").split()
     )
 
+    license_url = _maybe(xpath('//md:license/@url'))
     props = {
         'id': _maybe(xpath('//md:content-id/text()')),
         'uuid': _maybe(xpath('//md:uuid/text()')),
@@ -87,7 +108,8 @@ def parse_metadata(elm_tree):
         'title':
             _maybe(xpath('//md:title/text()')) or xpath('//c:title/text()')[0],
         'slug': _maybe(xpath('//md:slug/text()')),
-        'license_url': _maybe(xpath('//md:license/@url')),
+        'license_url': license_url,
+        'license_text': lookup_license_text(license_url),
         'language': _maybe(xpath('//md:language/text()')),
         'authors': role_xpath('//md:role[@type="author"]/text()'),
         'maintainers': role_xpath('//md:role[@type="maintainer"]/text()'),
