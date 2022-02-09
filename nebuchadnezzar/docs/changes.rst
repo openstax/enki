@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.13.1
+
+- fix license text so it is not hardcoded
+
 9.13.0
 
 - add data-type to code elements

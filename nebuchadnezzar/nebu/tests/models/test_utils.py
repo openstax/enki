@@ -63,7 +63,7 @@ class TestConvertToModelCompatMetadata(object):
             'illustrators': [],
             'keywords': ('key', 'words'),
             'language': 'en',
-            'license_text': 'CC BY',
+            'license_text': 'Creative Commons Attribution License (ASSUMED)',
             'license_url': 'http://creativecommons.org/licenses/by/4.0/',
             'print_style': 'ccap-physics',
             'publishers': [

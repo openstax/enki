@@ -50,8 +50,10 @@ def convert_to_model_compat_metadata(metadata):
     md.setdefault('cnx-archive-uri', '{}@{}'.format(md['id'], md['version']))
     md.pop('id')
     # FIXME cnx-epub has an issue rendering and parsing license_text set to
-    #       None, so hard code it to 'CC BY' for now.
-    md.setdefault('license_text', 'CC BY')
+    #       None, so hard code it to
+    #       'Creative Commons Attribution License (ASSUMED)' for now.
+    if md.get('license_text', None) is None:
+        md['license_text'] = 'Creative Commons Attribution License (ASSUMED)'
     md.setdefault('print_style', None)
 
     md['derived_from_title'] = md['derived_from']['title']
