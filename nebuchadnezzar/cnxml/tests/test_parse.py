@@ -1,7 +1,7 @@
 import pytest
 from lxml import etree
 
-from cnxml.parse import NSMAP, parse_metadata
+from cnxml.parse import NSMAP, parse_metadata, lookup_license_text
 
 
 @pytest.fixture
@@ -45,6 +45,7 @@ def test_parse(xml):
         ),
         'language': 'en',
         'license_url': 'http://creativecommons.org/licenses/by/4.0/',
+        'license_text': 'Creative Commons Attribution License',
         'licensors': ('OSCRiceUniversity',),
         'maintainers': ('OpenStaxCollege', 'cnxcap'),
         'print_style': 'ccap-physics',
@@ -73,6 +74,7 @@ def test_git_parse(git_xml):
         'keywords': (),
         'language': 'en',
         'license_url': 'http://creativecommons.org/licenses/by/4.0/',
+        'license_text': 'Creative Commons Attribution License',
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -174,6 +176,7 @@ def test_parse_with_minimal_metadata():
         'keywords': (),
         'language': None,
         'license_url': None,
+        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -214,6 +217,7 @@ def test_parse_with_optional_metadata():
         'keywords': (),
         'language': None,
         'license_url': None,
+        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -227,3 +231,9 @@ def test_parse_with_optional_metadata():
     }
     # Verify the metadata
     assert props == expected_props
+
+
+def test_invalid_license_url():
+    with pytest.raises(Exception) as e:
+        lookup_license_text('http://www.example.com/')
+    assert 'Invalid license url' in str(e)
