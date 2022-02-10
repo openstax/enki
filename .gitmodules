@@ -10,9 +10,9 @@
 	path = cnx-easybake
 	url = https://github.com/openstax/cnx-easybake
 	branch = main
-[submodule "recipes"]
-	path = recipes
-	url = https://github.com/openstax/recipes
+[submodule "cookbook"]
+	path = cookbook
+	url = https://github.com/openstax/cookbook
 	branch = main
 [submodule "output-producer-service"]
 	path = output-producer-service

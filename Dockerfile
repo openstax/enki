@@ -134,7 +134,6 @@ ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-$
 # TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
 ENV PROJECT_ROOT=/workspace/enki
 
-
 # ---------------------------
 # Install node
 # ---------------------------
@@ -294,7 +293,7 @@ FROM base as runner
 # Install recipes
 # ---------------------------
 
-COPY ./recipes/ $PROJECT_ROOT/recipes/
+COPY ./cookbook/ $PROJECT_ROOT/cookbook/
 
 COPY            ./dockerfiles/build/build-stage-recipes.sh \
     $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
