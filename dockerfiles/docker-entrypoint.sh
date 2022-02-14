@@ -90,6 +90,31 @@ function do_xhtml_validate() {
     fi
 }
 
+# FIXME: We assume that every book in the group uses the same style
+# This assumption will not hold true forever, and book style + recipe name should
+# be pulled from fetched-book-group (while still allowing injection w/ CLI)
+
+
+# FIXME: Style devs will probably not like having to bake multiple books repeatedly,
+# especially since they shouldn't care about link-extras correctness during their
+# work cycle.
+
+function read_style() {
+    slug_name=$1
+    if [[ ! -f $IO_BOOK/style ]]; then
+        die "Style not specified. File does not exist '$IO_BOOK/style'" # LCOV_EXCL_LINE
+    else
+        style_name=$(cat $IO_BOOK/style)
+        if [[ ! $style_name || $style_name == 'default' ]]; then
+            style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
+            if [[ $style_name == '' ]]; then
+                die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+            fi
+        fi
+        echo $style_name
+    fi
+}
+
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
