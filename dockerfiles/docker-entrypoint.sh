@@ -101,18 +101,21 @@ function do_xhtml_validate() {
 
 function read_style() {
     slug_name=$1
-    if [[ ! -f $IO_BOOK/style ]]; then
-        die "Style not specified. File does not exist '$IO_BOOK/style'" # LCOV_EXCL_LINE
-    else
+    style_name=
+
+    # This check is always true in CORGI and never true in webhosting pipeline.
+    if [[ -f $IO_BOOK/style ]]; then
         style_name=$(cat $IO_BOOK/style)
-        if [[ ! $style_name || $style_name == 'default' ]]; then
-            style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-            if [[ $style_name == '' ]]; then
-                die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-            fi
-        fi
-        echo $style_name
     fi
+
+    if [[ ! $style_name || $style_name == 'default' ]]; then
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
+        if [[ $style_name == '' ]]; then
+            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+        fi
+    fi
+
+    echo $style_name
 }
 
 function parse_book_dir() {
