@@ -110,7 +110,7 @@ function read_style() {
 
     if [[ ! $style_name || $style_name == 'default' ]]; then
         style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-        if [[ $style_name == '' ]]; then
+        if [[ ! $style_name ]]; then
             die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
         fi
     fi
