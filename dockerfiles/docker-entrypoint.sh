@@ -101,7 +101,7 @@ function do_xhtml_validate() {
 
 function read_style() {
     slug_name=$1
-    style_name=
+    style_name=''
 
     # This check is always true in CORGI and never true in webhosting pipeline.
     if [[ -f $IO_BOOK/style ]]; then
@@ -110,9 +110,10 @@ function read_style() {
 
     if [[ ! $style_name || $style_name == 'default' ]]; then
         style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-        if [[ ! $style_name ]]; then
-            die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-        fi
+    fi
+
+    if [[ ! $style_name ]]; then
+        die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
     fi
 
     echo $style_name
