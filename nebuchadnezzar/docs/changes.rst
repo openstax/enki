@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.14.0
+
+- fix the pattern used to match embedded exercises
+
 9.13.1
 
 - fix license text so it is not hardcoded
