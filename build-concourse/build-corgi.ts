@@ -67,7 +67,7 @@ function makePipeline(env: KeyValue) {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
-        return wrapGenericCorgiJob(env, `PDF (${gitOrArchive})`, resource, {
+        return wrapGenericCorgiJob(env, `build-pdf-${gitOrArchive}`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
@@ -98,7 +98,7 @@ function makePipeline(env: KeyValue) {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
-        return wrapGenericCorgiJob(env, `Web Preview (${gitOrArchive})`, resource, {
+        return wrapGenericCorgiJob(env, `web-preview-${gitOrArchive}`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
