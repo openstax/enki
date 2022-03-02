@@ -40,10 +40,10 @@ In https://drive.google.com create a new Folder (e.g. “Test GDocs Root” ) an
 
 ## Build some DOCX files
 
-Use the [CLI](./cli.sh) to generate DOCX files for a book. For example: (the exact syntax is subject to change):
+Use the [CLI](./enki) to generate DOCX files for a book. For example: (the exact syntax is subject to change):
 
 ```sh
-./cli.sh ./data/socio all-archive-gdoc col11762 sociology latest
+./enki ./data/socio all-archive-gdoc col11762 sociology latest
 ```
 
 ## Upload the DOCX files to Google Drive
@@ -53,7 +53,7 @@ Run the following to Upload to Google Drive:
 ```sh
 GDOC_GOOGLE_FOLDER_ID='kqj24h9s8fsdfh_98324hkajehr' \
 GOOGLE_SERVICE_ACCOUNT_CREDENTIALS="$(cat ~/Downloads/openstax-pipeline-gdocs-1234-d34db33f.json)" \
-./cli.sh ./data/socio archive-upload-docx
+./enki ./data/socio archive-upload-docx
 ```
 
 As a bonus, you can run it again to verify the files are updated instead of created (logs will say “Updating” instead of “Creating”)
