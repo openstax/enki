@@ -57,7 +57,20 @@ Then try the following to build PDFs and other formats:
 
 ## Private Repositories
 
-To clone private repositories you will need to set `GH_SECRET_CREDS`. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` in the `.env` file (see [example](./.env.example) and run the cli.
+To clone private repositories there are 2 options:
+
+### Set a GitHub token
+
+This is how production works but it can be annoying to clone a whole book all the time.
+
+You will need to set a `GH_SECRET_CREDS` environment variable. To do that, create a token at https://github.com/settings/tokens and ensure the `repo` scope is selected. Then, set `GH_SECRET_CREDS={the_token}:x-oauth-basic` in the `.env` file
+in this directory and run the cli.
+
+### Sideload the book
+
+If you already have the files locally, you can specify a path to them and the CLI can sideload them in instead of fetching from GitHub.
+
+To use this method, set the `SIDELOAD_PATH` environment variable to where the book is.
 
 ## Google Docs
 

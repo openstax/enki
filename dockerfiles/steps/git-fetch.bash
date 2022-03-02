@@ -2,6 +2,17 @@ parse_book_dir
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 [[ "$ARG_REPO_NAME" == */* ]] || ARG_REPO_NAME="openstax/$ARG_REPO_NAME"
 
+# Support sideloading the book
+if [[ $LOCAL_SIDELOAD_REPO_PATH ]]; then
+    if [[ -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
+        [[ -d $IO_FETCHED ]] && rm -rf "$IO_FETCHED"
+        try cp -r $LOCAL_SIDELOAD_REPO_PATH "$IO_FETCHED"
+    else
+        ls -al
+        die "The environment variable LOCAL_SIDELOAD_REPO_PATH is defined to be '$LOCAL_SIDELOAD_REPO_PATH' but that directory does not exist"
+    fi
+fi
+
 if [[ -d "$IO_FETCHED/.git" ]]; then # Skip if we already cloned (dev)
     warn "---------------------------------------------------" # LCOV_EXCL_LINE
     warn "Skipping git clone because directory already exists" # LCOV_EXCL_LINE
