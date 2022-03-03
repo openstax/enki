@@ -156,12 +156,6 @@ function do_step() {
     step_name=$1
 
     case $step_name in
-        --help)
-            steps=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
-            pipelines=$(jq -r ".pipelines|keys" < $STEP_CONFIG_FILE)
-            say "Valid arguments are:\n$steps\n$pipelines"
-            return
-        ;;
         shell | '/bin/bash' | '/bin/sh')
             bash # LCOV_EXCL_LINE
             return # LCOV_EXCL_LINE

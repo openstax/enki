@@ -5,7 +5,7 @@
 set -e
 
 # Trace if TRACE_ON is set
-[[ $TRACE_ON ]] && set -x
+[[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 # If a symlink was used to run this script then detangle the symlink
 if [[ -L $0 ]]; then
@@ -33,55 +33,150 @@ fi
 # Parse .env file if it exists
 # https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
 [[ -f $DOTENV_PATH ]] && {
-    echo "Using environment variables from $DOTENV_PATH"
     export $(echo $(cat $DOTENV_PATH | sed 's/#.*//g' | sed 's/\r//g' | xargs))
 }
 
+# Trace if TRACE_ON is set
+[[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+
+
+check_docker() {
+    # Books use more memory than Docker's default. Check if it is low and inform the user
+    hyperkit_file="$HOME/Library/Containers/com.docker.docker/Data/vms/0/hyperkit.json"
+    if [[ -f "$hyperkit_file" ]]
+    then
+        too_small=0
+
+        # If jq is installed then we can use it
+        if [[ $(command -v jq) ]]
+        then
+            memory_size=$(jq .memory < "$hyperkit_file")
+            [[ ! $memory_size > 2048 ]] && too_small=1
+        else
+            # Otherwise, just use a string search and hope that we find it
+            [[ $(grep '"memory":2048,' "$hyperkit_file") != '' ]] && too_small=1
+        fi
+
+        if [[ $too_small == 1 ]]
+        then
+            >&2 echo ""
+            >&2 echo "===================================================================="
+            >&2 echo "WARNING: Docker seems to be configured for a small amount of memory."
+            >&2 echo "Consider expanding it by following the instructions here:"
+            >&2 echo "  https://docs.docker.com/docker-for-windows/#resources"
+            >&2 echo "===================================================================="
+            sleep 5
+        fi
+    fi
+}
+check_docker
+
+show_help() {
+    has_github_credentials=no
+    set +x
+    [[ $GH_SECRET_CREDS ]] && has_github_credentials=yes
+    [[ $TRACE_ON ]] && set -x
+
+    cat << EOF
+
+    Required Arguments:
+
+        --command all-git-pdf
+
+    Optional Arguments:
+
+        --help
+        --clean-data-dir      Remove the data directory before running
+        --data-dir ./data/
+        --sideload ../path/to/osbooks-mybook-bundle
+        --style default
+        --ref main
+        --repo osbooks-mybook-bundle
+        --book-slug calculus-vol-1
+        --start-at git-bake
+        --stop-at git-bake
+        --sideload-recipes ../path/to/cookbook
+
+    Status:
+
+        Dotenv file location: $DOTENV_PATH
+        Temp Data Directory: $data_dir
+        Docker image name: $image_name
+        GitHub Credentials? $has_github_credentials
+
+        Repo: $arg_repo
+        Slug: $arg_book_slug
+        Ref: $arg_ref
+        Style: $arg_style
+
+EOF
+}
+
+show_version() {
+        cat << EOF
+
+Enki Version: $(cd "$root_dir" && git describe --always --tags --dirty)
+
+Submodule versions:
+$(cd "$root_dir" && git submodule)
+
+EOF
+}
+
+
+# Defaults
 image_name=enki
-local_dir=$1
-
-# Books use more memory than Docker's default. Check if it is low and inform the user
-hyperkit_file="$HOME/Library/Containers/com.docker.docker/Data/vms/0/hyperkit.json"
-if [[ -f "$hyperkit_file" ]]
-then
-    too_small=0
-
-    # If jq is installed then we can use it
-    if [[ $(command -v jq) ]]
-    then
-        memory_size=$(jq .memory < "$hyperkit_file")
-        [[ ! $memory_size > 2048 ]] && too_small=1
-    else
-        # Otherwise, just use a string search and hope that we find it
-        [[ $(grep '"memory":2048,' "$hyperkit_file") != '' ]] && too_small=1
-    fi
-
-    if [[ $too_small == 1 ]]
-    then
-        >&2 echo ""
-        >&2 echo "===================================================================="
-        >&2 echo "WARNING: Docker seems to be configured for a small amount of memory."
-        >&2 echo "Consider expanding it by following the instructions here:"
-        >&2 echo "  https://docs.docker.com/docker-for-windows/#resources"
-        >&2 echo "===================================================================="
-        sleep 5
-    fi
+if [[ $XDG_DATA_HOME ]]; then
+    data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
+elif [[ -d $HOME/.local/share ]]; then
+    data_dir=$HOME/.local/share/enki-data # LCOV_EXCL_LINE
 fi
 
-if [[ $1 == '--help' ]]; then
-    echo "Check out the README for this repo to get help on usage!"
-    echo 'The args are: {tempdir} {command} {repo_name/book_slug} {recipe} {gitref}'
-    exit 0
-fi
 
-[[ $local_dir ]] || ( >&2 echo "ERROR: A local temp directory for the book is required as the first argument" && exit 111)
-[[ $2 ]] || ( >&2 echo "ERROR: A command is required as the second argument" && exit 111)
+while [ -n "$1" ]; do
+    case "$1" in
+        --help)
+            show_help
+            exit 0
+        ;;
+        --version)
+            show_version
+            exit 0
+        ;;
+        --dotenv-file) shift; DOTENV_PATH=$1 ;;
+        --clean-data-dir) clean_data_dir=1 ;;
+        --data-dir) shift; data_dir=$1 ;;
+        --command) shift; arg_command=$1 ;;
+        --sideload) shift; SIDELOAD_PATH=$1 ;;
+        --style) shift; arg_style=$1 ;;
+        --ref) shift; arg_ref=$1 ;;
+        --repo) shift; arg_repo=$1 ;;
+        --book-slug) shift; arg_book_slug=$1 ;;
+        --start-at) shift; export START_AT_STEP=$1 ;;
+        --stop-at) shift; export STOP_AT_STEP=$1 ;;
+        --sideload-recipes) shift; RECIPES_ROOT=$1 ;;
+        *)
+            echo -e "Invalid argument '$1'"
+            show_help
+            exit 2
+        ;;
+    esac
+    shift
+done
+
+[[ $data_dir ]] || ( >&2 echo "ERROR: A local temp directory for the book data was not provided" && exit 111)
+[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web'" && exit 111)
+
+[[ $clean_data_dir && -d $data_dir ]] && rm -rf $data_dir
 
 [[ $CI_TEST ]] || interactive='--interactive'
 [[ $CI_TEST ]] || [ -t 0 ] && enable_tty='--tty' # https://serverfault.com/a/753459
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
-[[ -d $local_dir ]] || mkdir -p "$local_dir"
+[[ -d $data_dir ]] || mkdir -p "$data_dir"
+
+[[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by archive books.
+[[ $arg_repo && $arg_book_slug ]] && arg_repo_and_slug="$arg_repo/$arg_book_slug"
 
 # specify a directory to sideload the book from instead of cloning from github
 [[ $SIDELOAD_PATH ]] && {
@@ -107,7 +202,7 @@ $root_dir/build-dockerfile.sh
 }
 docker run $interactive $enable_tty \
     $opt_sideload_book_arg \
-    --volume=$(cd "$local_dir"/; pwd):/data/ \
+    --volume=$(cd "$data_dir"/; pwd):/data/ \
     $opt_mount_recipes \
     --env-file $root_dir/cli.env \
     --env TRACE_ON \
@@ -128,9 +223,9 @@ docker run $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
-    --rm $image_name "${@:2}" # Args after the 1st one
+    --rm $image_name "$arg_command" "$arg_repo_and_slug" "$arg_style" "$arg_ref"
 
-if [[ $2 == *pdf ]]
+if [[ $arg_command == *pdf ]]
 then
-    >&2 echo "The PDF is available near $local_dir/_attic/IO_ARTIFACTS/book.pdf"
+    >&2 echo "The PDF is available near $data_dir/_attic/IO_ARTIFACTS/book.pdf"
 fi

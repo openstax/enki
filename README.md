@@ -40,20 +40,17 @@ Then try the following to build PDFs and other formats:
 
 ```sh
 # All-in-one Git-based books
-#  CLI   tempdir          command     repo_name/book_slug               recipe    gitref
-./enki ./data/tin-bk/   all-git-pdf 'philschatz/tiny-book/book-slug1' chemistry main
-./enki ./data/tin-bk/   all-git-web 'philschatz/tiny-book/book-slug1' chemistry main
+#  CLI             command             repo_name                        book_slug
+./enki --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' 
+./enki --command all-git-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
 # GH_SECRET_CREDS='..' before running ./enki for private repositories
 
 # All-in-one Archive-based books
-#  CLI   tempdir       command         col_id   recipe          version   server
-./enki ./data/fizix/ all-archive-pdf col12006 college-physics latest
-./enki ./data/socio/ all-archive-pdf col11762 sociology       latest
-./enki ./data/socio/ all-archive-web col11762 sociology       latest
+#  CLI           command                col_id           recipe                version
+./enki --command all-archive-pdf --repo col12006 --style college-physics --ref latest
+./enki --command all-archive-pdf --repo col11762 --style sociology       --ref latest
+./enki --command all-archive-web --repo col11762 --style sociology       --ref latest
 ```
-**Note:** To use the style in `META-INF/books.xml` use the _magic_ recipe named `default`
-
-**Note:** If you are running this inside a container (like gitpod) then you can replace `./enki ./data/tin-bk/` with `./dockerfiles/docker-entrypoint.sh` (no data directory necessary, it will be `/data/`)
 
 ## Private Repositories
 
@@ -70,7 +67,7 @@ in this directory and run the cli.
 
 If you already have the files locally, you can specify a path to them and the CLI can sideload them in instead of fetching from GitHub.
 
-To use this method, set the `SIDELOAD_PATH` environment variable to where the book is.
+To use this method, use the `--sideload` argument to specify where to load the book from.
 
 ## Google Docs
 

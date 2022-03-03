@@ -11,5 +11,3 @@ COVERAGE_DIR=../coverage
 [[ -d $SOCI_DIR ]] && rm -rf $SOCI_DIR
 
 ../enki --help
-
-KCOV_DIR=_kcov01 ../enki $BOOK_DIR --help

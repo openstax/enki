@@ -3,17 +3,13 @@ parse_book_dir
 [[ "$ARG_REPO_NAME" == */* ]] || ARG_REPO_NAME="openstax/$ARG_REPO_NAME"
 
 # Support sideloading the book
-if [[ $LOCAL_SIDELOAD_REPO_PATH ]]; then
-    if [[ -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
-        [[ -d $IO_FETCHED ]] && rm -rf "$IO_FETCHED"
-        try cp -r $LOCAL_SIDELOAD_REPO_PATH "$IO_FETCHED"
-    else
-        ls -al
-        die "The environment variable LOCAL_SIDELOAD_REPO_PATH is defined to be '$LOCAL_SIDELOAD_REPO_PATH' but that directory does not exist"
-    fi
-fi
-
-if [[ -d "$IO_FETCHED/.git" ]]; then # Skip if we already cloned (dev)
+if [[ $LOCAL_SIDELOAD_REPO_PATH && -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
+    [[ -d $IO_FETCHED ]] && rm -rf "$IO_FETCHED" # LCOV_EXCL_LINE
+    warn "-----------------------------------" # LCOV_EXCL_LINE
+    warn "Sideloading book instead of cloning" # LCOV_EXCL_LINE
+    warn "-----------------------------------" # LCOV_EXCL_LINE
+    try cp -r $LOCAL_SIDELOAD_REPO_PATH "$IO_FETCHED" # LCOV_EXCL_LINE
+elif [[ -d "$IO_FETCHED/.git" ]]; then # Skip if we already cloned (dev)
     warn "---------------------------------------------------" # LCOV_EXCL_LINE
     warn "Skipping git clone because directory already exists" # LCOV_EXCL_LINE
     warn "---------------------------------------------------" # LCOV_EXCL_LINE
@@ -87,8 +83,8 @@ else
 fi
 
 # Clean up the temporary credentials file if it exists
-if [[ -f $creds_file ]]; then
-    try rm $creds_file # LCOV_EXCL_LINE
+if [[ -f $creds_dir ]]; then
+    try rm -rf $creds_dir # LCOV_EXCL_LINE
 fi
 
 # If the user wants to build one book then check that the book exists
