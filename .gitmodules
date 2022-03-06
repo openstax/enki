@@ -14,10 +14,6 @@
 	path = cookbook
 	url = https://github.com/openstax/cookbook
 	branch = main
-[submodule "output-producer-service"]
-	path = output-producer-service
-	url = https://github.com/openstax/output-producer-service
-	branch = main
 [submodule "cnx-recipes"]
 	path = cnx-recipes
 	url = https://github.com/openstax/cnx-recipes
