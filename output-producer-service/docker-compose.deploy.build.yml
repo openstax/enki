@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+      target: prod-runner
+  frontend:
+    build:
+      context: ./frontend

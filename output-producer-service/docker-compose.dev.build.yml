@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+      target: dev-runner
+  frontend:
+    build:
+      context: ./frontend
+  docs:
+    build:
+      context: ./docs

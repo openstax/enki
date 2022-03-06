@@ -1,0 +1,12 @@
+# This inventory file is used when our bastion server is configured as a JumpHost in ~/.ssh/config
+all:
+  hosts:
+    cops:
+    cops2:
+  children:
+    db:
+      hosts:
+        cops
+    proxy:
+      hosts:
+        cops

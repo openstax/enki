@@ -1,0 +1,12 @@
+version: '3.7'
+services:
+  concourse:
+    image: concourse/concourse:6.3
+    privileged: true
+  pgadmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    env_file:
+      - env-pgadmin.env
+

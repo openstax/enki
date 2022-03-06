@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "backend"
+version = "0.0.0"
+description = ""
+authors = []
+license = "AGPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+fastapi = "0.70.0"
+gunicorn = "20.1.0"
+psycopg2-binary = "^2.9.2"
+tenacity = "6.0.0"
+uvicorn = "0.15.0"
+SQLAlchemy = "1.4.27"
+alembic = "1.7.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pytest-selenium = "^2.0.1"
+pytest-testrail = "^2.9.0"
+chromedriver-binary = "88.0.4324.96.0"
+importlib-metadata = "^4.8.2"
+PyPOM = "2.2.0"
+selenium = "3.141.0"
+playwright = "^1.19.0"
+
+[build-system]
+requires = ["poetry>=1.0.5"]
+build-backend = "poetry.masonry.api"

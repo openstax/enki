@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "page-schema",
+  "description": "Schema for JSON page data",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title for the page"
+    },
+    "slug": {
+      "type": "string",
+      "description": "The slug for the page"
+    },
+    "abstract": {
+      "type": ["string", "null"],
+      "description": "The abstract for the page"
+    },
+    "id": {
+      "type": "string",
+      "description": "The id for the page",
+      "pattern": "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+    },
+    "revised": {
+      "type": "string",
+      "description": "The revision date for the page as ISO8601",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}([.]\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "content": {
+      "type": "string",
+      "description": "The content for the page"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["title", "id", "revised", "content", "slug", "abstract"]
+}

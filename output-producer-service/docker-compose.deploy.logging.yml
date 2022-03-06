@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  proxy:
+    logging:
+      options:
+        max-size: "200m"
+        max-file: "5"
+  frontend:
+    logging:
+      options:
+        max-size: "200m"
+        max-file: "5"
+  backend:
+    logging:
+      options:
+        max-size: "200m"
+        max-file: "5"
+  db:
+    logging:
+      options:
+        max-size: "200m"
+        max-file: "5"

@@ -1,0 +1,35 @@
+version: '3.7'
+services:
+  dnsmasq:
+    build:
+      context: ./backend/app/tests/performance
+      dockerfile: dnsmasq.dockerfile
+    cap_add:
+      - NET_ADMIN
+    networks:
+      net_services:
+        ipv4_address: 172.31.254.10
+  locust:
+    image: locustio/locust
+    environment:
+      LOCUSTFILE_PATH: /code/backendjobs.py
+      TARGET_URL: http://backend
+    ports:
+    - published: 8089
+      target: 8089
+    networks:
+      - default
+      - net_services
+    volumes:
+    - ./backend/app/tests/performance:/code
+    sysctls:
+      net.core.somaxconn: 65535
+      net.ipv4.tcp_max_syn_backlog: 65535
+    dns:
+      - 172.31.254.10
+networks:
+  net_services:
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.31.254.0/24

@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  backend-tests:
+    build:
+      context: ./backend
+      dockerfile: tests.dockerfile
+    volumes:
+      - /tmp/test-results:/tmp/test-results
+      - ./backend/app:/app
+    ports:
+      - '5900'
+    command: bash -c "while true; do sleep 1; done"
+    env_file:
+      - env-backend.env
+    environment: &testenv
+      - SERVER_NAME=backend
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=tests
+      - TAG=dev
+      - REVISION=dev
+      - STACK_NAME=dev
+  backend:
+    environment: *testenv

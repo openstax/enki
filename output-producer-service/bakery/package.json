@@ -1,0 +1,24 @@
+{
+  "name": "@openstax/bakery-cli",
+  "scripts": {
+    "lint": "standard ./src/**/**.js",
+    "test": "ava -v --timeout=20m",
+    "package": "mkdir -p dist && cd dist && npm pack ../"
+  },
+  "dependencies": {
+    "dedent": "^0.7.0",
+    "js-yaml": "^3.13.1",
+    "tmp": "^0.2.0",
+    "wait-port": "^0.2.7",
+    "which": "^2.0.2",
+    "yargs": "^15.1.0"
+  },
+  "devDependencies": {
+    "ava": "^3.7.1",
+    "fs-extra": "^9.0.0",
+    "standard": "^14.3.1"
+  },
+  "bin": {
+    "bakery": "./src/cli/execute.js"
+  }
+}

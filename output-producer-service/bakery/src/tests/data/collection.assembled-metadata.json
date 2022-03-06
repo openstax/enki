@@ -1,0 +1,20 @@
+{
+    "m42119@1.6": {
+        "abstract": null
+    },
+    "m42092@1.10": {
+        "abstract": "Explain the difference between a model and a theory"
+    },
+    "00000000-0000-0000-0000-000000000000@0.0": {
+        "id": "injected_id",
+        "version": "injected_version",
+        "legacy_id": "injected_legacy_id",
+        "legacy_version": "injected_legacy_version",
+        "license": {
+            "url": "http://creativecommons.org/licenses/by-nc-sa/4.0/",
+            "code": "by-nc-sa",
+            "version": "4.0",
+            "name": "Creative Commons Attribution-NonCommercial-ShareAlike License"
+        }
+    }
+}

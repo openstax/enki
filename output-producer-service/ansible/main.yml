@@ -1,0 +1,5 @@
+---
+- name: OpenStax COPS deployment
+  hosts: all
+  tasks:
+    - import_tasks: tasks/cleanup.yml

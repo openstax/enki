@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  backend:
+    ports:
+      - '8888:8888'
+  proxy:
+    ports:
+      - '80:80'
+      - '8090:8080'
+  pgadmin:
+    ports:
+      - '5050:5050'
+  concourse:
+    ports:
+      - '8100:8080'
+  docs:
+    ports:
+      - '8000:8000'

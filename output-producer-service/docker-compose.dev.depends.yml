@@ -1,0 +1,8 @@
+version: '3.7'
+services:
+  backend:
+    depends_on:
+      - db
+  concourse:
+    depends_on:
+      - db

@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "book-schema",
+  "description": "Schema for JSON book data",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the book"
+    },
+    "legacy_id": {
+      "type": "string",
+      "description": "The legacy ID for a book of the form col12345",
+      "pattern": "^(col)\\d{5}$"
+    },
+    "id": {
+      "type": "string",
+      "description": "The UUID ID for a book",
+      "pattern": "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+    },
+    "legacy_version": {
+      "type": "string",
+      "description": "The legacy book version number",
+      "pattern": "^\\d+[.]\\d+([.]\\d+)?$"
+    },
+    "version": {
+      "type": "string",
+      "description": "The book version number",
+      "pattern": "^\\d+[.]\\d+([.]\\d+)?$"
+    },
+    "revised": {
+      "type": "string",
+      "description": "The revision date of this version of the book as ISO8601",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}([.]\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "language": {
+      "type": "string",
+      "description": "The book language code"
+    },
+    "license": {
+      "type": "object",
+      "description": "License information for book",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL of license such as http://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        "code": {
+          "type": "string",
+          "description": "License code"
+        },
+        "version": {
+          "type": "string",
+          "description": "License version"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of license as string"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["url", "code", "version", "name"]
+    },
+    "slug": {
+      "type": "string",
+      "description": "The slug for the book"
+    },
+    "tree": {
+      "type": "object",
+      "description": "The tree data for the book"
+    },
+    "content": {
+      "type": "string",
+      "description": "The XHTML TOC content for the book"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["title", "legacy_id", "id", "legacy_version", "version",
+               "revised", "language", "license", "slug", "tree", "content"]
+}

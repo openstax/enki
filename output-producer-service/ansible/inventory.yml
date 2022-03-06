@@ -1,0 +1,11 @@
+all:
+  hosts:
+    server1.cops-mvp.openstax.org
+    server2.cops-mvp.openstax.org
+  children:
+    db:
+      hosts:
+        server1.cops-mvp.openstax.org
+    proxy:
+      hosts:
+        server1.cops-mvp.openstax.org
