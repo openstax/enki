@@ -1,7 +1,7 @@
 lxml==4.4.3
 click>=7.1.2
 cnxml>=3.1.7
-cnx-epub>=0.31.2
+cnx-epub>=0.32.0
 cnx-litezip>=1.6.0
 cnx-transforms>=1.8.0
 docker>=4.2.2

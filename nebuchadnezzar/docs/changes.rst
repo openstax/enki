@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.15.0
+
+- Ensure all IDs are unique and remove randomly-generated IDs
+
 9.14.0
 
 - fix the pattern used to match embedded exercises
