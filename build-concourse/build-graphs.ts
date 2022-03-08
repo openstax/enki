@@ -96,6 +96,7 @@ charts.forEach(([name, markup]) => {
 ${markup}
 ${end}`)
 })
+/* istanbul ignore if */
 if (!foundGraph) {
     throw new Error('BUG: Readme no longer contains any graphs in it. Remove this code')
 }
