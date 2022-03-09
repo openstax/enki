@@ -1,8 +1,0 @@
-version: '3.7'
-services:
-  backend:
-    volumes:
-      - ./backend/app:/app
-  docs:
-    volumes:
-      - .:/app

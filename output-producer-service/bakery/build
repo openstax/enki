@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-dir=$(dirname "$0")
-CALLER=$0 node "${dir}/build.js" "$@"
