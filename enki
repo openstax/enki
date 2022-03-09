@@ -23,7 +23,7 @@ readonly root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
 
 current_dir=$(pwd)
 if [[ $DOTENV_PATH ]]; then
-    [[ $DOTENV_PATH != /* ]] && DOTENV_PATH=$(cd $current_dir/$(dirname "$DOTENV_PATH") && pwd)
+    [[ $DOTENV_PATH != /* ]] && DOTENV_PATH=$(cd "$current_dir/$(dirname "$DOTENV_PATH")" && pwd)
 elif [[ -f "$current_dir/.env" ]]; then
     DOTENV_PATH="$current_dir/.env"
 else
@@ -33,6 +33,7 @@ fi
 # Parse .env file if it exists
 # https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
 [[ -f $DOTENV_PATH ]] && {
+    # shellcheck disable=SC2046
     export $(echo $(cat $DOTENV_PATH | sed 's/#.*//g' | sed 's/\r//g' | xargs))
 }
 
@@ -51,7 +52,7 @@ check_docker() {
         if [[ $(command -v jq) ]]
         then
             memory_size=$(jq .memory < "$hyperkit_file")
-            [[ ! $memory_size > 2048 ]] && too_small=1
+            [[ ! $memory_size -gt 2048 ]] && too_small=1
         else
             # Otherwise, just use a string search and hope that we find it
             [[ $(grep '"memory":2048,' "$hyperkit_file") != '' ]] && too_small=1
@@ -202,7 +203,7 @@ $root_dir/build-dockerfile.sh
 }
 docker run $interactive $enable_tty \
     $opt_sideload_book_arg \
-    --volume=$(cd "$data_dir"/; pwd):/data/ \
+    --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \
     --env-file $root_dir/cli.env \
     --env TRACE_ON \
