@@ -1,7 +1,0 @@
----
-- name: "Create cronjob to do docker cleanup"
-  cron:
-    name: "Run docker system prune daily at 23:59"
-    hour: "23"
-    minute: "59"
-    job: "/usr/bin/docker system prune -f"
