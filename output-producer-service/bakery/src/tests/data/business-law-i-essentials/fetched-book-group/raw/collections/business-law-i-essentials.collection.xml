@@ -1,0 +1,37 @@
+<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:cnx="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:md="http://cnx.rice.edu/mdml" xmlns:col="http://cnx.rice.edu/collxml" xml:lang="en">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+    <md:content-id>col30149</md:content-id>
+    <md:title>Business Law I Essentials</md:title>
+    <md:language>en</md:language>
+    <md:license url="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike License</md:license>
+    <md:uuid>464a3fba-68c1-426a-99f9-597e739dc911</md:uuid>
+<md:slug>business-law-i-essentials</md:slug>
+<md:revised>2021-04-06T17:20:41+00:00</md:revised>
+<md:version>423046b</md:version>
+</metadata>
+  <col:parameters>
+    <col:param name="print-style" value="business-ethics-prod"/>
+  </col:parameters>
+  <col:content>
+    <col:module document="m78967" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.3">
+      <md:title>Preface</md:title>
+    </col:module>
+    <col:subcollection>
+      <md:title>American Law, Legal Reasoning, and the Legal System</md:title>
+      <col:content>
+        <col:module document="m78875" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.6">
+          <md:title>Introduction</md:title>
+        </col:module>
+        <col:module document="m78876" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.7">
+          <md:title>Basic American Legal Principles</md:title>
+        </col:module>
+        <col:module document="m78877" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.7">
+          <md:title>Sources and Types of Law</md:title>
+        </col:module>
+        <col:module document="m78878" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.5">
+          <md:title>Important Business Laws and Regulations</md:title>
+        </col:module>
+      </col:content>
+    </col:subcollection>
+  </col:content>
+</col:collection>
