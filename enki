@@ -34,7 +34,7 @@ fi
 # https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
 [[ -f $DOTENV_PATH ]] && {
     # shellcheck disable=SC2046
-    export $(echo $(cat $DOTENV_PATH | sed 's/#.*//g' | sed 's/\r//g' | xargs))
+    export $(echo $(cat $DOTENV_PATH | sed 's/#.*//g' | awk '{printf "%s ",$0} END {print ""}' | xargs))
 }
 
 # Trace if TRACE_ON is set
