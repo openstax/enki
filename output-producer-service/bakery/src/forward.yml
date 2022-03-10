@@ -1,8 +1,0 @@
-########## This is a generated file ##########
-# To generate a pipeline.yml file you
-# can run 'yarn build [path/to/output-file]'
-# from the 'bakery/' directory. If no path
-# is specified, the output will be directed
-# to stdout.
-##############################################
-
