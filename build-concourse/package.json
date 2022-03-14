@@ -2,7 +2,7 @@
   "scripts": {
     "build:json": "ts-node --transpile-only ./build-json.ts",
     "build:gdocs": "ts-node ./build-gdocs.ts",
-    "build:graphs": "command -v dot && ts-node ./build-graphs.ts || echo 'graphviz does not seem to be installed (\"dot\" not found): https://github.com/ts-graphviz/ts-graphviz. Skipping graph generation' && sleep 10",
+    "build:graphs": "ts-node ./build-graphs.ts",
     "build:corgi": "ts-node ./build-corgi.ts",
     "build:corgi:and-local": "ts-node ./build-corgi-local.ts",
     "build:webhosting": "ts-node ./build-webhosting.ts",
@@ -15,11 +15,9 @@
     "postcoverage": "nyc report --reporter lcov --reporter html --report-dir ../coverage/"
   },
   "dependencies": {
-    "@ts-graphviz/node": "^0.4.0",
     "@types/js-yaml": "^4.0.1",
     "@types/node": "^15.6.0",
     "js-yaml": "^4.1.0",
-    "ts-graphviz": "^0.15.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
   },
