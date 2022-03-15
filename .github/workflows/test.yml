@@ -29,7 +29,7 @@ jobs:
       - name: Install pipenv & Setting up environment
         run: |
           sudo apt-get install -y imagemagick icc-profiles-free ghostscript
-          python -m pip install --upgrade pipenv wheel flake
+          python -m pip install --upgrade pipenv wheel flake8
           sudo apt-get install -y imagemagick icc-profiles-free ghostscript
       - id: cache-pipenv
         uses: actions/cache@v1
