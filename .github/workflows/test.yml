@@ -22,6 +22,18 @@ jobs:
       #       ${{ github.workflow }}-${{ env.WEEK }}-
       - name: Install graphviz and dot
         run: sudo apt-get install graphviz
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+      - name: Install pipenv
+        run: |
+          python -m pip install --upgrade pipenv wheel
+      - id: cache-pipenv
+        uses: actions/cache@v1
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
       - name: Install submodules
         run: ./install-submodules.sh
       - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file
@@ -40,22 +52,10 @@ jobs:
         run: CI_TEST=true ./test/test-step-06.bash
       - name: Run all-archive-pdf
         run: CI_TEST=true ./test/test-step-07.bash
+      - name: Run Bakery Scripts Tests
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        run: CI_TEST=true ./test/test-step-10.bash
       - name: Collect coverage and upload
         run: CI_TEST=true ./test/test-step-08.bash
       - name: Lint scripts
         run: CI_TEST=true ./test/test-step-09.bash
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-         python-version: "3.6"
-      - name: Install pipenv
-        run: |
-          python -m pip install --upgrade pipenv wheel
-      - id: cache-pipenv
-        uses: actions/cache@v1
-        with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-      - name: Install dependencies & test
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
-        run: CI_TEST=true pipenv install ./bakery/scr/scripts/.[test] && pytest bakery
