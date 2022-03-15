@@ -26,9 +26,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.6"
-      - name: Install pipenv
+      - name: Install pipenv & Setting up environment
         run: |
-          python -m pip install --upgrade pipenv wheel
+          sudo apt-get install -y imagemagick icc-profiles-free ghostscript
+          python -m pip install --upgrade pipenv wheel flake
+          sudo apt-get install -y imagemagick icc-profiles-free ghostscript
       - id: cache-pipenv
         uses: actions/cache@v1
         with:

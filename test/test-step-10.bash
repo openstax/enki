@@ -6,4 +6,5 @@ set -e
 DATA_ROOT=../data
 COVERAGE_DIR=../coverage
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
-pytest "../output-producer-service/bakery"
+flake8 "../output-producer-service/bakery/src/**/**.py" --max-line-length=100
+pytest --cov=bakery_scripts --cov-report=html --cov-report=term "../output-producer-service/bakery" -vvv --junitxml=/tmp/test-reports/junit.xml
