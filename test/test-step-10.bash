@@ -1,4 +1,10 @@
 #!/bin/bash
 set -e
-pip install ./bakery/scr/scripts/.[test]
+[[ $TRACE_ON ]] && set -x
+[[ $0 != "-bash" ]] && cd "$(dirname "$0")"
+
+DATA_ROOT=../data
+COVERAGE_DIR=../coverage
+
+pip install ../output-producer-service/bakery/scr/scripts/.[test]
 pytest bakery
