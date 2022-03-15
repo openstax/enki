@@ -5,7 +5,5 @@ set -e
 
 DATA_ROOT=../data
 COVERAGE_DIR=../coverage
-pwd
-ls -alt
-pip install ../output-producer-service/bakery/scr/scripts/.[test]
+pip install "../output-producer-service/bakery/src/scripts/.[test]"
 pytest bakery
