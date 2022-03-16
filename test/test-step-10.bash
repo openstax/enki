@@ -7,4 +7,4 @@ DATA_ROOT=../data
 COVERAGE_DIR=../coverage
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
-pytest ../output-producer-service/bakery/src/scripts -vvv
+pytest --cov --cov-append ../output-producer-service/bakery/src/scripts -vvv
