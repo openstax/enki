@@ -5,6 +5,6 @@ set -e
 
 DATA_ROOT=../data
 COVERAGE_DIR=../coverage
-pip install "../output-producer-service/bakery/src/scripts/.[test]"
+pip install --upgrade "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
 pytest --cov --cov-append ../output-producer-service/ -vvv
