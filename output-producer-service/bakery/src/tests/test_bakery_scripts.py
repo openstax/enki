@@ -1,6 +1,7 @@
 """Tests to validate JSON metadata extraction and file generation pipeline"""
 import os
 import json
+from datetime import datetime
 from glob import glob
 from lxml import etree
 import boto3
@@ -17,7 +18,6 @@ from googleapiclient.http import RequestMockBuilder
 from PIL import Image
 from pathlib import Path
 from filecmp import cmp
-from datetime import datetime
 
 from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
 from cnxepub.collation import reconstitute
