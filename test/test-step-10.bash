@@ -7,4 +7,4 @@ DATA_ROOT=../data
 COVERAGE_DIR=../coverage
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
-pytest --cov=bakery_scripts --cov-report=html --cov-report=term "../output-producer-service/bakery" -vvv --junitxml=/tmp/test-reports/junit.xml
+pytest ../output-producer-service/bakery/src/scripts -vvv
