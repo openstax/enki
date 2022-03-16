@@ -20,8 +20,6 @@ jobs:
       #     key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
-      - name: Install graphviz and dot
-        run: sudo apt-get install graphviz
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
