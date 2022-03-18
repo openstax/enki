@@ -10,5 +10,5 @@ pytest --cov=bakery_scripts --cov-append --cov-report=html --cov-report=term ../
 # Upload to codecov only if running inside CI
 if [[ $CI || $CODECOV_TOKEN ]]; then
    echo "Upload Code Coverage Results!"
-   bash <(curl -s https://codecov.io/bash)
+   bash <(curl -s https://codecov.io/bash) -s ./htmlcov
 fi
