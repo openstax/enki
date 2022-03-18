@@ -5,6 +5,8 @@ set -e
 
 DATA_ROOT=../data
 COVERAGE_DIR=../coverage
-pip install --upgrade "../output-producer-service/bakery/src/scripts/.[test]"
+[[ -d $COVERAGE_DIR ]] || mkdir $COVERAGE_DIR
+pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
-pytest --cov --cov-append ../output-producer-service/ -vvv
+pytest --cov=bakery_scripts --cov-append --cov-report=html:$COVERAGE_DIR ../output-producer-service/ -vvv
+ls -alt $COVERAGE_DIR
