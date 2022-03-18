@@ -10,6 +10,5 @@ pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=h
 # Upload to codecov only if running inside CI
 if [[ $CI || $CODECOV_TOKEN ]]; then
    echo "Upload Code Coverage Results!"
-   cd ../
    curl -Os https://uploader.codecov.io/latest/linux/codecov && chmod +x codecov && ./codecov  -t ${CODECOV_TOKEN} -f cov.xml
 fi
