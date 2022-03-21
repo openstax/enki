@@ -70,7 +70,7 @@ RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccpr
 # Install princexml
 # ---------------------------
 
-ENV PRINCE_VERSION=12.5.1-1
+ENV PRINCE_VERSION=14.2-1
 ENV PRINCE_UBUNTU_BUILD=20.04
 
 RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
@@ -130,8 +130,7 @@ ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-$
 
 # Use this so that gitpod directories are the same.
 # TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
-ENV PROJECT_ROOT=/workspace/richb-press
-
+ENV PROJECT_ROOT=/workspace/enki
 
 # ---------------------------
 # Install node
@@ -275,7 +274,7 @@ FROM base as runner
 # Install recipes
 # ---------------------------
 
-COPY ./recipes/ $PROJECT_ROOT/recipes/
+COPY ./cookbook/ $PROJECT_ROOT/cookbook/
 
 COPY            ./dockerfiles/build/build-stage-recipes.sh \
     $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh

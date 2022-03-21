@@ -20,8 +20,6 @@ jobs:
       #     key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
-      - name: Install graphviz and dot
-        run: sudo apt-get install graphviz
       - name: Install submodules
         run: ./install-submodules.sh
       - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file

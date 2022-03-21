@@ -1,6 +1,6 @@
 {
-  "DOCKER_REPOSITORY": "openstax/richb-press",
-  "CORGI_API_URL": "https://corgi-staging.openstax.org/api",
+  "DOCKER_REPOSITORY": "openstax/enki",
+  "CORGI_API_URL": "https://corgi-staging.ce.openstax.org/api",
   "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
   "CORGI_CLOUDFRONT_URL": "https://cops.sandbox.openstax.org",
   "PREVIEW_APP_URL_PREFIX": "apps/archive-preview",

@@ -38,7 +38,7 @@ STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-$PROJECT_ROOT/step-config.json}
 DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
 BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/output-producer-service/bakery/src}
 PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
-RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/recipes}
+RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/cookbook}
 MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
 CNX_RECIPES_RECIPES_ROOT=${CNX_RECIPES_RECIPES_ROOT:-$PROJECT_ROOT/cnx-recipes/recipes/output}
 CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes/styles/output}
@@ -88,6 +88,35 @@ function do_xhtml_validate() {
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
     fi
+}
+
+# FIXME: We assume that every book in the group uses the same style
+# This assumption will not hold true forever, and book style + recipe name should
+# be pulled from fetched-book-group (while still allowing injection w/ CLI)
+
+
+# FIXME: Style devs will probably not like having to bake multiple books repeatedly,
+# especially since they shouldn't care about link-extras correctness during their
+# work cycle.
+
+function read_style() {
+    slug_name=$1
+    style_name=''
+
+    # This check is always true in CORGI and never true in webhosting pipeline.
+    if [[ -f $IO_BOOK/style ]]; then
+        style_name=$(cat $IO_BOOK/style)
+    fi
+
+    if [[ ! $style_name || $style_name == 'default' ]]; then
+        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
+    fi
+
+    if [[ ! $style_name ]]; then
+        die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
+    fi
+
+    echo $style_name
 }
 
 function parse_book_dir() {
@@ -174,9 +203,7 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            if [[ $recipe != "default" && $recipe != "*" ]]; then
-                cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
-            fi
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
