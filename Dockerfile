@@ -178,23 +178,6 @@ COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 FROM base AS build-python-stage
 
 # ---------------------------
-# Install cnx-easybake
-# ---------------------------
-
-COPY ./cnx-easybake/requirements/main.txt $PROJECT_ROOT/cnx-easybake/requirements/
-
-COPY            ./dockerfiles/build/build-stage-easybake-3rdparty.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-3rdparty.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-3rdparty.bash
-
-COPY ./cnx-easybake/ $PROJECT_ROOT/cnx-easybake/
-
-COPY            ./dockerfiles/build/build-stage-easybake-install.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-install.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-easybake-install.bash
-
-
-# ---------------------------
 # Install neb
 # ---------------------------
 
@@ -356,6 +339,7 @@ COPY ./dockerfiles/entrypointd.sh \
 
 COPY ./step-config.json $PROJECT_ROOT
 
+# COPY ./formatters.py /workspace/enki/venv/lib/python3.8/site-packages/cnxepub/formatters.py
 # ^^^^^^^^^^^^^^^ Dockerfile.common ^^^^^^^^^^^^^^^
 # vvvvvvvvvvv Dockerfile.cli-endmatter vvvvvvvvvvvv
 WORKDIR /data/

@@ -12,8 +12,6 @@ fi
 ./dockerfiles/build/build-system-venv.sh
 source ./dockerfiles/build/build-system-node.env
 ./dockerfiles/build/build-stage-mathify.sh
-./dockerfiles/build/build-stage-easybake-3rdparty.bash
-./dockerfiles/build/build-stage-easybake-install.bash
 ./dockerfiles/build/build-stage-neb-3rdparty.bash
 ./dockerfiles/build/build-stage-neb-install.bash
 ./dockerfiles/build/build-stage-bakery-3rdparty.bash
