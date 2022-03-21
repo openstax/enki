@@ -14,15 +14,17 @@ RUN set -x \
     # ... for princexml:
     gdebi fonts-stix libcurl4 \
     # ... for bakery-scripts
-    python3-dev libicu-dev pkg-config libmagic1 \
+    build-essential libicu-dev pkg-config libmagic1 \
     mime-support wget curl xsltproc lsb-release git \
-    imagemagick icc-profiles-free unzip \
+    imagemagick icc-profiles-free curl unzip \
     # ... for neb:
     python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
     libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
     libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
     libxcb-dri3-0 libdrm2 libgbm1 \
+    # ... for cnx-easybake:
+    build-essential libicu-dev pkg-config python3-dev \
     # ---------------------------
     # Dependencies that are not needed to prepare
     # the other steps but are necessary to run the code.
@@ -316,3 +318,4 @@ COPY ./dockerfiles/entrypointd.sh \
 
 COPY ./step-config.json $PROJECT_ROOT
 
+# COPY ./formatters.py /workspace/enki/venv/lib/python3.8/site-packages/cnxepub/formatters.py
