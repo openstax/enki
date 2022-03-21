@@ -94,10 +94,10 @@ show_help() {
         --data-dir <path>           Path to store temporary files
         --dotenv-file <path>        Path to dotenv file (for GitHub credentials)
 
-        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
-        --ref <branch|tag|@commit>  Which version of the book to build
         --repo osbooks-mybook       The name of the repo. Can be "owner/name" if the owner is not openstax
         --book-slug calculus-vol-1  Which book (identified by slug) to build
+        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
+        --ref <branch|tag|@commit>  Which version of the book to build
 
         --start-at git-bake         Step to start at (also sets --keep-data)
         --stop-at git-bake          Step to stop at
