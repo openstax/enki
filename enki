@@ -103,7 +103,7 @@ show_help() {
         --stop-at git-bake          Step to stop at
 
         --sideload-book <path>      A local path to a cloned git repo instead of fetching from GitHub
-        --sideload-recipes <path>   Path to a locally cloned cookbook
+        --sideload-cookbook <path>  Path to a locally cloned cookbook
 
     Status:
 
@@ -163,7 +163,7 @@ while [ -n "$1" ]; do
         --book-slug) shift; arg_book_slug=$1 ;;
         --start-at) shift; clear_cache=''; export START_AT_STEP=$1 ;;
         --stop-at) shift; export STOP_AT_STEP=$1 ;;
-        --sideload-recipes) shift; RECIPES_ROOT=$1 ;;
+        --sideload-cookbook) shift; COOKBOOK_ROOT=$1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -201,9 +201,9 @@ done
 
 $root_dir/build-dockerfile.sh
 
-[[ $RECIPES_ROOT ]] && {
-    [[ $RECIPES_ROOT != /* ]] && RECIPES_ROOT=$(cd $current_dir/$RECIPES_ROOT && pwd)
-    opt_mount_recipes="--volume=$RECIPES_ROOT:/workspace/enki/recipes/"
+[[ $COOKBOOK_ROOT ]] && {
+    [[ $COOKBOOK_ROOT != /* ]] && COOKBOOK_ROOT=$(cd $current_dir/$COOKBOOK_ROOT && pwd)
+    opt_mount_recipes="--volume=$COOKBOOK_ROOT:/workspace/enki/recipes/"
 }
 
 [[ $SKIP_DOCKER_BUILD ]] || {
