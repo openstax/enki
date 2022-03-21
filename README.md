@@ -43,7 +43,7 @@ Then try the following to build PDFs and other formats:
 #  CLI             command             repo_name                        book_slug
 ./enki --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' 
 ./enki --command all-git-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
-# GH_SECRET_CREDS='..' before running ./enki for private repositories
+# GH_SECRET_CREDS='..' before running enki for private repositories
 
 # All-in-one Archive-based books
 #  CLI           command                col_id           recipe                version
@@ -168,7 +168,7 @@ In order to debug steps inside the container you can start a shell instead of ru
 To run a shell inside the container run the following:
 
 ```bash
-./enki ./data/any-tempdir/ /bin/bash
+./enki --command shell
 ```
 
 Then, to run the step inside the container, run `docker-entrypoint.sh {step_name}`.
@@ -186,21 +186,21 @@ If you want to run a single step at a time specify it as the first argument. Lat
 
 ```sh
 # Common steps
-./enki ./data/socio/ local-create-book-directory col11762 sociology latest
-./enki ./data/socio/ look-up-book
-./enki ./data/socio/ archive-fetch
-./enki ./data/socio/ archive-assemble
-./enki ./data/socio/ archive-link-extras
-./enki ./data/socio/ archive-bake
+./enki --command local-create-book-directory col11762 sociology latest
+./enki --command look-up-book
+./enki --command archive-fetch
+./enki --command archive-assemble
+./enki --command archive-link-extras
+./enki --command archive-bake
 
 # PDF steps
-./enki ./data/socio/ archive-mathify
-./enki ./data/socio/ archive-pdf
+./enki --command archive-mathify
+./enki --command archive-pdf
 
 # Concourse-only steps (AWS_ environemnt variables will likely need to be set)
 CODE_VERSION='main' \
 ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state \
-./enki ./data/socio/ archive-report-book-complete
+./enki --command archive-report-book-complete
 ```
 
 With the above command, docker will use the `$(pwd)/data/...` directory to read/write files during each step.

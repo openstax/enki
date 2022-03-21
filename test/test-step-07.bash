@@ -10,10 +10,10 @@ SOCI_DIR=../data/test-soci
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov07-a \
-../enki --data-dir $SOCI_DIR --command all-archive-pdf --start-at archive-assemble
+../enki --keep-data --data-dir $SOCI_DIR --command all-archive-pdf --start-at archive-assemble
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov07-b \
 CORGI_ARTIFACTS_S3_BUCKET=dummy-test-bucket \
 ARG_TARGET_PDF_FILENAME=dummy-test-pdf-filename \
-../enki --data-dir $SOCI_DIR --command archive-pdf-metadata
+../enki --keep-data --data-dir $SOCI_DIR --command archive-pdf-metadata

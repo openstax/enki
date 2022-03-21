@@ -12,7 +12,9 @@ COVERAGE_DIR=../coverage
 # Merge all the kcov reports into one
 # This actual command is really hacky since we are passing a list of directories into docker
 SKIP_DOCKER_BUILD=1 \
-../enki --data-dir $DATA_ROOT \
+../enki \
+    --keep-data \
+    --data-dir $DATA_ROOT \
     --command __CI_KCOV_MERGE_ALL__ \
     --repo "./kcov-destination $BOOK_DIR_NAME/_kcov02-a $BOOK_DIR_NAME/_kcov02-b $BOOK_DIR_NAME/_kcov02-c $BOOK_DIR_NAME/_kcov03 $SOCI_DIR_NAME/_kcov04-a $SOCI_DIR_NAME/_kcov04-b $SOCI_DIR_NAME/_kcov05 $SOCI_DIR_NAME/_kcov07-a $SOCI_DIR_NAME/_kcov07-b" \
     ;

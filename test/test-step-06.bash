@@ -19,4 +19,4 @@ mv $keep_file.keep $keep_file
 
 # kcov causes this step to hang so skip the KCOV_DIR (probably the pm2 mathml2svg background process)
 SKIP_DOCKER_BUILD=1 \
-../enki --data-dir $SOCI_DIR --command all-archive-gdoc --start-at archive-convert-docx
+../enki --keep-data --data-dir $SOCI_DIR --command all-archive-gdoc --start-at archive-convert-docx

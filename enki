@@ -82,28 +82,35 @@ show_help() {
 
     Required Arguments:
 
-        --command all-git-pdf
+        --command all-git-pdf       Command/Step to run. Can be a shortcut like all-git-pdf or all-git-web)
 
     Optional Arguments:
 
-        --help
-        --clean-data-dir      Remove the data directory before running
-        --data-dir ./data/
-        --sideload ../path/to/osbooks-mybook-bundle
-        --style default
-        --ref main
-        --repo osbooks-mybook-bundle
-        --book-slug calculus-vol-1
-        --start-at git-bake
-        --stop-at git-bake
-        --sideload-recipes ../path/to/cookbook
+        --help                      This help page
+        --version                   The version of enki
+
+        --clear-data                Remove the date directory before running
+        --keep-data                 Keep the data directory before running
+        --data-dir <path>           Path to store temporary files
+        --dotenv-file <path>        Path to dotenv file (for GitHub credentials)
+
+        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
+        --ref <branch|tag|@commit>  Which version of the book to build
+        --repo osbooks-mybook       The name of the repo. Can be "owner/name" if the owner is not openstax
+        --book-slug calculus-vol-1  Which book (identified by slug) to build
+
+        --start-at git-bake         Step to start at (also sets --keep-data)
+        --stop-at git-bake          Step to stop at
+
+        --sideload-book <path>      A local path to a cloned git repo instead of fetching from GitHub
+        --sideload-recipes <path>   Path to a locally cloned cookbook
 
     Status:
 
-        Dotenv file location: $DOTENV_PATH
-        Temp Data Directory: $data_dir
-        Docker image name: $image_name
         GitHub Credentials? $has_github_credentials
+        Cache folder location: $data_dir
+        Dotenv file location: $DOTENV_PATH
+        Docker image name: $image_name
 
         Repo: $arg_repo
         Slug: $arg_book_slug
@@ -116,7 +123,7 @@ EOF
 show_version() {
         cat << EOF
 
-Enki Version: $(cd "$root_dir" && git describe --always --tags --dirty)
+Enki: $(cd "$root_dir" && git describe --always --tags --dirty)
 
 Submodule versions:
 $(cd "$root_dir" && git submodule)
@@ -145,15 +152,16 @@ while [ -n "$1" ]; do
             exit 0
         ;;
         --dotenv-file) shift; DOTENV_PATH=$1 ;;
-        --clean-data-dir) clean_data_dir=1 ;;
+        --clear-data) clear_cache=1 ;;
+        --keep-data) clear_cache='' ;;
         --data-dir) shift; data_dir=$1 ;;
         --command) shift; arg_command=$1 ;;
-        --sideload) shift; SIDELOAD_PATH=$1 ;;
+        --sideload-book) shift; SIDELOAD_PATH=$1 ;;
         --style) shift; arg_style=$1 ;;
         --ref) shift; arg_ref=$1 ;;
         --repo) shift; arg_repo=$1 ;;
         --book-slug) shift; arg_book_slug=$1 ;;
-        --start-at) shift; export START_AT_STEP=$1 ;;
+        --start-at) shift; clear_cache=''; export START_AT_STEP=$1 ;;
         --stop-at) shift; export STOP_AT_STEP=$1 ;;
         --sideload-recipes) shift; RECIPES_ROOT=$1 ;;
         *)
@@ -165,10 +173,10 @@ while [ -n "$1" ]; do
     shift
 done
 
-[[ $data_dir ]] || ( >&2 echo "ERROR: A local temp directory for the book data was not provided" && exit 111)
+[[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
 [[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web'" && exit 111)
 
-[[ $clean_data_dir && -d $data_dir ]] && rm -rf $data_dir
+[[ $clear_cache && -d $data_dir ]] && rm -rf $data_dir
 
 [[ $CI_TEST ]] || interactive='--interactive'
 [[ $CI_TEST ]] || [ -t 0 ] && enable_tty='--tty' # https://serverfault.com/a/753459
