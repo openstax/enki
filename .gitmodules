@@ -6,10 +6,6 @@
 	path = nebuchadnezzar
 	url = https://github.com/openstax/nebuchadnezzar
 	branch = main
-[submodule "cnx-easybake"]
-	path = cnx-easybake
-	url = https://github.com/openstax/cnx-easybake
-	branch = main
 [submodule "cookbook"]
 	path = cookbook
 	url = https://github.com/openstax/cookbook
