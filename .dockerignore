@@ -12,7 +12,7 @@ build/
 .gitignore
 .gitpod.yml
 cli.env
-cli.sh
+enki
 Dockerfile
 Dockerfile.common
 gitpod-build-and-run-git-book-pdf.bash

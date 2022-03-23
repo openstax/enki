@@ -1,6 +1,6 @@
 parse_book_dir
 
-try $RECIPES_ROOT/bake -b "$ARG_RECIPE_NAME" -i "$IO_ARCHIVE_BOOK/collection.linked.xhtml" -o "$IO_ARCHIVE_BOOK/collection.baked.xhtml"
+try $COOKBOOK_ROOT/bake -b "$ARG_RECIPE_NAME" -i "$IO_ARCHIVE_BOOK/collection.linked.xhtml" -o "$IO_ARCHIVE_BOOK/collection.baked.xhtml"
 
 style_file="$CNX_RECIPES_STYLES_ROOT/$ARG_RECIPE_NAME-pdf.css"
 

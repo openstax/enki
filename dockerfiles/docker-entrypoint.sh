@@ -38,7 +38,7 @@ STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-$PROJECT_ROOT/step-config.json}
 DOCKERFILES_ROOT=${DOCKERFILES_ROOT:-/dockerfiles}
 BAKERY_SCRIPTS_ROOT=${BAKERY_SCRIPTS_ROOT:-$PROJECT_ROOT/output-producer-service/bakery/src}
 PYTHON_VENV_ROOT=${PYTHON_VENV_ROOT:-$PROJECT_ROOT/venv}
-RECIPES_ROOT=${RECIPES_ROOT:-$PROJECT_ROOT/cookbook}
+COOKBOOK_ROOT=${COOKBOOK_ROOT:-$PROJECT_ROOT/cookbook}
 MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
 CNX_RECIPES_STYLES_ROOT=${CNX_RECIPES_STYLES_ROOT:-$PROJECT_ROOT/cnx-recipes/styles/output}
 XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build/libs}
@@ -155,12 +155,6 @@ function do_step() {
     step_name=$1
 
     case $step_name in
-        --help)
-            steps=$(jq -r ".steps|keys" < $STEP_CONFIG_FILE)
-            pipelines=$(jq -r ".pipelines|keys" < $STEP_CONFIG_FILE)
-            say "Valid arguments are:\n$steps\n$pipelines"
-            return
-        ;;
         shell | '/bin/bash' | '/bin/sh')
             bash # LCOV_EXCL_LINE
             return # LCOV_EXCL_LINE

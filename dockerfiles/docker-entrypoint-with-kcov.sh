@@ -5,12 +5,12 @@
 set -e
 
 # Trace if DEBUG is set
-[[ $TRACE_ON ]] && set -x
+[[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 if [[ $1 == 'shell' ]]; then
     bash
-elif [[ $__CI_KCOV_MERGE_ALL__ ]]; then
-    kcov --merge $@
+elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
+    kcov --merge ${@:2}
 elif [[ $KCOV_DIR != '' ]]; then
     [[ -d /data/$KCOV_DIR ]] || mkdir /data/$KCOV_DIR
     kcov \
