@@ -30,6 +30,8 @@ else
     DOTENV_PATH="$root_dir/.env"
 fi
 
+rexpreview_port=12931
+
 # Parse .env file if it exists
 # https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
 [[ -f $DOTENV_PATH ]] && {
@@ -173,8 +175,30 @@ while [ -n "$1" ]; do
     shift
 done
 
+if [[ $arg_command == 'rex-preview' ]]; then
+    [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
+    pushd $data_dir/rex-preview
+    [[ -e ./contents ]] || ln -s ../_attic/IO_JSONIFIED contents
+    [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
+    
+    echo "Starting up server. Here are URL(s) to visit:"
+    shopt -s globstar nullglob
+    for json_filename in "contents/"*.json; do
+        # Books do not have a colon in their filename
+        if [[ ! $json_filename =~ ':' && ! $json_filename =~ '.toc.json' ]]; then
+            uuid_and_ver=${json_filename%.*}
+            echo "https://rex-web.herokuapp.com/books/$uuid_and_ver/pages/not-a-valid-page?archive=http://localhost:$rexpreview_port"
+        fi
+    done
+    shopt -u globstar nullglob
+
+    python -m SimpleHTTPServer $rexpreview_port
+    popd
+    exit 0
+fi
+
 [[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
-[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web'" && exit 111)
+[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'rex-preview'" && exit 111)
 
 [[ $clear_cache && -d $data_dir ]] && rm -rf $data_dir
 
