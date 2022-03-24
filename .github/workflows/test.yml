@@ -33,28 +33,28 @@ jobs:
         with:
           path: ~/.local/share/virtualenvs
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-      - name: Install submodules
-        run: ./install-submodules.sh
-      - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file
-        run: CI_TEST=true ./test/test-step-00.bash
-      - name: prepare directories and build container
-        run: CI_TEST=true ./test/test-step-01.bash
-      - name: Run all-git-pdf
-        run: CI_TEST=true ./test/test-step-02.bash
-      - name: Run all-git-web
-        run: CI_TEST=true ./test/test-step-03.bash
-      - name: Run all-archive-web
-        run: CI_TEST=true ./test/test-step-04.bash
-      - name: Run all-archive-gdoc
-        run: CI_TEST=true ./test/test-step-05.bash
-      - name: Run the last step of all-archive-gdoc (archive-convert-docx)
-        run: CI_TEST=true ./test/test-step-06.bash
-      - name: Run all-archive-pdf
-        run: CI_TEST=true ./test/test-step-07.bash
+#      - name: Install submodules
+#        run: ./install-submodules.sh
+#      - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file
+#        run: CI_TEST=true ./test/test-step-00.bash
+#      - name: prepare directories and build container
+#        run: CI_TEST=true ./test/test-step-01.bash
+#      - name: Run all-git-pdf
+#        run: CI_TEST=true ./test/test-step-02.bash
+#      - name: Run all-git-web
+#        run: CI_TEST=true ./test/test-step-03.bash
+#      - name: Run all-archive-web
+#        run: CI_TEST=true ./test/test-step-04.bash
+#      - name: Run all-archive-gdoc
+#        run: CI_TEST=true ./test/test-step-05.bash
+#      - name: Run the last step of all-archive-gdoc (archive-convert-docx)
+#        run: CI_TEST=true ./test/test-step-06.bash
+#      - name: Run all-archive-pdf
+#        run: CI_TEST=true ./test/test-step-07.bash
       - name: Run Bakery Scripts Tests
         if: steps.cache-pipenv.outputs.cache-hit != 'true'
         run: CI_TEST=true ./test/test-step-10.bash
-      - name: Collect coverage and upload
-        run: CI_TEST=true ./test/test-step-08.bash
-      - name: Lint scripts
-        run: CI_TEST=true ./test/test-step-09.bash
+#      - name: Collect coverage and upload
+#        run: CI_TEST=true ./test/test-step-08.bash
+#      - name: Lint scripts
+#        run: CI_TEST=true ./test/test-step-09.bash
