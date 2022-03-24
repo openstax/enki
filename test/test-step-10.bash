@@ -6,7 +6,7 @@ set -e
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
 
-pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  --cov=../output-producer-service/bakery/src/tests -vvv
+pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  ../output-producer-service -vvv
 
 # Upload to codecov only if running inside CI
 if [[ $CI || $CODECOV_TOKEN ]]; then
