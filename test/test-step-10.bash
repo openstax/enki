@@ -3,8 +3,11 @@ set -e
 [[ $TRACE_ON ]] && set -x
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
+python -m venv venv
+source venv/bin/activate
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
+
 pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term ../output-producer-service/ -vvv
 
 # Upload to codecov only if running inside CI
