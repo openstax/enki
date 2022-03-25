@@ -112,7 +112,7 @@ def upsert_docx_to_folder(drive_service, docx_files, book_folder_id):
     return upserted_docs
 
 
-def main():
+def main(): # pragma: no cover
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     book_title = sys.argv[2]
     parent_google_folder_id = sys.argv[3]
@@ -138,5 +138,5 @@ def main():
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

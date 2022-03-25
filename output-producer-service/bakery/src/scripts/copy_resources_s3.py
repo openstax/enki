@@ -32,7 +32,7 @@ class ThreadPoolExecutorStackTraced(concurrent.futures.ThreadPoolExecutor):
         """
         try:
             return fn(*args, **kwargs)
-        except Exception:
+        except Exception: # pragma: no cover
             # Creates an exception of the same type with the traceback as
             # message
             raise sys.exc_info()[0](traceback.format_exc())
@@ -60,7 +60,7 @@ def is_s3_folder_empty(aws_key, aws_secret, aws_session_token, bucket, key):
             Bucket=bucket, Prefix=prefix, Delimiter='/')
         if 'Contents' not in response:
             result = True   # folder is empty
-    except botocore.exceptions.ClientError as e:
+    except botocore.exceptions.ClientError as e: # pragma: no cover
         print('That should not happen. Empty folder check should not cause '
               'a boto ClientError.')
         raise(e)
@@ -77,7 +77,7 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
                 Bucket=bucket_name,
                 Key=resource_name
             )['ETag']
-        except botocore.exceptions.ClientError:
+        except botocore.exceptions.ClientError: # pragma: no cover
             md5sum = None
         return md5sum
 
@@ -130,7 +130,7 @@ def upload_s3(aws_key, aws_secret, aws_session_token, filename, bucket, key, con
 
 def upload(in_dir, bucket, bucket_folder):
     """ upload resource and resource json to S3 """
-    def halt_all_threads(executor):
+    def halt_all_threads(executor): # pragma: no cover
         """ halt all threads from executor """
         executor._threads.clear()
         concurrent.futures.thread._threads_queues.clear()
@@ -189,11 +189,11 @@ def upload(in_dir, bucket, bucket_folder):
         for future in concurrent.futures.as_completed(check_futures):
             try:
                 resource = future.result()
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 print(e)    # print error from ThreadPoolExecutorStackTraced
                 halt_all_threads(executor)
                 sys.exit(1)
-            try:
+            try: # pragma: no cover
                 # free memory of threads
                 check_futures.remove(future)
                 del future
@@ -205,7 +205,7 @@ def upload(in_dir, bucket, bucket_folder):
                 else:
                     if not disable_deep_folder_check:
                         print('x', end='', flush=True)
-            except Exception:
+            except Exception: # pragma: no cover
                 halt_all_threads(executor)
                 raise
     if disable_deep_folder_check:
@@ -251,7 +251,7 @@ def upload(in_dir, bucket, bucket_folder):
         for future in concurrent.futures.as_completed(upload_futures):
             try:
                 result = future.result()
-            except Exception as e:
+            except Exception as e: # pragma: no cover
                 print(e)    # print error from ThreadPoolExecutorStackTraced
                 halt_all_threads(executor)
                 sys.exit(1)
@@ -263,7 +263,7 @@ def upload(in_dir, bucket, bucket_folder):
                 if result is not None:
                     upload_count = upload_count + 1
                     print('.', end='', flush=True)
-            except Exception:
+            except Exception:# pragma: no cover
                 halt_all_threads(executor)
                 raise
     # divide by 2, don't count json metadata
@@ -272,7 +272,7 @@ def upload(in_dir, bucket, bucket_folder):
     print('{} resources uploaded.'.format(upload_count))
     elapsed = (timer() - start)
     print('Time it took to upload: {}s'.format(elapsed))
-    if (upload_count) != len(upload_resources):
+    if (upload_count) != len(upload_resources): # pragma: no cover
         print('ERROR: Uploaded counted and needed to upload '
               'mismatch: {} != {}'.format(
                   upload_count, len(upload_resources)))
@@ -287,5 +287,5 @@ def main():
     upload(in_dir, bucket, bucket_folder)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

@@ -1,8 +1,10 @@
+import json
 import os
 import sys
-import json
 from pathlib import Path
+
 from lxml import etree
+
 from . import utils
 
 RESOURCES_DIR = 'resources'
@@ -17,7 +19,8 @@ def create_symlink(img_filename, output_dir, sha1):
     try:
         # set a relative symlink to raw file
         os.symlink(rel_raw_img_filename, dest_img_filename)
-    except FileExistsError:     # ignore symlink file existing
+    except FileExistsError:  # pragma: no cover
+        # ignore symlink file existing
         pass
 
 
@@ -43,7 +46,7 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
     module_name = os.path.splitext(basename)[0]
     # get all img @src resources
     img_xpath = '//x:img[@src and not(starts-with(@src, "http") or ' \
-        'starts-with(@src, "//"))]'
+                'starts-with(@src, "//"))]'
     for node in doc.xpath(img_xpath,
                           namespaces={'x': 'http://www.w3.org/1999/xhtml'}):
         img_filename = node.attrib['src']
@@ -53,7 +56,7 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
         sha1, s3_md5 = utils.get_checksums(img_filename)
         mime_type = utils.get_mime_type(img_filename)
 
-        if sha1:    # file exists
+        if sha1:  # file exists
             node.attrib['src'] = '../' + RESOURCES_DIR + '/' + sha1
 
             create_symlink(img_filename, output_dir, sha1)
@@ -62,7 +65,7 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
 
     # get all a @href resources
     href_xpath = '//x:a[@href and not(starts-with(@href, "http") or ' \
-        'starts-with(@href, "//") or starts-with(@href, "#"))]'
+                 'starts-with(@href, "//") or starts-with(@href, "#"))]'
     for node in doc.xpath(href_xpath,
                           namespaces={'x': 'http://www.w3.org/1999/xhtml'}):
         img_filename = node.attrib['href']
@@ -76,7 +79,7 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
         sha1, s3_md5 = utils.get_checksums(img_filename)
         mime_type = utils.get_mime_type(img_filename)
 
-        if sha1:    # file exists
+        if sha1:  # file exists
             node.attrib['href'] = '../' + RESOURCES_DIR + '/' + sha1
 
             create_symlink(img_filename, output_dir, sha1)
@@ -103,5 +106,5 @@ def main():
         generate_checksum_resources_from_xhtml(str(xhtml_file), out_dir)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

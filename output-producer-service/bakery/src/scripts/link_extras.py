@@ -191,11 +191,11 @@ def transform_links(data_dir, server, canonical_list, adapter):
     save_linked_collection(data_dir, doc)
 
 
-def main():
+def main(): # pragma: no cover
     data_dir, server, canonical_list = sys.argv[1:4]
     adapter = requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES)
     transform_links(data_dir, server, canonical_list, adapter)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

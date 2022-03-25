@@ -178,7 +178,7 @@ def transform_links(
                 f"Could not find page slug for module {target_module_uuid} "
                 f"in canonical book UUID {canonical_book_uuid} "
                 f"from link {link}"
-            )
+            ) # pragma: no cover
         patch_link(node, source_book_uuid, canonical_book_uuid,
                    canonical_book_slug, page_slug)
 
@@ -203,5 +203,5 @@ def main():
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

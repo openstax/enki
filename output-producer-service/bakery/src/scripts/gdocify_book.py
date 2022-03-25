@@ -1,13 +1,15 @@
 """Make modifications to page XHTML files specific to GDoc outputs
 """
-import sys
-from lxml import etree
-from pathlib import Path
 import json
 import re
 import subprocess
-from PIL import Image, UnidentifiedImageError
+import sys
+from pathlib import Path
 from tempfile import TemporaryDirectory
+
+from PIL import Image, UnidentifiedImageError
+from lxml import etree
+
 from . import utils
 
 # folder where all resources are saved in checksum step
@@ -31,9 +33,9 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     # It's possible that all links starting with "/contents/"" are intra-book
     # and all links starting with "./" are inter-book, making the check redundant
     for node in doc.xpath(
-        '//x:a[@href and starts-with(@href, "/contents/") or '
-        'starts-with(@href, "./")]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:a[@href and starts-with(@href, "/contents/") or '
+            'starts-with(@href, "./")]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         # This is either an intra-book link or inter-book link. We can
         # differentiate the latter by data-book-uuid attrib).
@@ -64,8 +66,8 @@ def patch_math(doc):
     # attribute value of "bold-italic" is used with <mtext>, but these convert
     # okay when the element is <mi>.
     for node in doc.xpath(
-        '//x:mtext[@mathvariant="bold-italic"]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:mtext[@mathvariant="bold-italic"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         node.tag = "mi"
 
@@ -73,14 +75,14 @@ def patch_math(doc):
     # which is btw out of specification of MathML.
     # The following lines removes all annotation-xml nodes.
     for node in doc.xpath(
-        '//x:annotation-xml[ancestor::x:math]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:annotation-xml[ancestor::x:math]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         node.getparent().remove(node)
     # remove also all annotation nodes which can confuse Pandoc
     for node in doc.xpath(
-        '//x:annotation[ancestor::x:math]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:annotation[ancestor::x:math]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         node.getparent().remove(node)
 
@@ -90,8 +92,8 @@ def patch_math(doc):
     # with fewer elements than 3 are converted to msub.
     # Pandoc is also confused by msubsup with elements fewer than 3.
     for node in doc.xpath(
-        '//x:msubsup[count(*) < 3]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:msubsup[count(*) < 3]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         node.tag = "msub"
 
@@ -100,7 +102,7 @@ def _convert_cmyk2rgb_embedded_profile(img_filename):
     """ImageMagick commandline to convert from CMYK with
     an existing embedded icc profile"""
     # mogrify -profile sRGB.icc +profile '*' picture.jpg
-    return ['mogrify', '-profile', SRGB_ICC, '+profile', "'*'", str(img_filename)]
+    return ['mogrify', '-profile', SRGB_ICC, '+profile', "'*'", str(img_filename)]  # pragma: no cover
 
 
 def _convert_cmyk2rgb_no_profile(img_filename):
@@ -108,13 +110,13 @@ def _convert_cmyk2rgb_no_profile(img_filename):
     embedded icc profile"""
     # mogrify -profile USWebCoatedSWOP.icc -profile sRGB.icc +profile '*' picture.jpg
     return ['mogrify', '-profile', USWEBCOATEDSWOP_ICC, '-profile', SRGB_ICC,
-            '+profile', "'*'", str(img_filename)]
+            '+profile', "'*'", str(img_filename)]  # pragma: no cover
 
 
 def _universal_convert_rgb_command(img_filename):
     """ImageMagick commandline to convert an unknown color profile to RGB.
     Warning: Probably does not work perfectly color accurate."""
-    return ['mogrify', '-colorspace', 'sRGB', '-type', 'truecolor', str(img_filename)]
+    return ['mogrify', '-colorspace', 'sRGB', '-type', 'truecolor', str(img_filename)]  # pragma: no cover
 
 
 def fix_jpeg_colorspace(doc, out_dir):
@@ -124,8 +126,8 @@ def fix_jpeg_colorspace(doc, out_dir):
     # get all img resources from img and a nodes
     # assuming all resources from checksum step are in the same folder
     img_xpath = '//x:img[@src and starts-with(@src, "{0}")]/@src' \
-        '|' \
-        '//x:a[@href and starts-with(@href, "{0}")]/@href'.format(RESOURCES_FOLDER)
+                '|' \
+                '//x:a[@href and starts-with(@href, "{0}")]/@href'.format(RESOURCES_FOLDER)
     for node in doc.xpath(img_xpath,
                           namespaces={'x': 'http://www.w3.org/1999/xhtml'}):
         img_filename = Path(node)
@@ -141,7 +143,7 @@ def fix_jpeg_colorspace(doc, out_dir):
                     # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
                     colorspace = im.mode
                     im.close()
-                    if not re.match(r"^RGB.*", colorspace):
+                    if not re.match(r"^RGB.*", colorspace):  # pragma: no cover
                         if colorspace != '1' and not re.match(r"^L\w?", colorspace):
                             # here we have a color space like CMYK or YCbCr most likely
                             # decide which command line to use
@@ -156,8 +158,8 @@ def fix_jpeg_colorspace(doc, out_dir):
                                     stdout, stderr = extractembedded.communicate()
                                     # was there an embedded icc profile?
                                     if extractembedded.returncode == 0 and \
-                                       profile.is_file() and \
-                                       profile.stat().st_size > 0:
+                                            profile.is_file() and \
+                                            profile.stat().st_size > 0:
                                         cmd = _convert_cmyk2rgb_embedded_profile(
                                             img_filename)
                                         print('Convert CMYK (embedded) to '
@@ -181,11 +183,11 @@ def fix_jpeg_colorspace(doc, out_dir):
                             if fconvert.returncode != 0:
                                 raise Exception('Error converting file {}'.format(img_filename) +
                                                 ' to RGB color space: {}'.format(stderr))
-                except UnidentifiedImageError:
+                except UnidentifiedImageError:  # pragma: no cover
                     # do nothing if we cannot open the image
                     print('Warning: Could not parse JPEG image with PIL: ' + str(img_filename))
         else:
-            raise Exception('Error: Resource file not existing: ' + str(img_filename))
+            raise Exception('Error: Resource file not existing: ' + str(img_filename)) # pragma: no cover
 
 
 def main():
@@ -221,5 +223,5 @@ def main():
         doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

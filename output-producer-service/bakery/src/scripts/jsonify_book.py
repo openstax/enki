@@ -29,5 +29,5 @@ def main():
             outfile.write(json_data["content"])
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

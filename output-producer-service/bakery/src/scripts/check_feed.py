@@ -6,11 +6,11 @@ import boto3
 import botocore
 
 
-def is_number(s):
+def is_number(s): # pragma: no cover
     try:
         float(s)
         return True
-    except ValueError:  # pragma: no cover
+    except ValueError:
         pass
     return False
 
@@ -203,5 +203,5 @@ def main():
     print(f"Queued {books_queued} books")
 
 
-if __name__ == "__main__":
-    main()  # pragma: no cover
+if __name__ == "__main__": # pragma: no cover
+    main()

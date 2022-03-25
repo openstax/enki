@@ -50,5 +50,5 @@ def main():
         doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

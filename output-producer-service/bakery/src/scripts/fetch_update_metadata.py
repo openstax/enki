@@ -132,5 +132,5 @@ def main():
             collection_doc.write(f, encoding="utf-8", xml_declaration=False)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

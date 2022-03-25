@@ -77,7 +77,7 @@ def main():
 
             abs_path_pattern = re.compile("^https?://")
             if abs_path_pattern.match(resource_original_src):
-                continue
+                continue # pragma: no cover
 
             resource_original_filepath = \
                 (cnxml_file.parent / resource_original_src).resolve()
@@ -115,5 +115,5 @@ def main():
         )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

@@ -90,7 +90,7 @@ def main():
             # Link may have fragment
             if "#" in page_link:
                 page_uuid, page_fragment = page_link.split("#")
-            else:
+            else: # pragma: no cover
                 page_uuid = page_link
                 page_fragment = ''
 
@@ -215,5 +215,5 @@ def main():
         json.dump(book_toc_metadata, toc_json)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
