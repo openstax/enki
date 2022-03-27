@@ -276,9 +276,8 @@ def upload(in_dir, bucket, bucket_folder):
     elapsed = (timer() - start)
     print('Time it took to upload: {}s'.format(elapsed))
     if (upload_count) != len(upload_resources):  # pragma: no cover
-        print('ERROR: Uploaded counted and needed to upload '
-              'mismatch: {} != {}'.format(
-            upload_count, len(upload_resources)))
+        print('ERROR: Uploaded counted and needed to upload mismatch: {} != {}'.format(upload_count,
+                                                                                       len(upload_resources)))
         sys.exit(1)
     print('FINISHED uploading resources.')
 

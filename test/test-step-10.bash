@@ -4,7 +4,7 @@ set -e
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
-flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=100
+flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=110
 
 pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  ../output-producer-service -vvv
 sed -i 's/filename=".*\/bakery_scripts/filename="/g' cov.xml

@@ -9,8 +9,7 @@ from . import utils
 
 
 def main():
-    raw_metadata_file, baked_xhtml_file, collection_uuid, book_slugs_file, \
-    baked_metadata_file = sys.argv[1:6]
+    raw_metadata_file, baked_xhtml_file, collection_uuid, book_slugs_file, baked_metadata_file = sys.argv[1:6]
 
     with open(baked_xhtml_file, "r") as baked_xhtml:
         html = etree.parse(baked_xhtml)
