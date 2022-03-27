@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
+
+import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-import google.auth
 
 
 def find_or_create_folder_by_name(drive_service, parent_google_folder_id,
@@ -49,7 +50,7 @@ def get_gdocs_in_folder(drive_service, folder_id):
     while True:
         results = drive_service.files().list(
             q="mimeType='application/vnd.google-apps.document' and "
-            f"'{folder_id}' in parents ",
+              f"'{folder_id}' in parents ",
             fields='nextPageToken, files(id, name)',
             pageToken=page_token
         ).execute()
@@ -112,7 +113,7 @@ def upsert_docx_to_folder(drive_service, docx_files, book_folder_id):
     return upserted_docs
 
 
-def main(): # pragma: no cover
+def main():  # pragma: no cover
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     book_title = sys.argv[2]
     parent_google_folder_id = sys.argv[3]
@@ -138,5 +139,5 @@ def main(): # pragma: no cover
     )
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

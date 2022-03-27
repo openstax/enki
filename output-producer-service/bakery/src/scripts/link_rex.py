@@ -1,7 +1,9 @@
-import sys
-from lxml import etree
-from pathlib import Path
 import json
+import sys
+from pathlib import Path
+
+from lxml import etree
+
 from . import utils
 
 
@@ -56,5 +58,5 @@ def main():
     doc.write(str(out_dir / filename), encoding="utf8")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

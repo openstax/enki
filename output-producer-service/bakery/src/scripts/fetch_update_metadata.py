@@ -1,11 +1,12 @@
 """Inject / modify metadata for book CNXML from git"""
 
-import sys
-from pathlib import Path
-from pygit2 import Repository
-from datetime import datetime, timezone
-from lxml import etree
 import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+from lxml import etree
+from pygit2 import Repository
 
 NS_MDML = "http://cnx.rice.edu/mdml"
 NS_CNXML = "http://cnx.rice.edu/cnxml"
@@ -132,5 +133,5 @@ def main():
             collection_doc.write(f, encoding="utf-8", xml_declaration=False)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

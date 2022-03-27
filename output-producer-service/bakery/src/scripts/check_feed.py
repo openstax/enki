@@ -1,12 +1,13 @@
-import sys
 import json
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
+
 import boto3
 import botocore
 
 
-def is_number(s): # pragma: no cover
+def is_number(s):  # pragma: no cover
     try:
         float(s)
         return True
@@ -203,5 +204,5 @@ def main():
     print(f"Queued {books_queued} books")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

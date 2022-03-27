@@ -1,8 +1,10 @@
-import sys
 import json
+import sys
 from pathlib import Path
+
 from cnxepub.collation import reconstitute
 from cnxepub.models import flatten_to_documents
+
 from . import utils
 
 
@@ -33,5 +35,5 @@ def main():
         json.dump(json_data, out_file)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

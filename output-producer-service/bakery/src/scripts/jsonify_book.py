@@ -1,7 +1,7 @@
+import json
 import sys
 from glob import glob
 from os.path import basename
-import json
 
 
 def main():
@@ -29,5 +29,5 @@ def main():
             outfile.write(json_data["content"])
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

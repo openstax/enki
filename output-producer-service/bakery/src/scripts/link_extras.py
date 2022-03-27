@@ -3,14 +3,13 @@ Replaces legacy module ids in links to external modules with
 uuids from the target module and corresponding canonical book       .
 """
 
-import sys
-import re
 import json
-import requests
-
-from lxml import etree
+import re
+import sys
 from urllib.parse import unquote
 
+import requests
+from lxml import etree
 
 MAX_RETRIES = 2
 
@@ -69,6 +68,7 @@ def gen_page_slug_resolver(session, server):
 
     def _get_page_slug(book_uuid, page_uuid):
         """Get page slug from book"""
+
         def _parse_tree_for_slug(tree, page_uuid):
             """Recursively walk through tree to find page slug"""
             curr_slug = tree["slug"]
@@ -163,8 +163,8 @@ def transform_links(data_dir, server, canonical_list, adapter):
 
     # look up uuids for external module links
     for node in doc.xpath(
-        '//x:a[@href and starts-with(@href, "/contents/m")]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+            '//x:a[@href and starts-with(@href, "/contents/m")]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
 
         link = node.attrib["href"]
@@ -191,11 +191,11 @@ def transform_links(data_dir, server, canonical_list, adapter):
     save_linked_collection(data_dir, doc)
 
 
-def main(): # pragma: no cover
+def main():  # pragma: no cover
     data_dir, server, canonical_list = sys.argv[1:4]
     adapter = requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES)
     transform_links(data_dir, server, canonical_list, adapter)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

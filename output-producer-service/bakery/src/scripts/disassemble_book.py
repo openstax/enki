@@ -1,16 +1,16 @@
-import sys
 import json
-from . import utils
-from pathlib import Path
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
+from cnxepub.collation import reconstitute
+from cnxepub.formatters import DocumentContentFormatter
+from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
+from cnxepub.models import flatten_to_documents, content_to_etree, etree_to_content
 from lxml import etree
 from lxml.builder import ElementMaker, E
 
-from cnxepub.collation import reconstitute
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
-from cnxepub.formatters import DocumentContentFormatter
-from cnxepub.models import flatten_to_documents, content_to_etree, etree_to_content
+from . import utils
 
 
 def extract_slugs_from_tree(tree, data):
@@ -73,8 +73,8 @@ def main():
             if not link_href.startswith('#'):
                 continue
             if module_etree.xpath(
-                f"/xhtml:body/xhtml:div[@id='{link_href[1:]}']",
-                namespaces=HTML_DOCUMENT_NAMESPACES
+                    f"/xhtml:body/xhtml:div[@id='{link_href[1:]}']",
+                    namespaces=HTML_DOCUMENT_NAMESPACES
             ):
                 link.attrib['href'] = f'./{id_with_context}.xhtml'
 
@@ -83,14 +83,14 @@ def main():
         # at time of disassembly. Different pipelines can make use of this
         # metadata in different ways
         for node in module_etree.xpath(
-            '//xhtml:a[@href and starts-with(@href, "/contents/")]',
-            namespaces=HTML_DOCUMENT_NAMESPACES
+                '//xhtml:a[@href and starts-with(@href, "/contents/")]',
+                namespaces=HTML_DOCUMENT_NAMESPACES
         ):
             page_link = node.attrib["href"].split("/")[-1]
             # Link may have fragment
             if "#" in page_link:
                 page_uuid, page_fragment = page_link.split("#")
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 page_uuid = page_link
                 page_fragment = ''
 
@@ -187,7 +187,7 @@ def main():
             out.write(etree.tostring(root))
 
         with open(
-            f"{out_dir / id_with_context}-metadata.json", "w"
+                f"{out_dir / id_with_context}-metadata.json", "w"
         ) as json_out:
             # Incorporate metadata from disassemble step while setting defaults
             # for cases like composite pages which may not have metadata from
@@ -215,5 +215,5 @@ def main():
         json.dump(book_toc_metadata, toc_json)
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

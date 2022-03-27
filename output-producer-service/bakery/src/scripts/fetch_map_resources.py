@@ -5,7 +5,9 @@ import re
 import shutil
 import sys
 from pathlib import Path
+
 from lxml import etree
+
 from . import utils
 
 # relative links must work both locally, on PDF, and on REX, and images are
@@ -46,8 +48,8 @@ def main():
     for cnxml_file in cnxml_files:
         doc = etree.parse(str(cnxml_file))
         for node in doc.xpath(
-            '//x:image',
-            namespaces={"x": "http://cnx.rice.edu/cnxml"}
+                '//x:image',
+                namespaces={"x": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["src"]
             resource_original_filepath = \
@@ -70,14 +72,14 @@ def main():
             node.attrib["src"] = f"../{RESOURCES_DIR_NAME}/{sha1}"
 
         for node in doc.xpath(
-            '//x:iframe',
-            namespaces={"x": "http://cnx.rice.edu/cnxml"}
+                '//x:iframe',
+                namespaces={"x": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["src"]
 
             abs_path_pattern = re.compile("^https?://")
             if abs_path_pattern.match(resource_original_src):
-                continue # pragma: no cover
+                continue  # pragma: no cover
 
             resource_original_filepath = \
                 (cnxml_file.parent / resource_original_src).resolve()
@@ -115,5 +117,5 @@ def main():
         )
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

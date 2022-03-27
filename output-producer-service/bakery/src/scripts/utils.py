@@ -1,7 +1,8 @@
 import hashlib
+
 import magic
-from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
 from cnxcommon.urlslug import generate_slug
+from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
 from dateutil import parser, tz
 
 # same as boto3 default chunk size. Don't modify.
@@ -35,15 +36,15 @@ def get_checksums(filename):
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         if len(md5s) < 1:
-            s3_md5 = '"{}"'.format(hashlib.md5().hexdigest()) # pragma: no cover
+            s3_md5 = '"{}"'.format(hashlib.md5().hexdigest())  # pragma: no cover
         elif len(md5s) == 1:
             s3_md5 = '"{}"'.format(md5s[0].hexdigest())
-        else: # pragma: no cover
+        else:  # pragma: no cover
             digests = b''.join(m.digest() for m in md5s)
             digests_md5 = hashlib.md5(digests)
             s3_md5 = '"{}-{}"'.format(digests_md5.hexdigest(), len(md5s))
         return sha1.hexdigest(), s3_md5
-    except IOError:     # file does not exist
+    except IOError:  # file does not exist
         return None, None
 
 
@@ -75,7 +76,7 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     """
     id = model.ident_hash
     if id is None and isinstance(model, TranslucentBinder):
-        id = lucent_id # pragma: no cover
+        id = lucent_id  # pragma: no cover
     md = model.metadata
     title = title is not None and title or md.get('title')
     tree = {'id': id, 'title': title}
@@ -89,7 +90,7 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     return tree
 
 
-def parse_uri(uri): # pragma: no cover
+def parse_uri(uri):  # pragma: no cover
     if not uri.startswith('col', 0, 3):
         return None
     legacy_id, legacy_version = uri.split('@')

@@ -1,9 +1,10 @@
 """Make modifications to page XHTML files specific to GDoc outputs
 """
-import sys
-from lxml import etree
-from pathlib import Path
 import json
+import sys
+from pathlib import Path
+
+from lxml import etree
 
 
 def update_doc_links(doc, book_uuid, book_version):
@@ -15,8 +16,8 @@ def update_doc_links(doc, book_uuid, book_version):
         return href
 
     for node in doc.xpath(
-        '//x:a[@href and starts-with(@href, "/contents/")]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            '//x:a[@href and starts-with(@href, "/contents/")]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         # This is either an intra-book link or inter-book link. We can
         # differentiate the latter by data-book-uuid attrib).
@@ -50,5 +51,5 @@ def main():
         doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()

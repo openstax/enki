@@ -3,15 +3,15 @@ Replaces legacy module ids in links to external modules with
 uuids from the target module and corresponding canonical book       .
 """
 
-import re
-import json
-from pathlib import Path
 import argparse
-
-from lxml import etree
+import json
+import re
+from pathlib import Path
 from urllib.parse import unquote
+
 from cnxepub.collation import reconstitute
 from cnxepub.models import flatten_to_documents
+from lxml import etree
 
 
 def load_baked_collection(input_dir, book_slug):
@@ -73,6 +73,7 @@ def gen_page_slug_resolver(book_tree_by_uuid):
 
     def _get_page_slug(book_uuid, page_uuid):
         """Get page slug from book"""
+
         def _parse_tree_for_slug(tree, page_uuid):
             """Recursively walk through tree to find page slug"""
             curr_slug = tree["slug"]
@@ -149,8 +150,8 @@ def transform_links(
 
     # look up uuids for external module links
     for node in doc.xpath(
-        '//x:a[@href and starts-with(@href, "/contents/")]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+            '//x:a[@href and starts-with(@href, "/contents/")]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         link = node.attrib["href"]
 
@@ -178,7 +179,7 @@ def transform_links(
                 f"Could not find page slug for module {target_module_uuid} "
                 f"in canonical book UUID {canonical_book_uuid} "
                 f"from link {link}"
-            ) # pragma: no cover
+            )  # pragma: no cover
         patch_link(node, source_book_uuid, canonical_book_uuid,
                    canonical_book_slug, page_slug)
 
@@ -203,5 +204,5 @@ def main():
     )
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()
