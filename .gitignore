@@ -13,3 +13,6 @@
 /venv/
 
 .env
+test/cov.xml
+test/.coverage
+test/cov.html/

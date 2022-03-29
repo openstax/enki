@@ -3,6 +3,11 @@ set -e
 [[ $TRACE_ON ]] && set -x
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
+if [[ $CI = '' && $VIRTUAL_ENV = '' ]]; then
+   echo "ERROR: Activate a virtualenv before running this"
+   exit 1
+fi
+
 pip install "../output-producer-service/bakery/src/scripts/.[test]"
 flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=110
 
