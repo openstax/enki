@@ -1,0 +1,8 @@
++ cd fetched-book
+++ cat ../book/collection_id
++ book_dir=col30149
++ yes
+++ cat ../book/server
+++ cat ../book/collection_id
+++ cat ../book/version
++ neb get -r -d col30149/raw staging col30149 latest
