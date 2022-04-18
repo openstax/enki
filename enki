@@ -180,7 +180,7 @@ if [[ $arg_command == 'rex-preview' ]]; then
     pushd $data_dir/rex-preview
     [[ -e ./contents ]] || ln -s ../_attic/IO_JSONIFIED contents
     [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
-    
+
     echo "Starting up server. Here are URL(s) to visit:"
     shopt -s globstar nullglob
     for json_filename in "contents/"*.json; do
@@ -193,7 +193,14 @@ if [[ $arg_command == 'rex-preview' ]]; then
     done
     shopt -u globstar nullglob
 
-    python -m SimpleHTTPServer $rexpreview_port
+    # try using "python" default command first (e.g. not existing in base MacOS >12.2), if that fails start python3 explicitly.
+    if command -v python &> /dev/null
+    then
+        python $root_dir/simple_http_server_cors.py $rexpreview_port
+    else
+        python3 $root_dir/simple_http_server_cors.py $rexpreview_port
+    fi
+
     popd
     exit 0
 fi
