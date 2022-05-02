@@ -182,7 +182,6 @@ if [[ $arg_command == 'rex-preview' ]]; then
     [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
 
     echo "Starting up server. Here are URL(s) to visit:"
-    shopt -s globstar nullglob
     for json_filename in "contents/"*.json; do
         # Books do not have a colon in their filename
         if [[ ! $json_filename == *":"* && ! $json_filename =~ ^.*\.toc\.json$ ]]; then
@@ -191,7 +190,6 @@ if [[ $arg_command == 'rex-preview' ]]; then
             echo "https://rex-web.herokuapp.com/books/$uuid_and_ver/pages/not-a-valid-page?archive=http://localhost:$rexpreview_port"
         fi
     done
-    shopt -u globstar nullglob
 
     # try using "python" default command first (e.g. not existing in base MacOS >12.2), if that fails start python3 explicitly.
     if command -v python &> /dev/null
