@@ -8,10 +8,10 @@ if [[ $CI = '' && $VIRTUAL_ENV = '' ]]; then
    exit 1
 fi
 
-pip install "../output-producer-service/bakery/src/scripts/.[test]"
-flake8 "../output-producer-service/bakery/src/scripts" --max-line-length=110
+pip install "../bakery-src/scripts/.[test]"
+flake8 "../bakery-src/scripts" --max-line-length=110
 
-pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  ../output-producer-service -vvv
+pytest --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  ../bakery-src -vvv
 sed -i 's/filename=".*\/bakery_scripts/filename="/g' cov.xml
 
 # Upload to codecov only if running inside CI
