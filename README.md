@@ -45,15 +45,30 @@ Then try the following to build PDFs and other formats:
 ./enki --command all-git-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
 
-# Start up a local REX Preview (after running all-git-web)
-./enki --command rex-preview
-
 # All-in-one Archive-based books
 #  CLI           command                col_id           recipe                version
 ./enki --command all-archive-pdf --repo col12006 --style college-physics --ref latest
 ./enki --command all-archive-pdf --repo col11762 --style sociology       --ref latest
 ./enki --command all-archive-web --repo col11762 --style sociology       --ref latest
 ```
+
+### REX preview
+
+For REX preview you need to build a `all-git-web` book and run rex-preview command.
+
+**Important Note:** You need to turn off any sort of adblocker for `https://rex-web.herokuapp.com` for the preview to work! Don't use Safari because the internal tracker blocker there also breaks REX preview!
+
+Example with using a custom data "rextest" directory:
+
+```sh
+./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/rextest/ --book-slug 'book-slug1' --style default --ref main
+# Start up a local REX Preview (after running all-git-web)
+./enki --command rex-preview --data-dir ./data/rextest/
+```
+
+The rex-preview command will first open an error page for all collections built which can be opened in the browser. To navigate to the real modules use the navigation on left side.
+
+`Ctrl+C` will stop rex-preview.
 
 ## Private Repositories
 
