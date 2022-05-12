@@ -198,8 +198,8 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
 # Install bakery-scripts
 # -----------------------
 
-ENV HOST_BAKERY_SRC_ROOT=./output-producer-service/bakery/src
-ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/output-producer-service/bakery/src
+ENV HOST_BAKERY_SRC_ROOT=./bakery-src
+ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
 
 COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $BAKERY_SRC_ROOT/scripts/
 
@@ -311,7 +311,7 @@ COPY --from=base-scratch / /
 # ---------------------------
 
 # This variable is JUST used for the COPY instructions below
-ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/output-producer-service/bakery/src
+ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
 
 COPY --from=build-jo-stage /usr/local/bin/jo /usr/local/bin/jo
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
