@@ -39,5 +39,17 @@ while read -r slug_name; do
             die "Found unexpected dependencies in $style_src" # LCOV_EXCL_LINE
         fi
         try cp "$style_src" "$style_dst"
+
+        sourcemap_name="$(tail "$style_src" | awk '$1 ~ /\/\*#/ { print $2 }' | awk -F '=' '{ print $2 }')"
+        sourcemap_src="$CNX_RECIPES_STYLES_ROOT/$sourcemap_name"
+        sourcemap_dst="$style_resource_root/$sourcemap_name"
+        if [[ -f "$sourcemap_src" ]]; then
+            # LCOV_EXCL_START
+            if [[ "$(dirname "$sourcemap_src")" != "$(dirname "$style_src")" ]]; then
+                die "Style sourcemap must be in the same directory as style file"
+            fi
+            try cp "$sourcemap_src" "$sourcemap_dst"
+            # LCOV_EXCL_STOP
+        fi
     fi
 done < <(try xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -n < "$IO_FETCH_META/META-INF/books.xml")
