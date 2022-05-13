@@ -40,14 +40,22 @@ while read -r slug_name; do
         fi
         try cp "$style_src" "$style_dst"
 
-        sourcemap_name="$(tail "$style_src" | awk '$1 ~ /\/\*#/ { print $2 }' | awk -F '=' '{ print $2 }')"
-        sourcemap_src="$CNX_RECIPES_STYLES_ROOT/$sourcemap_name"
-        sourcemap_dst="$style_resource_root/$sourcemap_name"
+        # Extract the sourcemap path from the file
+        sourcemap_path="$(tail "$style_src" | awk '$0 ~ /\/\*# sourceMappingURL=/ { print substr($2, index($2, "=") + 1) }')"
+        # Resolve the path to be absolute
+        sourcemap_src="$(try realpath "$CNX_RECIPES_STYLES_ROOT/$sourcemap_path")"
         if [[ -f "$sourcemap_src" ]]; then
             # LCOV_EXCL_START
-            if [[ "$(dirname "$sourcemap_src")" != "$(dirname "$style_src")" ]]; then
-                die "Style sourcemap must be in the same directory as style file"
+            # Find out if any directories need to be made before copying
+            sourcemap_name="$(basename "$sourcemap_src")"
+            sourcemap_dir_rel="$(realpath "$(dirname "$sourcemap_src")" --relative-to "$CNX_RECIPES_STYLES_ROOT")"
+            sourcemap_dst="$style_resource_root/$sourcemap_dir_rel/$sourcemap_name"
+            # If the realtive path starts with '..', it is not in a subdirectory
+            if [[ "$sourcemap_dir_rel" =~ ^\.\..+$ ]]; then
+                die "Style sourcemap must be within $CNX_RECIPES_STYLES_ROOT or one of its subdirectories" # LCOV_EXCL_LINE
             fi
+            parent_path="$(dirname "$sourcemap_dst")"
+            [[ ! -e  "$parent_path" ]] && try mkdir -p "$parent_path"
             try cp "$sourcemap_src" "$sourcemap_dst"
             # LCOV_EXCL_STOP
         fi
