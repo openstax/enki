@@ -21,7 +21,7 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
         style_filename="$generic_style"
     fi
 
-    book_json_append=$(jo repo_schema_version=$repo_schema_version style_name="$style_name" style_href="resources/styles/$style_filename")
+    book_json_append=$(jo repo_schema_version=$repo_schema_version style_name="$style_name" style_href="../resources/styles/$style_filename")
     # Add our new information to the books json file, then overwrite the books json file
     try jq '. + '"$book_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
 
