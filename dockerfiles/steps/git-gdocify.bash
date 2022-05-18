@@ -1,6 +1,6 @@
 # This /content/ subdir is necessary so that gdocify can resolve the relative path to the resources (../resources/{sha})
-[[ -d $IO_GDOCIFIED/content ]] || mkdir $IO_GDOCIFIED/content
-try cp -R $IO_RESOURCES/. $IO_GDOCIFIED/resources
+[[ -d "$IO_GDOCIFIED/content" ]] || mkdir "$IO_GDOCIFIED/content"
+try cp -R "$IO_RESOURCES/." "$IO_GDOCIFIED/resources"
 
 book_slugs_file="/tmp/book-slugs.json"
 
@@ -30,12 +30,5 @@ done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-o
 # Save all the slug/uuid pairs into a JSON file
 try jo -a $jo_args > $book_slugs_file
 
-# gdocify is tightly coupled to the archive format, use this dir to match it
-tmp_book_dir="/tmp/archive-format"
-[[ -d $tmp_book_dir ]] || mkdir $tmp_book_dir
-try cp $IO_JSONIFIED/* $tmp_book_dir
-try mv "$tmp_book_dir/$(cat $IO_BOOK/slug).toc.json" "$tmp_book_dir/collection.toc-metadata.json"
-try cp $IO_DISASSEMBLE_LINKED/*@*-metadata.json $tmp_book_dir
-
-try gdocify "$tmp_book_dir" "$IO_GDOCIFIED/content" "$book_slugs_file"
-try cp "$tmp_book_dir"/*@*-metadata.json "$IO_GDOCIFIED/content"
+try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file" "$IO_JSONIFIED/$(cat "$IO_BOOK/slug").toc.json"
+try cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"
