@@ -3,8 +3,8 @@ set -e
 [[ $TRACE_ON ]] && set -x
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
-SOCI_DIR=../data/test-soci
+BOOK_DIR=../data/test-book
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov05 \
-../enki --keep-data --data-dir $SOCI_DIR --command all-archive-gdoc --start-at archive-gdocify --stop-at archive-convert-docx
+../enki --keep-data --data-dir $BOOK_DIR --command all-git-gdoc --start-at git-gdocify --stop-at git-convert-docx
