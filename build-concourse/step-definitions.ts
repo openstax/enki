@@ -157,6 +157,11 @@ export const CLI_GIT_GDOC_STEPS = [
     get('git-convert-docx'),
 ]
 
+// TODO: Missing upload step, TBD
+export const GIT_GDOC_STEPS = [
+    ...CLI_GIT_GDOC_STEPS
+]
+
 export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-fetch'),
     get('archive-fetch-metadata'), // used by archive-link-rex
