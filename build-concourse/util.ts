@@ -89,8 +89,6 @@ export enum IO {
     ARCHIVE_BOOK = 'archive-book',
     ARCHIVE_JSONIFIED = 'archive-jsonified',
     ARCHIVE_UPLOAD = 'archive-upload',
-    ARCHIVE_GDOCIFIED = 'archive-gdocified',
-    ARCHIVE_DOCX = 'archive-docx',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'

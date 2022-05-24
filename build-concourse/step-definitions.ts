@@ -81,11 +81,6 @@ set({name: 'archive-link-rex', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FET
 set({name: 'archive-pdf', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'archive-pdf-metadata', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
-// ARCHIVE_GDOC_STEPS
-set({name: 'archive-gdocify', inputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}})
-set({name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_DOCX], env: {}})
-set({name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_DOCX], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
-
 // Concourse-specific steps
 set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_ARCHIVE_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_ARCHIVE_QUEUE, CODE_VERSION: true }})
 set({name: 'archive-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
@@ -177,16 +172,6 @@ export const CLI_ARCHIVE_PDF_STEPS = [
 export const ARCHIVE_PDF_STEPS = [
     ...CLI_ARCHIVE_PDF_STEPS,
     get('archive-pdf-metadata'),
-]
-
-export const CLI_ARCHIVE_GDOC_STEPS = [
-    ...ARCHIVE_WEB_STEPS, // up to archive-validate-xhtml
-    get('archive-gdocify'),
-    get('archive-convert-docx'),
-]
-export const ARCHIVE_GDOC_STEPS = [
-    ...CLI_ARCHIVE_GDOC_STEPS,
-    get('archive-upload-docx'),
 ]
 
 function buildArchiveUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {

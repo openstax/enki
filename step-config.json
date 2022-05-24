@@ -424,39 +424,6 @@
                 "CORGI_ARTIFACTS_S3_BUCKET"
             ]
         },
-        "archive-gdocify": {
-            "inputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "requiredEnv": []
-        },
-        "archive-convert-docx": {
-            "inputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_DOCX"
-            ],
-            "requiredEnv": []
-        },
-        "archive-upload-docx": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_DOCX"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "requiredEnv": [
-                "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS",
-                "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
-            ]
-        },
         "archive-dequeue-book": {
             "inputDirs": [
                 "IO_S3_ARCHIVE_QUEUE"
@@ -591,22 +558,6 @@
             "archive-patch-disassembled-links",
             "archive-jsonify",
             "archive-validate-xhtml-jsonify"
-        ],
-        "all-archive-gdoc": [
-            "archive-fetch",
-            "archive-fetch-metadata",
-            "archive-assemble",
-            "archive-assemble-metadata",
-            "archive-link-extras",
-            "archive-bake",
-            "archive-bake-metadata",
-            "archive-checksum",
-            "archive-disassemble",
-            "archive-patch-disassembled-links",
-            "archive-jsonify",
-            "archive-validate-xhtml-jsonify",
-            "archive-gdocify",
-            "archive-convert-docx"
         ]
     }
 }
