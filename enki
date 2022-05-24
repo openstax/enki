@@ -173,6 +173,19 @@ while [ -n "$1" ]; do
     shift
 done
 
+if [[ $arg_command == 'local-preview' ]]; then
+    [[ -d $data_dir/local-preview ]] || mkdir $data_dir/local-preview
+    pushd $data_dir/local-preview >/dev/null
+    [[ -e ./contents ]] || cp -r ../_attic/IO_JSONIFIED contents
+    [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
+
+    echo "To open local preview open files in this directory:"
+    echo "cd $data_dir/local-preview/contents"
+
+    popd >/dev/null
+    exit 0
+fi
+
 [[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
 [[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web'" && exit 111)
 
