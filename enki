@@ -182,7 +182,7 @@ done
 [[ $CI_TEST ]] || [ -t 0 ] && enable_tty='--tty' # https://serverfault.com/a/753459
 
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
-[[ -d $data_dir ]] || mkdir --parents "$data_dir"
+[[ -d $data_dir ]] || mkdir --p "$data_dir"
 
 [[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by archive books.
 [[ $arg_repo && $arg_book_slug ]] && arg_repo_and_slug="$arg_repo/$arg_book_slug"
