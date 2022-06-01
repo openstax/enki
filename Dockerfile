@@ -37,7 +37,7 @@ RUN set -x \
     # ... for bakery-scripts
     build-essential libicu-dev pkg-config libmagic1 \
     mime-support wget curl xsltproc lsb-release git \
-    imagemagick icc-profiles-free curl unzip \
+    imagemagick icc-profiles-free curl unzip zip \
     # ... for neb:
     python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
@@ -305,6 +305,13 @@ RUN mv /root/.nvm $PROJECT_ROOT/nvm
 ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
 
 COPY --from=base-scratch / /
+
+ENV EPUB_VALIDATOR_VERSION=4.2.2
+RUN mkdir $PROJECT_ROOT/epub-validator \
+    && cd $PROJECT_ROOT/epub-validator \
+    && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
+    && unzip epubvalidator.zip \
+    ;
 
 # ---------------------------
 # Copy the stages over

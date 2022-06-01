@@ -344,6 +344,25 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "git-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED",
+                "IO_RESOURCES",
+                "IO_DISASSEMBLE_LINKED"
+            ],
+            "outputDirs": [
+                "IO_EPUB"
+            ],
+            "requiredEnv": []
+        },
+        "git-epub-validate": {
+            "inputDirs": [
+                "IO_EPUB"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
         "archive-mathify": {
             "inputDirs": [
                 "IO_BOOK",
