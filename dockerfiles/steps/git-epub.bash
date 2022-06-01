@@ -24,6 +24,14 @@ rewrite_toc_xsl='
         <xsl:apply-templates select="h:span/node()"/>
     </span>
 </xsl:template>
+<xsl:template match="h:a[not(starts-with(@href, &quot;#&quot;)) and h:span]">
+    <xsl:copy>
+        <xsl:apply-templates select="@*"/>
+        <span>
+            <xsl:apply-templates select="h:span/node()"/>
+        </span>
+    </xsl:copy>
+</xsl:template>
 
 <!-- Remove extra attributes -->
 <xsl:template match="@cnx-archive-shortid"/>
@@ -57,6 +65,9 @@ rewrite_xhtml_xsl='
   version="1.0">
 
 <xsl:template match="@itemprop"/>
+<xsl:template match="@valign"/>
+<xsl:template match="@group-by"/>
+<xsl:template match="@use-subtitle"/>
 <xsl:template match="h:script"/>
 <xsl:template match="h:style"/>
 
@@ -201,7 +212,6 @@ for slug in ${all_slugs[@]}; do
         echo "  <item $item_properties id=\"$html_file_id\" href=\"$html_file\" media-type=\"application/xhtml+xml\"/>" >> $opf_file
         counter=$((counter+1))
 
-        echo "Running xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '@src' --nl < $output_xhtml_file)"
         set +e
         resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '@src' --nl < $output_xhtml_file)
         set -e
@@ -214,7 +224,7 @@ for slug in ${all_slugs[@]}; do
 
 
         # Add all the resource files
-        for resource_href in $resources; do
+        for resource_href in ${resources[@]}; do
             resource_filename=$(basename $resource_href)
             resource_file=$epub_root/resources/$resource_filename
             try cp $resources_root/$resource_filename $resource_file
