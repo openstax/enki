@@ -285,7 +285,7 @@ ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
 
 COPY --from=base-scratch / /
 
-ENV EPUB_VALIDATOR_VERSION=4.2.2
+ENV EPUB_VALIDATOR_VERSION=4.2.6
 RUN mkdir $PROJECT_ROOT/epub-validator \
     && cd $PROJECT_ROOT/epub-validator \
     && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \

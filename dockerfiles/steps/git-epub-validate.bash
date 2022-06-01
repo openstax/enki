@@ -4,8 +4,7 @@ validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epu
 
 [[ -f $epub_file ]] && rm $epub_file
 
-pushd $src_dir
-zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources
-popd
+try cd $src_dir
+try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources
 
-java -jar $validator_jar --error $epub_file
+try java -jar $validator_jar --error $epub_file
