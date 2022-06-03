@@ -194,9 +194,9 @@ def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     out_dir = Path(sys.argv[2]).resolve(strict=True)
     book_slugs_file = Path(sys.argv[3]).resolve(strict=True)
+    book_metadata = Path(sys.argv[4]).resolve(strict=True)
 
     xhtml_files = in_dir.glob("*@*.xhtml")
-    book_metadata = in_dir / "collection.toc-metadata.json"
 
     # Get the UUID of the book being processed
     with book_metadata.open() as json_file:

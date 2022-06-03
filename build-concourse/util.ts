@@ -89,8 +89,6 @@ export enum IO {
     ARCHIVE_BOOK = 'archive-book',
     ARCHIVE_JSONIFIED = 'archive-jsonified',
     ARCHIVE_UPLOAD = 'archive-upload',
-    ARCHIVE_GDOCIFIED = 'archive-gdocified',
-    ARCHIVE_DOCX = 'archive-docx',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
@@ -108,6 +106,8 @@ export enum IO {
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
     JSONIFIED = 'jsonified', // 'jsonified-single',
+    GDOCIFIED = 'gdocified', // 'gdocified-single'
+    DOCX = 'docx', // 'docx-single'
 
 }
 
