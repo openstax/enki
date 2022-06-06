@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { ARCHIVE_GDOC_STEPS, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
+import { GIT_GDOC_STEPS, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
 import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, expect, stepsToTasks } from './util'
 
 function makePipeline(envValues: KeyValue) {
@@ -46,7 +46,7 @@ function makePipeline(envValues: KeyValue) {
                 trigger: true,
                 version: 'every'
             },
-            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, ARCHIVE_GDOC_STEPS),
+            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, GIT_GDOC_STEPS),
         ]
     }
     return { jobs: [feeder, gdocBaker], resources }

@@ -136,7 +136,7 @@ EOF
 image_name=enki
 if [[ $XDG_DATA_HOME ]]; then
     data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
-elif [[ -d $HOME/.local/share ]]; then
+else
     data_dir=$HOME/.local/share/enki-data # LCOV_EXCL_LINE
 fi
 

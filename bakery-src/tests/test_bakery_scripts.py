@@ -1618,7 +1618,7 @@ def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input])
+    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, book_metadata_input])
     gdocify_book.main()
 
     page_output = output_dir / page_name

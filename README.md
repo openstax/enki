@@ -42,8 +42,8 @@ Then try the following to build PDFs and other formats:
 ```sh
 # All-in-one Git-based books
 #  CLI             command             repo_name                        book_slug
-./enki --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' 
-./enki --command all-git-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
+./enki --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default
+./enki --command all-git-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
 
 # All-in-one Archive-based books
