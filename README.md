@@ -53,6 +53,20 @@ Then try the following to build PDFs and other formats:
 ./enki --command all-archive-web --repo col11762 --style sociology       --ref latest
 ```
 
+### local preview of HTML files
+
+For local preview of HTML files with working image resources you need to build a `all-git-web` book and run `local-preview` command.
+
+Example with using a custom data "localptest" directory:
+
+```sh
+./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/localptest/ --book-slug 'book-slug1' --style default --ref main
+# Start up a local preview (after running all-git-web)
+./enki --command local-preview --data-dir ./data/localptest/
+```
+
+The `local-preview` command will show you that you can open the HTML files in directory `./data/localptest/contents`. Simply `cd` into this directory and open the html files.
+
 ## Private Repositories
 
 To clone private repositories there are 2 options:
