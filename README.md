@@ -57,7 +57,7 @@ Then try the following to build PDFs and other formats:
 
 For local preview of HTML files with working image resources you need to build a `all-git-web` book and run `local-preview` command.
 
-Example with using a custom data "localptest" directory:
+Example with using a custom data `localptest` directory:
 
 ```sh
 ./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/localptest/ --book-slug 'book-slug1' --style default --ref main
@@ -65,7 +65,7 @@ Example with using a custom data "localptest" directory:
 ./enki --command local-preview --data-dir ./data/localptest/
 ```
 
-The `local-preview` command will show you that you can open the HTML files in directory `./data/localptest/contents`. Simply `cd` into this directory and open the html files.
+The `local-preview` command will show you that you can open the HTML files in directory `./data/localptest/contents`. Simply change `cd` into this directory and open the html files in a browser.
 
 ## Private Repositories
 
