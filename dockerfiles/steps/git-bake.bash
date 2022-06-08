@@ -6,7 +6,7 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
 
     # use xmlstarlet to pull out the style file unless this ran in CORGI and the CORGI job has an override
     style_name=$(read_style $slug_name)
-    style_file="$CNX_RECIPES_STYLES_ROOT/$style_name-pdf.css"
+    style_file="$BOOK_STYLES_ROOT/$style_name-pdf.css"
 
     if [[ -f "$style_file" ]]
         then
