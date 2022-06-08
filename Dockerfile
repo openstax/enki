@@ -323,9 +323,8 @@ COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc
 COPY --from=build-python-stage $PROJECT_ROOT/venv/ $PROJECT_ROOT/venv/
 
-# Copy cnx-recipes styles
-COPY ./cnx-recipes/recipes/output/ $PROJECT_ROOT/cnx-recipes/recipes/output/
-COPY ./cnx-recipes/styles/output/ $PROJECT_ROOT/cnx-recipes/styles/output/
+# Copy ce-styles
+COPY ./ce-styles/styles/output/ $PROJECT_ROOT/ce-styles/styles/output/
 
 
 ENV PATH=$PATH:/dockerfiles/
