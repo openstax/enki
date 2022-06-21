@@ -1494,7 +1494,8 @@ def test_patch_same_book_links(tmp_path, mocker):
         assert expected_links_by_id[node.attrib["id"]] == node.attrib["href"]
 
 
-def test_gdocify_book(tmp_path, mocker):
+@pytest.mark.asyncio
+async def test_gdocify_book(tmp_path, mocker):
     """Test gdocify_book script"""
 
     input_dir = tmp_path / "disassembled"
@@ -1619,7 +1620,7 @@ def test_gdocify_book(tmp_path, mocker):
 
     # Test complete script
     mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, book_metadata_input])
-    gdocify_book.main()
+    await gdocify_book.run_async()
 
     page_output = output_dir / page_name
     assert page_output.exists()
@@ -1683,6 +1684,9 @@ def test_gdocify_book(tmp_path, mocker):
     mocker.patch('bakery_scripts.gdocify_book.USWEBCOATEDSWOP_ICC',
                  '/usr/share/color/icc/ghostscript/default_cmyk.icc')
 
+    def resolve_img_path(img_filename, out_dir):
+        return (out_dir / img_filename).resolve().absolute()
+
     with TemporaryDirectory() as temp_dir:
         # copy test JPEGs into a temporal dir
         copy_tree(TEST_JPEG_DIR, temp_dir)
@@ -1701,15 +1705,8 @@ def test_gdocify_book(tmp_path, mocker):
         os.chdir(temp_dir)
 
         # convert to RGB
-        xhtml = """
-            <html xmlns="http://www.w3.org/1999/xhtml">
-            <body>
-                <img src="{0}" />
-            </body>
-            </html>
-        """.format(cmyk)
-        doc = etree.fromstring(xhtml)
-        gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+        await gdocify_book.fix_jpeg_colorspace(
+            resolve_img_path(cmyk, Path(temp_dir)))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
         assert im.mode == 'RGB'
@@ -1724,15 +1721,8 @@ def test_gdocify_book(tmp_path, mocker):
         im.close()
 
         # convert no profile fully to RGB
-        xhtml = """
-            <html xmlns="http://www.w3.org/1999/xhtml">
-            <body>
-                <img src="{0}" />
-            </body>
-            </html>
-        """.format(cmyk_no_profile)
-        doc = etree.fromstring(xhtml)
-        gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+        await gdocify_book.fix_jpeg_colorspace(
+            resolve_img_path(cmyk_no_profile, Path(temp_dir)))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
         assert im.mode == 'CMYK'
@@ -1765,7 +1755,9 @@ def test_gdocify_book(tmp_path, mocker):
             </html>
         """.format(rgb, greyscale, png, cmyk, cmyk_no_profile)
         doc = etree.fromstring(xhtml)
-        gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+        async with gdocify_book.AsyncJobQueue(5) as queue:
+            for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
+                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
         assert cmp(os.path.join(TEST_JPEG_DIR, rgb),
                    os.path.join(temp_dir, rgb))
@@ -1782,30 +1774,11 @@ def test_gdocify_book(tmp_path, mocker):
         assert im.mode == 'RGB'
         im.close()
 
-        # non existing
-        xhtml = """
-            <html xmlns="http://www.w3.org/1999/xhtml">
-            <body>
-                <img src="./idontexist.jpg" />
-            </body>
-            </html>
-        """
-        doc = etree.fromstring(xhtml)
-        # corner case which should not happen in the pipeline
+        # convert non existing
+        # this is a corner case which should not happen in the pipeline
         with pytest.raises(Exception, match=r'^Error\: Resource file not existing\:.*'):
-            gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
-
-        xhtml = """
-            <html xmlns="http://www.w3.org/1999/xhtml">
-            <body>
-                <a href="./ialsodontexist.jpg" />
-            </body>
-            </html>
-        """
-        doc = etree.fromstring(xhtml)
-        # corner case which should not happen in the pipeline
-        with pytest.raises(Exception, match=r'^Error: Resource file not existing:.*'):
-            gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+            await gdocify_book.fix_jpeg_colorspace(
+                resolve_img_path('./idontexist.jpg', Path(temp_dir)))
 
         copy_tree(TEST_JPEG_DIR, temp_dir)  # reset test case
         im = Image.open(os.path.join(temp_dir, cmyk))
@@ -1831,7 +1804,9 @@ def test_gdocify_book(tmp_path, mocker):
         """.format(rgb_broken, greyscale_broken, cmyk, cmyk_broken, png)
         doc = etree.fromstring(xhtml)
         # should only give warnings but should not break
-        gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+        async with gdocify_book.AsyncJobQueue(5) as queue:
+            for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
+                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
         assert im.mode == 'RGB'
@@ -1851,22 +1826,11 @@ def test_gdocify_book(tmp_path, mocker):
         assert im.mode == 'CMYK'
         im.close()
 
-        # simulate error with ImageMagick
-        xhtml = """
-            <html xmlns="http://www.w3.org/1999/xhtml">
-            <body>
-                <img src="{0}" />
-                <img src="{1}" />
-                <img src="{2}" />
-            </body>
-            </html>
-        """.format(rgb, greyscale, cmyk)
-        doc = etree.fromstring(xhtml)
-
         mocker.patch("bakery_scripts.gdocify_book._convert_cmyk2rgb_embedded_profile",
-                     return_value=["mogrify", "-invalid"])
+                     return_value="mogrify -invalid")
         with pytest.raises(Exception, match=r'^Error converting file.*'):
-            gdocify_book.fix_jpeg_colorspace(doc, Path(temp_dir))
+            await gdocify_book.fix_jpeg_colorspace(
+                resolve_img_path(cmyk, Path(temp_dir)))
 
         os.chdir(old_dir)
 
