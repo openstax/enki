@@ -41,6 +41,6 @@ done
 shopt -u globstar nullglob
 
 
-for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do
+for jsonfile in "$IO_JSONIFIED/"*@*.json; do
     try jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
 done
