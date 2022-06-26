@@ -34,8 +34,8 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     book_version=$(jq -r '.version' "$book_json_file")
  
     # Rename these files so local REX preview works
-    try cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_JSONIFIED/$book_uuid@$book_version.json"
-    try cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_JSONIFIED/$book_uuid@$book_version.xhtml"
+    # try cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_JSONIFIED/$book_uuid@$book_version.json"
+    # try cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_JSONIFIED/$book_uuid@$book_version.xhtml"
 
 done
 shopt -u globstar nullglob
