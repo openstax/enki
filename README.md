@@ -22,6 +22,7 @@ We build books in a pipeline of steps. These steps are written in different lang
   * [Run one step](#run-one-step)
   * [Run steps beginning with a step](#run-steps-beginning-with-a-step)
 - [CI/Gitpod Integration](#cigitpod-integration)
+- [Create a Webhosting Pipeline](#create-a-webhosting-pipeline)
 - [TODO list](#todo-list)
 
 
@@ -69,6 +70,20 @@ Example with using a custom data "rextest" directory:
 The rex-preview command will first open an error page for all collections built which can be opened in the browser. To navigate to the real modules use the navigation on left side.
 
 `Ctrl+C` will stop rex-preview.
+
+### local preview of HTML files
+
+For local preview of HTML files with working image resources you need to build a `all-git-web` book and run `local-preview` command.
+
+Example with using a custom data `localptest` directory:
+
+```sh
+./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/localptest/ --book-slug 'book-slug1' --style default --ref main
+# Start up a local preview (after running all-git-web)
+./enki --command local-preview --data-dir ./data/localptest/
+```
+
+The `local-preview` command will show you that you can open the HTML files in directory `./data/localptest/contents`. Simply change `cd` into this directory and open the html files in a browser.
 
 ## Private Repositories
 
@@ -240,39 +255,29 @@ START_AT_STEP=git-bake ./enki ./data/tin-bk all-git-pdf
 
 This repo can be used as the image in a gitpod environment. All of code to build the variaous dependencies (like `cookbook`) are in bash scripts inside the container so they can be run from within the container (see [Dockerfile](./Dockerfile))
 
+
+# Create a Webhosting Pipeline
+
+Find out which codeversion to use (`<codeversion>`). Then run the following in the [./build-concourse/](./build-concourse/) directory:
+
+```shell
+# cd ./build-concourse
+
+npm install
+
+# Build the concourse pipeline YAML file
+CODE_VERSION=<codeversion> npm run build
+
+# Upload
+fly --target=prod set-pipeline --pipeline=webhost-prod-<codeversion> --config=./webhosting-production.yml 
+
+# Unpause the pipeline (via the UI or via the command that prints out)
+```
+
 # TODO list
 
-- [x] Build Archive PDF
-- [x] Build Archive JSON
-- [x] Build Git PDF
-- [x] Build Git JSON
-- [x] Support checking out a commit instead of a branch/tag
-- [x] Change entrypoint script to use environment variables for directories instead of assuming `/data/{name}`
-    - search for `mv ` in build-concourse/script
-- [x] Create a pipeline in concourse
-- [x] Add the output-producer-resource repo into here
-- [ ] add back support for content servers and content versions
-- [x] verify the webhosting job uploaded: http://localhost:8080/teams/main/pipelines/webhosting/jobs/bakery/builds/4.1
-- [x] verify the pipeline resource runs instead of the output-producer-resource
-- [x] add the post-webhosting-push task of updating S3 to mark the job as done (check concourse-v6 for this task)
-    - a.k.a. add webhosting "report book complete" task which uploads to the Queue bucket (yet another bucket)
-- [x] combine gitTaskMaker and archiveTaskMaker into one generic taskMaker since the shell script will be tiny
-- [x] add google docs pipeline-generation
-- [x] auto-build a dependency graph image for documentation [./build-concourse/graphs/](./build-concourse/graphs/)
-- [x] auto-build the bash script
-- [x] wire up codecov.io ([Example](https://codecov.io/gh/openstax/enki/src/85ee2ea16a401ca07067af699350157b29bdc763/dockerfiles/docker-entrypoint.sh))
-- [x] move all the steps into a JSON file so it can be parsed in node and bash
-- [x] move the bash code for each step into a separate bash file and ensure codecov checks it
-- [x] make the docker-entrypoint script use the JSON file to validate inputs, environment variables, and run the correct step
-- [x] add code coverage for the TypeScript files
-- [x] Move everything out of the pipeline and into the image
-- [x] shellcheck the bash scripts (`shellcheck --severity=warning ./dockerfiles/steps/*`)
-- [x] make it easy to rebuild and run inside gitpod (inside the container). Requires moving commands in Dockerfile into scripts again
-- [x] Update the readme to show where the magic files are and how they fit together
 - [ ] lint TypeScript files
 - [ ] get vscode to recognize the filesystem imports in the TypeScript files
-- [ ] combine `cli.env` and `gitpod.env` to just one file that uses `./data/`
-- [ ] webhosting for git books
 - [ ] remove the `git-` prefix from tasks so they wil ljust work when we remove archive tasks
 - [ ] remove virtualenv and install python packages to the system (unless it's bad practice)
 

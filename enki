@@ -138,7 +138,7 @@ EOF
 image_name=enki
 if [[ $XDG_DATA_HOME ]]; then
     data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
-elif [[ -d $HOME/.local/share ]]; then
+else
     data_dir=$HOME/.local/share/enki-data # LCOV_EXCL_LINE
 fi
 
@@ -200,6 +200,19 @@ if [[ $arg_command == 'rex-preview' ]]; then
     fi
 
     popd
+    exit 0
+fi
+
+if [[ $arg_command == 'local-preview' ]]; then
+    [[ -d $data_dir/local-preview ]] || mkdir $data_dir/local-preview
+    pushd $data_dir/local-preview >/dev/null
+    [[ -e ./contents ]] || cp -r ../_attic/IO_JSONIFIED contents
+    [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
+
+    echo "To open local preview open files in this directory:"
+    echo "cd $data_dir/local-preview/contents"
+
+    popd >/dev/null
     exit 0
 fi
 

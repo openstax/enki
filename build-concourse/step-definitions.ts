@@ -70,16 +70,16 @@ set({name: 'git-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSE
 set({name: 'git-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.JSONIFIED], outputs: [], env: {}})
 set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
+// GIT_GDOC_STEPS
+set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED], env: {}})
+set({name: 'git-convert-docx', inputs: [IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
+set({name: 'git-upload-docx', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+
 // ARCHIVE_PDF_STEPS
 set({name: 'archive-mathify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-link-rex', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
 set({name: 'archive-pdf', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'archive-pdf-metadata', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
-
-// ARCHIVE_GDOC_STEPS
-set({name: 'archive-gdocify', inputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_GDOCIFIED], env: {}})
-set({name: 'archive-convert-docx', inputs: [IO.ARCHIVE_GDOCIFIED], outputs: [IO.ARCHIVE_DOCX], env: {}})
-set({name: 'archive-upload-docx', inputs: [IO.BOOK, IO.ARCHIVE_DOCX], outputs: [IO.ARCHIVE_GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
 set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_ARCHIVE_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_ARCHIVE_QUEUE, CODE_VERSION: true }})
@@ -146,6 +146,17 @@ export const GIT_WEB_STEPS = [
     get('git-upload-book'),
 ]
 
+export const CLI_GIT_GDOC_STEPS = [
+    ...CLI_GIT_WEB_STEPS,
+    get('git-gdocify'),
+    get('git-convert-docx'),
+]
+
+// TODO: Missing upload step, TBD
+export const GIT_GDOC_STEPS = [
+    ...CLI_GIT_GDOC_STEPS
+]
+
 export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-fetch'),
     get('archive-fetch-metadata'), // used by archive-link-rex
@@ -161,16 +172,6 @@ export const CLI_ARCHIVE_PDF_STEPS = [
 export const ARCHIVE_PDF_STEPS = [
     ...CLI_ARCHIVE_PDF_STEPS,
     get('archive-pdf-metadata'),
-]
-
-export const CLI_ARCHIVE_GDOC_STEPS = [
-    ...ARCHIVE_WEB_STEPS, // up to archive-validate-xhtml
-    get('archive-gdocify'),
-    get('archive-convert-docx'),
-]
-export const ARCHIVE_GDOC_STEPS = [
-    ...CLI_ARCHIVE_GDOC_STEPS,
-    get('archive-upload-docx'),
 ]
 
 function buildArchiveUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {

@@ -21,6 +21,7 @@ tests_require = [
     'pytest',
     'pytest-mock',
     'pytest-cov',
+    'pytest-asyncio',
     'flake8',
     'requests-mock'
 ]
@@ -43,7 +44,7 @@ setup(
     name='cops-bakery-scripts',
     version='0.0.1',
     author='OpenStax Content Engineering',
-    url="https://github.com/openstax/output-producer-service",
+    url="https://github.com/openstax/enki",
     license='AGPLv3.0',
     package_dir={"bakery_scripts": "."},
     entry_points={
