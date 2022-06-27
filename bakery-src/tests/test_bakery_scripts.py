@@ -1579,6 +1579,14 @@ async def test_gdocify_book(tmp_path, mocker):
                 <annotation encoding="StarMath 5.0">{N}</annotation>
             </semantics>
         </math>
+        <math>
+            <semantics>
+                <mrow>
+                    <mi>N</mi>
+                    <mo>–</mo>
+                </mrow>
+            </semantics>
+        </math>
         </div>
         </body>
         </html>
@@ -1640,6 +1648,18 @@ async def test_gdocify_book(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         assert "mi" == node.tag.split("}")[1]
+    
+    for node in updated_doc.xpath(
+        '//x:mo',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        if node.text is not None:
+            text_len = len(node.text)
+            assert text_len > 0
+            if text_len == 1:
+                assert node.text in gdocify_book.MO_WHITELIST['single']
+            else:
+                assert node.text in gdocify_book.MO_WHITELIST['multi']
 
     unwanted_nodes = updated_doc.xpath(
         '//x:annotation-xml',
