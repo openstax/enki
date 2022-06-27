@@ -23,7 +23,7 @@ while read -r line; do
 
         say "Converting to docx: $xhtmlfile_basename"
         try xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
-        try pandoc --reference-doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
+        try pandoc --fail-if-warnings --reference-doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(try jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$IO_GDOCIFIED/content/book-slugs.json")
 try "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
