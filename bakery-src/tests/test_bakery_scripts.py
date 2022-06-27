@@ -1582,8 +1582,14 @@ async def test_gdocify_book(tmp_path, mocker):
         <math>
             <semantics>
                 <mrow>
-                    <mi>N</mi>
                     <mo>–</mo>
+                    <mi>N</mi>
+                </mrow>
+                <mrow>
+                    <mo>–∞</mo>
+                </mrow>
+                <mrow>
+                    <mo>Not an operator</mo>
                 </mrow>
             </semantics>
         </math>
@@ -1660,6 +1666,15 @@ async def test_gdocify_book(tmp_path, mocker):
                 assert node.text in gdocify_book.MO_WHITELIST['single']
             else:
                 assert node.text in gdocify_book.MO_WHITELIST['multi']
+    
+    # Check that the <mo>-∞</mo> was converted to <mo>-</mo><mi>∞</mi>
+    assert any(
+        node.text == "∞" and
+        node.getprevious().tag.split("}")[1] == "mo" and
+        node.getprevious().text == "-"
+        for node in updated_doc.xpath(
+            '//x:mi', namespaces={"x": "http://www.w3.org/1999/xhtml"})
+    )
 
     unwanted_nodes = updated_doc.xpath(
         '//x:annotation-xml',

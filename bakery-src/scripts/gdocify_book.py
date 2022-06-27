@@ -217,15 +217,15 @@ def patch_math(doc):
         node.tag = "msub"
 
     # Pandoc's handles math operators more strictly than we expected. Use
-    # a whitelist formed from https://github.com/jgm/texmath 
-    # Readers/TeX/Commands.hs and Readers/MathML/MMLDict.hs 
+    # a whitelist formed from https://github.com/jgm/texmath
+    # Readers/TeX/Commands.hs and Readers/MathML/MMLDict.hs
     # Convert mo tags that contain invalid operators into mtext
     for node in doc.xpath(
             '//x:mo',
             namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         if node.text is not None:
-            text_len = len(node.text) 
+            text_len = len(node.text)
             if not ((text_len == 1 and node.text in MO_WHITELIST["single"]) or
                     (text_len > 1 and node.text in MO_WHITELIST["multi"])):
                 translation = MO_WHITELIST['synonyms'].get(node.text, None)
@@ -233,11 +233,21 @@ def patch_math(doc):
                     logging.warning(
                         f'Use "{translation}" instead of "{node.text}"')
                     node.text = translation
+                elif node.text[0] in ("-", "\u2013") and text_len > 1:
+                    logging.warning(
+                        f"Converting to operator and identifier: {node.text}")
+                    sign, identifier = "-", node.text[1:]
+                    parent = node.getparent()
+                    idx = parent.index(node)
+                    node.text = sign
+                    mi = etree.Element(etree.QName("http://www.w3.org/1999/xhtml", "mi"))
+                    mi.text = identifier
+                    parent.insert(idx + 1, mi)
                 else:
-                    node.tag = "mtext"
                     logging.warning(
                         "Invalid math operator, converting to mtext: "
                         f'"{node.text}"')
+                    node.tag = "mtext"
 
 
 def _convert_cmyk2rgb_embedded_profile(img_filename):
