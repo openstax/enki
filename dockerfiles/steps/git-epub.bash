@@ -177,12 +177,14 @@ done
 extract_html_files_xpath='//*[@href]'
 extract_resources_xpath='//h:img[@src]'
 
+echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
     resource_files=()
 
+    echo "Find all hrefs in the ToC file"
     html_files=()
     set +e
     hrefs=$(try xmlstarlet sel -t --match "$extract_html_files_xpath" --value-of '@href' --nl < $epub_toc_file)
@@ -223,14 +225,29 @@ for slug in ${all_slugs[@]}; do
         done < <(echo $resources_str)
 
 
-        # Add all the resource files
+        # Add all the resource files (while adding a file extension to the resource file)
         for resource_href in ${resources[@]}; do
             resource_filename=$(basename $resource_href)
             resource_file=$epub_root/resources/$resource_filename
-            try cp $resources_root/$resource_filename $resource_file
-            media_type=$(file -b --mime-type $resource_file)
-            resource_files+=($resource_file)
-            echo "  <item id=\"idresource_$counter\" href=\"../resources/$resource_filename\" media-type=\"$media_type\"/>" >> $opf_file
+
+            media_type=$(file --brief --mime-type $resources_root/$resource_filename)
+            extension='mimetypenotfound'
+            case "$media_type" in
+                image/jpeg)
+                    extension='jpeg'
+                ;;
+                *)
+                    echo -e "BUG: Add an extension for this mimetype: '$media_type' to this script"
+                    exit 2
+                ;;
+            esac
+
+            # Add the extension into the XHTML file
+            sed --in-place "s/$resource_filename\"/$resource_filename.$extension\"/g" $output_xhtml_file # search with the quotes so we don't double-replace an image
+
+            try cp $resources_root/$resource_filename $resource_file.$extension
+            resource_files+=($resource_file.$extension)
+            echo "  <item id=\"idresource_$counter\" href=\"../resources/$resource_filename.$extension\" media-type=\"$media_type\"/>" >> $opf_file
             counter=$((counter+1))
         done
 
