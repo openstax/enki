@@ -534,6 +534,21 @@
             "git-jsonify",
             "git-validate-xhtml-jsonify"
         ],
+        "all-git-epub": [
+            "git-fetch",
+            "git-fetch-metadata",
+            "git-assemble",
+            "git-assemble-meta",
+            "git-validate-references",
+            "git-bake",
+            "git-bake-meta",
+            "git-link",
+            "git-disassemble",
+            "git-patch-disassembled-links",
+            "git-jsonify",
+            "git-epub",
+            "git-epub-validate"
+        ],
         "all-archive-pdf": [
             "archive-fetch",
             "archive-fetch-metadata",

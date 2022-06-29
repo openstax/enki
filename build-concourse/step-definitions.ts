@@ -150,6 +150,24 @@ export const GIT_WEB_STEPS = [
     get('git-upload-book'),
 ]
 
+export const CLI_GIT_EPUB_STEPS = [
+    get('git-fetch'),
+    get('git-fetch-metadata'),
+    // get('git-validate-cnxml'),
+    get('git-assemble'),
+    get('git-assemble-meta'),
+    get('git-validate-references'),
+    get('git-bake'),
+    get('git-bake-meta'),
+    get('git-link'),
+    get('git-disassemble'),
+    get('git-patch-disassembled-links'),
+    get('git-jsonify'),
+    // get('git-validate-xhtml-jsonify'),
+    get('git-epub'),
+    get('git-epub-validate'),
+]
+
 export const CLI_ARCHIVE_PDF_STEPS = [
     get('archive-fetch'),
     get('archive-fetch-metadata'), // used by archive-link-rex
