@@ -12,8 +12,8 @@ if [ ! -f $IO_FETCH_META/canonical.json ]; then
     jo -p -a "${slugs[@]}" > "$IO_FETCH_META/canonical.json"
 fi
 
-try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
-try rm -rf "$IO_FETCH_META/.git"
+# try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
+# try rm -rf "$IO_FETCH_META/.git"
 
 try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
 # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
