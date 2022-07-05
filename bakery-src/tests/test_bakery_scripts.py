@@ -1589,7 +1589,28 @@ async def test_gdocify_book(tmp_path, mocker):
                     <mo>–∞</mo>
                 </mrow>
                 <mrow>
+                    <mo>–identifier</mo>
+                </mrow>
+                <mrow>
+                    <mo>-20</mo>
+                </mrow>
+                <mrow>
+                    <mo>cos</mo>
+                </mrow>
+                <mrow>
+                    <mo>20</mo>
+                </mrow>
+                <mrow>
+                    <mo>&#x201c;UNICODE QUOTES&#x201d;</mo>
+                </mrow>
+                <mrow>
                     <mo>Not an operator</mo>
+                </mrow>
+                <mrow>
+                    <mo> </mo>
+                </mrow>
+                <mrow>
+                    <mo>&#x00a0;</mo>
                 </mrow>
             </semantics>
         </math>
@@ -1654,7 +1675,47 @@ async def test_gdocify_book(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         assert "mi" == node.tag.split("}")[1]
-    
+
+    # Was mo converted to mi in this case?
+    assert(
+        "mi" == updated_doc.xpath(
+            '//*[text() = "–identifier"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Was mo converted to mn in this case?
+    assert(
+        "mn" == updated_doc.xpath(
+            '//*[text() = "-20"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Was mo converted to mtext in this case?
+    assert(
+        "mtext" == updated_doc.xpath(
+            '//*[text() = "“UNICODE QUOTES”"]',  # Not an error
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Were mo's containing whitespace converted to mtext?
+    assert(
+        "mtext" == updated_doc.xpath(
+            '//*[text() = " "]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    assert(
+        "mtext" == updated_doc.xpath(
+            f'//*[text() = "{chr(0xa0)}"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Do all mo tags contain only whitelisted characters?
     for node in updated_doc.xpath(
         '//x:mo',
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
@@ -1663,18 +1724,18 @@ async def test_gdocify_book(tmp_path, mocker):
             text_len = len(node.text)
             assert text_len > 0
             if text_len == 1:
-                assert node.text in gdocify_book.MO_WHITELIST['single']
+                assert node.text in gdocify_book.CHARLISTS['mo_single']
             else:
-                assert node.text in gdocify_book.MO_WHITELIST['multi']
-    
-    # Check that the <mo>-∞</mo> was converted to <mo>-</mo><mi>∞</mi>
-    assert any(
-        node.text == "∞" and
-        node.getprevious().tag.split("}")[1] == "mo" and
-        node.getprevious().text == "-"
-        for node in updated_doc.xpath(
-            '//x:mi', namespaces={"x": "http://www.w3.org/1999/xhtml"})
-    )
+                assert node.text in gdocify_book.CHARLISTS['mo_multi']
+
+    # Are all mi tags free of blacklisted characters?
+    for node in updated_doc.xpath(
+        '//x:mi',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        if node.text is not None:
+            assert not any(char in node.text
+                           for char in gdocify_book.CHARLISTS["mi_blacklist"])
 
     unwanted_nodes = updated_doc.xpath(
         '//x:annotation-xml',

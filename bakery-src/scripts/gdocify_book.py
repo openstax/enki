@@ -20,8 +20,8 @@ SRGB_ICC = '/usr/share/color/icc/sRGB.icc'
 # user installed Adobe ICC CMYK profile US Web Coated (SWOP)
 USWEBCOATEDSWOP_ICC = '/usr/share/color/icc/USWebCoatedSWOP.icc'
 
-MO_WHITELIST = {
-    "single": (
+CHARLISTS = {
+    "mo_single": (
         "!%&'()*+,-./:;<=>?@[\\]^_z{|}~."
         "\u00a8\u00aa\u00b0\u00b1\u00b2\u00b3\u00b4\u00b7\u00b8"
         "\u00b9\u00ba\u00d7\u00f7\u02c6\u02c7\u02c9\u02ca\u02cb\u02cd\u02d8"
@@ -119,39 +119,16 @@ MO_WHITELIST = {
         "\u2af3\u2af4\u2af5\u2af6\u2af7\u2af8\u2af9\u2afa\u2afb\u2afc\u2afd"
         "\u2afe\u2aff\u2b45\u2b46\ufe37\ufe38"
     ),
-    "multi": [
+    "mo_multi": [
         "!!", "!=", "&&", "**", "*=", "++", "+=", "--", "-=", "->", "..",
         "...", "//", "/=", ":=", "<=", "<>", "==", ">=", "||", "|||",
         "\u223d\u0331", "\u2282\u20d2", "\u2283\u20d2"
     ],
-    "synonyms": {
-        '\u2013': '-'
-    },
-    "identifiers": [
-        '*', '<', '>', 'Pr', '\\', '\U0001d6e4', '\U0001d6e5', '\U0001d6e9',
-        '\U0001d6ec', '\U0001d6ef', '\U0001d6f1', '\U0001d6f4', '\U0001d6f6',
-        '\U0001d6f7', '\U0001d6f9', '\U0001d6fa', '\U0001d70d', '\U0001d71a',
-        '\u0331', '\u0393', '\u0394', '\u0398', '\u039b', '\u039e', '\u03a0',
-        '\u03a3', '\u03a5', '\u03a6', '\u03a8', '\u03a9', '\u03b1', '\u03b2',
-        '\u03b3', '\u03b4', '\u03b5', '\u03b6', '\u03b7', '\u03b8', '\u03b9',
-        '\u03ba', '\u03bb', '\u03bc', '\u03bd', '\u03be', '\u03c0', '\u03c1',
-        '\u03c3', '\u03c4', '\u03c5', '\u03c6', '\u03c7', '\u03c8', '\u03c9',
-        '\u03d1', '\u03d2', '\u03d5', '\u03dd', '\u03f5', '\u2020', '\u2021',
-        '\u2026', '\u2026', '\u2026', '\u2026', '\u203e', '\u20d7', '\u20d7',
-        '\u210f', '\u2111', '\u2118', '\u211c', '\u2190', '\u2192', '\u2194',
-        '\u21a6', '\u21d0', '\u21d2', '\u21d4', '\u21d4', '\u2200', '\u2203',
-        '\u2205', '\u2210', '\u2216', '\u2223', '\u2234', '\u223c', '\u2240',
-        '\u2255', '\u2264', '\u2265', '\u227c', '\u227d', '\u22a5', '\u22a8',
-        '\u22b2', '\u22b2', '\u22b3', '\u22b3', '\u22b4', '\u22b5', '\u22c4',
-        '\u22c5', '\u22c8', '\u22ee', '\u22ef', '\u22ef', '\u22ef', '\u2300',
-        '\u2305', '\u23e6', '\u25a1', '\u25ab', '\u25b3', '\u25b8', '\u25c2',
-        '\u25c7', '\u25ca', '\u25cb', '\u25fc', '\u2b27', '\u3014', '\u3015',
-        '\u3018', '\u3019', '\u301a', '\u301b', '\u00ac', '\u00af', '^',
-        '_', 'arccos', 'arcsin', 'arctan', 'arg', 'cos', 'cosh', 'cot',
-        'coth', 'csc', 'deg', 'det', 'dim', 'exp', 'gcd', 'hom', 'inf',
-        'ker', 'lg', 'lim', 'liminf', 'limsup', 'ln', 'log', 'max', 'min',
-        'sec', 'sin', 'sinh', 'sup', 'tan', 'tanh'
-    ]
+    "mi_blacklist": (
+        "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u000e\u000f"
+        "\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a"
+        "\u001b\u001c\u001d\u001e\u001f\u0022\u0060\u007f\u0338\u201c\u201d"
+    )
 }
 
 
@@ -177,7 +154,8 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
         if node.attrib.get("data-book-uuid"):
             page_link = node.attrib["href"]
             # Link may have fragment
-            page_fragment = page_link.split("#")[-1] if "#" in page_link else ''
+            page_fragment = page_link.split(
+                "#")[-1] if "#" in page_link else ''
 
             external_book_uuid = node.attrib["data-book-uuid"]
             external_book_slug = book_slugs_by_uuid[external_book_uuid]
@@ -241,29 +219,37 @@ def patch_math(doc):
             namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         if node.text is not None:
-            text_len = len(node.text)
-            if not ((text_len == 1 and node.text in MO_WHITELIST["single"]) or
-                    (text_len > 1 and node.text in MO_WHITELIST["multi"])):
-                translation = MO_WHITELIST['synonyms'].get(node.text, None)
-                if translation is not None:
-                    logging.warning(
-                        f'Use "{translation}" instead of "{node.text}"')
-                    node.text = translation
-                elif node.text[0] in ("-", "\u2013") and text_len > 1:
-                    logging.warning(
-                        f"Converting to operator and identifier: {node.text}")
-                    sign, identifier = "-", node.text[1:]
-                    parent = node.getparent()
-                    idx = parent.index(node)
-                    node.text = sign
-                    mi = etree.Element(etree.QName("http://www.w3.org/1999/xhtml", "mi"))
-                    mi.text = identifier
-                    parent.insert(idx + 1, mi)
+            # https://www.w3.org/Math/draft-spec/chapter2.html#fund.collapse
+            text = node.text.strip("\x20\x09\x0d\x0a")
+            text_len = len(text)
+            if not ((text_len == 1 and text in CHARLISTS["mo_single"]) or
+                    (text_len > 1 and text in CHARLISTS["mo_multi"])):
+                if text_len == 0:
+                    node_type = "mtext"
                 else:
-                    logging.warning(
-                        "Invalid math operator, converting to mtext: "
-                        f'"{node.text}"')
-                    node.tag = "mtext"
+                    is_negative = False
+                    if text[0] in "-\u2013\u2212" and text_len > 1:
+                        text = text[1:]
+                        text_len = len(text)
+                        is_negative = True
+
+                    if all(s.isnumeric() for s in re.split("[,.]", text)):
+                        node_type = "mn"
+                    elif (not is_negative and (
+                            text == "\xa0" or
+                            (text_len >= 3 and
+                             all(c == text[0] for c in text)))):
+                        node_type = "mtext"
+                    elif not any(char in text
+                                 for char in CHARLISTS["mi_blacklist"]):
+                        node_type = "mi"
+                    else:
+                        node_type = "mtext"
+
+                log_text = node.text.replace("\n", "\\n")
+                logging.warning(
+                    f'Converting mo to {node_type}: "{log_text}"')
+                node.tag = node_type
 
 
 def _convert_cmyk2rgb_embedded_profile(img_filename):
@@ -342,9 +328,11 @@ async def fix_jpeg_colorspace(img_filename):
                                             ' to RGB color space: {}'.format(stderr))
             except UnidentifiedImageError:  # pragma: no cover
                 # do nothing if we cannot open the image
-                print('Warning: Could not parse JPEG image with PIL: ' + str(img_filename))
+                print('Warning: Could not parse JPEG image with PIL: ' +
+                      str(img_filename))
     else:
-        raise Exception('Error: Resource file not existing: ' + str(img_filename))  # pragma: no cover
+        raise Exception('Error: Resource file not existing: ' +
+                        str(img_filename))  # pragma: no cover
 
 
 class AsyncJobQueue:
@@ -381,7 +369,8 @@ def get_img_resources(doc, out_dir):
     # assuming all resources from checksum step are in the same folder
     img_xpath = '//x:img[@src and starts-with(@src, "{0}")]/@src' \
                 '|' \
-                '//x:a[@href and starts-with(@href, "{0}")]/@href'.format(RESOURCES_FOLDER)
+                '//x:a[@href and starts-with(@href, "{0}")]/@href'.format(
+                    RESOURCES_FOLDER)
     for node in doc.xpath(img_xpath,
                           namespaces={'x': 'http://www.w3.org/1999/xhtml'}):
         img_filename = Path(node)
