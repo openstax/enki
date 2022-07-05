@@ -18,6 +18,11 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
     try cp "$path" "$IO_FETCH_META/modules/collection.xml"
 
+    if [[ -f temp-assembly/collection.assembled.xhtml ]]; then
+        rm temp-assembly/collection.assembled.xhtml
+    fi
+
+    export HACK_CNX_LOOSENESS=1 # Run neb assemble a bit looser. This deletes ToC items when the CNXML file is missing
     try neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
     try cp "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
