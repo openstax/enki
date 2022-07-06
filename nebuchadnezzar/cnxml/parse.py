@@ -30,8 +30,6 @@ NSMAP = {
 }
 
 
-DEFAULT_LICENSE_TEXT = 'Creative Commons Attribution License (ASSUMED)'
-DEFAULT_LICENSE_URL = 'http://creativecommons.org/licenses/by/4.0/'
 LICENSE_INFO_MAP = {
     'by': {
         'text': 'Creative Commons Attribution License',
@@ -117,15 +115,15 @@ def _parse_license_url(url):
 
 
 def _parse_license(license_el, language):
-    default_license = (DEFAULT_LICENSE_TEXT, DEFAULT_LICENSE_URL)
-    if license_el is None:
-        return default_license
-    url = license_el.attrib.get('url', None)
+    url = None
+    if license_el is not None:
+        url = license_el.attrib.get('url', None)
+        if url is not None:
+            url = url.strip()
+            if len(url) == 0:
+                url = None
     if url is None:
-        return default_license
-    url = url.strip()
-    if len(url) == 0:
-        return default_license
+        return (None, None)
 
     typ, ver, license_lang = _parse_license_url(url)
     if license_lang is not None and license_lang != 'en':

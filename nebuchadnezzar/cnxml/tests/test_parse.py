@@ -1,7 +1,7 @@
 import pytest
 from lxml import etree
 
-from cnxml.parse import NSMAP, parse_metadata, DEFAULT_LICENSE_TEXT, DEFAULT_LICENSE_URL
+from cnxml.parse import NSMAP, parse_metadata
 
 
 @pytest.fixture
@@ -175,8 +175,8 @@ def test_parse_with_minimal_metadata():
         'id': 'col11406',
         'keywords': (),
         'language': None,
-        'license_url': DEFAULT_LICENSE_URL,
-        'license_text': DEFAULT_LICENSE_TEXT,
+        'license_url': None,
+        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -216,8 +216,8 @@ def test_parse_with_optional_metadata():
         'id': 'col11406',
         'keywords': (),
         'language': None,
-        'license_url': DEFAULT_LICENSE_URL,
-        'license_text': DEFAULT_LICENSE_TEXT,
+        'license_url': None,
+        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -265,8 +265,8 @@ def test_parse_no_license_url_returns_default(license_el):
         'id': 'col11406',
         'keywords': (),
         'language': None,
-        'license_url': DEFAULT_LICENSE_URL,
-        'license_text': DEFAULT_LICENSE_TEXT,
+        'license_url': None,
+        'license_text': None,
         'licensors': (),
         'maintainers': (),
         'print_style': None,
@@ -288,6 +288,17 @@ def test_parse_no_license_url_returns_default(license_el):
     [
         (
             'http://creativecommons.org/licenses/by/4.0/deed.en',
+            'Creative Commons Attribution License',
+            'en'
+        ),
+        (
+            # https should work too
+            'https://creativecommons.org/licenses/by/4.0/deed.en',
+            'Creative Commons Attribution License',
+            'en'
+        ),
+        (
+            'https://creativecommons.org/licenses/by/4.0',
             'Creative Commons Attribution License',
             'en'
         ),
