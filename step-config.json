@@ -344,6 +344,16 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "git-assemble-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META"
+            ],
+            "outputDirs": [
+                "IO_ASSEMBLED"
+            ],
+            "requiredEnv": []
+        },
         "git-epub": {
             "inputDirs": [
                 "IO_BOOK",
@@ -537,7 +547,7 @@
         "all-git-epub": [
             "git-fetch",
             "git-fetch-metadata",
-            "git-assemble",
+            "git-assemble-epub",
             "git-assemble-meta",
             "git-validate-references",
             "git-bake",

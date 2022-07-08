@@ -236,6 +236,9 @@ for slug in ${all_slugs[@]}; do
                 image/jpeg)
                     extension='jpeg'
                 ;;
+                image/png)
+                    extension='png'
+                ;;
                 *)
                     echo -e "BUG: Add an extension for this mimetype: '$media_type' to this script"
                     exit 2

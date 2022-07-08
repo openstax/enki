@@ -71,6 +71,7 @@ set({name: 'git-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.JSONIFIED], output
 set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_EPUB_STEPS
+set({name: 'git-assemble-epub', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {}})
 set({name: 'git-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.EPUB], env: {}})
 set({name: 'git-epub-validate', inputs: [IO.EPUB], outputs: [], env: {}})
 
@@ -154,7 +155,7 @@ export const CLI_GIT_EPUB_STEPS = [
     get('git-fetch'),
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
-    get('git-assemble'),
+    get('git-assemble-epub'),
     get('git-assemble-meta'),
     get('git-validate-references'),
     get('git-bake'),
