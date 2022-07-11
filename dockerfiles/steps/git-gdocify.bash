@@ -30,5 +30,5 @@ done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-o
 # Save all the slug/uuid pairs into a JSON file
 try jo -a $jo_args > $book_slugs_file
 
-try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file" "$IO_JSONIFIED/$(cat "$IO_BOOK/slug").toc.json"
+try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
 try cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"

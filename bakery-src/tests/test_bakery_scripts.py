@@ -1588,10 +1588,6 @@ async def test_gdocify_book(tmp_path, mocker):
         "slug": "l1-page-slug"
     }
 
-    book_metadata = {
-        "id": "bookuuid1"
-    }
-
     book_slugs = [
         {
             "uuid": "bookuuid1",
@@ -1606,8 +1602,6 @@ async def test_gdocify_book(tmp_path, mocker):
     # Populate a dummy TOC to confirm it is ignored
     toc_input = input_dir / "collection.toc.xhtml"
     toc_input.write_text("DUMMY")
-    book_metadata_input = input_dir / "collection.toc-metadata.json"
-    book_metadata_input.write_text(json.dumps(book_metadata))
     page_name = "bookuuid1@version:pageuuid1.xhtml"
     page_input = input_dir / page_name
     page_input.write_text(page_content)
@@ -1619,7 +1613,7 @@ async def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, book_metadata_input])
+    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input])
     await gdocify_book.run_async()
 
     page_output = output_dir / page_name

@@ -225,14 +225,6 @@ async def run_async():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     out_dir = Path(sys.argv[2]).resolve(strict=True)
     book_slugs_file = Path(sys.argv[3]).resolve(strict=True)
-    book_metadata = Path(sys.argv[4]).resolve(strict=True)
-
-    xhtml_files = in_dir.glob("*@*.xhtml")
-
-    # Get the UUID of the book being processed
-    with book_metadata.open() as json_file:
-        json_data = json.load(json_file)
-        book_uuid = json_data["id"]
 
     # Build map of book UUIDs to slugs that can be used to construct both
     # inter-book and intra-book links
@@ -243,17 +235,18 @@ async def run_async():
         }
 
     async with AsyncJobQueue(20) as queue:
-        for xhtml_file in xhtml_files:
-            doc = etree.parse(str(xhtml_file))
-            update_doc_links(
-                doc,
-                book_uuid,
-                book_slugs_by_uuid
-            )
-            patch_math(doc)
-            for img_filename in get_img_resources(doc, out_dir):
-                queue.put_nowait(fix_jpeg_colorspace(img_filename))  # pragma: no cover
-            doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
+        for book_uuid in book_slugs_by_uuid.keys():
+            for xhtml_file in in_dir.glob(f"{book_uuid}@*.xhtml"):
+                doc = etree.parse(str(xhtml_file))
+                update_doc_links(
+                    doc,
+                    book_uuid,
+                    book_slugs_by_uuid
+                )
+                patch_math(doc)
+                for img_filename in get_img_resources(doc, out_dir):
+                    queue.put_nowait(fix_jpeg_colorspace(img_filename))  # pragma: no cover
+                doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
 def main():  # pragma: no cover
