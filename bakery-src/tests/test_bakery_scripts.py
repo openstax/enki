@@ -1644,11 +1644,12 @@ async def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input = input_dir / l1_page_metadata_name
     book_slugs_input = tmp_path / "book-slugs.json"
     book_slugs_input.write_text(json.dumps(book_slugs))
+    worker_count = 1
 
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input])
+    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, worker_count])
     await gdocify_book.run_async()
 
     page_output = output_dir / page_name
@@ -1845,7 +1846,7 @@ async def test_gdocify_book(tmp_path, mocker):
             </html>
         """.format(rgb, greyscale, png, cmyk, cmyk_no_profile)
         doc = etree.fromstring(xhtml)
-        async with gdocify_book.AsyncJobQueue(5) as queue:
+        async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
                 queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
@@ -1894,7 +1895,7 @@ async def test_gdocify_book(tmp_path, mocker):
         """.format(rgb_broken, greyscale_broken, cmyk, cmyk_broken, png)
         doc = etree.fromstring(xhtml)
         # should only give warnings but should not break
-        async with gdocify_book.AsyncJobQueue(5) as queue:
+        async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
                 queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 

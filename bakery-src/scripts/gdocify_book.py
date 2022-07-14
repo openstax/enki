@@ -383,6 +383,17 @@ async def run_async():
     out_dir = Path(sys.argv[2]).resolve(strict=True)
     book_slugs_file = Path(sys.argv[3]).resolve(strict=True)
 
+    if len(sys.argv) >= 5:
+        worker_count = int(sys.argv[4])
+    else:  # pragma: no cover
+        try:
+            from multiprocessing import cpu_count
+            # Some container configurations prohibit this action
+            worker_count = cpu_count()
+        except Exception:
+            print("Error detecting cpu count, using 4 workers...")
+            worker_count = 4
+
     # Build map of book UUIDs to slugs that can be used to construct both
     # inter-book and intra-book links
     with book_slugs_file.open() as json_file:
@@ -391,7 +402,8 @@ async def run_async():
             elem["uuid"]: elem["slug"] for elem in json_data
         }
 
-    async with AsyncJobQueue(20) as queue:
+    async with AsyncJobQueue(worker_count) as queue:
+        queued_items = set()
         for book_uuid in book_slugs_by_uuid.keys():
             for xhtml_file in in_dir.glob(f"{book_uuid}@*.xhtml"):
                 doc = etree.parse(str(xhtml_file))
@@ -402,7 +414,9 @@ async def run_async():
                 )
                 patch_math(doc)
                 for img_filename in get_img_resources(doc, out_dir):
-                    queue.put_nowait(fix_jpeg_colorspace(img_filename))  # pragma: no cover
+                    if img_filename not in queued_items:  # pragma: no cover
+                        queued_items.add(img_filename)
+                        queue.put_nowait(fix_jpeg_colorspace(img_filename))
                 doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
