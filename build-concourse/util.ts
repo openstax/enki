@@ -303,6 +303,7 @@ function defaultEnv(env: KeyValue, key: string, optional?: boolean) {
 }
 export function loadEnv(pathToJson: string) {
     const env: KeyValue = require(pathToJson)
+    /* istanbul ignore if */
     if (!env.AWS_ACCESS_KEY_ID) {
         // Don't pull the session token from environment if we are loading AWS 
         // keys from the JSON file (anything but local)

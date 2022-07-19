@@ -54,6 +54,8 @@ RUN set -x \
     libxtst6 \
     # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
     xmlstarlet \
+    # ... for zipping docx files
+    zip \
     # For debugging
     vim \
     nano \
