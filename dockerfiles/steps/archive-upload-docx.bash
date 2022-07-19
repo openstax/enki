@@ -1,3 +1,7 @@
+#
+# NOTE: This file is currently unused and may be deleted in the future.
+#
+
 # LCOV_EXCL_START
 set +x
 echo "$GOOGLE_SERVICE_ACCOUNT_CREDENTIALS" > /tmp/service_account_credentials.json

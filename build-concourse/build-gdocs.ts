@@ -1,3 +1,8 @@
+/**
+ * NOTE: This file is currently unused and may be deleted in the future.
+ */
+
+
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { GIT_GDOC_STEPS, buildLookUpBook, GIT_OR_ARCHIVE } from './step-definitions'
