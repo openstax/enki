@@ -366,18 +366,16 @@
             ],
             "requiredEnv": []
         },
-        "git-upload-docx": {
+        "git-docx-meta": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_DOCX"
             ],
             "outputDirs": [
-                "IO_GDOCIFIED"
+                "IO_ARTIFACTS"
             ],
             "requiredEnv": [
-                "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS",
-                "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
+                "CORGI_ARTIFACTS_S3_BUCKET"
             ]
         },
         "archive-mathify": {

@@ -73,7 +73,7 @@ set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], out
 // GIT_GDOC_STEPS
 set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED], env: {}})
 set({name: 'git-convert-docx', inputs: [IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
-set({name: 'git-upload-docx', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.GDOCIFIED], env: {GOOGLE_SERVICE_ACCOUNT_CREDENTIALS: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'git-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // ARCHIVE_PDF_STEPS
 set({name: 'archive-mathify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
@@ -154,7 +154,8 @@ export const CLI_GIT_GDOC_STEPS = [
 
 // TODO: Missing upload step, TBD
 export const GIT_GDOC_STEPS = [
-    ...CLI_GIT_GDOC_STEPS
+    ...CLI_GIT_GDOC_STEPS,
+    get('git-docx-meta'),
 ]
 
 export const CLI_ARCHIVE_PDF_STEPS = [
