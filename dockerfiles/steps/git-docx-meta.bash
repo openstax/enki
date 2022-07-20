@@ -1,7 +1,5 @@
-parse_book_dir
-
-pdf_filename=$(printf %s "$ARG_TARGET_PDF_FILENAME" | jq -sRr @uri) # URI-encode because book or branch name could have '#'
-zip_filename=$(echo "$pdf_filename" | awk -F '.' '{ print $1"-docx.zip" }')
+zip_filename="$(cat "$IO_BOOK/repo")-$(cat "$IO_BOOK/version")-git-$(cat "$IO_BOOK/job_id")-docx.zip"
+zip_filename="$(printf %s "$zip_filename" | jq -sRr @uri)"  # URI-encode because book or branch name could have '#'
 zip_url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$zip_filename"
 
 try pushd "$IO_DOCX/docx"
