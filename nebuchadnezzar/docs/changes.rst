@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.16.0
+
+- Allow italics, sub, sup in titles
+
 9.15.0
 
 - Ensure all IDs are unique and remove randomly-generated IDs
