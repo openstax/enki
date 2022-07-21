@@ -359,6 +359,7 @@
         },
         "git-convert-docx": {
             "inputDirs": [
+                "IO_BOOK",
                 "IO_GDOCIFIED"
             ],
             "outputDirs": [

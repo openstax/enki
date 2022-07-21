@@ -72,7 +72,7 @@ set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], out
 
 // GIT_GDOC_STEPS
 set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED], env: {}})
-set({name: 'git-convert-docx', inputs: [IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
+set({name: 'git-convert-docx', inputs: [IO.BOOK, IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
 set({name: 'git-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // ARCHIVE_PDF_STEPS
