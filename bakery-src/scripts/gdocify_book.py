@@ -117,7 +117,7 @@ CHARLISTS = {
         "\u2add\u2ade\u2adf\u2ae0\u2ae1\u2ae2\u2ae3\u2ae4\u2ae5\u2ae6\u2ae7"
         "\u2ae8\u2ae9\u2aea\u2aeb\u2aec\u2aed\u2aee\u2aef\u2af0\u2af1\u2af2"
         "\u2af3\u2af4\u2af5\u2af6\u2af7\u2af8\u2af9\u2afa\u2afb\u2afc\u2afd"
-        "\u2afe\u2aff\u2b45\u2b46\ufe37\ufe38"
+        "\u2afe\u2aff\u2b45\u2b46\ufe37\ufe38\u2013"
     ),
     "mo_multi": [
         "!!", "!=", "&&", "**", "*=", "++", "+=", "--", "-=", "->", "..",
@@ -213,13 +213,14 @@ def patch_math(doc):
     # Pandoc's handles math operators more strictly than we expected. Use
     # a whitelist formed from https://github.com/jgm/texmath
     # Readers/TeX/Commands.hs and Readers/MathML/MMLDict.hs
-    # Convert mo tags that contain invalid operators into mtext
+    # Convert mo tags that contain invalid operators into other tags
     for node in doc.xpath(
             '//x:mo',
             namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         if node.text is not None:
             # https://www.w3.org/Math/draft-spec/chapter2.html#fund.collapse
+            # NOTE: do not trim \xa0 (&nbsp;). It causes issues for mo tags
             text = node.text.strip("\x20\x09\x0d\x0a")
             text_len = len(text)
             if not ((text_len == 1 and text in CHARLISTS["mo_single"]) or
@@ -236,7 +237,9 @@ def patch_math(doc):
                     if all(s.isnumeric() for s in re.split("[,.]", text)):
                         node_type = "mn"
                     elif (not is_negative and (
+                            # Prefer mtext for whitespace where possible
                             text == "\xa0" or
+                            # Prefer mtext for content like '___'
                             (text_len >= 3 and
                              all(c == text[0] for c in text)))):
                         node_type = "mtext"
@@ -244,6 +247,8 @@ def patch_math(doc):
                                  for char in CHARLISTS["mi_blacklist"]):
                         node_type = "mi"
                     else:
+                        # mtext last resort: problematic characters include
+                        # \u2001, \u2003, \u2004, \u2005, \u200a, and \u200b
                         node_type = "mtext"
 
                 log_text = node.text.replace("\n", "\\n")
