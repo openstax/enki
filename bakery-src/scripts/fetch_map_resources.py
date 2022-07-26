@@ -27,6 +27,18 @@ def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name):
     with json_file.open(mode='w') as outfile:
         json.dump(data, outfile)
 
+def rename(filename_to_data, resource_original_filepath):
+    sha1, s3_md5 = utils.get_checksums(
+        str(resource_original_filepath)
+    )
+    mime_type = utils.get_mime_type(str(resource_original_filepath))
+
+    if sha1 is None:
+        return None
+
+    filename_to_data[resource_original_filepath.name] = \
+        (sha1, s3_md5, mime_type, resource_original_filepath)
+    return f"../{RESOURCES_DIR_NAME}/{sha1}"
 
 def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
@@ -55,21 +67,34 @@ def main():
             resource_original_filepath = \
                 (cnxml_file.parent / resource_original_src).resolve()
 
-            sha1, s3_md5 = utils.get_checksums(
-                str(resource_original_filepath)
-            )
-            mime_type = utils.get_mime_type(str(resource_original_filepath))
-
-            if sha1 is None:
+            new_path = rename(filename_to_data, resource_original_filepath)
+            if new_path is None:
                 print(
-                    f"WARNING: Resource file '{resource_original_filepath.name}' not found",
+                    f"WARNING: Resource file '{resource_original_filepath}' not found",
                     file=sys.stderr
                 )
                 continue
 
-            filename_to_data[resource_original_filepath.name] = \
-                (sha1, s3_md5, mime_type, resource_original_filepath)
-            node.attrib["src"] = f"../{RESOURCES_DIR_NAME}/{sha1}"
+            node.attrib["src"] = new_path
+
+        # CNX books sometimes link to files like MP3 in the Basic Elements of Music
+        for node in doc.xpath(
+                '//x:link[@resource]',
+                namespaces={"x": "http://cnx.rice.edu/cnxml"}
+        ):
+            resource_original_src = node.attrib["resource"]
+            # This is a HACK. It seems the archive-to-git migration blindly moves all non-index.cnxml files into a "media" directory.
+            resource_original_filepath = (original_resources_dir / resource_original_src).resolve()
+            new_path = rename(filename_to_data, resource_original_filepath)
+            if new_path is None:
+                print(
+                    f"WARNING: Resource file '{resource_original_filepath}' not found",
+                    file=sys.stderr
+                )
+                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found. '{cnxml_file.parent}' and '{resource_original_src}'")
+                continue
+
+            node.attrib["resource"] = new_path
 
         for node in doc.xpath(
                 '//x:iframe',

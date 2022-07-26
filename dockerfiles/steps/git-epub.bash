@@ -174,8 +174,8 @@ for slug in ${all_slugs[@]}; do
 done
 
 
-extract_html_files_xpath='//*[@href]'
-extract_resources_xpath='//h:img[@src]'
+extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]'
+extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href' # Music book links to MP3 & SWF files
 
 echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
@@ -215,7 +215,7 @@ for slug in ${all_slugs[@]}; do
         counter=$((counter+1))
 
         set +e
-        resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '@src' --nl < $output_xhtml_file)
+        resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '.' --nl < $output_xhtml_file)
         set -e
 
         resources=()
@@ -233,12 +233,12 @@ for slug in ${all_slugs[@]}; do
             media_type=$(file --brief --mime-type $resources_root/$resource_filename)
             extension='mimetypenotfound'
             case "$media_type" in
-                image/jpeg)
-                    extension='jpeg'
-                ;;
-                image/png)
-                    extension='png'
-                ;;
+                application/x-shockwave-flash) extension='swf';;
+                image/jpeg)         extension='jpeg';;
+                image/png)          extension='png';;
+                audio/mpeg)         extension='mpg';;
+                application/pdf)    extension='pdf';;
+                audio/midi)         extension='midi';;
                 *)
                     echo -e "BUG: Add an extension for this mimetype: '$media_type' to this script"
                     exit 2
