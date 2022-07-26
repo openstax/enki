@@ -3,15 +3,16 @@ try pushd "$BAKERY_SCRIPTS_ROOT/scripts/"
 try "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
 try popd
 try cp -r "$IO_GDOCIFIED/." "$IO_DOCX"
-book_dir="$IO_DOCX/content"
-target_dir="$IO_DOCX/docx"
+book_slugs_file="$(realpath "$IO_GDOCIFIED/book-slugs.json")"
+book_dir="$(realpath "$IO_DOCX/content")"
+target_dir="$(realpath "$IO_DOCX/docx")"
 try mkdir -p "$target_dir"
 try cd "$book_dir"
 
 col_sep='|'
 while read -r line; do
     IFS=$col_sep read -r slug uuid <<< "$line"
-    current_target="$(realpath "$target_dir/$slug")"
+    current_target="$target_dir/$slug"
     [[ -d "$current_target" ]] || mkdir "$current_target"
     for xhtmlfile in ./"$uuid@"*.xhtml; do
         xhtmlfile_basename=$(basename "$xhtmlfile")
@@ -25,6 +26,6 @@ while read -r line; do
         try xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
         try pandoc --fail-if-warnings --reference-doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
-done < <(try jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$IO_GDOCIFIED/content/book-slugs.json")
+done < <(try jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 try "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
 # LCOV_EXCL_STOP

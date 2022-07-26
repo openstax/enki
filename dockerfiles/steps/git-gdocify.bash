@@ -2,7 +2,7 @@
 [[ -d "$IO_GDOCIFIED/content" ]] || mkdir "$IO_GDOCIFIED/content"
 try cp -R "$IO_RESOURCES/." "$IO_GDOCIFIED/resources"
 
-book_slugs_file="$IO_GDOCIFIED/content/book-slugs.json"
+book_slugs_file="$IO_GDOCIFIED/book-slugs.json"
 
 jo_args=''
 
