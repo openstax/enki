@@ -33,3 +33,10 @@ try jo -a $jo_args > "$book_slugs_file"
 
 try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
 try cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"
+
+lang="$(try jq -r '.language' "$IO_JSONIFIED/"*.toc.json | uniq)"
+# If there was more than one result from uniq, there were different languages
+if [[ $(wc -l <<< "$lang") != 1 ]]; then
+    die "Language mismatch between book slugs."  # LCOV_EXCL_LINE
+fi
+echo "$lang" > "$IO_GDOCIFIED/language"

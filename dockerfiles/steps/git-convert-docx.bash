@@ -6,6 +6,8 @@ try cp -r "$IO_GDOCIFIED/." "$IO_DOCX"
 book_slugs_file="$(realpath "$IO_GDOCIFIED/book-slugs.json")"
 book_dir="$(realpath "$IO_DOCX/content")"
 target_dir="$(realpath "$IO_DOCX/docx")"
+lang="$(cat "$IO_GDOCIFIED/language")"
+reference_doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference-$lang.docx"
 try mkdir -p "$target_dir"
 try cd "$book_dir"
 
@@ -24,7 +26,7 @@ while read -r line; do
 
         say "Converting to docx: $xhtmlfile_basename"
         try xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
-        try pandoc --fail-if-warnings --reference-doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference.docx" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
+        try pandoc --fail-if-warnings --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(try jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 try "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
