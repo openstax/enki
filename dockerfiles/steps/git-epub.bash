@@ -1,5 +1,7 @@
 parse_book_dir
 
+# set -Eeuxo pipefail
+
 # Get a list of the book slug names
 # We assume there will be a file named "{slug}.toc.xhtml"
 
@@ -122,9 +124,7 @@ replace_colons() {
 
 xpath_sel="//*[@slug]" # All the book entries
 while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
-    IFS=$col_sep read -r slug _ <<< "$line"
-
-    all_slugs+=($slug)
+    all_slugs+=($line)
 
 done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --nl < $fetch_root/META-INF/books.xml)
 
@@ -170,7 +170,7 @@ for slug in ${all_slugs[@]}; do
   </metadata>
   <manifest>' > $opf_file
 
-  echo "  <item properties=\"nav\" id=\"nav\" href=\"$contents/$slug.toc.xhtml\" media-type=\"application/xhtml+xml\" />" >> $opf_file
+  echo "  <item properties=\"nav\" id=\"nav\" href=\"./$slug.toc.xhtml\" media-type=\"application/xhtml+xml\" />" >> $opf_file
 done
 
 
@@ -182,8 +182,6 @@ for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
-    resource_files=()
-
     echo "Find all hrefs in the ToC file"
     html_files=()
     set +e
@@ -191,9 +189,10 @@ for slug in ${all_slugs[@]}; do
     set -e
 
     while read -r line; do
-        IFS=$col_sep read -r html_file _ <<< "$line"
-        html_files+=($html_file)
+        html_files+=($line)
     done < <(echo $hrefs)
+
+    all_resources=()
 
     counter=1
     for html_file in ${html_files[@]}; do
@@ -218,15 +217,13 @@ for slug in ${all_slugs[@]}; do
         resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '.' --nl < $output_xhtml_file)
         set -e
 
-        resources=()
+        this_resources=()
         while read -r line; do
-            IFS=$col_sep read -r resource _ <<< "$line"
-            resources+=($resource)
+            this_resources+=($line)
         done < <(echo $resources_str)
 
-
-        # Add all the resource files (while adding a file extension to the resource file)
-        for resource_href in ${resources[@]}; do
+        # Add a file extension to the resource file in the XHTML file
+        for resource_href in ${this_resources[@]}; do
             resource_filename=$(basename $resource_href)
             resource_file=$epub_root/resources/$resource_filename
 
@@ -245,16 +242,30 @@ for slug in ${all_slugs[@]}; do
                 ;;
             esac
 
+            all_resources+=("$resource_filename.$extension")
+
             # Add the extension into the XHTML file
             sed --in-place "s/$resource_filename\"/$resource_filename.$extension\"/g" $output_xhtml_file # search with the quotes so we don't double-replace an image
 
             try cp $resources_root/$resource_filename $resource_file.$extension
-            resource_files+=($resource_file.$extension)
-            echo "  <item id=\"idresource_$counter\" href=\"../resources/$resource_filename.$extension\" media-type=\"$media_type\"/>" >> $opf_file
             counter=$((counter+1))
         done
 
     done
+
+    # Remove duplicate resources
+    all_resources=$(echo $all_resources | sort - | uniq)
+
+    # Add all the resource files (while adding a file extension to the resource file)
+    for resource_filename in ${all_resources[@]}; do
+        resource_file=$epub_root/resources/$resource_filename
+
+        media_type=$(file --brief --mime-type $resource_file)
+
+        echo "  <item id=\"idresource_$counter\" href=\"../resources/$resource_filename\" media-type=\"$media_type\"/>" >> $opf_file
+        counter=$((counter+1))
+    done
+
 
     echo '</manifest>' >> $opf_file
 
