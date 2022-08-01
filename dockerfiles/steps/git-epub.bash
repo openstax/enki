@@ -253,11 +253,21 @@ for slug in ${all_slugs[@]}; do
 
     done
 
-    # Remove duplicate resources
-    all_resources=$(echo $all_resources | sort - | uniq)
+    # Remove duplicate resources : https://stackoverflow.com/a/54797762
+    all_resources_set=()
+    unset dupes # ensure it's empty
+    declare -A dupes
+    for i in "${all_resources[@]}"; do
+        if [[ -z ${dupes[$i]} ]]; then
+            all_resources_set+=("$i")
+        fi
+        dupes["$i"]=1
+    done
+    unset dupes # optional
+    unset all_resources
 
     # Add all the resource files (while adding a file extension to the resource file)
-    for resource_filename in ${all_resources[@]}; do
+    for resource_filename in ${all_resources_set[@]}; do
         resource_file=$epub_root/resources/$resource_filename
 
         media_type=$(file --brief --mime-type $resource_file)
