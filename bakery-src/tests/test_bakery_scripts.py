@@ -1529,6 +1529,7 @@ async def test_gdocify_book(tmp_path, mocker):
             data-page-slug="l1-page-slug"
             data-page-fragment="foobar"
             class="target-chapter">Intra-book module link with fragment</a></p>
+        <p><iframe src="http://www.example.com/"></iframe></p>
         <math>
             <mrow>
                 <mtext mathvariant="bold-italic">x</mtext>
@@ -1767,6 +1768,12 @@ async def test_gdocify_book(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(msub_nodes) == 1
+
+    unwanted_nodes = updated_doc.xpath(
+        '//x:iframe',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    )
+    assert len(unwanted_nodes) == 0
 
     # Test fix_jpeg_colorspace
 
