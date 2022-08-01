@@ -41,6 +41,14 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
   exclude-result-prefixes="h"
   version="1.0">
 
+<!-- Handle case when the CNXML link points to a collection instead of a module. The actual change _should_ be somewhere in neb assemble but I could not find it -->
+<xsl:template match="h:a[starts-with(@href, &quot;/col&quot;)]/@href">
+    <xsl:attribute name="href">
+        <xsl:text>https://cnx.org/content/</xsl:text>
+        <xsl:value-of select="substring-after(., &quot;/&quot;)"/>
+    </xsl:attribute>
+</xsl:template>
+
 <xsl:template match="h:a[starts-with(@href, &quot;/contents/&quot;)]/@href">
     <xsl:attribute name="href">
         <xsl:text>https://cnx.org/content/</xsl:text>
