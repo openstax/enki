@@ -257,6 +257,14 @@ def patch_math(doc):
                 node.tag = node_type
 
 
+def remove_iframes(doc):
+    for node in doc.xpath(
+            '//x:iframe',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
+    ):
+        node.getparent().remove(node)
+
+
 def _convert_cmyk2rgb_embedded_profile(img_filename):
     """ImageMagick commandline to convert from CMYK with
     an existing embedded icc profile"""
@@ -418,6 +426,7 @@ async def run_async():
                     book_slugs_by_uuid
                 )
                 patch_math(doc)
+                remove_iframes(doc)
                 for img_filename in get_img_resources(doc, out_dir):
                     if img_filename not in queued_items:  # pragma: no cover
                         queued_items.add(img_filename)
