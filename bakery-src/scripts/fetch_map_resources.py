@@ -60,8 +60,8 @@ def main():
     for cnxml_file in cnxml_files:
         doc = etree.parse(str(cnxml_file))
         for node in doc.xpath(
-                '//x:image',
-                namespaces={"x": "http://cnx.rice.edu/cnxml"}
+                '//c:image',
+                namespaces={"c": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["src"]
             resource_original_filepath = \
@@ -77,10 +77,10 @@ def main():
 
             node.attrib["src"] = new_path
 
-        # CNX books sometimes link to files like MP3 in the Basic Elements of Music
+        # EPUB: CNX books sometimes link to files like MP3 in the Basic Elements of Music
         for node in doc.xpath(
-                '//x:link[@resource]',
-                namespaces={"x": "http://cnx.rice.edu/cnxml"}
+                '//c:link[@resource]',
+                namespaces={"c": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["resource"]
             # This is a HACK. It seems the archive-to-git migration blindly moves all non-index.cnxml files into a "media" directory.
@@ -96,9 +96,28 @@ def main():
 
             node.attrib["resource"] = new_path
 
+        # EPUB: Some books have Adobe Flash content which is no longer used on the web
         for node in doc.xpath(
-                '//x:iframe',
-                namespaces={"x": "http://cnx.rice.edu/cnxml"}
+                '//c:flash[@src][not(starts-with(@src, "."))]',
+                namespaces={"c": "http://cnx.rice.edu/cnxml"}
+        ):
+            resource_original_src = node.attrib["src"]
+            resource_original_filepath = (original_resources_dir / resource_original_src).resolve()
+            new_path = rename(filename_to_data, resource_original_filepath)
+            if new_path is None:
+                print(
+                    f"WARNING: Resource file '{resource_original_filepath}' not found",
+                    file=sys.stderr
+                )
+                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found. '{cnxml_file.parent}' and '{resource_original_src}'")
+                continue
+
+            node.attrib["src"] = new_path
+
+
+        for node in doc.xpath(
+                '//c:iframe',
+                namespaces={"c": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["src"]
 

@@ -362,7 +362,8 @@
                 "IO_DISASSEMBLE_LINKED"
             ],
             "outputDirs": [
-                "IO_EPUB"
+                "IO_EPUB",
+                "IO_ARTIFACTS"
             ],
             "requiredEnv": []
         },

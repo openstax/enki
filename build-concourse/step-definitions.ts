@@ -72,7 +72,7 @@ set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], out
 
 // GIT_EPUB_STEPS
 set({name: 'git-assemble-epub', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {}})
-set({name: 'git-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.EPUB], env: {}})
+set({name: 'git-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: {}})
 set({name: 'git-epub-validate', inputs: [IO.EPUB], outputs: [], env: {}})
 
 // ARCHIVE_PDF_STEPS

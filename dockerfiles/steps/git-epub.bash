@@ -6,7 +6,7 @@ parse_book_dir
 # We assume there will be a file named "{slug}.toc.xhtml"
 
 fetch_root=$IO_FETCHED
-disassembled_root=$IO_DISASSEMBLE_LINKED
+IO_DISASSEMBLE_LINKED=$IO_DISASSEMBLE_LINKED
 resources_root=$IO_RESOURCES
 epub_root=$IO_EPUB
 all_slugs=()
@@ -107,7 +107,7 @@ get_item_properties='
 
 <xsl:template match="/">
     <xsl:if test=".//m:math"><xsl:text>mathml </xsl:text></xsl:if>
-    <xsl:if test=".//h:iframe"><xsl:text>remote-resources </xsl:text></xsl:if>
+    <xsl:if test=".//h:iframe|.//h:object/h:embed"><xsl:text>remote-resources </xsl:text></xsl:if>
     <xsl:if test=".//h:script"><xsl:text>scripted </xsl:text></xsl:if>
 </xsl:template>
 </xsl:stylesheet>
@@ -149,7 +149,7 @@ echo '</rootfiles></container>' >> $epub_root/META-INF/container.xml
 
 echo "Converting the ToC files"
 for slug in ${all_slugs[@]}; do
-    input_toc_file=$disassembled_root/$slug.toc.xhtml
+    input_toc_file=$IO_DISASSEMBLE_LINKED/$slug.toc.xhtml
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
     echo $rewrite_toc_xsl | try xsltproc --output $epub_toc_file /dev/stdin $input_toc_file
@@ -160,22 +160,30 @@ for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
-    echo '<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:identifier id="uid">openstax.org.dummy-book-repo.1.0</dc:identifier>
-    <dc:title>TODO Extract the title for the book</dc:title>
-    <dc:creator>Test user</dc:creator>
-    <dc:language>en</dc:language>
-    <meta property="dcterms:modified">2020-01-01T00:00:00Z</meta>
-  </metadata>
-  <manifest>' > $opf_file
+    book_title=$(try jq -r '.title' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
+    book_lang=$(try jq -r '.language' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
+    revised_date=$(try jq -r '.revised' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
 
-  echo "  <item properties=\"nav\" id=\"nav\" href=\"./$slug.toc.xhtml\" media-type=\"application/xhtml+xml\" />" >> $opf_file
+    # Remove the timezone from the revised_date
+    revised_date=${revised_date/+00:00/Z}
+
+    cat << EOF > $opf_file
+<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>$book_title</dc:title>
+    <dc:language>$book_lang</dc:language>
+    <meta property="dcterms:modified">$revised_date</meta>
+    <dc:identifier id="uid">dummy-id.$slug</dc:identifier>
+  </metadata>
+  <manifest>
+    <item properties="nav" id="nav" href="./$slug.toc.xhtml" media-type="application/xhtml+xml" />
+EOF
+
 done
 
 
 extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]'
-extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href' # Music book links to MP3 & SWF files
+extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
 
 echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
@@ -199,7 +207,7 @@ for slug in ${all_slugs[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
 
         # Copy the file over and clean it up a bit
-        input_xhtml_file=$disassembled_root/$html_file
+        input_xhtml_file=$IO_DISASSEMBLE_LINKED/$html_file
         output_xhtml_file=$epub_root/contents/$html_file
         echo $rewrite_xhtml_xsl | try xsltproc --output $output_xhtml_file /dev/stdin $input_xhtml_file
 
@@ -290,4 +298,10 @@ for slug in ${all_slugs[@]}; do
     echo '</spine>' >> $opf_file
 
     echo '</package>' >> $opf_file
+
+    # Zip up the epub and store it in the artifacts dir
+    epub_file=$IO_ARTIFACTS/$slug.epub
+    [[ -f $epub_file ]] && rm $epub_file
+    try cd $epub_root
+    try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources
 done
