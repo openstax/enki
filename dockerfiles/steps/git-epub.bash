@@ -11,88 +11,6 @@ resources_root=$IO_RESOURCES
 epub_root=$IO_EPUB
 all_slugs=()
 
-rewrite_toc_xsl='
-<xsl:stylesheet 
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:epub="http://www.idpf.org/2007/ops"
-  xmlns:h="http://www.w3.org/1999/xhtml"
-  xmlns="http://www.w3.org/1999/xhtml"
-  exclude-result-prefixes="h"
-  version="1.0">
-
-<!-- Unwrap chapter links and combine titles into a single span -->
-<xsl:template match="h:a[starts-with(@href, &quot;#&quot;)]">
-    <span>
-        <xsl:apply-templates select="h:span/node()"/>
-    </span>
-</xsl:template>
-<xsl:template match="h:a[not(starts-with(@href, &quot;#&quot;)) and h:span]">
-    <xsl:copy>
-        <xsl:apply-templates select="@*"/>
-        <span>
-            <xsl:apply-templates select="h:span/node()"/>
-        </span>
-    </xsl:copy>
-</xsl:template>
-
-<!-- Remove extra attributes -->
-<xsl:template match="@cnx-archive-shortid"/>
-<xsl:template match="@cnx-archive-uri"/>
-<xsl:template match="@itemprop"/>
-
-<!-- Add the epub:type="nav" attribute -->
-<xsl:template match="h:nav">
-    <nav epub:type="toc" id="toc">
-        <xsl:apply-templates select="node()"/>
-    </nav>
-</xsl:template>
-
-<!-- Recursively copy what is in the source document -->
-<xsl:template match="@*|node()">
-    <xsl:copy>
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:copy>
-</xsl:template>
-</xsl:stylesheet>
-'
-
-rewrite_xhtml_xsl='
-<xsl:stylesheet 
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:epub="http://www.idpf.org/2007/ops"
-  xmlns:m="http://www.w3.org/1998/Math/MathML"
-  xmlns:h="http://www.w3.org/1999/xhtml"
-  xmlns="http://www.w3.org/1999/xhtml"
-  exclude-result-prefixes="h"
-  version="1.0">
-
-<xsl:template match="@itemprop"/>
-<xsl:template match="@valign"/>
-<xsl:template match="@group-by"/>
-<xsl:template match="@use-subtitle"/>
-<xsl:template match="h:script"/>
-<xsl:template match="h:style"/>
-
-<!-- re-namespace MathML elements -->
-<xsl:template match="h:math|h:math//*">
-    <xsl:element name="{local-name()}" namespace="http://www.w3.org/1998/Math/MathML">
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:element>
-</xsl:template>
-
-<!-- Remove annotation-xml elements because the validator requires an optional "name" attribute -->
-<!-- This element is added by https://github.com/openstax/cnx-transforms/blob/85cd5edd5209fcb4c4d72698836a10e084b9ba00/cnxtransforms/xsl/content2presentation-files/cnxmathmlc2p.xsl#L49 -->
-<xsl:template match="m:math//m:annotation-xml|h:math//h:annotation-xml"/>
-
-<!-- Recursively copy what is in the source document -->
-<xsl:template match="@*|node()">
-    <xsl:copy>
-        <xsl:apply-templates select="@*|node()"/>
-    </xsl:copy>
-</xsl:template>
-</xsl:stylesheet>
-'
-
 get_item_properties='
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -152,7 +70,51 @@ for slug in ${all_slugs[@]}; do
     input_toc_file=$IO_DISASSEMBLE_LINKED/$slug.toc.xhtml
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
-    echo $rewrite_toc_xsl | try xsltproc --output $epub_toc_file /dev/stdin $input_toc_file
+    cat << EOF | xsltproc --output $epub_toc_file /dev/stdin $input_toc_file
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:epub="http://www.idpf.org/2007/ops"
+  xmlns:h="http://www.w3.org/1999/xhtml"
+  xmlns="http://www.w3.org/1999/xhtml"
+  exclude-result-prefixes="h"
+  version="1.0">
+
+<!-- Unwrap chapter links and combine titles into a single span -->
+<xsl:template match="h:a[starts-with(@href, &quot;#&quot;)]">
+    <span>
+        <xsl:apply-templates select="h:span/node()"/>
+    </span>
+</xsl:template>
+<xsl:template match="h:a[not(starts-with(@href, &quot;#&quot;)) and h:span]">
+    <xsl:copy>
+        <xsl:apply-templates select="@*"/>
+        <span>
+            <xsl:apply-templates select="h:span/node()"/>
+        </span>
+    </xsl:copy>
+</xsl:template>
+
+<!-- Remove extra attributes -->
+<xsl:template match="@cnx-archive-shortid"/>
+<xsl:template match="@cnx-archive-uri"/>
+<xsl:template match="@itemprop"/>
+
+<!-- Add the epub:type="nav" attribute -->
+<xsl:template match="h:nav">
+    <nav epub:type="toc" id="toc">
+        <xsl:apply-templates select="node()"/>
+    </nav>
+</xsl:template>
+
+<!-- Recursively copy what is in the source document -->
+<xsl:template match="@*|node()">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+</xsl:template>
+</xsl:stylesheet>
+EOF
+
 done
 
 echo "Starting the OPF files for each book"
@@ -209,7 +171,42 @@ for slug in ${all_slugs[@]}; do
         # Copy the file over and clean it up a bit
         input_xhtml_file=$IO_DISASSEMBLE_LINKED/$html_file
         output_xhtml_file=$epub_root/contents/$html_file
-        echo $rewrite_xhtml_xsl | try xsltproc --output $output_xhtml_file /dev/stdin $input_xhtml_file
+        cat << EOF | try xsltproc --output $output_xhtml_file /dev/stdin $input_xhtml_file
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:epub="http://www.idpf.org/2007/ops"
+  xmlns:m="http://www.w3.org/1998/Math/MathML"
+  xmlns:h="http://www.w3.org/1999/xhtml"
+  xmlns="http://www.w3.org/1999/xhtml"
+  exclude-result-prefixes="h"
+  version="1.0">
+
+<xsl:template match="@itemprop"/>
+<xsl:template match="@valign"/>
+<xsl:template match="@group-by"/>
+<xsl:template match="@use-subtitle"/>
+<xsl:template match="h:script"/>
+<xsl:template match="h:style"/>
+
+<!-- re-namespace MathML elements -->
+<xsl:template match="h:math|h:math//*">
+    <xsl:element name="{local-name()}" namespace="http://www.w3.org/1998/Math/MathML">
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:element>
+</xsl:template>
+
+<!-- Remove annotation-xml elements because the validator requires an optional "name" attribute -->
+<!-- This element is added by https://github.com/openstax/cnx-transforms/blob/85cd5edd5209fcb4c4d72698836a10e084b9ba00/cnxtransforms/xsl/content2presentation-files/cnxmathmlc2p.xsl#L49 -->
+<xsl:template match="m:math//m:annotation-xml|h:math//h:annotation-xml"/>
+
+<!-- Recursively copy what is in the source document -->
+<xsl:template match="@*|node()">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+</xsl:template>
+</xsl:stylesheet>
+EOF
 
         item_properties=$(echo $get_item_properties | try xsltproc /dev/stdin $output_xhtml_file | xargs)
 
@@ -280,7 +277,9 @@ for slug in ${all_slugs[@]}; do
 
         media_type=$(file --brief --mime-type $resource_file)
 
-        echo "  <item id=\"idresource_$counter\" href=\"../resources/$resource_filename\" media-type=\"$media_type\"/>" >> $opf_file
+        cat << EOF >> $opf_file
+    <item id="idresource_$counter" href="../resources/$resource_filename" media-type="$media_type"/>
+EOF
         counter=$((counter+1))
     done
 
@@ -289,15 +288,21 @@ for slug in ${all_slugs[@]}; do
 
     # Optionally add the spine (not in order)
     echo "Adding spine"
-    echo '<spine>' >> $opf_file
-    echo "  <itemref idref=\"nav\"/>" >> $opf_file
+    cat << EOF >> $opf_file
+<spine><itemref idref="nav"/>
+EOF
+
     for html_file in ${html_files[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
-        echo "  <itemref idref=\"$html_file_id\"/>" >> $opf_file
+        cat << EOF >> $opf_file
+    <itemref idref="$html_file_id"/>
+EOF
     done
-    echo '</spine>' >> $opf_file
 
-    echo '</package>' >> $opf_file
+    cat << EOF >> $opf_file
+    </spine>
+    </package>
+EOF
 
     # Zip up the epub and store it in the artifacts dir
     epub_file=$IO_ARTIFACTS/$slug.epub
