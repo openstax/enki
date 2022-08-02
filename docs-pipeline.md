@@ -10,6 +10,7 @@ Several of these can be clumped together instead of being separate and would red
       * [fetch-update-metadata](#fetch-update-metadata)
       * [fetch-map-resources](#fetch-map-resources)
    * [git-assemble](#git-assemble)
+   * [git-assemble-meta](#git-assemble-meta)
    * [git-bake](#git-bake)
    * [git-bake-meta](#git-bake-meta)
    * [git-link](#git-link)
@@ -23,8 +24,8 @@ Several of these can be clumped together instead of being separate and would red
 Listed here is the pipeline steps grouped together into steps that could be combined.
 
 1. [git-fetch](#git-fetch): Clone URL & checkout commit
-1. [git-fetch-metadata](#git-fetch-metadata), [git-assemble](#git-assemble)
-    - Replace `<md:metadata>` and move images to `../resources/{sha}`, Convert CNXML to HTML and assemble all the files together
+1. [git-fetch-metadata](#git-fetch-metadata), [git-assemble](#git-assemble), [git-assemble-meta](#git-assemble-meta)
+    - Replace `<md:metadata>` and move images to `../resources/{sha}`, Convert CNXML to HTML and assemble all the files together, extract abstract & revised date for each Page
 1. [git-bake](#git-bake)
 1. [git-bake-meta](#git-bake-meta), [git-link](#git-link)
     - Create a book metadata JSON file with slugs and abstracts, add attributes to links for REX so it knows the canonical book
@@ -93,6 +94,24 @@ This step performs several things to convert every collection.xml file into a gi
 1. Some RNG to validate the root elements (unit, chapter, page).
 
 
+## git-assemble-meta
+
+Generates a `{slug}.assembled-metadata.json` file which contains the abstract and revised date for each Page:
+
+```js
+{
+    "{page_uuid}": { abstract: "...", revised: "2022-..." },
+    "{page_uuid}": { abstract: "...", revised: "2022-..." },
+    "{page_uuid}": { abstract: "...", revised: "2022-..." }
+}
+```
+
+
+**Validation:**
+
+A JSONSchema for each JSON file.
+
+
 ## git-bake
 
 CS-Styles takes it over from here and bakes the big XHTML file using a Ruby recipe
@@ -105,7 +124,7 @@ CS-Styles takes it over from here and bakes the big XHTML file using a Ruby reci
 
 ## git-bake-meta
 
-Create a `{slug}.baked-metadata.json` which contains...
+Create a `{slug}.baked-metadata.json` which contains everything in `{slug}.assembled-metadata.json` plus a book entry:
 
 ```js
 {
