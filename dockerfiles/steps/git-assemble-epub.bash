@@ -4,6 +4,38 @@
 
 
 repo_root=$IO_FETCH_META
+
+
+# Tidy up the CNXML (by removing thumbnail attributes)
+shopt -s globstar
+for filename in **/*.cnxml; do # Whitespace-safe and recursive
+    
+    cat << EOF | try xsltproc --output "$filename" /dev/stdin "$filename"
+        <xsl:stylesheet 
+        xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+        xmlns:epub="http://www.idpf.org/2007/ops"
+        xmlns:m="http://www.w3.org/1998/Math/MathML"
+        xmlns:h="http://www.w3.org/1999/xhtml"
+        xmlns:c="http://cnx.rice.edu/cnxml" 
+        xmlns="http://www.w3.org/1999/xhtml"
+        version="1.0">
+
+        <!-- Discard image thumbnails -->
+        <xsl:template match="c:image/@thumbnail" />
+
+        <!-- Identity Transform -->
+        <xsl:template match="@*|node()">
+            <xsl:copy>
+                <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+        </xsl:template>
+        </xsl:stylesheet>
+EOF
+
+done
+shopt -u globstar
+
+
 col_sep='|'
 # https://stackoverflow.com/a/31838754
 xpath_sel="//*[@slug]" # All the book entries
