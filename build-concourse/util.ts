@@ -11,7 +11,8 @@ export enum JobType {
     PDF = 1,
     DIST_PREVIEW = 2,
     GIT_PDF = 3,
-    GIT_DIST_PREVIEW = 4
+    GIT_DIST_PREVIEW = 4,
+    GIT_DOCX = 5
 }
 export enum Status {
     QUEUED = 1,
@@ -76,6 +77,7 @@ export enum RESOURCES {
     OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
     OUTPUT_PRODUCER_GIT_WEB = 'output-producer-git-dist-preview',
     OUTPUT_PRODUCER_ARCHIVE_WEB = 'output-producer-dist-preview',
+    CORGI_GIT_DOCX = 'corgi-git-docx'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file
@@ -89,8 +91,6 @@ export enum IO {
     ARCHIVE_BOOK = 'archive-book',
     ARCHIVE_JSONIFIED = 'archive-jsonified',
     ARCHIVE_UPLOAD = 'archive-upload',
-    ARCHIVE_GDOCIFIED = 'archive-gdocified',
-    ARCHIVE_DOCX = 'archive-docx',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
@@ -109,6 +109,8 @@ export enum IO {
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
     JSONIFIED = 'jsonified', // 'jsonified-single',
     EPUB = 'epub',
+    GDOCIFIED = 'gdocified', // 'gdocified-single'
+    DOCX = 'docx', // 'docx-single'
 }
 
 export type TaskNode = {
@@ -301,6 +303,7 @@ function defaultEnv(env: KeyValue, key: string, optional?: boolean) {
 }
 export function loadEnv(pathToJson: string) {
     const env: KeyValue = require(pathToJson)
+    /* istanbul ignore if */
     if (!env.AWS_ACCESS_KEY_ID) {
         // Don't pull the session token from environment if we are loading AWS 
         // keys from the JSON file (anything but local)

@@ -23,7 +23,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.8"
       - name: Install pipenv & Setting up environment
         run: |
           python -m pip install --upgrade pipenv wheel
@@ -45,9 +45,9 @@ jobs:
         run: CI_TEST=true ./test/test-step-03.bash
       - name: Run all-archive-web
         run: CI_TEST=true ./test/test-step-04.bash
-      - name: Run all-archive-gdoc
+      - name: Run all-git-gdoc
         run: CI_TEST=true ./test/test-step-05.bash
-      - name: Run the last step of all-archive-gdoc (archive-convert-docx)
+      - name: Run the last step of all-git-gdoc (git-convert-docx)
         run: CI_TEST=true ./test/test-step-06.bash
       - name: Run all-archive-pdf
         run: CI_TEST=true ./test/test-step-07.bash

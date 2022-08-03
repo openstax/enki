@@ -10,10 +10,6 @@
 	path = cookbook
 	url = https://github.com/openstax/cookbook
 	branch = main
-[submodule "cnx-recipes"]
-	path = cnx-recipes
-	url = https://github.com/openstax/cnx-recipes
-	branch = main
 [submodule "xhtml-validator"]
 	path = xhtml-validator
 	url = https://github.com/openstax/xhtml-validator
@@ -21,4 +17,8 @@
 [submodule "output-producer-resource"]
 	path = output-producer-resource
 	url = https://github.com/openstax/output-producer-resource
+	branch = main
+[submodule "ce-styles"]
+	path = ce-styles
+	url = https://github.com/openstax/ce-styles
 	branch = main

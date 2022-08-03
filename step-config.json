@@ -374,6 +374,41 @@
             "outputDirs": [],
             "requiredEnv": []
         },
+        "git-gdocify": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META",
+                "IO_JSONIFIED",
+                "IO_DISASSEMBLE_LINKED",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_GDOCIFIED"
+            ],
+            "requiredEnv": []
+        },
+        "git-convert-docx": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_GDOCIFIED"
+            ],
+            "outputDirs": [
+                "IO_DOCX"
+            ],
+            "requiredEnv": []
+        },
+        "git-docx-meta": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_DOCX"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET"
+            ]
+        },
         "archive-mathify": {
             "inputDirs": [
                 "IO_BOOK",
@@ -416,39 +451,6 @@
             ],
             "requiredEnv": [
                 "CORGI_ARTIFACTS_S3_BUCKET"
-            ]
-        },
-        "archive-gdocify": {
-            "inputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "requiredEnv": []
-        },
-        "archive-convert-docx": {
-            "inputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_DOCX"
-            ],
-            "requiredEnv": []
-        },
-        "archive-upload-docx": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_DOCX"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_GDOCIFIED"
-            ],
-            "requiredEnv": [
-                "GOOGLE_SERVICE_ACCOUNT_CREDENTIALS",
-                "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "archive-dequeue-book": {
@@ -560,6 +562,22 @@
             "git-epub",
             "git-epub-validate"
         ],
+        "all-git-gdoc": [
+            "git-fetch",
+            "git-fetch-metadata",
+            "git-assemble",
+            "git-assemble-meta",
+            "git-validate-references",
+            "git-bake",
+            "git-bake-meta",
+            "git-link",
+            "git-disassemble",
+            "git-patch-disassembled-links",
+            "git-jsonify",
+            "git-validate-xhtml-jsonify",
+            "git-gdocify",
+            "git-convert-docx"
+        ],
         "all-archive-pdf": [
             "archive-fetch",
             "archive-fetch-metadata",
@@ -584,22 +602,6 @@
             "archive-patch-disassembled-links",
             "archive-jsonify",
             "archive-validate-xhtml-jsonify"
-        ],
-        "all-archive-gdoc": [
-            "archive-fetch",
-            "archive-fetch-metadata",
-            "archive-assemble",
-            "archive-assemble-metadata",
-            "archive-link-extras",
-            "archive-bake",
-            "archive-bake-metadata",
-            "archive-checksum",
-            "archive-disassemble",
-            "archive-patch-disassembled-links",
-            "archive-jsonify",
-            "archive-validate-xhtml-jsonify",
-            "archive-gdocify",
-            "archive-convert-docx"
         ]
     }
 }
