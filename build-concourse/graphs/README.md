@@ -89,6 +89,7 @@ graph TB
     git-patch-disassembled-links -- disassemble-linked --> git-gdocify
     git-fetch-metadata -- resources --> git-gdocify
     git-gdocify -- gdocified --> git-convert-docx
+    git-convert-docx -- docx --> git-docx-meta
 ```
 
 ## all-archive-pdf

@@ -1529,6 +1529,7 @@ async def test_gdocify_book(tmp_path, mocker):
             data-page-slug="l1-page-slug"
             data-page-fragment="foobar"
             class="target-chapter">Intra-book module link with fragment</a></p>
+        <p><iframe src="http://www.example.com/"></iframe></p>
         <math>
             <mrow>
                 <mtext mathvariant="bold-italic">x</mtext>
@@ -1579,6 +1580,41 @@ async def test_gdocify_book(tmp_path, mocker):
                 <annotation encoding="StarMath 5.0">{N}</annotation>
             </semantics>
         </math>
+        <math>
+            <semantics>
+                <mrow>
+                    <mo>–</mo>
+                    <mi>N</mi>
+                </mrow>
+                <mrow>
+                    <mo>–∞</mo>
+                </mrow>
+                <mrow>
+                    <mo>–identifier</mo>
+                </mrow>
+                <mrow>
+                    <mo>-20</mo>
+                </mrow>
+                <mrow>
+                    <mo>cos</mo>
+                </mrow>
+                <mrow>
+                    <mo>20</mo>
+                </mrow>
+                <mrow>
+                    <mo>&#x201c;UNICODE QUOTES&#x201d;</mo>
+                </mrow>
+                <mrow>
+                    <mo>Not an operator</mo>
+                </mrow>
+                <mrow>
+                    <mo> </mo>
+                </mrow>
+                <mrow>
+                    <mo>&#x00a0;</mo>
+                </mrow>
+            </semantics>
+        </math>
         </div>
         </body>
         </html>
@@ -1586,10 +1622,6 @@ async def test_gdocify_book(tmp_path, mocker):
 
     l1_page_metadata = {
         "slug": "l1-page-slug"
-    }
-
-    book_metadata = {
-        "id": "bookuuid1"
     }
 
     book_slugs = [
@@ -1606,8 +1638,6 @@ async def test_gdocify_book(tmp_path, mocker):
     # Populate a dummy TOC to confirm it is ignored
     toc_input = input_dir / "collection.toc.xhtml"
     toc_input.write_text("DUMMY")
-    book_metadata_input = input_dir / "collection.toc-metadata.json"
-    book_metadata_input.write_text(json.dumps(book_metadata))
     page_name = "bookuuid1@version:pageuuid1.xhtml"
     page_input = input_dir / page_name
     page_input.write_text(page_content)
@@ -1615,11 +1645,12 @@ async def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input = input_dir / l1_page_metadata_name
     book_slugs_input = tmp_path / "book-slugs.json"
     book_slugs_input.write_text(json.dumps(book_slugs))
+    worker_count = 1
 
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, book_metadata_input])
+    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, worker_count])
     await gdocify_book.run_async()
 
     page_output = output_dir / page_name
@@ -1646,6 +1677,67 @@ async def test_gdocify_book(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         assert "mi" == node.tag.split("}")[1]
+
+    # Was mo converted to mi in this case?
+    assert(
+        "mi" == updated_doc.xpath(
+            '//*[text() = "–identifier"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Was mo converted to mn in this case?
+    assert(
+        "mn" == updated_doc.xpath(
+            '//*[text() = "-20"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Was mo converted to mtext in this case?
+    assert(
+        "mtext" == updated_doc.xpath(
+            '//*[text() = "“UNICODE QUOTES”"]',  # Not an error
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Were mo's containing whitespace converted to mtext?
+    assert(
+        "mtext" == updated_doc.xpath(
+            '//*[text() = " "]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    assert(
+        "mtext" == updated_doc.xpath(
+            f'//*[text() = "{chr(0xa0)}"]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        )[0].tag.split("}")[1]
+    )
+
+    # Do all mo tags contain only whitelisted characters?
+    for node in updated_doc.xpath(
+        '//x:mo',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        if node.text is not None:
+            text_len = len(node.text)
+            assert text_len > 0
+            if text_len == 1:
+                assert node.text in gdocify_book.CHARLISTS['mo_single']
+            else:
+                assert node.text in gdocify_book.CHARLISTS['mo_multi']
+
+    # Are all mi tags free of blacklisted characters?
+    for node in updated_doc.xpath(
+        '//x:mi',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        if node.text is not None:
+            assert not any(char in node.text
+                           for char in gdocify_book.CHARLISTS["mi_blacklist"])
 
     unwanted_nodes = updated_doc.xpath(
         '//x:annotation-xml',
@@ -1676,6 +1768,12 @@ async def test_gdocify_book(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(msub_nodes) == 1
+
+    unwanted_nodes = updated_doc.xpath(
+        '//x:iframe',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    )
+    assert len(unwanted_nodes) == 0
 
     # Test fix_jpeg_colorspace
 
@@ -1755,7 +1853,7 @@ async def test_gdocify_book(tmp_path, mocker):
             </html>
         """.format(rgb, greyscale, png, cmyk, cmyk_no_profile)
         doc = etree.fromstring(xhtml)
-        async with gdocify_book.AsyncJobQueue(5) as queue:
+        async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
                 queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
@@ -1804,7 +1902,7 @@ async def test_gdocify_book(tmp_path, mocker):
         """.format(rgb_broken, greyscale_broken, cmyk, cmyk_broken, png)
         doc = etree.fromstring(xhtml)
         # should only give warnings but should not break
-        async with gdocify_book.AsyncJobQueue(5) as queue:
+        async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
                 queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 

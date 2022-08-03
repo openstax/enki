@@ -2,7 +2,7 @@
 [[ -d "$IO_GDOCIFIED/content" ]] || mkdir "$IO_GDOCIFIED/content"
 try cp -R "$IO_RESOURCES/." "$IO_GDOCIFIED/resources"
 
-book_slugs_file="/tmp/book-slugs.json"
+book_slugs_file="$IO_GDOCIFIED/book-slugs.json"
 
 jo_args=''
 
@@ -28,7 +28,15 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
 
 # Save all the slug/uuid pairs into a JSON file
-try jo -a $jo_args > $book_slugs_file
+# NOTE: This file is also used in convert-docx
+try jo -a $jo_args > "$book_slugs_file"
 
-try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file" "$IO_JSONIFIED/$(cat "$IO_BOOK/slug").toc.json"
+try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
 try cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"
+
+lang="$(try jq -r '.language' "$IO_JSONIFIED/"*.toc.json | uniq)"
+# If there was more than one result from uniq, there were different languages
+if [[ $(wc -l <<< "$lang") != 1 ]]; then
+    die "Language mismatch between book slugs."  # LCOV_EXCL_LINE
+fi
+echo "$lang" > "$IO_GDOCIFIED/language"
