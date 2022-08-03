@@ -40,6 +40,23 @@ def rename(filename_to_data, resource_original_filepath):
         (sha1, s3_md5, mime_type, resource_original_filepath)
     return f"../{RESOURCES_DIR_NAME}/{sha1}"
 
+def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_name, context_dir):
+    for node in doc.xpath(
+            xpath,
+            namespaces={"c": "http://cnx.rice.edu/cnxml"}
+    ):
+        resource_original_src = node.attrib[attribute_name]
+        resource_original_filepath = (context_dir / resource_original_src).resolve()
+        new_path = rename(filename_to_data, resource_original_filepath)
+        if new_path is None:
+            print(
+                f"WARNING: Resource file '{resource_original_filepath}' not found",
+                file=sys.stderr
+            )
+            continue
+        else
+            node.attrib[attribute_name] = new_path
+
 def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     original_resources_dir = Path(sys.argv[2]).resolve(strict=True)
@@ -59,61 +76,14 @@ def main():
 
     for cnxml_file in cnxml_files:
         doc = etree.parse(str(cnxml_file))
-        for node in doc.xpath(
-                '//c:image',
-                namespaces={"c": "http://cnx.rice.edu/cnxml"}
-        ):
-            resource_original_src = node.attrib["src"]
-            resource_original_filepath = \
-                (cnxml_file.parent / resource_original_src).resolve()
-
-            new_path = rename(filename_to_data, resource_original_filepath)
-            if new_path is None:
-                print(
-                    f"WARNING: Resource file '{resource_original_filepath}' not found",
-                    file=sys.stderr
-                )
-                continue
-
-            node.attrib["src"] = new_path
-
+        
+        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:image', 'src', cnxml_file.parent)
         # EPUB: CNX books sometimes link to files like MP3 in the Basic Elements of Music
-        for node in doc.xpath(
-                '//c:link[@resource]',
-                namespaces={"c": "http://cnx.rice.edu/cnxml"}
-        ):
-            resource_original_src = node.attrib["resource"]
-            # This is a HACK. It seems the archive-to-git migration blindly moves all non-index.cnxml files into a "media" directory.
-            resource_original_filepath = (original_resources_dir / resource_original_src).resolve()
-            new_path = rename(filename_to_data, resource_original_filepath)
-            if new_path is None:
-                print(
-                    f"WARNING: Resource file '{resource_original_filepath}' not found",
-                    file=sys.stderr
-                )
-                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found. '{cnxml_file.parent}' and '{resource_original_src}'")
-                continue
-
-            node.attrib["resource"] = new_path
-
+        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:link[@resource]', 'resource', original_resources_dir)
+        # EPUB: CNX books sometimes use an <object> tag to embed an interactive (Like Mathematica)
+        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:object[@src][not(starts-with(@src, "http"))]', 'src', original_resources_dir)
         # EPUB: Some books have Adobe Flash content which is no longer used on the web
-        for node in doc.xpath(
-                '//c:flash[@src][not(starts-with(@src, "."))]',
-                namespaces={"c": "http://cnx.rice.edu/cnxml"}
-        ):
-            resource_original_src = node.attrib["src"]
-            resource_original_filepath = (original_resources_dir / resource_original_src).resolve()
-            new_path = rename(filename_to_data, resource_original_filepath)
-            if new_path is None:
-                print(
-                    f"WARNING: Resource file '{resource_original_filepath}' not found",
-                    file=sys.stderr
-                )
-                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found. '{cnxml_file.parent}' and '{resource_original_src}'")
-                continue
-
-            node.attrib["src"] = new_path
-
+        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir)
 
         for node in doc.xpath(
                 '//c:iframe',

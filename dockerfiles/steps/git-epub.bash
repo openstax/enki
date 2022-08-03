@@ -144,7 +144,7 @@ EOF
 done
 
 
-extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))][not(ancestor::h:nav)]'
+extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]' # Find XHTML links
 extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
 
 echo "Starting the bulk of the conversion"
@@ -155,7 +155,7 @@ for slug in ${all_slugs[@]}; do
     echo "Find all hrefs in the ToC file"
     html_files=()
     set +e
-    hrefs=$(try xmlstarlet sel -t --match "$extract_html_files_xpath" --value-of '@href' --nl < $epub_toc_file)
+    hrefs=$(xmlstarlet sel -t --match "$extract_html_files_xpath" --value-of '@href' --nl < $epub_toc_file)
     set -e
 
     while read -r line; do
@@ -241,6 +241,7 @@ EOF
                 audio/mpeg)         extension='mpg';;
                 application/pdf)    extension='pdf';;
                 audio/midi)         extension='midi';;
+                text/plain)         extension='txt';;
                 *)
                     echo -e "BUG: Add an extension for this mimetype: '$media_type' to this script"
                     exit 2
