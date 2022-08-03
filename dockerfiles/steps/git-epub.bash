@@ -144,7 +144,7 @@ EOF
 done
 
 
-extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]'
+extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))][not(ancestor::h:nav)]'
 extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
 
 echo "Starting the bulk of the conversion"

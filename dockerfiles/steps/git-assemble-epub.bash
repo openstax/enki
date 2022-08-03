@@ -73,6 +73,22 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
   exclude-result-prefixes="h"
   version="1.0">
 
+<!-- BUG in git-assemble. This fixes it for epubs but should be fixed for all books so that it is not done in the recipe -->
+<xsl:template match="h:nav//h:a[contains(@href, '@.xhtml')]">
+    <xsl:copy>
+        <xsl:attribute name="href">
+            <xsl:text>#page_</xsl:text>
+            <xsl:value-of select="substring-before(@href, '@.xhtml')"/>
+        </xsl:attribute>
+    </xsl:copy>
+</xsl:template>
+
+<xsl:template match="h:nav//h:li">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+</xsl:template>
+
 <!-- Handle case when the CNXML link points to a collection instead of a module. The actual change _should_ be somewhere in neb assemble but I could not find it -->
 <xsl:template match="h:a[starts-with(@href, &quot;/col&quot;)]/@href">
     <xsl:attribute name="href">
