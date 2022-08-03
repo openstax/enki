@@ -178,8 +178,10 @@ done
 if [[ $arg_command == 'rex-preview' ]]; then
     [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
     pushd $data_dir/rex-preview
-    [[ -e ./contents ]] || ln -s ../_attic/IO_JSONIFIED contents
+    [[ -e ./contents ]] || cp -r ../_attic/IO_JSONIFIED contents
     [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
+    # remove .rex-preview file extensions to get the TOCs working
+    find ./contents -name "*.rex-preview" -type f -exec bash -c 'mv "$1" "${1/.rex-preview/}"' _ {} \;
 
     echo "Starting up server. Here are URL(s) to visit:"
     for json_filename in "contents/"*.json; do
