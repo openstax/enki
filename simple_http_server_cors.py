@@ -3,7 +3,7 @@
 # Python SimpleHTTPServer with CORS, supporting both Python 2 and 3
 # Thanks to source https://gist.github.com/khalidx/6d6ebcd66b6775dae41477cffaa601e5
 #
-# Usage: python cors_http_server.py <port>
+# Usage: python simple_http_server_cors.py <port>
 
 try:
     # try to use Python 3
