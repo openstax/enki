@@ -178,7 +178,8 @@ done
 if [[ $arg_command == 'rex-preview' ]]; then
     [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
     pushd $data_dir/rex-preview
-    [[ -e ./contents ]] || cp -r ../_attic/IO_JSONIFIED contents
+    # keep sure we always have the latest IO_JSONIFIED files in contents
+    rsync -rlt --delete ../_attic/IO_JSONIFIED/ contents/
     [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
     # remove .rex-preview file extensions to get the TOCs working
     find ./contents -name "*.rex-preview" -type f -exec bash -c 'mv "$1" "${1/.rex-preview/}"' _ {} \;
