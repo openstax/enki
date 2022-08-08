@@ -134,6 +134,16 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 </xsl:template>
 
 
+<xsl:template match="h:figure[*[@data-type='title']]">
+    <div data-type="figure-wrapper">
+        <xsl:apply-templates select="*[@data-type='title']"/>
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()[not(self::*[@data-type='title'])]"/>
+        </xsl:copy>
+    </div>
+</xsl:template>
+
+
 
 <!-- Identity Transform -->
 <xsl:template match="@*|node()">
