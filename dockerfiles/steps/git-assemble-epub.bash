@@ -75,11 +75,18 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
 <!-- BUG in git-assemble. This fixes it for epubs but should be fixed for all books so that it is not done in the recipe -->
 <xsl:template match="h:nav//h:a[contains(@href, '@.xhtml')]">
+    <xsl:variable name="the_id">
+        <xsl:text>page_</xsl:text>
+        <xsl:value-of select="substring-before(@href, '@.xhtml')"/>
+    </xsl:variable>
+
     <xsl:copy>
         <xsl:attribute name="href">
-            <xsl:text>#page_</xsl:text>
-            <xsl:value-of select="substring-before(@href, '@.xhtml')"/>
+            <xsl:text>#</xsl:text>
+            <xsl:value-of select="\$the_id"/>
         </xsl:attribute>
+        
+        <xsl:apply-templates select="node()"/>
     </xsl:copy>
 </xsl:template>
 
@@ -114,11 +121,19 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </div>
 </xsl:template>
 
+<xsl:template match="h:para">
+    <p>
+        <xsl:apply-templates select="@*|node()"/>
+    </p>
+</xsl:template>
+
 <xsl:template match="@seperators">
     <xsl:attribute name="separators">
         <xsl:value-of select="."/>
     </xsl:attribute>
 </xsl:template>
+
+
 
 <!-- Identity Transform -->
 <xsl:template match="@*|node()">
