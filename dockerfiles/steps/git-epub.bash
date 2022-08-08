@@ -80,7 +80,7 @@ for slug in ${all_slugs[@]}; do
   version="1.0">
 
 <!-- Remove ToC entries that have non-Page leaves -->
-<xsl:template match="//h:li[h:ol[count(*) = 0]]/h:ol"/>
+<xsl:template match="//h:nav//h:li[not(.//h:a)]"/>
 
 <!-- Unwrap chapter links and combine titles into a single span -->
 <xsl:template match="h:a[starts-with(@href, &quot;#&quot;)]">

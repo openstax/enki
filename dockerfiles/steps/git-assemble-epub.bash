@@ -68,9 +68,10 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:epub="http://www.idpf.org/2007/ops"
   xmlns:m="http://www.w3.org/1998/Math/MathML"
+  xmlns:c="http://cnx.rice.edu/cnxml"
   xmlns:h="http://www.w3.org/1999/xhtml"
   xmlns="http://www.w3.org/1999/xhtml"
-  exclude-result-prefixes="h"
+  exclude-result-prefixes="h epub"
   version="1.0">
 
 <!-- BUG in git-assemble. This fixes it for epubs but should be fixed for all books so that it is not done in the recipe -->
@@ -121,13 +122,13 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </div>
 </xsl:template>
 
-<xsl:template match="h:para">
+<xsl:template match="c:para">
     <p>
         <xsl:apply-templates select="@*|node()"/>
     </p>
 </xsl:template>
 
-<xsl:template match="@seperators">
+<xsl:template match="@seperators|@separator">
     <xsl:attribute name="separators">
         <xsl:value-of select="."/>
     </xsl:attribute>
