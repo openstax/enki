@@ -54,7 +54,7 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
                 file=sys.stderr
             )
             continue
-        else
+        else:
             node.attrib[attribute_name] = new_path
 
 def main():
