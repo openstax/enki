@@ -10,6 +10,8 @@ import boto3
 import boto3.session
 import botocore
 
+from PIL import Image, UnidentifiedImageError
+
 # After research and benchmarking 64 seems to be the best speed without big
 # trade-offs.
 MAX_THREAD_CHECK_S3 = 64
@@ -108,8 +110,22 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
         print('Error: No metadata json found!')
         raise (e)
 
+def upload_s3_with_size(aws_key, aws_secret, aws_session_token,
+                        filename, bucket, key, content_type):
+    # we could check the mime type before trying to open the file, but Pillow supports
+    # formats like application/pdf and video/mpeg so it may be easier to just try/except it
+    try:
+        with Image.open(resource['input_file']) as img:
+            width, height = img.size
+        metadata = {'x-amz-meta-width': str(width), 'x-amz-meta-height': str(height)}
+    except UnidentifiedImageError:
+        metadata = None
 
-def upload_s3(aws_key, aws_secret, aws_session_token, filename, bucket, key, content_type):
+    return upload_s3(aws_key, aws_secret, aws_session_token,
+                     filename, bucket, key, content_type, metadata)
+
+def upload_s3(aws_key, aws_secret, aws_session_token,
+              filename, bucket, key, content_type, metadata = None):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-multiprocessing
@@ -119,13 +135,18 @@ def upload_s3(aws_key, aws_secret, aws_session_token, filename, bucket, key, con
         aws_access_key_id=aws_key,
         aws_secret_access_key=aws_secret,
         aws_session_token=aws_session_token)
+
+    extra_args = {
+        "ContentType": content_type
+    }
+    if metadata is not None:
+        extra_args['Metadata'] = metadata
+
     s3_client.upload_file(
         Filename=filename,
         Bucket=bucket,
         Key=key,
-        ExtraArgs={
-            "ContentType": content_type
-        }
+        ExtraArgs=extra_args
     )
     return key
 
@@ -239,10 +260,11 @@ def upload(in_dir, bucket, bucket_folder):
                     key=resource['output_s3_metadata'],
                     content_type='application/json')
             )
+
             # upload resource file last (existence/md5 is checked)
             upload_futures.append(
                 executor.submit(
-                    upload_s3,
+                    upload_s3_with_size,
                     aws_key=aws_key,
                     aws_secret=aws_secret,
                     aws_session_token=aws_session_token,
