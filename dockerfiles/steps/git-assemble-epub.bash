@@ -90,7 +90,7 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 </xsl:template>
 
 <!-- Handle case when the CNXML link points to a collection instead of a module. The actual change _should_ be somewhere in neb assemble but I could not find it -->
-<xsl:template match="h:a[starts-with(@href, &quot;/col&quot;)]/@href">
+<xsl:template match="h:a[starts-with(@href, &quot;/col&quot;) or starts-with(@href, &quot;/m&quot;)]/@href">
     <xsl:attribute name="href">
         <xsl:text>https://cnx.org/content/</xsl:text>
         <xsl:value-of select="substring-after(., &quot;/&quot;)"/>
@@ -101,6 +101,16 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     <xsl:attribute name="href">
         <xsl:text>https://cnx.org/content/</xsl:text>
         <xsl:value-of select="substring-after(., &quot;/contents/&quot;)"/>
+    </xsl:attribute>
+</xsl:template>
+
+<xsl:template match="h:span/@width"/>
+
+<xsl:template match="h:table/@summary"/>
+
+<xsl:template match="@seperators">
+    <xsl:attribute name="separators">
+        <xsl:value-of select="."/>
     </xsl:attribute>
 </xsl:template>
 
