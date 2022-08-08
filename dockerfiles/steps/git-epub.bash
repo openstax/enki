@@ -79,6 +79,9 @@ for slug in ${all_slugs[@]}; do
   exclude-result-prefixes="h"
   version="1.0">
 
+<!-- Remove ToC entries that have non-Page leaves -->
+<xsl:template match="//h:li[h:ol[count(*) = 0]]/h:ol"/>
+
 <!-- Unwrap chapter links and combine titles into a single span -->
 <xsl:template match="h:a[starts-with(@href, &quot;#&quot;)]">
     <span>
