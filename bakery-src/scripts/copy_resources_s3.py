@@ -110,12 +110,13 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
         print('Error: No metadata json found!')
         raise (e)
 
+
 def upload_s3_with_size(aws_key, aws_secret, aws_session_token,
                         filename, bucket, key, content_type):
     # we could check the mime type before trying to open the file, but Pillow supports
     # formats like application/pdf and video/mpeg so it may be easier to just try/except it
     try:
-        with Image.open(resource['input_file']) as img:
+        with Image.open(filename) as img:
             width, height = img.size
         metadata = {'x-amz-meta-width': str(width), 'x-amz-meta-height': str(height)}
     except UnidentifiedImageError:
@@ -124,8 +125,9 @@ def upload_s3_with_size(aws_key, aws_secret, aws_session_token,
     return upload_s3(aws_key, aws_secret, aws_session_token,
                      filename, bucket, key, content_type, metadata)
 
+
 def upload_s3(aws_key, aws_secret, aws_session_token,
-              filename, bucket, key, content_type, metadata = None):
+              filename, bucket, key, content_type, metadata=None):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-multiprocessing
