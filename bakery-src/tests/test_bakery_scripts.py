@@ -2060,8 +2060,8 @@ def test_copy_resource_s3(tmp_path, mocker):
         expected_params={
             'Body': botocore.stub.ANY,
             'Bucket': bucket,
-            'ContentType': ANY_OF(['application/json', 'image/jpeg']),
-            'Key': ANY_OF([key_b, key_a]),
+            'ContentType': 'application/json',
+            'Key': key_b,
         }
     )
     s3_stubber.add_response(
@@ -2070,8 +2070,9 @@ def test_copy_resource_s3(tmp_path, mocker):
         expected_params={
             'Body':  botocore.stub.ANY,
             'Bucket': bucket,
-            'ContentType': ANY_OF(['application/json', 'image/jpeg']),
-            'Key': ANY_OF([key_b, key_a]),
+            'ContentType': 'image/jpeg',
+            'Key': key_a,
+            'Metadata': {'x-amz-meta-height': '192', 'x-amz-meta-width': '241'},
         }
     )
     s3_stubber.activate()
