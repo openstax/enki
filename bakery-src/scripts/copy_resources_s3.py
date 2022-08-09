@@ -118,7 +118,7 @@ def upload_s3_with_size(aws_key, aws_secret, aws_session_token,
     try:
         with Image.open(filename) as img:
             width, height = img.size
-        metadata = {'x-amz-meta-width': str(width), 'x-amz-meta-height': str(height)}
+        metadata = {'width': str(width), 'height': str(height)}
     except UnidentifiedImageError:
         metadata = None
 

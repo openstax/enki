@@ -2072,7 +2072,7 @@ def test_copy_resource_s3(tmp_path, mocker):
             'Bucket': bucket,
             'ContentType': 'image/jpeg',
             'Key': key_a,
-            'Metadata': {'x-amz-meta-height': '192', 'x-amz-meta-width': '241'},
+            'Metadata': {'height': '192', 'width': '241'},
         }
     )
     s3_stubber.activate()
