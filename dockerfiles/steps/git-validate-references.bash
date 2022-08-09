@@ -5,8 +5,12 @@ shopt -s globstar nullglob
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
+    if [[ ! -f "$IO_ASSEMBLED/$slug_name.assembled.xhtml" ]]; then
+        die "Expected $IO_ASSEMBLED/$slug_name.assembled.xhtml to exist"
+    fi
+
     set +e
-    try xmlstarlet sel -t --match '//*[@src]' --value-of '@src' --nl < "$IO_ASSEMBLED/$slug_name.assembled.xhtml" > /tmp/references
+    xmlstarlet sel -t --match '//*[@src]' --value-of '@src' --nl < "$IO_ASSEMBLED/$slug_name.assembled.xhtml" > /tmp/references
     set -e
 
     while read reference_url; do
