@@ -2,6 +2,7 @@
 import os
 import json
 from datetime import datetime
+from enum import Enum
 from glob import glob
 from lxml import etree
 import boto3
@@ -2023,7 +2024,8 @@ class ANY_VALUE:
 
 
 class ANY_PARAM:
-    ABSENT = 'some string that will never occur in tests that represent an absent key'
+    # We want enums but don't want all the Enum class methods
+    ABSENT = Enum('ANY_PARAM', 'ABSENT').ABSENT
 
     def __init__(self, params):
         self.params = params
