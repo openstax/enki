@@ -4,6 +4,7 @@ import json
 import re
 import shutil
 import sys
+import os
 from pathlib import Path
 
 from lxml import etree
@@ -53,7 +54,16 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
                 f"WARNING: Resource file '{resource_original_filepath}' not found",
                 file=sys.stderr
             )
-            continue
+            if os.environ.get('HACK_CNX_LOOSENESS', False) is not False:
+                # Replace node with a comment
+                text = f'[missing_resource: {resource_original_src}]'
+                comment = etree.Comment(etree.tostring(node))
+                comment.tail = text
+                parent = node.getparent()
+                parent.replace(node, comment)
+                continue
+            else:
+                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found")
         else:
             node.attrib[attribute_name] = new_path
 
