@@ -2004,6 +2004,7 @@ def test_mathmltable2png(tmp_path, mocker):
 
 # The ANY_VALUE and ANY_PARAM classes contain some shenanigans to allow us to use
 # 2 different sets of expected params passed to the botocore stubber in any order
+# Checking ANY_VALUE for equality constrains the valid param indexes in ANY_PARAM
 class ANY_VALUE:
     def __init__(self, any_param, values):
         self.any_param = any_param
