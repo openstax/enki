@@ -97,6 +97,16 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </xsl:copy>
 </xsl:template>
 
+<!-- _window is no longer a valid target. _blank is nearest -->
+<xsl:template match="h:a[@target = '_window']/@target">
+    <xsl:attribute name="target">
+        <xsl:text>_blank</xsl:text>
+    </xsl:attribute>
+</xsl:template>
+
+<!-- Remove empty display attributes -->
+<xsl:template match="m:*[@display = '']/@display"/>
+
 <!-- Handle case when the CNXML link points to a collection instead of a module. The actual change _should_ be somewhere in neb assemble but I could not find it -->
 <xsl:template match="h:a[starts-with(@href, &quot;/col&quot;) or starts-with(@href, &quot;/m&quot;)]/@href">
     <xsl:attribute name="href">
@@ -115,6 +125,8 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 <xsl:template match="h:span/@width"/>
 
 <xsl:template match="h:table/@summary"/>
+
+<xsl:template match="h:q/@display"/>
 
 <xsl:template match="//h:figure/h:span">
     <div>
@@ -144,6 +156,15 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </div>
 </xsl:template>
 
+
+<xsl:template match="h:dl[h:div]">
+    <div data-type="definition-wrapper">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()[not(self::h:div)]"/>
+        </xsl:copy>
+        <xsl:apply-templates select="h:div"/>
+    </div>
+</xsl:template>
 
 
 <!-- Identity Transform -->

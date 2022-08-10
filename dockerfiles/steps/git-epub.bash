@@ -241,6 +241,7 @@ EOF
                 application/x-shockwave-flash) extension='swf';;
                 image/jpeg)         extension='jpeg';;
                 image/png)          extension='png';;
+                image/gif)          extension='gif';;
                 audio/mpeg)         extension='mpg';;
                 application/pdf)    extension='pdf';;
                 audio/midi)         extension='midi';;
