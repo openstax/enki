@@ -60,12 +60,13 @@ def get_mime_type(filename):
 
 # Returns (-1, -1) if not an image
 def get_size(filename):
-    """ get width and height of file with Pillow """
+    """ get width and height of file with imagesize """
+    width = -1
+    height = -1
     try:
         width, height = imagesize.get(filename)
+    finally:
         return int(width), int(height)
-    except IOError:
-        return -1, -1
 
 
 # Based upon amend_tree_with_slugs from cnx-publishing
