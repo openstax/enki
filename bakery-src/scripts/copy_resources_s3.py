@@ -10,8 +10,6 @@ import boto3
 import boto3.session
 import botocore
 
-from PIL import Image, UnidentifiedImageError
-
 # After research and benchmarking 64 seems to be the best speed without big
 # trade-offs.
 MAX_THREAD_CHECK_S3 = 64
@@ -93,7 +91,6 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
             # empty or non existing s3 folder
             # skip individual s3 file check
             upload_resource = resource
-            upload_resource['mime_type'] = data['mime_type']
         else:
             session = boto3.session.Session()
             s3_client = session.client(
@@ -104,26 +101,16 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
             if data['s3_md5'] != s3_md5sum(s3_client, bucket,
                                            resource['output_s3']):
                 upload_resource = resource
-                upload_resource['mime_type'] = data['mime_type']
+
+        if upload_resource is not None:
+            upload_resource['mime_type'] = data['mime_type']
+            upload_resource['width'] = data['width']
+            upload_resource['height'] = data['height']
+
         return upload_resource
     except FileNotFoundError as e:
         print('Error: No metadata json found!')
         raise (e)
-
-
-def upload_s3_with_size(aws_key, aws_secret, aws_session_token,
-                        filename, bucket, key, content_type):
-    # we could check the mime type before trying to open the file, but Pillow supports
-    # formats like application/pdf and video/mpeg so it may be easier to just try/except it
-    try:
-        with Image.open(filename) as img:
-            width, height = img.size
-        metadata = {'width': str(width), 'height': str(height)}
-    except UnidentifiedImageError:
-        metadata = None
-
-    return upload_s3(aws_key, aws_secret, aws_session_token,
-                     filename, bucket, key, content_type, metadata)
 
 
 def upload_s3(aws_key, aws_secret, aws_session_token,
@@ -264,16 +251,20 @@ def upload(in_dir, bucket, bucket_folder):
             )
 
             # upload resource file last (existence/md5 is checked)
+            metadata = {'width': str(resource['width']), 'height': str(resource['height'])} \
+                if resource['width'] and resource['height'] else None
+
             upload_futures.append(
                 executor.submit(
-                    upload_s3_with_size,
+                    upload_s3,
                     aws_key=aws_key,
                     aws_secret=aws_secret,
                     aws_session_token=aws_session_token,
                     filename=resource['input_file'],
                     bucket=bucket,
                     key=resource['output_s3'],
-                    content_type=resource['mime_type'])
+                    content_type=resource['mime_type'],
+                    metadata=metadata)
             )
         for future in concurrent.futures.as_completed(upload_futures):
             try:

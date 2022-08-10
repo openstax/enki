@@ -4,6 +4,7 @@ import magic
 from cnxcommon.urlslug import generate_slug
 from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
 from dateutil import parser, tz
+from PIL import Image, UnidentifiedImageError
 
 # same as boto3 default chunk size. Don't modify.
 BUF_SIZE = 8 * 1024 * 1024
@@ -55,6 +56,17 @@ def get_mime_type(filename):
         mime_type = magic.from_file(filename, mime=True)
     finally:
         return mime_type
+
+
+def get_size(filename):
+    """ get width and height of file with Pillow """
+    # we could check the mime type before trying to open the file, but Pillow supports
+    # formats like application/pdf and video/mpeg so it may be easier to just try/except it
+    try:
+        with Image.open(filename) as img:
+            return img.size
+    except UnidentifiedImageError:
+        return None, None
 
 
 # Based upon amend_tree_with_slugs from cnx-publishing
