@@ -128,6 +128,8 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
 <xsl:template match="h:q/@display"/>
 
+<xsl:template match="m:*/@accent"/>
+
 <xsl:template match="//h:figure/h:span">
     <div>
         <xsl:apply-templates select="@*|node()"/>
