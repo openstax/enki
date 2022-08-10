@@ -251,8 +251,8 @@ def upload(in_dir, bucket, bucket_folder):
             )
 
             # upload resource file last (existence/md5 is checked)
-            metadata = {'width': str(resource['width']), 'height': str(resource['height'])} \
-                if resource['width'] and resource['height'] else None
+            metadata = None if resource['width'] == -1 or resource['height'] == -1 \
+                else {'width': str(resource['width']), 'height': str(resource['height'])}
 
             upload_futures.append(
                 executor.submit(
