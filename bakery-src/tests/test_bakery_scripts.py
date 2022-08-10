@@ -2017,9 +2017,6 @@ class ANY_VALUE:
         self.any_param.valid_param_indexes = new_valid_param_indexes
         return new_valid_param_indexes != []
 
-    def __neq__(self, other):
-        return not self.__eq__(other)
-
     def __repr__(self):
         return f'<ANY OF {self.values}>'
 
