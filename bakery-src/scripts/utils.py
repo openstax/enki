@@ -65,7 +65,7 @@ def get_size(filename):
     try:
         with Image.open(filename) as img:
             return img.size
-    except UnidentifiedImageError:
+    except IOError, UnidentifiedImageError:
         return None, None
 
 
