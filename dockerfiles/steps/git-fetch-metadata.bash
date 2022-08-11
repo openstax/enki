@@ -16,9 +16,14 @@ try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_
 try rm -rf "$IO_FETCH_META/.git"
 
 export HACK_CNX_LOOSENESS=1
-try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
-# Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-try rm -d "$IO_FETCH_META/media"
+# CNX user books do not always contain media directory
+# Missing media files will still be caught by git-validate-references
+if [[ -d "$IO_FETCH_META/media" ]]; then
+    try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
+    # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
+    try rm -d "$IO_FETCH_META/media"
+fi
+
 
 # Copy web styles to the resources directory created by fetch-map-resources
 style_resource_root="resources/styles"
