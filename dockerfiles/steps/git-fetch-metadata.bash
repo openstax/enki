@@ -15,7 +15,11 @@ fi
 try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
 try rm -rf "$IO_FETCH_META/.git"
 
-try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
+[[ -f $(dirname "$IO_RESOURCES")/resources ]] || {
+    die "Expected $(dirname "$IO_RESOURCES")/resources directory to exist"
+}
+
+try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_RESOURCES)" "$IO_UNUSED_RESOURCES"
 # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
 try rm -d "$IO_FETCH_META/media"
 
