@@ -1,7 +1,8 @@
 # How content changes in enki
 
 This describes the overall steps that content goes through.
-Several of these can be clumped together instead of being separate and would reduce the amount of validation & debugging/testing.
+Several of these steps can be grouped together into a larger step.
+Combining the steps would reduce the amount of validation after each step, the size of the step-dependency graph people have to keep in their heads, and reduce the amout of files that need to be documented (as output of a step and input to another step).
 
 * [Overall Process](#overall-process)
 * [What happens in each step](#what-happens-in-each-step)
@@ -45,7 +46,7 @@ Use POET CLI to validate the results.
 
 ## git-fetch-metadata
 
-3 things happen.
+Three things happen.
 
 1. Replace `<md:metadata>` in CNXML and collxml files
 1. Move images/resources into `../resources/`
