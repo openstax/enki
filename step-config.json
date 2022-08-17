@@ -359,7 +359,8 @@
                 "IO_BOOK",
                 "IO_FETCHED",
                 "IO_RESOURCES",
-                "IO_DISASSEMBLE_LINKED"
+                "IO_DISASSEMBLE_LINKED",
+                "IO_BAKED"
             ],
             "outputDirs": [
                 "IO_EPUB",

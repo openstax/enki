@@ -138,10 +138,11 @@ for slug in ${all_slugs[@]}; do
     <dc:title>$book_title</dc:title>
     <dc:language>$book_lang</dc:language>
     <meta property="dcterms:modified">$revised_date</meta>
-    <dc:identifier id="uid">dummy-id.$slug</dc:identifier>
+    <dc:identifier id="uid">dummy-cnx.org-id.$slug</dc:identifier>
   </metadata>
   <manifest>
     <item properties="nav" id="nav" href="./$slug.toc.xhtml" media-type="application/xhtml+xml" />
+    <item id="just-the-book-style" href="../the-style-epub.css" media-type="text/css" />
 EOF
 
 done
@@ -149,6 +150,9 @@ done
 
 extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]' # Find XHTML links
 extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
+
+echo "Copy CSS file over"
+cp "$IO_BAKED/the-style-pdf.css" "$epub_root/the-style-epub.css"
 
 echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
@@ -190,6 +194,14 @@ for slug in ${all_slugs[@]}; do
 <xsl:template match="@use-subtitle"/>
 <xsl:template match="h:script"/>
 <xsl:template match="h:style"/>
+
+<!-- Add a book CSS file -->
+<xsl:template match="h:head">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+        <link rel="stylesheet" type="text/css" href="../the-style-epub.css"/>
+    </xsl:copy>
+</xsl:template>
 
 <!-- re-namespace MathML elements -->
 <xsl:template match="h:math|h:math//*">
@@ -313,5 +325,5 @@ EOF
     epub_file=$IO_ARTIFACTS/$slug.epub
     [[ -f $epub_file ]] && rm $epub_file
     try cd $epub_root
-    try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources
+    try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-style-epub.css
 done
