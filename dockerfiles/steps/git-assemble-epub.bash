@@ -115,6 +115,13 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </xsl:attribute>
 </xsl:template>
 
+<!-- Convert divs with display="inline" into spans -->
+<xsl:template match="h:div[@display = 'inline']">
+    <span>
+        <xsl:apply-templates select="@*[not(name() = 'display')]|node()"/>
+    </span>
+</xsl:template>
+
 <xsl:template match="h:a[starts-with(@href, &quot;/contents/&quot;)]/@href">
     <xsl:attribute name="href">
         <xsl:text>https://cnx.org/content/</xsl:text>
