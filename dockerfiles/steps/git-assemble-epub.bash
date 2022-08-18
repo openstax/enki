@@ -122,6 +122,16 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     </span>
 </xsl:template>
 
+<!-- Convert iframes to links -->
+<xsl:template match="h:iframe">
+    <a>
+        <xsl:attribute name="href">
+            <xsl:value-of select="@src"/>
+        </xsl:attribute>
+        <xsl:value-of select="@src"/>
+    </a>
+</xsl:template>
+
 <xsl:template match="h:a[starts-with(@href, &quot;/contents/&quot;)]/@href">
     <xsl:attribute name="href">
         <xsl:text>https://cnx.org/content/</xsl:text>
