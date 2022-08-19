@@ -251,11 +251,32 @@ EOF
             extension='mimetypenotfound'
             case "$media_type" in
                 application/x-shockwave-flash) extension='swf';;
+                application/octet-stream)
+                    # Try to get the extension from the json file, fall back to bin
+                    extension=$(try jq -r '.original_name' "$resources_root/$resource_filename.json" | awk '{
+                        ext="bin"
+                        idx=index($0, ".")
+                        if (idx != 0) {
+                            ext=substr($0, idx+1)
+                            sub(/^[ \t\r\n]+/, "", ext)
+                            sub(/[ \t\r\n]+$/, "", ext)
+
+                            if (length(ext) == 0) {
+                                ext="bin"
+                            }
+                        }
+                        print ext
+                    }')
+                ;;
                 image/jpeg)         extension='jpeg';;
                 image/png)          extension='png';;
                 image/gif)          extension='gif';;
+                image/tiff)         extension='tiff';;
+                image/svg+xml)      extension='svg';;
                 audio/mpeg)         extension='mpg';;
+                audio/basic)        extension='au';;
                 application/pdf)    extension='pdf';;
+                application/zip)    extension='zip';;
                 audio/midi)         extension='midi';;
                 text/plain)         extension='txt';;
                 *)
