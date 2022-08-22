@@ -16,7 +16,7 @@ try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_
 try rm -rf "$IO_FETCH_META/.git"
 
 [[ -f $(dirname "$IO_RESOURCES")/resources ]] || {
-    die "Expected $(dirname "$IO_RESOURCES")/resources directory to exist"
+    say "Expected $(dirname "$IO_RESOURCES")/resources directory to exist"
 }
 
 try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_RESOURCES)" "$IO_UNUSED_RESOURCES"
