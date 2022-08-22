@@ -23,6 +23,12 @@ for filename in **/*.cnxml; do # Whitespace-safe and recursive
         <!-- Discard image thumbnails -->
         <xsl:template match="c:image/@thumbnail" />
 
+        <xsl:template match="c:code/c:caption">
+            <c:span>
+                <xsl:apply-templates select="@*|node()"/>
+            </c:span>
+        </xsl:template>
+
         <!-- Identity Transform -->
         <xsl:template match="@*|node()">
             <xsl:copy>
@@ -143,9 +149,33 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
 <xsl:template match="h:table/@summary"/>
 
-<xsl:template match="h:q/@display"/>
+<!-- q is inline display by default -->
+<xsl:template match="h:q[@display = 'inline']/@display"/>
+
+<!-- blockquote is block display by default  -->
+<xsl:template match="h:blockquote[@display = 'block']/@display"/>
 
 <xsl:template match="m:*/@accent"/>
+
+<!-- Remove pgwide attribute. Update style to include width: 100$ if pgwide > 0 -->
+<xsl:template match="h:table[@pgwide]">
+    <table>
+        <xsl:if test="@pgwide > 0">
+            <xsl:attribute name="style">
+                <xsl:value-of select="@style"/>
+                <xsl:text>width: 100%;</xsl:text>
+            </xsl:attribute>
+        </xsl:if>
+        <xsl:apply-templates select="@*[not(name() = 'pgwide')]|node()"/>
+    </table>
+</xsl:template>
+
+<!-- h6 is the smallest heading -->
+<xsl:template match="h:h7|h:h8|h:h9">
+    <h6>
+        <xsl:apply-templates select="@*|node()"/>
+    </h6>
+</xsl:template>
 
 <xsl:template match="//h:figure/h:span">
     <div>
