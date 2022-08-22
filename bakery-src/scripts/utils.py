@@ -4,6 +4,7 @@ import magic
 from cnxcommon.urlslug import generate_slug
 from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
 from dateutil import parser, tz
+import imagesize
 
 # same as boto3 default chunk size. Don't modify.
 BUF_SIZE = 8 * 1024 * 1024
@@ -55,6 +56,17 @@ def get_mime_type(filename):
         mime_type = magic.from_file(filename, mime=True)
     finally:
         return mime_type
+
+
+# Returns (-1, -1) if not an image
+def get_size(filename):
+    """ get width and height of file with imagesize """
+    width = -1
+    height = -1
+    try:
+        width, height = imagesize.get(filename)
+    finally:
+        return int(width), int(height)
 
 
 # Based upon amend_tree_with_slugs from cnx-publishing

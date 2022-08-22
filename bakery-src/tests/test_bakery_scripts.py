@@ -2,6 +2,7 @@
 import os
 import json
 from datetime import datetime
+from enum import Enum
 from glob import glob
 from lxml import etree
 import boto3
@@ -163,20 +164,24 @@ def test_checksum_resource(tmp_path, mocker):
         image_href_sha1_expected
     ])
     assert json.load((resource_dir / image_src_meta).open("r")) == {
+        'height': 30,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src.svg',
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         's3_md5': f'"{image_src_md5_expected}"',
-        'sha1': image_src_sha1_expected
+        'sha1': image_src_sha1_expected,
+        'width': 120
     }
     assert json.load((resource_dir / image_href_meta).open("r")) == {
+        'height': 30,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_href.svg',
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         's3_md5': f'"{image_href_md5_expected}"',
-        'sha1': image_href_sha1_expected
+        'sha1': image_href_sha1_expected,
+        'width': 120
     }
     assert resource_dir.exists()
 
@@ -1998,18 +2003,62 @@ def test_mathmltable2png(tmp_path, mocker):
         mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
 
 
-class ANY_OF:
-    def __init__(self, items):
-        self.items = items
+# The ANY_VALUE and ANY_PARAM classes contain some shenanigans to allow us to use
+# 2 different sets of expected params passed to the botocore stubber in any order
+# Checking ANY_VALUE for equality constrains the valid param indexes in ANY_PARAM
+class ANY_VALUE:
+    def __init__(self, any_param, values):
+        self.any_param = any_param
+        self.values = values
 
     def __eq__(self, other):
-        return other in self.items
-
-    def __ne__(self, other):
-        return other not in self.items
+        new_valid_param_indexes = []
+        for value_index, param_index in enumerate(self.any_param.valid_param_indexes):
+            if other == self.values[value_index]:
+                new_valid_param_indexes.append(param_index)
+        self.any_param.valid_param_indexes = new_valid_param_indexes
+        return new_valid_param_indexes != []
 
     def __repr__(self):
-        return f'<ANY OF {self.items}>'
+        return f'<ANY OF {self.values}>'
+
+
+class ANY_PARAM:
+    # We want enums but don't want all the Enum class methods
+    ABSENT = Enum('ANY_PARAM', 'ABSENT').ABSENT
+
+    def __init__(self, params):
+        self.params = params
+        self.valid_param_indexes = range(0, len(self.params))
+
+    def __repr__(self):
+        return f'<ANY OF {self.params}>'
+
+    def __getitem__(self, key):
+        values = []
+        for param_index in self.valid_param_indexes:
+            param = self.params[param_index]
+            if key in param:
+                values.append(param[key])
+            else:
+                values.append(self.ABSENT)
+        return ANY_VALUE(self, values)
+
+    def keys(self):
+        result = []
+        for param_index in self.valid_param_indexes:
+            param = self.params[param_index]
+            for key in param:
+                if key not in result:
+                    result.append(key)
+        return result
+
+    def items(self):
+        for key in self.keys():
+            any_value = self[key]
+            if all(value == self.ABSENT for value in any_value.values):
+                continue
+            yield key, any_value
 
 
 def test_copy_resource_s3(tmp_path, mocker):
@@ -2054,26 +2103,26 @@ def test_copy_resource_s3(tmp_path, mocker):
             'Delimiter': '/'
         }
     )
-    s3_stubber.add_response(
-        "put_object",
-        {},
-        expected_params={
-            'Body': botocore.stub.ANY,
-            'Bucket': bucket,
-            'ContentType': ANY_OF(['application/json', 'image/jpeg']),
-            'Key': ANY_OF([key_b, key_a]),
-        }
-    )
-    s3_stubber.add_response(
-        "put_object",
-        {},
-        expected_params={
-            'Body':  botocore.stub.ANY,
-            'Bucket': bucket,
-            'ContentType': ANY_OF(['application/json', 'image/jpeg']),
-            'Key': ANY_OF([key_b, key_a]),
-        }
-    )
+    for _ in [0, 1]:
+        s3_stubber.add_response(
+            "put_object",
+            {},
+            expected_params=ANY_PARAM([
+                {
+                    'Body':  botocore.stub.ANY,
+                    'Bucket': bucket,
+                    'ContentType': 'application/json',
+                    'Key': key_b,
+                },
+                {
+                    'Body':  botocore.stub.ANY,
+                    'Bucket': bucket,
+                    'ContentType': 'image/jpeg',
+                    'Key': key_a,
+                    'Metadata': {'height': '192', 'width': '241'},
+                },
+            ])
+        )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
