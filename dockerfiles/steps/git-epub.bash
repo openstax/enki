@@ -305,10 +305,9 @@ EOF
 
     # Remove duplicate resources : https://stackoverflow.com/a/54797762
     all_resources_set=()
-    unset dupes # ensure it's empty
-    declare -A dupes
+    declare -A dupes=()
     for i in "${all_resources[@]}"; do
-        if [[ -z ${dupes[$i]} ]]; then
+        if [[ ! ${dupes["$i"]+_} ]]; then # https://stackoverflow.com/a/69041782
             all_resources_set+=("$i")
         fi
         dupes["$i"]=1
