@@ -129,6 +129,12 @@ for slug in ${all_slugs[@]}; do
     book_lang=$(try jq -r '.language' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     revised_date=$(try jq -r '.revised' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
 
+    # HACK get the authors from the original .collection.xml file
+    book_href=$(xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' --nl < $fetch_root/META-INF/books.xml)
+
+    book_file="$fetch_root/META-INF/$book_href"
+    book_authors=$(xmlstarlet sel -t --match "/*" --value-of '@authors' --nl < $book_file)
+
     # Remove the timezone from the revised_date
     revised_date=${revised_date/+00:00/Z}
 
@@ -139,6 +145,7 @@ for slug in ${all_slugs[@]}; do
     <dc:language>$book_lang</dc:language>
     <meta property="dcterms:modified">$revised_date</meta>
     <dc:identifier id="uid">dummy-cnx.org-id.$slug</dc:identifier>
+    <dc:creator>$book_authors</dc:creator>
   </metadata>
   <manifest>
     <item properties="nav" id="nav" href="./$slug.toc.xhtml" media-type="application/xhtml+xml" />
