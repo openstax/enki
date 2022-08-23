@@ -2,8 +2,8 @@
 
 # This is run every time the docker container starts up.
 
-set -e
-# set -Eeuo pipefail
+# set -e
+set -Eeuo pipefail
 
 # Trace and log if TRACE_ON is set
 TRACE_ON=${TRACE_ON:-}

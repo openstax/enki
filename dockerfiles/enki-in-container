@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+
+# Example:
+# TRACE_ON=1 enki-in-container --command all-git-epub --repo-dir ./therepo
+
+set -Eeuo pipefail
+
+# Trace if TRACE_ON is set
+[[ ${TRACE_ON:-} ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+
+# If a symlink was used to run this script then detangle the symlink
+if [[ -L $0 ]]; then
+    if [[ $(command -v readlink) ]]; then
+        actual_file=$(readlink -f "$0")
+    else
+        # MacOS may not have readlink
+        actual_file="$(dirname "$0")/$(find "$(dirname "$0")" -name "$(basename "$0")" -ls | awk -F'-> ' '{print $NF}')"
+    fi
+else
+    actual_file=$0
+fi
+readonly root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
+
+
+show_help() {
+    cat << EOF
+
+    Required Arguments:
+
+        --command all-git-pdf       Command/Step to run. Can be a shortcut like all-git-pdf or all-git-web)
+        --repo-dir <path>           Path to the repository (contains a META-INF/books.xml file)
+
+    Optional Arguments:
+
+        --help                      This help page
+        --version                   The version of enki
+        --debug                     Enable trace logging for debugging
+        --book-slug <prealgebra>    Name of the book slug to generate
+        --temp-dir <path>           Path to store temporary files
+        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
+    
+    Optional Environment Variables:
+
+        TRACE_ON=1                  Enable trace logging for debugging
+
+EOF
+}
+
+show_version() {
+        cat << EOF
+
+Enki: $(cd "$root_dir" && git describe --always --tags --dirty)
+
+Submodule versions:
+$(cd "$root_dir" && git submodule)
+
+EOF
+}
+
+# Defaults
+style='default'
+trace_on=${TRACE_ON:-}
+book_slug=''
+repo_name='doesnotmatter'
+temp_dir='/tmp'
+
+while [ -n "$1" ]; do
+    case "$1" in
+        --help)
+            show_help
+            exit 0
+        ;;
+        --version)
+            show_version
+            exit 0
+        ;;
+        --command) shift; command=$1 ;;
+        --repo-dir) shift; repo_dir=$1 ;;
+        --book-slug) shift; book_slug=$1 ;;
+        --style) shift; style=$1 ;;
+        --temp-dir) shift; temp_dir=$1 ;;
+        --debug) shift; trace_on=1 ;;
+        *)
+            echo -e "Invalid argument '$1'"
+            show_help
+            exit 2
+        ;;
+    esac
+    shift
+    if [[ ! ${@+_} ]]; then
+        break
+    fi
+done
+
+
+# If a book slug was not specified pick the first one (if there is only one)
+if [[ $book_slug == '' ]]; then
+    slug_count=$(xmlstarlet sel -t --match "/" --value-of 'count(//*[@slug])' < $repo_dir/META-INF/books.xml)
+    slugs=$(xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < $repo_dir/META-INF/books.xml)
+    if [[ $slug_count == '1' ]]; then
+        book_slug=$slugs
+    else
+        echo "Found multiple books. Choose one and specify it with the --book-slug argument:"
+        echo "$slugs"
+        exit 1
+    fi
+fi
+
+# Convert to absolute path and create the tempdir if it does not exist
+mkdir -p $temp_dir
+temp_dir="$(cd $temp_dir && pwd)"
+repo_dir="$(cd $repo_dir && pwd)"
+
+
+# Make directories that enki expects
+mkdir -p $temp_dir/IO_JSONIFIED \
+    $temp_dir/IO_DISASSEMBLE_LINKED \
+    $temp_dir/IO_DISASSEMBLED \
+    $temp_dir/IO_LINKED \
+    $temp_dir/IO_BAKE_META \
+    $temp_dir/IO_BAKED \
+    $temp_dir/IO_ASSEMBLE_META \
+    $temp_dir/IO_ASSEMBLED \
+    $temp_dir/resources \
+    $temp_dir/IO_FETCH_META \
+    $temp_dir/IO_UNUSED_RESOURCES \
+    $temp_dir/IO_ARTIFACTS \
+    $temp_dir/IO_REX_LINKED \
+    $temp_dir/IO_MATHIFIED \
+    $temp_dir/IO_FETCHED \
+    $temp_dir/IO_BOOK \
+    $temp_dir/IO_EPUB \
+    $temp_dir/INPUT_SOURCE_DIR \
+    $temp_dir/OUTPUT \
+    ;
+
+cd "$temp_dir"
+
+TRACE_ON=$trace_on \
+    LOCAL_SIDELOAD_REPO_PATH=$repo_dir \
+    IO_EPUB=$temp_dir/IO_EPUB \
+    IO_JSONIFIED=$temp_dir/IO_JSONIFIED\
+    IO_DISASSEMBLE_LINKED=$temp_dir/IO_DISASSEMBLE_LINKED\
+    IO_DISASSEMBLED=$temp_dir/IO_DISASSEMBLED\
+    IO_LINKED=$temp_dir/IO_LINKED\
+    IO_BAKE_META=$temp_dir/IO_BAKE_META\
+    IO_BAKED=$temp_dir/IO_BAKED\
+    IO_ASSEMBLE_META=$temp_dir/IO_ASSEMBLE_META\
+    IO_ASSEMBLED=$temp_dir/IO_ASSEMBLED\
+    IO_RESOURCES=$temp_dir/resources\
+    IO_FETCH_META=$temp_dir/IO_FETCH_META\
+    IO_UNUSED_RESOURCES=$temp_dir/IO_UNUSED_RESOURCES\
+    IO_ARTIFACTS=$temp_dir/IO_ARTIFACTS\
+    IO_REX_LINKED=$temp_dir/IO_REX_LINKED\
+    IO_MATHIFIED=$temp_dir/IO_MATHIFIED   \
+    IO_BOOK=$temp_dir/IO_BOOK \
+    INPUT_SOURCE_DIR=$temp_dir/INPUT_SOURCE_DIR \
+    IO_FETCHED=$temp_dir/IO_FETCHED \
+    INPUT_SOURCE_DIR=$temp_dir/INPUT_SOURCE_DIR \
+    "$root_dir/docker-entrypoint.sh" "$command" "$repo_name/$book_slug" "$style" main
