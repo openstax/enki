@@ -3,8 +3,10 @@
 # This is run every time the docker container starts up.
 
 set -e
+# set -Eeuo pipefail
 
 # Trace and log if TRACE_ON is set
+TRACE_ON=${TRACE_ON:-}
 [[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
@@ -42,6 +44,9 @@ COOKBOOK_ROOT=${COOKBOOK_ROOT:-$PROJECT_ROOT/cookbook}
 MATHIFY_ROOT=${MATHIFY_ROOT:-$PROJECT_ROOT/mathify}
 BOOK_STYLES_ROOT=${BOOK_STYLES_ROOT:-$PROJECT_ROOT/ce-styles/styles/output}
 XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build/libs}
+START_AT_STEP=${START_AT_STEP:-}
+STOP_AT_STEP=${STOP_AT_STEP:-}
+KCOV_DIR=${KCOV_DIR:-}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -268,7 +273,7 @@ function do_step() {
 function do_step_named() {
     step_name=$1
     if [[ $START_AT_STEP == $step_name ]]; then
-        unset START_AT_STEP
+        START_AT_STEP=''
     elif [[ $START_AT_STEP ]]; then
         say "==> Skipping $*"
     fi
@@ -278,6 +283,7 @@ function do_step_named() {
         START_AT_STEP='__nonexistent_step__'
         exit 0
     fi
+
     if [[ ! $START_AT_STEP ]]; then
         [[ $LOCAL_ATTIC_DIR ]] && simulate_dirs_before $step_name
         say "==> Starting: $*"

@@ -2,6 +2,7 @@
 
 # TODO: Make a giant module map and then redirect people from https://cnx.org/content/m1234 to the canonical book. Then these links will continue to work
 
+parse_book_dir
 
 repo_root=$IO_FETCH_META
 

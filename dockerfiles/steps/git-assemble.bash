@@ -1,3 +1,5 @@
+parse_book_dir
+
 repo_root=$IO_FETCH_META
 col_sep='|'
 # https://stackoverflow.com/a/31838754

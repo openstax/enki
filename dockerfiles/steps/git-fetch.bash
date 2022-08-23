@@ -2,6 +2,8 @@ parse_book_dir
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 [[ "$ARG_REPO_NAME" == */* ]] || ARG_REPO_NAME="openstax/$ARG_REPO_NAME"
 
+creds_dir=$(pwd)/tmp-gh-creds
+
 # Support sideloading the book
 if [[ $LOCAL_SIDELOAD_REPO_PATH && -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
     [[ -d $IO_FETCHED ]] && rm -rf "$IO_FETCHED" # LCOV_EXCL_LINE
@@ -22,7 +24,6 @@ else
         # Do not show creds
         set +x
         if [[ $GH_SECRET_CREDS ]]; then
-            creds_dir=$(pwd)/tmp-gh-creds
             creds_file="$creds_dir/gh-creds"
             git config --global credential.helper "store --file=$creds_file"
             mkdir --parents "$creds_dir"
