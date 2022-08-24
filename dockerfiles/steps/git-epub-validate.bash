@@ -10,20 +10,21 @@ try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-s
 
 set +e
 java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
+cat $IO_EPUB/validation.log
 exit_status=$?
 set -e
 
 if [[ $exit_status != 0 ]]; then
-    errors=$(cat $IO_EPUB/validation.log | grep 'ERROR' \
-        | grep -v 'ERROR(RSC-012)' \
-        | grep -v 'ERROR(MED-002)' \
-        | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
-        | grep -v 'Error while parsing file: element "mn" not allowed here;' \
-        | grep -v 'Error while parsing file: element "minus" not allowed here;' \
-        | grep -v 'Error while parsing file: element "or" not allowed here;' \
-        | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
-        | grep -v 'of type "text/plain"' \
-        | grep -v 'ERROR(RSC-010)' \
+    errors=$(cat $IO_EPUB/validation.log | grep -i 'ERROR' \
+        | grep -vi 'ERROR(RSC-012)' \
+        | grep -vi 'ERROR(MED-002)' \
+        | grep -vi 'Error while parsing file: element "mrow" not allowed here;' \
+        | grep -vi 'Error while parsing file: element "mn" not allowed here;' \
+        | grep -vi 'Error while parsing file: element "minus" not allowed here;' \
+        | grep -vi 'Error while parsing file: element "or" not allowed here;' \
+        | grep -vi 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
+        | grep -vi 'of type "text/plain"' \
+        | grep -vi 'ERROR(RSC-010)' \
         )
     error_count=$(echo "$errors" | wc -l)
     if [[ $error_count != 0 ]]; then

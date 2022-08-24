@@ -47,6 +47,7 @@ XHTML_VALIDATOR_ROOT=${XHTML_VALIDATOR_ROOT:-$PROJECT_ROOT/xhtml-validator/build
 START_AT_STEP=${START_AT_STEP:-}
 STOP_AT_STEP=${STOP_AT_STEP:-}
 KCOV_DIR=${KCOV_DIR:-}
+LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -197,11 +198,11 @@ function do_step() {
 
             check_input_dir INPUT_SOURCE_DIR
             check_output_dir IO_BOOK
-            
+
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
+            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style
 
             # Detect if this is a git book or an archive book.
             # Git books have at least one slash in the collection_id
@@ -234,7 +235,7 @@ function do_step() {
                 pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
                 echo "$pdf_filename" > $IO_BOOK/pdf_filename
             fi
-            
+
             return
         ;;
     esac
@@ -252,7 +253,7 @@ function do_step() {
 
         for required_env in $required_envs; do
             ensure_arg $(echo $required_env | tr -d "'")
-        done        
+        done
         for input_dir in $input_dirs; do
             check_input_dir $(echo $input_dir | tr -d "'")
         done
@@ -351,7 +352,7 @@ function simulate_dirs_after() {
 
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
                 try rm -rf "$LOCAL_ATTIC_DIR/$io_name"
-            fi 
+            fi
             try mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
         done
     fi
@@ -366,7 +367,7 @@ function simulate_dirs_after() {
             try rm -rf "$child_dir_path"
         done
     fi
- 
+
 }
 
 
@@ -381,7 +382,7 @@ elif [[ $pipeline_steps = 'null' ]]; then
 else
     do_step_named local-create-book-directory "${@:2}"
     do_step_named look-up-book
-    
+
     for step_name in $pipeline_steps; do
         do_step_named $(echo $step_name | tr -d "'")
     done
