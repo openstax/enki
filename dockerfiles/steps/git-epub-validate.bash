@@ -11,6 +11,7 @@ try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-s
 set +e
 java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
 exit_status=$?
+set -e
 
 [[ ! -f $IO_EPUB/validation.log ]] && die "$IO_EPUB/validation.log does not exist"
 
@@ -26,12 +27,10 @@ if [[ $exit_status != 0 ]]; then
         | grep -v 'of type "text/plain"' \
         | grep -v 'ERROR(RSC-010)' \
         )
-    error_count=$(echo "$errors" | wc -l)
-    if [[ $error_count -gt 1 ]]; then
+    if [[ $errors ]]; then
         echo "$errors"
-        die "Failed to validate: $error_count errors that we have not chosen to ignore"
+        die "Failed to validate: $(echo "$errors" | wc -l) errors that we have not chosen to ignore"
     else
         echo "Yay! No errors besides the ones we have already chosen to ignore"
     fi
 fi
-set -e
