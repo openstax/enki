@@ -9,8 +9,8 @@ try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-s
 
 
 set +e
-java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
-cat $IO_EPUB/validation.log
+java -jar $validator_jar --error $epub_file
+touch $IO_EPUB/validation.log
 exit_status=$?
 set -e
 
