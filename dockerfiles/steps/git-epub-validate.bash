@@ -11,7 +11,6 @@ try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-s
 set +e
 java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
 exit_status=$?
-set -e
 
 [[ ! -f $IO_EPUB/validation.log ]] && die "$IO_EPUB/validation.log does not exist"
 
@@ -26,7 +25,7 @@ if [[ $exit_status != 0 ]]; then
         | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
         | grep -v 'of type "text/plain"' \
         | grep -v 'ERROR(RSC-010)' \
-        )
+    )
     if [[ $errors ]]; then
         echo "$errors"
         die "Failed to validate: $(echo "$errors" | wc -l) errors that we have not chosen to ignore"
@@ -34,3 +33,4 @@ if [[ $exit_status != 0 ]]; then
         echo "Yay! No errors besides the ones we have already chosen to ignore"
     fi
 fi
+set -e
