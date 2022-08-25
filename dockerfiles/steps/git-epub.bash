@@ -97,10 +97,47 @@ for slug in ${all_slugs[@]}; do
     </xsl:copy>
 </xsl:template>
 
+<!-- Escape colons in the filename -->
+<xsl:template match="@href">
+    <xsl:attribute name="href">
+        <xsl:call-template name="string-replace-all">
+            <xsl:with-param name="text" select="." />
+            <xsl:with-param name="replace" select="':'" />
+            <xsl:with-param name="by" select="'%3A'" />
+        </xsl:call-template>
+    </xsl:attribute>
+</xsl:template>
+
 <!-- Remove extra attributes -->
 <xsl:template match="@cnx-archive-shortid"/>
 <xsl:template match="@cnx-archive-uri"/>
 <xsl:template match="@itemprop"/>
+
+<!-- XSLT 1.0 does not have a string-replace function (but newer ones do) -->
+<xsl:template name="string-replace-all">
+    <xsl:param name="text" />
+    <xsl:param name="replace" />
+    <xsl:param name="by" />
+    <xsl:choose>
+        <xsl:when test="\$text = '' or \$replace = ''or not(\$replace)" >
+            <!-- Prevent this routine from hanging -->
+            <xsl:value-of select="\$text" />
+        </xsl:when>
+        <xsl:when test="contains(\$text, \$replace)">
+            <xsl:value-of select="substring-before(\$text,\$replace)" />
+            <xsl:value-of select="\$by" />
+            <xsl:call-template name="string-replace-all">
+                <xsl:with-param name="text" select="substring-after(\$text,\$replace)" />
+                <xsl:with-param name="replace" select="\$replace" />
+                <xsl:with-param name="by" select="\$by" />
+            </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:value-of select="\$text" />
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 
 <!-- Add the epub:type="nav" attribute -->
 <xsl:template match="h:nav">
@@ -148,8 +185,8 @@ for slug in ${all_slugs[@]}; do
     <dc:creator>$book_authors</dc:creator>
   </metadata>
   <manifest>
-    <item properties="nav" id="nav" href="./$slug.toc.xhtml" media-type="application/xhtml+xml" />
-    <item id="the-ncx-file" href="./$slug.toc.ncx"  media-type="application/x-dtbncx+xml"/>
+    <item properties="nav" id="nav" href="$slug.toc.xhtml" media-type="application/xhtml+xml" />
+    <item id="the-ncx-file" href="$slug.toc.ncx"  media-type="application/x-dtbncx+xml"/>
     <item id="just-the-book-style" href="../the-style-epub.css" media-type="text/css" />
 EOF
 
@@ -175,6 +212,8 @@ for slug in ${all_slugs[@]}; do
     set -e
 
     while read -r line; do
+        # Unescape those colons again
+        line="${line//%3A/:}"
         html_files+=($line)
     done < <(echo $hrefs)
 
@@ -303,8 +342,15 @@ EOF
             item_properties="properties=\"$item_properties\""
         fi
 
-        # Add to OPF spine
-        echo "  <item $item_properties id=\"$html_file_id\" href=\"$html_file\" media-type=\"application/xhtml+xml\"/>" >> $opf_file
+        # Add to OPF spine but HACK the URL so epub readers are not confused
+        # Remove leading ./ because ebook readers do not like that in the OPF file
+        # Escape those colons again
+        fixed_html_file="${html_file//:/%3A}"
+        if [[ $fixed_html_file == ./* ]]; then
+            fixed_html_file="${fixed_html_file:2}"
+        fi
+
+        echo "  <item $item_properties id=\"$html_file_id\" href=\"$fixed_html_file\" media-type=\"application/xhtml+xml\"/>" >> $opf_file
         counter=$((counter+1))
 
         set +e
