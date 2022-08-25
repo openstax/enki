@@ -7,19 +7,23 @@ parse_book_dir
 repo_root=$IO_FETCH_META
 
 
+
 # Tidy up the CNXML (by removing thumbnail attributes)
 shopt -s globstar
 for filename in **/*.cnxml; do # Whitespace-safe and recursive
     
-    cat << EOF | try xsltproc --output "$filename" /dev/stdin "$filename"
+    cat << EOF | try xsltproc --output "$filename" --stringparam moduleid "$(basename "$(dirname "$filename")")" /dev/stdin "$filename"
         <xsl:stylesheet 
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
         xmlns:epub="http://www.idpf.org/2007/ops"
         xmlns:m="http://www.w3.org/1998/Math/MathML"
         xmlns:h="http://www.w3.org/1999/xhtml"
-        xmlns:c="http://cnx.rice.edu/cnxml" 
+        xmlns:c="http://cnx.rice.edu/cnxml"
+        xmlns:str="http://exslt.org/strings"
         xmlns="http://www.w3.org/1999/xhtml"
         version="1.0">
+        
+        <xsl:param name="moduleid"/>
 
         <!-- Discard image thumbnails -->
         <xsl:template match="c:image/@thumbnail" />
@@ -28,6 +32,16 @@ for filename in **/*.cnxml; do # Whitespace-safe and recursive
             <c:span>
                 <xsl:apply-templates select="@*|node()"/>
             </c:span>
+        </xsl:template>
+
+        <!-- Make resource links go to the module on cnx.org -->
+        <xsl:template match="c:download[@src][not(starts-with(@src, 'http') or starts-with(@src, '/') or starts-with(@src, '#'))]/@src|
+                             c:link[@url][not(starts-with(@url, 'http') or starts-with(@url, '/') or starts-with(@src, '#'))]/@url">
+            <xsl:attribute name="{name()}">
+                <xsl:text>https://cnx.org/content/</xsl:text>
+                <xsl:value-of select="\$moduleid"/>
+                <xsl:text>/</xsl:text>
+            </xsl:attribute>
         </xsl:template>
 
         <!-- Identity Transform -->
