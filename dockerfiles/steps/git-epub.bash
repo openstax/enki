@@ -149,6 +149,7 @@ for slug in ${all_slugs[@]}; do
   </metadata>
   <manifest>
     <item properties="nav" id="nav" href="./$slug.toc.xhtml" media-type="application/xhtml+xml" />
+    <item id="the-ncx-file" href="./$slug.toc.ncx"  media-type="application/x-dtbncx+xml"/>
     <item id="just-the-book-style" href="../the-style-epub.css" media-type="text/css" />
 EOF
 
@@ -165,6 +166,7 @@ echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
+    epub_ncx_file=$epub_root/contents/$slug.toc.ncx
 
     echo "Find all hrefs in the ToC file"
     html_files=()
@@ -175,6 +177,71 @@ for slug in ${all_slugs[@]}; do
     while read -r line; do
         html_files+=($line)
     done < <(echo $hrefs)
+
+    echo "Convert the ToC XHTML file into an NCX file"
+    cat << EOF | xsltproc --output $epub_ncx_file /dev/stdin $epub_toc_file
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:epub="http://www.idpf.org/2007/ops"
+  xmlns:h="http://www.w3.org/1999/xhtml"
+  xmlns="http://www.daisy.org/z3986/2005/ncx/"
+  version="1.0">
+
+<!-- <!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' 'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'> -->
+
+<xsl:template match="/h:html">
+    <xsl:variable name="maxDepth">
+        <xsl:choose>
+            <xsl:when test="count(//h:nav//h:li//h:li//h:li//h:li//h:li//h:li) > 0">6</xsl:when>
+            <xsl:when test="count(//h:nav//h:li//h:li//h:li//h:li//h:li) > 0">5</xsl:when>
+            <xsl:when test="count(//h:nav//h:li//h:li//h:li//h:li) > 0">4</xsl:when>
+            <xsl:when test="count(//h:nav//h:li//h:li//h:li) > 0">3</xsl:when>
+            <xsl:when test="count(//h:nav//h:li//h:li) > 0">2</xsl:when>
+            <xsl:when test="count(//h:nav//h:li) > 0">1</xsl:when>
+            <xsl:otherwise>0</xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <ncx version="2005-1" xml:lang="en">
+        <head>
+            <meta name="dtb:uid" content="dummy-cnx.org-id.$slug"/>
+            <meta name="dtb:depth" content="{\$maxDepth}"/>
+            <meta name="dtb:generator" content="OpenStax EPUB Maker 2022-08"/>
+            <meta name="dtb:totalPageCount" content="0"/>
+            <meta name="dtb:maxPageNumber" content="0"/>
+        </head>
+        <docTitle><text><xsl:value-of select="h:head/h:title"/></text></docTitle>
+        <navMap>
+            <xsl:apply-templates select="h:body/h:nav[@epub:type='toc']/h:ol/h:li"/>
+        </navMap>
+    </ncx>
+</xsl:template>
+
+<!-- Leaf node -->
+<xsl:template match="h:li[h:a]">
+    <xsl:variable name="src" select="h:a/@href"/>
+    <navPoint id="{generate-id()}">
+        <navLabel><text><xsl:apply-templates select="h:a/node()"/></text></navLabel>
+        <content src="{\$src}"/>
+    </navPoint>
+</xsl:template>
+
+<xsl:template match="h:li[not(h:a)]">
+    <xsl:variable name="src" select="h:a/@href"/>
+    <navPoint>
+        <navLabel><text><xsl:apply-templates select="h:span/node()"/></text></navLabel>
+        <xsl:apply-templates select="h:ol/h:li"/>
+    </navPoint>
+</xsl:template>
+
+<!-- Identity (to see if anything bleeds through accidentally) -->
+<xsl:template match="@*|node()">
+    <xsl:copy>
+        <xsl:apply-templates select="@*|node()"/>
+    </xsl:copy>
+</xsl:template>
+
+</xsl:stylesheet>
+EOF
 
     all_resources=()
 
@@ -333,13 +400,13 @@ EOF
     # Optionally add the spine (not in order)
     echo "Adding spine"
     cat << EOF >> $opf_file
-<spine><itemref idref="nav"/>
+<spine toc="the-ncx-file"><itemref linear="yes" idref="nav"/>
 EOF
 
     for html_file in ${html_files[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
         cat << EOF >> $opf_file
-    <itemref idref="$html_file_id"/>
+    <itemref linear="yes" idref="$html_file_id"/>
 EOF
     done
 
