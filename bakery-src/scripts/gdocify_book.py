@@ -256,6 +256,15 @@ def patch_math(doc):
                     f'Converting mo to {node_type}: "{log_text}"')
                 node.tag = node_type
 
+    # Pandoc converts \u0338 to \not{}. This causes problems in mi and mn tags.
+    # Convert to mtext.
+    for node in doc.xpath(
+            '//x:mi[contains(text(), "\u0338")]|//x:mn[contains(text(), "\u0338")]',
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
+    ):
+        logging.warning("Found \\u0338 in math: converting to mtext")
+        node.tag = "mtext"
+
 
 def remove_iframes(doc):
     for node in doc.xpath(

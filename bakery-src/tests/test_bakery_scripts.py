@@ -1613,6 +1613,9 @@ async def test_gdocify_book(tmp_path, mocker):
                 <mrow>
                     <mo>&#x00a0;</mo>
                 </mrow>
+                <mrow>
+                    <mn>4̸</mn>
+                </mrow>
             </semantics>
         </math>
         </div>
@@ -1712,7 +1715,7 @@ async def test_gdocify_book(tmp_path, mocker):
 
     assert(
         "mtext" == updated_doc.xpath(
-            f'//*[text() = "{chr(0xa0)}"]',
+            '//*[text() = "\xa0"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
     )
@@ -1771,6 +1774,12 @@ async def test_gdocify_book(tmp_path, mocker):
 
     unwanted_nodes = updated_doc.xpath(
         '//x:iframe',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    )
+    assert len(unwanted_nodes) == 0
+
+    unwanted_nodes = updated_doc.xpath(
+        f'//x:mi[contains(text(), "\u0338")]|//x:mn[contains(text(), "\u0338")]',
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
