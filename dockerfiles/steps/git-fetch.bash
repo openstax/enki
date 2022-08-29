@@ -23,7 +23,7 @@ else
         # LCOV_EXCL_START
         # Do not show creds
         set +x
-        if [[ $GH_SECRET_CREDS ]]; then
+        if [[ ${GH_SECRET_CREDS:-} ]]; then
             creds_file="$creds_dir/gh-creds"
             git config --global credential.helper "store --file=$creds_file"
             mkdir --parents "$creds_dir"
