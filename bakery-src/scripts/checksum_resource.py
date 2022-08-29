@@ -24,13 +24,15 @@ def create_symlink(img_filename, output_dir, sha1):
         pass
 
 
-def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name):
+def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
     """ Create json with MIME type of a (symlinked) resource file """
     data = {}
     data['original_name'] = original_name
     data['mime_type'] = mime_type
     data['s3_md5'] = s3_md5
     data['sha1'] = sha1
+    data['width'] = width
+    data['height'] = height
     json_filename = os.path.join(output_dir, RESOURCES_DIR, sha1 + '.json')
     with open(json_filename, 'w') as outfile:
         json.dump(data, outfile)
@@ -55,13 +57,14 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
 
         sha1, s3_md5 = utils.get_checksums(img_filename)
         mime_type = utils.get_mime_type(img_filename)
+        width, height = utils.get_size(img_filename)
 
         if sha1:  # file exists
             node.attrib['src'] = '../' + RESOURCES_DIR + '/' + sha1
 
             create_symlink(img_filename, output_dir, sha1)
             create_json_metadata(output_dir, sha1, mime_type, s3_md5,
-                                 img_basename)
+                                 img_basename, width, height)
 
     # get all a @href resources
     href_xpath = '//x:a[@href and not(starts-with(@href, "http") or ' \
@@ -78,13 +81,14 @@ def generate_checksum_resources_from_xhtml(filename, output_dir):
 
         sha1, s3_md5 = utils.get_checksums(img_filename)
         mime_type = utils.get_mime_type(img_filename)
+        width, height = utils.get_size(img_filename)
 
         if sha1:  # file exists
             node.attrib['href'] = '../' + RESOURCES_DIR + '/' + sha1
 
             create_symlink(img_filename, output_dir, sha1)
             create_json_metadata(output_dir, sha1, mime_type, s3_md5,
-                                 img_basename)
+                                 img_basename, width, height)
 
     output_file = os.path.join(output_dir, basename)
     # note: non self closing tags in xhtml are probably not respected here

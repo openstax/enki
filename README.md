@@ -30,6 +30,8 @@ We build books in a pipeline of steps. These steps are written in different lang
 
 This uses a little wrapper to hide all the docker commands.
 
+**Note:** See [docs-pipeline.md](./docs-pipeline.md) to know what each of the steps do and which files they expect/generate.
+
 ## Clone & Install Submodules
 
 1. Clone this repositoriy
