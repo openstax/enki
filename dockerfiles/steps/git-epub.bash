@@ -259,15 +259,16 @@ for slug in ${all_slugs[@]}; do
 <xsl:template match="h:li[h:a]">
     <xsl:variable name="src" select="h:a/@href"/>
     <navPoint id="{generate-id()}">
-        <navLabel><text><xsl:apply-templates select="h:a/node()"/></text></navLabel>
+        <navLabel><text><xsl:apply-templates select="h:a//text()"/></text></navLabel>
         <content src="{\$src}"/>
     </navPoint>
 </xsl:template>
 
 <xsl:template match="h:li[not(h:a)]">
-    <xsl:variable name="src" select="h:a/@href"/>
-    <navPoint>
-        <navLabel><text><xsl:apply-templates select="h:span/node()"/></text></navLabel>
+    <xsl:variable name="src" select=".//h:a/@href"/>
+    <navPoint id="{generate-id()}">
+        <navLabel><text><xsl:apply-templates select="h:span//text()"/></text></navLabel>
+        <content src="{\$src[1]}"/>
         <xsl:apply-templates select="h:ol/h:li"/>
     </navPoint>
 </xsl:template>
@@ -284,6 +285,7 @@ EOF
 
     all_resources=()
 
+    echo "Processing XHTML files"
     counter=1
     for html_file in ${html_files[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
@@ -478,6 +480,7 @@ EOF
 EOF
 
     # Zip up the epub and store it in the artifacts dir
+    echo "Zipping EPUB"
     epub_file=$IO_ARTIFACTS/$slug.epub
     [[ -f $epub_file ]] && rm $epub_file
     try cd $epub_root

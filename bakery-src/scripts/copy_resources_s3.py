@@ -91,7 +91,6 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
             # empty or non existing s3 folder
             # skip individual s3 file check
             upload_resource = resource
-            upload_resource['mime_type'] = data['mime_type']
         else:
             session = boto3.session.Session()
             s3_client = session.client(
@@ -102,14 +101,20 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
             if data['s3_md5'] != s3_md5sum(s3_client, bucket,
                                            resource['output_s3']):
                 upload_resource = resource
-                upload_resource['mime_type'] = data['mime_type']
+
+        if upload_resource is not None:
+            upload_resource['mime_type'] = data['mime_type']
+            upload_resource['width'] = data['width']
+            upload_resource['height'] = data['height']
+
         return upload_resource
     except FileNotFoundError as e:
         print('Error: No metadata json found!')
         raise (e)
 
 
-def upload_s3(aws_key, aws_secret, aws_session_token, filename, bucket, key, content_type):
+def upload_s3(aws_key, aws_secret, aws_session_token,
+              filename, bucket, key, content_type, metadata=None):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-multiprocessing
@@ -119,13 +124,18 @@ def upload_s3(aws_key, aws_secret, aws_session_token, filename, bucket, key, con
         aws_access_key_id=aws_key,
         aws_secret_access_key=aws_secret,
         aws_session_token=aws_session_token)
+
+    extra_args = {
+        "ContentType": content_type
+    }
+    if metadata is not None:
+        extra_args['Metadata'] = metadata
+
     s3_client.upload_file(
         Filename=filename,
         Bucket=bucket,
         Key=key,
-        ExtraArgs={
-            "ContentType": content_type
-        }
+        ExtraArgs=extra_args
     )
     return key
 
@@ -239,7 +249,11 @@ def upload(in_dir, bucket, bucket_folder):
                     key=resource['output_s3_metadata'],
                     content_type='application/json')
             )
+
             # upload resource file last (existence/md5 is checked)
+            metadata = None if resource['width'] == -1 or resource['height'] == -1 \
+                else {'width': str(resource['width']), 'height': str(resource['height'])}
+
             upload_futures.append(
                 executor.submit(
                     upload_s3,
@@ -249,7 +263,8 @@ def upload(in_dir, bucket, bucket_folder):
                     filename=resource['input_file'],
                     bucket=bucket,
                     key=resource['output_s3'],
-                    content_type=resource['mime_type'])
+                    content_type=resource['mime_type'],
+                    metadata=metadata)
             )
         for future in concurrent.futures.as_completed(upload_futures):
             try:

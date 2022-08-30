@@ -21,7 +21,7 @@ export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
 if [[ -d "$IO_FETCH_META/media" ]]; then
-    try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" . "$IO_UNUSED_RESOURCES"
+    try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_RESOURCES)" "$IO_UNUSED_RESOURCES"
     # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
     try rm -d "$IO_FETCH_META/media"
 fi

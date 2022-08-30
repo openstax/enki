@@ -34,3 +34,30 @@ if [[ $exit_status != 0 ]]; then
     fi
 fi
 set -e
+
+
+
+# EPUB Readers are picky with colons and ./ in paths to files so we check for epub-reader specific problems here:
+while read -r opf_file_path; do
+    opf_file=$src_dir/$opf_file_path
+
+        cat << EOF | xsltproc /dev/stdin $opf_file
+<xsl:stylesheet 
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:opf="http://www.idpf.org/2007/opf"
+  version="1.0">
+
+<xsl:template match="/opf:package/opf:manifest/opf:item">
+    <xsl:if test="starts-with(@href, './')"><xsl:message terminate="yes">Some ePub Readers do not like hrefs that begin with './'</xsl:message></xsl:if>
+    <xsl:if test="contains(@href, ':')"><xsl:message terminate="yes">Some ePub Readers do not like filenames that contain a colon ':'./</xsl:message></xsl:if>
+</xsl:template>
+
+<xsl:template match="@*|node()">
+    <xsl:apply-templates select="@*|node()"/>
+</xsl:template>
+
+</xsl:stylesheet>
+EOF
+
+
+done < <(try xmlstarlet sel -t --match "//*[@full-path]" --value-of '@full-path' --nl < $src_dir/META-INF/container.xml)
