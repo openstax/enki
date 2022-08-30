@@ -194,7 +194,7 @@ done
 
 
 extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]' # Find XHTML links
-extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
+extract_resources_xpath_after_cleanup='//h:img/@src|//h:a[starts-with(@href, "resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
 
 echo "Copy CSS file over"
 cp "$IO_BAKED/the-style-pdf.css" "$epub_root/contents/the-style-epub.css"
@@ -308,6 +308,22 @@ EOF
 <xsl:template match="h:script"/>
 <xsl:template match="h:style"/>
 
+<!-- fix relative relative resource links for picky epub readers like Apple books -->
+<xsl:template match="h:img/@src|h:a[starts-with(@href, '../resources/')]/@href|h:object/@data|h:embed/@src">
+    <xsl:choose>
+        <xsl:when test="starts-with(., '../resources/')">
+            <xsl:attribute name="{name()}">
+                <xsl:value-of select="substring(., 4)"/>
+            </xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:attribute name="{name()}">
+                <xsl:value-of select="."/>
+            </xsl:attribute>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 <!-- Add a book CSS file -->
 <xsl:template match="h:head">
     <xsl:copy>
@@ -354,7 +370,7 @@ EOF
         counter=$((counter+1))
 
         set +e
-        resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath" --value-of '.' --nl < $output_xhtml_file)
+        resources_str=$(xmlstarlet sel -N h=http://www.w3.org/1999/xhtml -t --match "$extract_resources_xpath_after_cleanup" --value-of '.' --nl < $output_xhtml_file)
         set -e
 
         this_resources=()
