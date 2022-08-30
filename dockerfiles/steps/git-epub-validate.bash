@@ -5,7 +5,7 @@ validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epu
 [[ -f $epub_file ]] && rm $epub_file
 
 try cd $src_dir
-try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-style-epub.css
+try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents
 
 
 set +e

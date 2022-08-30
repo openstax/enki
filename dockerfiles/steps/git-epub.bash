@@ -52,7 +52,7 @@ echo -n 'application/epub+zip' > $epub_root/mimetype
 
 [[ -d "$epub_root/META-INF" ]] || mkdir $epub_root/META-INF
 [[ -d "$epub_root/contents" ]] || mkdir $epub_root/contents
-[[ -d "$epub_root/resources" ]] || mkdir $epub_root/resources
+[[ -d "$epub_root/contents/resources" ]] || mkdir $epub_root/contents/resources
 
 echo "Generating the META-INF/container.xml file"
 echo '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles>' > $epub_root/META-INF/container.xml
@@ -187,7 +187,7 @@ for slug in ${all_slugs[@]}; do
   <manifest>
     <item properties="nav" id="nav" href="$slug.toc.xhtml" media-type="application/xhtml+xml" />
     <item id="the-ncx-file" href="$slug.toc.ncx"  media-type="application/x-dtbncx+xml"/>
-    <item id="just-the-book-style" href="../the-style-epub.css" media-type="text/css" />
+    <item id="just-the-book-style" href="the-style-epub.css" media-type="text/css" />
 EOF
 
 done
@@ -197,7 +197,7 @@ extract_html_files_xpath='//*[@href][not(starts-with(@href, "../resources/"))]' 
 extract_resources_xpath='//h:img/@src|//h:a[starts-with(@href, "../resources/")]/@href|//h:object/@data|//h:embed/@src' # Music book links to MP3 & SWF files
 
 echo "Copy CSS file over"
-cp "$IO_BAKED/the-style-pdf.css" "$epub_root/the-style-epub.css"
+cp "$IO_BAKED/the-style-pdf.css" "$epub_root/contents/the-style-epub.css"
 
 echo "Starting the bulk of the conversion"
 for slug in ${all_slugs[@]}; do
@@ -312,7 +312,7 @@ EOF
 <xsl:template match="h:head">
     <xsl:copy>
         <xsl:apply-templates select="@*|node()"/>
-        <link rel="stylesheet" type="text/css" href="../the-style-epub.css"/>
+        <link rel="stylesheet" type="text/css" href="the-style-epub.css"/>
     </xsl:copy>
 </xsl:template>
 
@@ -365,7 +365,7 @@ EOF
         # Add a file extension to the resource file in the XHTML file
         for resource_href in ${this_resources[@]}; do
             resource_filename=$(basename $resource_href)
-            resource_file=$epub_root/resources/$resource_filename
+            resource_file=$epub_root/contents/resources/$resource_filename
 
             media_type=$(file --brief --mime-type $resources_root/$resource_filename)
             extension='mimetypenotfound'
@@ -430,12 +430,12 @@ EOF
 
     # Add all the resource files (while adding a file extension to the resource file)
     for resource_filename in ${all_resources_set[@]}; do
-        resource_file=$epub_root/resources/$resource_filename
+        resource_file=$epub_root/contents/resources/$resource_filename
 
         media_type=$(file --brief --mime-type $resource_file)
 
         cat << EOF >> $opf_file
-    <item id="idresource_$counter" href="../resources/$resource_filename" media-type="$media_type"/>
+    <item id="idresource_$counter" href="resources/$resource_filename" media-type="$media_type"/>
 EOF
         counter=$((counter+1))
     done
@@ -465,5 +465,5 @@ EOF
     epub_file=$IO_ARTIFACTS/$slug.epub
     [[ -f $epub_file ]] && rm $epub_file
     try cd $epub_root
-    try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents ./resources ./the-style-epub.css
+    try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents
 done
