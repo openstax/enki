@@ -105,7 +105,7 @@ for slug in ${all_slugs[@]}; do
         <xsl:call-template name="string-replace-all">
             <xsl:with-param name="text" select="." />
             <xsl:with-param name="replace" select="':'" />
-            <xsl:with-param name="by" select="'%3A'" />
+            <xsl:with-param name="by" select="'-colon-'" />
         </xsl:call-template>
     </xsl:attribute>
 </xsl:template>
