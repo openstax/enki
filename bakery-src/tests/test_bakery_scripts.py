@@ -2509,12 +2509,14 @@ def test_fetch_map_resources(tmp_path, mocker):
     fetch_map_resources.main()
 
     assert json.load((resources_dir / image_src_meta).open()) == {
+        'height': 30,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src.svg',
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         's3_md5': f'"{image_src_md5_expected}"',
-        'sha1': image_src_sha1_expected
+        'sha1': image_src_sha1_expected,
+        'width': 120
     }
     assert set(file.name for file in resources_dir.glob('**/*')) == set([
         image_src_sha1_expected,
