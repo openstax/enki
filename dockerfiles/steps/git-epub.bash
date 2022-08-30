@@ -310,7 +310,7 @@ EOF
 <xsl:template match="h:script"/>
 <xsl:template match="h:style"/>
 
-<!-- fix relative relative resource links for picky epub readers like Apple books -->
+<!-- fix relative resource links for picky epub readers like Apple books -->
 <xsl:template match="h:img/@src|h:a[starts-with(@href, '../resources/')]/@href|h:object/@data|h:embed/@src">
     <xsl:choose>
         <xsl:when test="starts-with(., '../resources/')">
