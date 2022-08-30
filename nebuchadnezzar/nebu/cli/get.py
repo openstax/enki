@@ -96,7 +96,7 @@ def get(ctx, env, col_id, col_version, output_dir, book_tree,
                        " requested {}".format(col_id,
                                               col_extras['headVersion'],
                                               version))
-        if not(confirm("Fetch anyway? [y/n] ")):
+        if not(confirm("Fetch anyway? [y/n]")):
             raise OldContent()
 
     # Write tree
