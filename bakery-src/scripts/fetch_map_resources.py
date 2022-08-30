@@ -97,9 +97,10 @@ def main():
                                 '//c:link[@resource]', 'resource', original_resources_dir)
         # EPUB: CNX books sometimes use an <object> tag to embed an interactive (Like Mathematica)
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
-                                '//c:object[@src][not(starts-with(@src, "http"))]', 'src', original_resources_dir)
+                                '//c:object[@src][not(starts-with(@src, "http"))]', 'src',
+                                original_resources_dir)
         # EPUB: Some books have Adobe Flash content which is no longer used on the web
-        rename_file_to_resource(filename_to_data, doc, cnxml_file, 
+        rename_file_to_resource(filename_to_data, doc, cnxml_file,
                                 '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir)
 
         for node in doc.xpath(
