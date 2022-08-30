@@ -87,7 +87,7 @@ while [ -n "$1" ]; do
         ;;
     esac
     shift
-    if [[ ! ${@+_} ]]; then
+    if [[ ! ${*+_} ]]; then
         break
     fi
 done

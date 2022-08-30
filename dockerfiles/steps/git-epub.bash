@@ -42,7 +42,7 @@ replace_colons() {
 
 xpath_sel="//*[@slug]" # All the book entries
 while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
-    all_slugs+=($line)
+    all_slugs+=("$line")
 
 done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --nl < $fetch_root/META-INF/books.xml)
 
@@ -56,7 +56,7 @@ echo -n 'application/epub+zip' > $epub_root/mimetype
 
 echo "Generating the META-INF/container.xml file"
 echo '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles>' > $epub_root/META-INF/container.xml
-for slug in ${all_slugs[@]}; do
+for slug in "${all_slugs[@]}"; do
     echo "    <rootfile media-type=\"application/oebps-package+xml\" full-path=\"contents/$slug.opf\" />" >> $epub_root/META-INF/container.xml
 done
 echo '</rootfiles></container>' >> $epub_root/META-INF/container.xml
@@ -66,7 +66,7 @@ echo '</rootfiles></container>' >> $epub_root/META-INF/container.xml
 
 
 echo "Converting the ToC files"
-for slug in ${all_slugs[@]}; do
+for slug in "${all_slugs[@]}"; do
     input_toc_file=$IO_DISASSEMBLE_LINKED/$slug.toc.xhtml
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
@@ -158,7 +158,7 @@ EOF
 done
 
 echo "Starting the OPF files for each book"
-for slug in ${all_slugs[@]}; do
+for slug in "${all_slugs[@]}"; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
@@ -200,7 +200,7 @@ echo "Copy CSS file over"
 cp "$IO_BAKED/the-style-pdf.css" "$epub_root/contents/the-style-epub.css"
 
 echo "Starting the bulk of the conversion"
-for slug in ${all_slugs[@]}; do
+for slug in "${all_slugs[@]}"; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
     epub_ncx_file=$epub_root/contents/$slug.toc.ncx
@@ -214,7 +214,7 @@ for slug in ${all_slugs[@]}; do
     while read -r line; do
         # Unescape those colons again
         line="${line//%3A/:}"
-        html_files+=($line)
+        html_files+=("$line")
     done < <(echo $hrefs)
 
     echo "Convert the ToC XHTML file into an NCX file"
@@ -287,7 +287,7 @@ EOF
 
     echo "Processing XHTML files"
     counter=1
-    for html_file in ${html_files[@]}; do
+    for html_file in "${html_files[@]}"; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
 
         # Copy the file over and clean it up a bit
@@ -354,7 +354,7 @@ EOF
 </xsl:stylesheet>
 EOF
 
-        item_properties=$(echo $get_item_properties | try xsltproc /dev/stdin $output_xhtml_file | xargs)
+        item_properties=$(echo "$get_item_properties" | try xsltproc /dev/stdin $output_xhtml_file | xargs)
 
         if [[ $item_properties != '' ]]; then
             item_properties="properties=\"$item_properties\""
@@ -377,11 +377,11 @@ EOF
 
         this_resources=()
         while read -r line; do
-            this_resources+=($line)
+            this_resources+=("$line")
         done < <(echo $resources_str)
 
         # Add a file extension to the resource file in the XHTML file
-        for resource_href in ${this_resources[@]}; do
+        for resource_href in "${this_resources[@]}"; do
             resource_filename=$(basename $resource_href)
             resource_file=$epub_root/contents/resources/$resource_filename
 
@@ -447,7 +447,7 @@ EOF
     unset all_resources
 
     # Add all the resource files (while adding a file extension to the resource file)
-    for resource_filename in ${all_resources_set[@]}; do
+    for resource_filename in "${all_resources_set[@]}"; do
         resource_file=$epub_root/contents/resources/$resource_filename
 
         media_type=$(file --brief --mime-type $resource_file)
@@ -467,7 +467,7 @@ EOF
 <spine toc="the-ncx-file"><itemref linear="yes" idref="nav"/>
 EOF
 
-    for html_file in ${html_files[@]}; do
+    for html_file in "${html_files[@]}"; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
         cat << EOF >> $opf_file
     <itemref linear="yes" idref="$html_file_id"/>
