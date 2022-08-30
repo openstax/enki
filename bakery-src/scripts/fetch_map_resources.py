@@ -65,7 +65,8 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
                 parent.replace(node, comment)
                 continue
             else:
-                raise Exception(f"WARNING: Resource file '{resource_original_filepath}' not found")
+                print(f"WARNING: Resource file '{resource_original_filepath}' not found",
+                      file=sys.stderr)
         else:
             node.attrib[attribute_name] = new_path
 
