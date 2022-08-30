@@ -28,6 +28,7 @@ def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name):
     with json_file.open(mode='w') as outfile:
         json.dump(data, outfile)
 
+
 def rename(filename_to_data, resource_original_filepath):
     sha1, s3_md5 = utils.get_checksums(
         str(resource_original_filepath)
@@ -40,6 +41,7 @@ def rename(filename_to_data, resource_original_filepath):
     filename_to_data[resource_original_filepath.name] = \
         (sha1, s3_md5, mime_type, resource_original_filepath)
     return f"../{RESOURCES_DIR_NAME}/{sha1}"
+
 
 def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_name, context_dir):
     for node in doc.xpath(
@@ -67,6 +69,7 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
         else:
             node.attrib[attribute_name] = new_path
 
+
 def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     original_resources_dir = Path(sys.argv[2]).resolve(strict=True)
@@ -86,14 +89,18 @@ def main():
 
     for cnxml_file in cnxml_files:
         doc = etree.parse(str(cnxml_file))
-        
-        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:image', 'src', cnxml_file.parent)
+
+        rename_file_to_resource(filename_to_data, doc, cnxml_file,
+                                '//c:image', 'src', cnxml_file.parent)
         # EPUB: CNX books sometimes link to files like MP3 in the Basic Elements of Music
-        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:link[@resource]', 'resource', original_resources_dir)
+        rename_file_to_resource(filename_to_data, doc, cnxml_file,
+                                '//c:link[@resource]', 'resource', original_resources_dir)
         # EPUB: CNX books sometimes use an <object> tag to embed an interactive (Like Mathematica)
-        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:object[@src][not(starts-with(@src, "http"))]', 'src', original_resources_dir)
+        rename_file_to_resource(filename_to_data, doc, cnxml_file,
+                                '//c:object[@src][not(starts-with(@src, "http"))]', 'src', original_resources_dir)
         # EPUB: Some books have Adobe Flash content which is no longer used on the web
-        rename_file_to_resource(filename_to_data, doc, cnxml_file, '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir)
+        rename_file_to_resource(filename_to_data, doc, cnxml_file, 
+                                '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir)
 
         for node in doc.xpath(
                 '//c:iframe',

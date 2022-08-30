@@ -56,7 +56,8 @@ echo -n 'application/epub+zip' > $epub_root/mimetype
 
 echo "Generating the META-INF/container.xml file"
 echo '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles>' > $epub_root/META-INF/container.xml
-for slug in ${all_slugs[@]}; do # shellcheck disable=SC2068
+# shellcheck disable=SC2068
+for slug in ${all_slugs[@]}; do
     echo "    <rootfile media-type=\"application/oebps-package+xml\" full-path=\"contents/$slug.opf\" />" >> $epub_root/META-INF/container.xml
 done
 echo '</rootfiles></container>' >> $epub_root/META-INF/container.xml
@@ -66,7 +67,8 @@ echo '</rootfiles></container>' >> $epub_root/META-INF/container.xml
 
 
 echo "Converting the ToC files"
-for slug in ${all_slugs[@]}; do # shellcheck disable=SC2068
+# shellcheck disable=SC2068
+for slug in ${all_slugs[@]}; do
     input_toc_file=$IO_DISASSEMBLE_LINKED/$slug.toc.xhtml
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
@@ -158,7 +160,8 @@ EOF
 done
 
 echo "Starting the OPF files for each book"
-for slug in ${all_slugs[@]}; do # shellcheck disable=SC2068
+# shellcheck disable=SC2068
+for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
@@ -207,7 +210,8 @@ done
 shopt -u nullglob
 
 echo "Starting the bulk of the conversion"
-for slug in ${all_slugs[@]}; do # shellcheck disable=SC2068
+# shellcheck disable=SC2068
+for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
     epub_ncx_file=$epub_root/contents/$slug.toc.ncx
@@ -294,7 +298,8 @@ EOF
 
     echo "Processing XHTML files"
     counter=1
-    for html_file in ${html_files[@]}; do # shellcheck disable=SC2068
+    # shellcheck disable=SC2068
+    for html_file in ${html_files[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
 
         # Copy the file over and clean it up a bit
@@ -388,7 +393,8 @@ EOF
         done < <(echo $resources_str)
 
         # Add a file extension to the resource file in the XHTML file
-        for resource_href in ${this_resources[@]}; do # shellcheck disable=SC2068
+        # shellcheck disable=SC2068
+        for resource_href in ${this_resources[@]}; do
             resource_filename=$(basename $resource_href)
             resource_file=$epub_root/contents/resources/$resource_filename
 
@@ -474,7 +480,8 @@ EOF
 <spine toc="the-ncx-file"><itemref linear="yes" idref="nav"/>
 EOF
 
-    for html_file in ${html_files[@]}; do # shellcheck disable=SC2068
+    # shellcheck disable=SC2068
+    for html_file in ${html_files[@]}; do
         html_file_id="idxhtml_$(replace_colons $html_file)"
         cat << EOF >> $opf_file
     <itemref linear="yes" idref="$html_file_id"/>
