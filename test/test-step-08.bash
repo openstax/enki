@@ -7,6 +7,7 @@ DATA_ROOT=../data
 # These dirs are relative to the mounted directory (DATA_ROOT)
 BOOK_DIR_NAME=./test-book
 SOCI_DIR_NAME=./test-soci
+VIRO_DIR_NAME=./test-viro
 COVERAGE_DIR=../coverage
 
 # Merge all the kcov reports into one
@@ -16,7 +17,7 @@ SKIP_DOCKER_BUILD=1 \
     --keep-data \
     --data-dir $DATA_ROOT \
     --command __CI_KCOV_MERGE_ALL__ \
-    --repo "./kcov-destination $BOOK_DIR_NAME/_kcov02-a $BOOK_DIR_NAME/_kcov02-b $BOOK_DIR_NAME/_kcov02-c $BOOK_DIR_NAME/_kcov03 $SOCI_DIR_NAME/_kcov04-a $SOCI_DIR_NAME/_kcov04-b $BOOK_DIR_NAME/_kcov05 $SOCI_DIR_NAME/_kcov07-a $SOCI_DIR_NAME/_kcov07-b" \
+    --repo "./kcov-destination $BOOK_DIR_NAME/_kcov02-a $BOOK_DIR_NAME/_kcov02-b $BOOK_DIR_NAME/_kcov02-c $BOOK_DIR_NAME/_kcov03 $SOCI_DIR_NAME/_kcov04-a $SOCI_DIR_NAME/_kcov04-b $BOOK_DIR_NAME/_kcov05 $SOCI_DIR_NAME/_kcov07-a $SOCI_DIR_NAME/_kcov07-b $VIRO_DIR_NAME/_kcov11" \
     ;
 
 # Move coverage data out of the mounted volume the container used

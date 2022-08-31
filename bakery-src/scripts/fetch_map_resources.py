@@ -56,7 +56,7 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
                 f"WARNING: Resource file '{resource_original_filepath}' not found",
                 file=sys.stderr
             )
-            if os.environ.get('HACK_CNX_LOOSENESS', False) is not False:
+            if os.environ.get('HACK_CNX_LOOSENESS', False) is not False: # pragma: no cover
                 # Replace node with a comment
                 text = f'[missing_resource: {resource_original_src}]'
                 comment = etree.Comment(etree.tostring(node))

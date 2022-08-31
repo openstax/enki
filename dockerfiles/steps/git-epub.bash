@@ -11,6 +11,7 @@ resources_root=$IO_RESOURCES
 epub_root=$IO_EPUB
 all_slugs=()
 
+# LCOV_EXCL_START
 get_item_properties='
 <xsl:stylesheet 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -30,6 +31,7 @@ get_item_properties='
 </xsl:template>
 </xsl:stylesheet>
 '
+# LCOV_EXCL_END
 
 replace_colons() {
   filename=$1
@@ -226,7 +228,7 @@ for slug in ${all_slugs[@]}; do
         # Unescape those colons again
         line="${line//%3A/:}"
         html_files+=("$line")
-    done < <(echo $hrefs)
+    done < <(echo $hrefs) # LCOV_EXCL_LINE
 
     echo "Convert the ToC XHTML file into an NCX file"
     cat << EOF | xsltproc --output $epub_ncx_file /dev/stdin $epub_toc_file
@@ -369,7 +371,7 @@ EOF
         item_properties=$(echo "$get_item_properties" | try xsltproc /dev/stdin $output_xhtml_file | xargs)
 
         if [[ $item_properties != '' ]]; then
-            item_properties="properties=\"$item_properties\""
+            item_properties="properties=\"$item_properties\"" # LCOV_EXCL_LINE
         fi
 
         # Add to OPF spine but HACK the URL so epub readers are not confused
@@ -390,7 +392,7 @@ EOF
         this_resources=()
         while read -r line; do
             this_resources+=("$line")
-        done < <(echo $resources_str)
+        done < <(echo $resources_str) # LCOV_EXCL_LINE
 
         # Add a file extension to the resource file in the XHTML file
         # shellcheck disable=SC2068
@@ -401,6 +403,18 @@ EOF
             media_type=$(file --brief --mime-type $resources_root/$resource_filename)
             extension='mimetypenotfound'
             case "$media_type" in
+                image/jpeg)         extension='jpeg';;
+                image/png)          extension='png';;
+                # LCOV_EXCL_START
+                image/gif)          extension='gif';;
+                image/tiff)         extension='tiff';;
+                image/svg+xml)      extension='svg';;
+                audio/mpeg)         extension='mpg';;
+                audio/basic)        extension='au';;
+                application/pdf)    extension='pdf';;
+                application/zip)    extension='zip';;
+                audio/midi)         extension='midi';;
+                text/plain)         extension='txt';;
                 application/x-shockwave-flash) extension='swf';;
                 application/octet-stream)
                     # Try to get the extension from the json file, fall back to bin
@@ -419,21 +433,11 @@ EOF
                         print ext
                     }')
                 ;;
-                image/jpeg)         extension='jpeg';;
-                image/png)          extension='png';;
-                image/gif)          extension='gif';;
-                image/tiff)         extension='tiff';;
-                image/svg+xml)      extension='svg';;
-                audio/mpeg)         extension='mpg';;
-                audio/basic)        extension='au';;
-                application/pdf)    extension='pdf';;
-                application/zip)    extension='zip';;
-                audio/midi)         extension='midi';;
-                text/plain)         extension='txt';;
                 *)
                     echo -e "BUG: Add an extension for this mimetype: '$media_type' to this script"
                     exit 2
                 ;;
+                # LCOV_EXCL_END
             esac
 
             all_resources+=("$resource_filename.$extension")

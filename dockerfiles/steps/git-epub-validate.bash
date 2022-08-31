@@ -15,6 +15,7 @@ exit_status=$?
 [[ ! -f $IO_EPUB/validation.log ]] && die "$IO_EPUB/validation.log does not exist"
 
 if [[ $exit_status != 0 ]]; then
+    # LCOV_EXCL_START
     errors=$(cat $IO_EPUB/validation.log | grep 'ERROR' \
         | grep -v 'ERROR(RSC-012)' \
         | grep -v 'ERROR(MED-002)' \
@@ -32,6 +33,7 @@ if [[ $exit_status != 0 ]]; then
     else
         echo "Yay! No errors besides the ones we have already chosen to ignore"
     fi
+    # LCOV_EXCL_END
 fi
 set -e
 
