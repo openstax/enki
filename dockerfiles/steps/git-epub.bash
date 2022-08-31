@@ -170,6 +170,7 @@ for slug in ${all_slugs[@]}; do
     book_title=$(try jq -r '.title' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     book_lang=$(try jq -r '.language' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     revised_date=$(try jq -r '.revised' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
+    license=$(try jq -r '.license.url' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
 
     # HACK get the authors from the original .collection.xml file
     book_href=$(xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' --nl < $fetch_root/META-INF/books.xml)
@@ -186,6 +187,7 @@ for slug in ${all_slugs[@]}; do
     <dc:title>$book_title</dc:title>
     <dc:language>$book_lang</dc:language>
     <meta property="dcterms:modified">$revised_date</meta>
+    <meta property="dcterms:license">$license</meta>
     <dc:identifier id="uid">dummy-cnx.org-id.$slug</dc:identifier>
     <dc:creator>$book_authors</dc:creator>
   </metadata>
