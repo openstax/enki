@@ -166,7 +166,7 @@ export const CLI_GIT_EPUB_STEPS = [
     get('git-jsonify'),
     // get('git-validate-xhtml-jsonify'),
     get('git-epub'),
-    get('git-epub-validate'),
+    // get('git-epub-validate'),
 ]
 
 export const CLI_GIT_GDOC_STEPS = [

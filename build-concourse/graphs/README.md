@@ -88,7 +88,6 @@ graph TB
     git-fetch-metadata -- resources --> git-epub
     git-patch-disassembled-links -- disassemble-linked --> git-epub
     git-bake -- baked --> git-epub
-    git-epub -- epub --> git-epub-validate
 ```
 
 ## all-git-gdoc

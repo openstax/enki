@@ -560,8 +560,7 @@
             "git-disassemble",
             "git-patch-disassembled-links",
             "git-jsonify",
-            "git-epub",
-            "git-epub-validate"
+            "git-epub"
         ],
         "all-git-gdoc": [
             "git-fetch",
