@@ -2463,7 +2463,6 @@ def test_fetch_map_resources(tmp_path, mocker):
     unused_resources_dir.mkdir()
 
     image_src = original_resources_dir / "image_src.svg"
-    image_src = original_resources_dir / "image_src.svg"
     image_unused = original_resources_dir / "image_unused.svg"
 
     # libmagic yields image/svg without the xml declaration
