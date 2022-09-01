@@ -17,7 +17,7 @@ RESOURCES_DIR_NAME = 'resources'
 
 
 def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
-    """ Create json with MIME type of a (symlinked) resource file """
+    """ Create json with MIME type and other metadata of resource file """
     data = {}
     data['original_name'] = original_name
     data['mime_type'] = mime_type
@@ -28,6 +28,19 @@ def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, wid
     json_file = output_dir / f'{sha1}.json'
     with json_file.open(mode='w') as outfile:
         json.dump(data, outfile)
+
+
+def all_data_to_json(resources_dir, filename_to_data):
+    """ Convert python dictionary of metadata into json files """
+    for resource_original_name in filename_to_data:
+        sha1, s3_md5, mime_type, resource_original_filepath, width, height = \
+            filename_to_data[resource_original_name]
+
+        checksum_resource_file = resources_dir / sha1
+
+        shutil.move(str(resource_original_filepath), str(checksum_resource_file))
+        create_json_metadata(
+            resources_dir, sha1, mime_type, s3_md5, resource_original_name, width, height)
 
 
 def main():
@@ -71,7 +84,7 @@ def main():
                 continue
 
             filename_to_data[resource_original_filepath.name] = \
-                (sha1, s3_md5, mime_type, resource_original_filepath)
+                (sha1, s3_md5, mime_type, resource_original_filepath, width, height)
             node.attrib["src"] = f"../{RESOURCES_DIR_NAME}/{sha1}"
 
         for node in doc.xpath(
@@ -98,15 +111,7 @@ def main():
         with cnxml_file.open(mode="wb") as f:
             doc.write(f, encoding="utf-8", xml_declaration=False)
 
-    for resource_original_name in filename_to_data:
-        sha1, s3_md5, mime_type, resource_original_filepath = \
-            filename_to_data[resource_original_name]
-
-        checksum_resource_file = resources_dir / sha1
-
-        shutil.move(str(resource_original_filepath), str(checksum_resource_file))
-        create_json_metadata(
-            resources_dir, sha1, mime_type, s3_md5, resource_original_name, width, height)
+    all_data_to_json(resources_dir, filename_to_data)
 
     # NOTE: As part of CNX-1274 (https://github.com/openstax/cnx/issues/1274),
     # we're adding support for relative image URLs which may mean over time
