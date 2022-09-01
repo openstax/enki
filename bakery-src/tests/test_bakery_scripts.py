@@ -2463,6 +2463,7 @@ def test_fetch_map_resources(tmp_path, mocker):
     unused_resources_dir.mkdir()
 
     image_src1 = original_resources_dir / "image_src1.svg"
+    image_src2 = original_resources_dir / "image_src2.svg"
     image_unused = original_resources_dir / "image_unused.svg"
 
     # libmagic yields image/svg without the xml declaration
@@ -2476,6 +2477,17 @@ def test_fetch_map_resources(tmp_path, mocker):
     image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
     image_src1.write_text(image_src1_content)
     image_src1_meta = f"{image_src1_sha1_expected}.json"
+
+    image_src2_content = ('<?xml version=1.0 ?>'
+                          '<svg height="50" width="210">'
+                          '<text x="0" y="40" fill="red">'
+                          'checksum me too!'
+                          '</text>'
+                          '</svg>')
+    image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
+    image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
+    image_src2.write_text(image_src2_content)
+    image_src2_meta = f"{image_src2_sha1_expected}.json"
 
     # libmagic yields image/svg without the xml declaration
     image_unused_content = ('<?xml version=1.0 ?>'
@@ -2495,6 +2507,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         '<image src="../../media/image_src1.svg"/>'
         '<image src="../../media/image_missing.jpg"/>'
         '<image src="../../media/image_src1.svg"/>'
+        '<image src="../../media/image_src2.svg"/>'
         '<iframe src="../../media/interactive/index.xhtml"/>'
         '</content>'
         '</document>'
@@ -2516,6 +2529,16 @@ def test_fetch_map_resources(tmp_path, mocker):
         's3_md5': f'"{image_src1_md5_expected}"',
         'sha1': image_src1_sha1_expected,
         'width': 120
+    }
+    assert json.load((resources_dir / image_src2_meta).open()) == {
+        'height': 50,
+        'mime_type': 'image/svg+xml',
+        'original_name': 'image_src2.svg',
+        # AWS needs the MD5 quoted inside the string json value.
+        # Despite looking like a mistake, this is correct behavior.
+        's3_md5': f'"{image_src2_md5_expected}"',
+        'sha1': image_src2_sha1_expected,
+        'width': 210
     }
     assert set(file.name for file in resources_dir.glob('**/*')) == set([
         image_src1_sha1_expected,
