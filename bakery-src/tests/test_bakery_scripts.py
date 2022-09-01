@@ -2541,6 +2541,8 @@ def test_fetch_map_resources(tmp_path, mocker):
         'width': 210
     }
     assert set(file.name for file in resources_dir.glob('**/*')) == set([
+        image_src2_sha1_expected,
+        image_src2_meta,
         image_src1_sha1_expected,
         image_src1_meta,
         "interactive",
