@@ -2553,6 +2553,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         f'<image src="../resources/{image_src1_sha1_expected}"/>'
         f'<image src="../../media/image_missing.jpg"/>'
         f'<image src="../resources/{image_src1_sha1_expected}"/>'
+        f'<image src="../resources/{image_src2_sha1_expected}"/>'
         f'<iframe src="../resources/interactive/index.xhtml"/>'
         f'</content>'
         f'</document>'
