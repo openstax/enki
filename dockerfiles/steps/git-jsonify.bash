@@ -27,10 +27,20 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 
     try jsonschema -i "$IO_JSONIFIED/$slug_name.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
 
+    # Parse the UUID and versions from the book metadata since it will be accessible
+    # for any pipeline (web-hosting or web-preview) and to be self-consistent
+    # metadata and values used.
+    book_uuid=$(jq -r '.id' "$book_json_file")
+    book_version=$(jq -r '.version' "$book_json_file")
+
+    # Rename these files so local REX preview works
+    try cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_JSONIFIED/$book_uuid@$book_version.json.rex-preview"
+    try cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_JSONIFIED/$book_uuid@$book_version.xhtml.rex-preview"
+
 done
 shopt -u globstar nullglob
 
 
-for jsonfile in "$IO_JSONIFIED/"*@*.json; do
+for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do
     try jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
 done

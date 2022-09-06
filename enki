@@ -30,6 +30,8 @@ else
     DOTENV_PATH="$root_dir/.env"
 fi
 
+rexpreview_port=12931
+
 # Parse .env file if it exists
 # https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
 [[ -f $DOTENV_PATH ]] && {
@@ -173,6 +175,37 @@ while [ -n "$1" ]; do
     shift
 done
 
+if [[ $arg_command == 'rex-preview' ]]; then
+    [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
+    pushd $data_dir/rex-preview
+    # keep sure we always have the latest IO_JSONIFIED files in contents
+    rsync -rlt --delete ../_attic/IO_JSONIFIED/ ./contents/
+    [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES ./resources
+    # remove .rex-preview file extensions to get the TOCs working
+    find ./contents -name "*.rex-preview" -type f -exec bash -c 'mv "$1" "${1/.rex-preview/}"' _ {} \;
+
+    echo "Starting up server. Here are URL(s) to visit:"
+    for json_filename in "contents/"*.json; do
+        # Books do not have a colon in their filename
+        if [[ ! $json_filename == *":"* && ! $json_filename =~ ^.*\.toc\.json$ ]]; then
+            json_filename=$(basename $json_filename) # remove the contents/ directory name
+            uuid_and_ver=${json_filename%.*}
+            echo "https://rex-web.herokuapp.com/books/$uuid_and_ver/pages/not-a-valid-page?archive=http://localhost:$rexpreview_port"
+        fi
+    done
+
+    # try using "python" default command first (e.g. not existing in base MacOS >12.2), if that fails start python3 explicitly
+    if command -v python &> /dev/null
+    then
+        python $root_dir/simple_http_server_cors.py $rexpreview_port
+    else
+        python3 $root_dir/simple_http_server_cors.py $rexpreview_port
+    fi
+
+    popd
+    exit 0
+fi
+
 if [[ $arg_command == 'local-preview' ]]; then
     [[ -d $data_dir/local-preview ]] || mkdir $data_dir/local-preview
     pushd $data_dir/local-preview >/dev/null
@@ -187,7 +220,7 @@ if [[ $arg_command == 'local-preview' ]]; then
 fi
 
 [[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
-[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web'" && exit 111)
+[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'rex-preview'" && exit 111)
 
 [[ $clear_cache && -d $data_dir ]] && rm -rf $data_dir
 
