@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.17.0
+
+- Revert title change
+
 9.16.0
 
 - Allow italics, sub, sup in titles
