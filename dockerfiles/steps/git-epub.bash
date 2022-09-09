@@ -167,7 +167,7 @@ for slug in ${all_slugs[@]}; do
     opf_file=$epub_root/contents/$slug.opf
     epub_toc_file=$epub_root/contents/$slug.toc.xhtml
 
-    book_title=$(try jq -r '.title' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
+    book_title=$(try jq -r '.title|@html' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     book_lang=$(try jq -r '.language' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     revised_date=$(try jq -r '.revised' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
     license=$(try jq -r '.license.url' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
