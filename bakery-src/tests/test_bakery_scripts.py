@@ -2462,21 +2462,32 @@ def test_fetch_map_resources(tmp_path, mocker):
     resources_parent_dir.mkdir(exist_ok=True)
     unused_resources_dir.mkdir()
 
-    image_src = original_resources_dir / "image_src.svg"
-    image_src = original_resources_dir / "image_src.svg"
+    image_src1 = original_resources_dir / "image_src1.svg"
+    image_src2 = original_resources_dir / "image_src2.svg"
     image_unused = original_resources_dir / "image_unused.svg"
 
     # libmagic yields image/svg without the xml declaration
-    image_src_content = ('<?xml version=1.0 ?>'
-                         '<svg height="30" width="120">'
-                         '<text x="0" y="15" fill="red">'
-                         'checksum me!'
-                         '</text>'
-                         '</svg>')
-    image_src_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
-    image_src_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
-    image_src.write_text(image_src_content)
-    image_src_meta = f"{image_src_sha1_expected}.json"
+    image_src1_content = ('<?xml version=1.0 ?>'
+                          '<svg height="30" width="120">'
+                          '<text x="0" y="15" fill="red">'
+                          'checksum me!'
+                          '</text>'
+                          '</svg>')
+    image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
+    image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
+    image_src1.write_text(image_src1_content)
+    image_src1_meta = f"{image_src1_sha1_expected}.json"
+
+    image_src2_content = ('<?xml version=1.0 ?>'
+                          '<svg height="50" width="210">'
+                          '<text x="0" y="40" fill="red">'
+                          'checksum me too!'
+                          '</text>'
+                          '</svg>')
+    image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
+    image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
+    image_src2.write_text(image_src2_content)
+    image_src2_meta = f"{image_src2_sha1_expected}.json"
 
     # libmagic yields image/svg without the xml declaration
     image_unused_content = ('<?xml version=1.0 ?>'
@@ -2493,9 +2504,10 @@ def test_fetch_map_resources(tmp_path, mocker):
     module_00001_content = (
         '<document xmlns="http://cnx.rice.edu/cnxml">'
         '<content>'
-        '<image src="../../media/image_src.svg"/>'
+        '<image src="../../media/image_src1.svg"/>'
         '<image src="../../media/image_missing.jpg"/>'
-        '<image src="../../media/image_src.svg"/>'
+        '<image src="../../media/image_src1.svg"/>'
+        '<image src="../../media/image_src2.svg"/>'
         '<iframe src="../../media/interactive/index.xhtml"/>'
         '</content>'
         '</document>'
@@ -2508,17 +2520,31 @@ def test_fetch_map_resources(tmp_path, mocker):
     )
     fetch_map_resources.main()
 
-    assert json.load((resources_dir / image_src_meta).open()) == {
+    assert json.load((resources_dir / image_src1_meta).open()) == {
+        'height': 30,
         'mime_type': 'image/svg+xml',
-        'original_name': 'image_src.svg',
+        'original_name': 'image_src1.svg',
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
-        's3_md5': f'"{image_src_md5_expected}"',
-        'sha1': image_src_sha1_expected
+        's3_md5': f'"{image_src1_md5_expected}"',
+        'sha1': image_src1_sha1_expected,
+        'width': 120
+    }
+    assert json.load((resources_dir / image_src2_meta).open()) == {
+        'height': 50,
+        'mime_type': 'image/svg+xml',
+        'original_name': 'image_src2.svg',
+        # AWS needs the MD5 quoted inside the string json value.
+        # Despite looking like a mistake, this is correct behavior.
+        's3_md5': f'"{image_src2_md5_expected}"',
+        'sha1': image_src2_sha1_expected,
+        'width': 210
     }
     assert set(file.name for file in resources_dir.glob('**/*')) == set([
-        image_src_sha1_expected,
-        image_src_meta,
+        image_src2_sha1_expected,
+        image_src2_meta,
+        image_src1_sha1_expected,
+        image_src1_meta,
         "interactive",
         "index.xhtml"
     ])
@@ -2526,9 +2552,10 @@ def test_fetch_map_resources(tmp_path, mocker):
     expected = (
         f'<document xmlns="http://cnx.rice.edu/cnxml">'
         f'<content>'
-        f'<image src="../resources/{image_src_sha1_expected}"/>'
+        f'<image src="../resources/{image_src1_sha1_expected}"/>'
         f'<image src="../../media/image_missing.jpg"/>'
-        f'<image src="../resources/{image_src_sha1_expected}"/>'
+        f'<image src="../resources/{image_src1_sha1_expected}"/>'
+        f'<image src="../resources/{image_src2_sha1_expected}"/>'
         f'<iframe src="../resources/interactive/index.xhtml"/>'
         f'</content>'
         f'</document>'

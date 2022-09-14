@@ -17,19 +17,34 @@ from . import utils
 RESOURCES_DIR_NAME = 'resources'
 
 
-def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name):
-    """ Create json with MIME type of a (symlinked) resource file """
+def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
+    """ Create json with MIME type and other metadata of resource file """
     data = {}
     data['original_name'] = original_name
     data['mime_type'] = mime_type
     data['s3_md5'] = s3_md5
     data['sha1'] = sha1
+    data['width'] = width
+    data['height'] = height
     json_file = output_dir / f'{sha1}.json'
     with json_file.open(mode='w') as outfile:
         json.dump(data, outfile)
 
 
-def rename(filename_to_data, resource_original_filepath):
+def all_data_to_json(resources_dir, filename_to_data):
+    """ Convert python dictionary of metadata into json files """
+    for resource_original_name in filename_to_data:
+        sha1, s3_md5, mime_type, resource_original_filepath, width, height = \
+            filename_to_data[resource_original_name]
+
+        checksum_resource_file = resources_dir / sha1
+
+        shutil.move(str(resource_original_filepath), str(checksum_resource_file))
+        create_json_metadata(
+            resources_dir, sha1, mime_type, s3_md5, resource_original_name, width, height)
+
+
+def rename(filename_to_data, resource_original_filepath, is_image):
     sha1, s3_md5 = utils.get_checksums(
         str(resource_original_filepath)
     )
@@ -38,19 +53,24 @@ def rename(filename_to_data, resource_original_filepath):
     if sha1 is None:
         return None
 
+    if is_image:
+        opt_width, opt_height = utils.get_size(str(resource_original_filepath))
+    else:
+        opt_width = None
+        opt_height = None
     filename_to_data[resource_original_filepath.name] = \
-        (sha1, s3_md5, mime_type, resource_original_filepath)
+        (sha1, s3_md5, mime_type, resource_original_filepath, opt_width, opt_height)
     return f"../{RESOURCES_DIR_NAME}/{sha1}"
 
 
-def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_name, context_dir):
+def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_name, context_dir, is_image):
     for node in doc.xpath(
             xpath,
             namespaces={"c": "http://cnx.rice.edu/cnxml"}
     ):
         resource_original_src = node.attrib[attribute_name]
         resource_original_filepath = (context_dir / resource_original_src).resolve()
-        new_path = rename(filename_to_data, resource_original_filepath)
+        new_path = rename(filename_to_data, resource_original_filepath, is_image)
         if new_path is None:
             print(
                 f"WARNING: Resource file '{resource_original_filepath}' not found",
@@ -92,17 +112,17 @@ def main():
         doc = etree.parse(str(cnxml_file))
 
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
-                                '//c:image', 'src', cnxml_file.parent)
+                                '//c:image', 'src', cnxml_file.parent, True)
         # EPUB: CNX books sometimes link to files like MP3 in the Basic Elements of Music
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
-                                '//c:link[@resource]', 'resource', original_resources_dir)
+                                '//c:link[@resource]', 'resource', original_resources_dir, False)
         # EPUB: CNX books sometimes use an <object> tag to embed an interactive (Like Mathematica)
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
                                 '//c:object[@src][not(starts-with(@src, "http"))]', 'src',
-                                original_resources_dir)
+                                original_resources_dir, False)
         # EPUB: Some books have Adobe Flash content which is no longer used on the web
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
-                                '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir)
+                                '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir, False)
 
         for node in doc.xpath(
                 '//c:iframe',
@@ -128,14 +148,7 @@ def main():
         with cnxml_file.open(mode="wb") as f:
             doc.write(f, encoding="utf-8", xml_declaration=False)
 
-    for resource_original_name in filename_to_data:
-        sha1, s3_md5, mime_type, resource_original_filepath = \
-            filename_to_data[resource_original_name]
-
-        checksum_resource_file = resources_dir / sha1
-
-        shutil.move(str(resource_original_filepath), str(checksum_resource_file))
-        create_json_metadata(resources_dir, sha1, mime_type, s3_md5, resource_original_name)
+    all_data_to_json(resources_dir, filename_to_data)
 
     # NOTE: As part of CNX-1274 (https://github.com/openstax/cnx/issues/1274),
     # we're adding support for relative image URLs which may mean over time

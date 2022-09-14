@@ -87,7 +87,12 @@ function do_xhtml_validate() {
     check=$3
     for xhtmlfile in $(find $dir_name -name "$file_pattern")
     do
-        java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
+        # TODO: FIXME: remove the grep check for TOC elements.
+        # TOC xhtml files should also be checked in future but are now intentionally excluded because
+        # they break rex-preview command
+        if ! grep -q '<nav id="toc">' "$xhtmlfile"; then
+            java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
+        fi
     done
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
