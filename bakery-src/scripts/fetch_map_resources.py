@@ -53,11 +53,10 @@ def rename(filename_to_data, resource_original_filepath, is_image):
     if sha1 is None:
         return None
 
+    opt_width = None
+    opt_height = None
     if is_image:
         opt_width, opt_height = utils.get_size(str(resource_original_filepath))
-    else:
-        opt_width = None
-        opt_height = None
     filename_to_data[resource_original_filepath.name] = \
         (sha1, s3_md5, mime_type, resource_original_filepath, opt_width, opt_height)
     return f"../{RESOURCES_DIR_NAME}/{sha1}"
