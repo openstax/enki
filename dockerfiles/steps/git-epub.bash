@@ -420,6 +420,7 @@ EOF
                 application/pdf)    extension='pdf';;
                 application/zip)    extension='zip';;
                 audio/midi)         extension='midi';;
+                audio/x-wav)        extension='wav';;
                 text/plain)         extension='txt';;
                 application/x-shockwave-flash) extension='swf';;
                 application/octet-stream)
