@@ -122,7 +122,8 @@ def main():
                                 original_resources_dir, False)
         # EPUB: Some books have Adobe Flash content which is no longer used on the web
         rename_file_to_resource(filename_to_data, doc, cnxml_file,
-                                '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir, False)
+                                '//c:flash[@src][not(starts-with(@src, "."))]', 'src', original_resources_dir,
+                                False)
 
         for node in doc.xpath(
                 '//c:iframe',
