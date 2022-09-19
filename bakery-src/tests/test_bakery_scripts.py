@@ -33,7 +33,6 @@ from bakery_scripts import (
     mathmltable2png,
     copy_resources_s3,
     upload_docx,
-    checksum_resource,
     fetch_map_resources,
     fetch_update_metadata,
     link_single,
@@ -99,98 +98,6 @@ def test_link_rex_archive(tmp_path, mocker):
     outfile = os.path.join(out_dir, filename)
     updated_doc = etree.parse(str(outfile))
     assert len(utils.unformatted_rex_links(updated_doc)) == 0
-
-
-def test_checksum_resource(tmp_path, mocker):
-    book_dir = tmp_path / "col00000"
-    book_dir.mkdir()
-    html_file = book_dir / "0.xhtml"
-    module_dir = book_dir / "0"
-    module_dir.mkdir()
-    image_src = module_dir / "image_src.svg"
-    image_href = module_dir / "image_href.svg"
-    image_none = module_dir / "image_none.svg"
-
-    # libmagic yields image/svg without the xml declaration
-    image_src_content = ('<?xml version=1.0 ?>'
-                         '<svg height="30" width="120">'
-                         '<text x="0" y="15" fill="red">'
-                         'checksum me!'
-                         '</text>'
-                         '</svg>')
-    image_src_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
-    image_src_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
-    image_src.write_text(image_src_content)
-
-    # libmagic yields image/svg without the xml declaration
-    image_href_content = ('<?xml version=1.0 ?>'
-                          '<svg height="30" width="120">'
-                          '<text x="0" y="15" fill="red">'
-                          'checksum me too!'
-                          '</text>'
-                          '</svg>')
-    image_href_sha1_expected = "ad32bb3de1c805920a0ab50ab1333f39df8687a1"
-    image_href_md5_expected = "46137319b2adb8b09c8f432343b8bcca"
-    image_href.write_text(image_href_content)
-
-    # libmagic yields image/svg without the xml declaration
-    image_none_content = ('<?xml version=1.0 ?>'
-                          '<svg height="30" width="120">'
-                          '<text x="0" y="15" fill="red">'
-                          'nope.'
-                          '</text>'
-                          '</svg>')
-    image_none.write_text(image_none_content)
-
-    html_content = ('<html xmlns="http://www.w3.org/1999/xhtml">'
-                    '<img src="0/image_src.svg"/>'
-                    '<a href="image_href.svg">linko</a>'
-                    '</html>')
-    html_file.write_text(html_content)
-
-    mocker.patch(
-        "sys.argv",
-        ["", book_dir, book_dir]
-    )
-    checksum_resource.main()
-
-    resource_dir = book_dir / "resources"
-    image_src_meta = f"{image_src_sha1_expected}.json"
-    image_href_meta = f"{image_href_sha1_expected}.json"
-    assert set(path.name for path in resource_dir.glob("*")) == set([
-        image_src_meta,
-        image_href_meta,
-        image_src_sha1_expected,
-        image_href_sha1_expected
-    ])
-    assert json.load((resource_dir / image_src_meta).open("r")) == {
-        'height': 30,
-        'mime_type': 'image/svg+xml',
-        'original_name': 'image_src.svg',
-        # AWS needs the MD5 quoted inside the string json value.
-        # Despite looking like a mistake, this is correct behavior.
-        's3_md5': f'"{image_src_md5_expected}"',
-        'sha1': image_src_sha1_expected,
-        'width': 120
-    }
-    assert json.load((resource_dir / image_href_meta).open("r")) == {
-        'height': 30,
-        'mime_type': 'image/svg+xml',
-        'original_name': 'image_href.svg',
-        # AWS needs the MD5 quoted inside the string json value.
-        # Despite looking like a mistake, this is correct behavior.
-        's3_md5': f'"{image_href_md5_expected}"',
-        'sha1': image_href_sha1_expected,
-        'width': 120
-    }
-    assert resource_dir.exists()
-
-    tree = etree.parse(str(html_file))
-    expected = (f'<html xmlns="http://www.w3.org/1999/xhtml">'
-                f'<img src="../resources/{image_src_sha1_expected}"/>'
-                f'<a href="../resources/{image_href_sha1_expected}">linko</a>'
-                f'</html>')
-    assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
 
 
 def test_jsonify_book(tmp_path, mocker):
