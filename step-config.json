@@ -344,6 +344,37 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "git-assemble-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META"
+            ],
+            "outputDirs": [
+                "IO_ASSEMBLED"
+            ],
+            "requiredEnv": []
+        },
+        "git-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED",
+                "IO_RESOURCES",
+                "IO_DISASSEMBLE_LINKED",
+                "IO_BAKED"
+            ],
+            "outputDirs": [
+                "IO_EPUB",
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": []
+        },
+        "git-epub-validate": {
+            "inputDirs": [
+                "IO_EPUB"
+            ],
+            "outputDirs": [],
+            "requiredEnv": []
+        },
         "git-gdocify": {
             "inputDirs": [
                 "IO_BOOK",
@@ -516,6 +547,20 @@
             "git-patch-disassembled-links",
             "git-jsonify",
             "git-validate-xhtml-jsonify"
+        ],
+        "all-git-epub": [
+            "git-fetch",
+            "git-fetch-metadata",
+            "git-assemble-epub",
+            "git-assemble-meta",
+            "git-validate-references",
+            "git-bake",
+            "git-bake-meta",
+            "git-link",
+            "git-disassemble",
+            "git-patch-disassembled-links",
+            "git-jsonify",
+            "git-epub"
         ],
         "all-git-gdoc": [
             "git-fetch",

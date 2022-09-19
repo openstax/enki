@@ -1,3 +1,5 @@
+parse_book_dir
+
 repo_root=$IO_FETCH_META
 col_sep='|'
 # https://stackoverflow.com/a/31838754
@@ -17,6 +19,10 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
 
     try cp "$path" "$IO_FETCH_META/modules/collection.xml"
+
+    if [[ -f temp-assembly/collection.assembled.xhtml ]]; then
+        rm temp-assembly/collection.assembled.xhtml # LCOV_EXCL_LINE
+    fi
 
     try neb assemble "$IO_FETCH_META/modules" temp-assembly/
 

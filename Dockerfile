@@ -308,6 +308,13 @@ ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
 
 COPY --from=base-scratch / /
 
+ENV EPUB_VALIDATOR_VERSION=4.2.6
+RUN mkdir $PROJECT_ROOT/epub-validator \
+    && cd $PROJECT_ROOT/epub-validator \
+    && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
+    && unzip epubvalidator.zip \
+    ;
+
 # ---------------------------
 # Copy the stages over
 # ---------------------------
@@ -336,6 +343,7 @@ COPY ./dockerfiles/build /dockerfiles/build
 COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \
+    ./dockerfiles/enki-in-container \
     /dockerfiles/
 
 COPY ./step-config.json $PROJECT_ROOT

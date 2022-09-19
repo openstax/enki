@@ -108,9 +108,9 @@ export enum IO {
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
     JSONIFIED = 'jsonified', // 'jsonified-single',
+    EPUB = 'epub',
     GDOCIFIED = 'gdocified', // 'gdocified-single'
     DOCX = 'docx', // 'docx-single'
-
 }
 
 export type TaskNode = {

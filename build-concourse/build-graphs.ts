@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'fs'
 import * as path from "path";
-import { GIT_PDF_STEPS, GIT_WEB_STEPS, ARCHIVE_PDF_STEPS, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, Step, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, GIT_GDOC_STEPS } from './step-definitions'
+import { GIT_PDF_STEPS, GIT_WEB_STEPS, ARCHIVE_PDF_STEPS, ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, Step, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, GIT_GDOC_STEPS, CLI_GIT_EPUB_STEPS } from './step-definitions'
 
 const DIRS_TO_SKIP = new Set()
 DIRS_TO_SKIP.add('book')
@@ -65,6 +65,7 @@ ${lines.join('\n')}
 const charts: Array<[string, string]> = []
 charts.push(['all-git-pdf', buildChart(GIT_PDF_STEPS)])
 charts.push(['all-git-web', buildChart(GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, 's3-git-queue')])
+charts.push(['all-git-epub', buildChart(CLI_GIT_EPUB_STEPS)])
 charts.push(['all-git-gdoc', buildChart(GIT_GDOC_STEPS)])
 charts.push(['all-archive-pdf', buildChart(ARCHIVE_PDF_STEPS)])
 charts.push(['all-git-web', buildChart(ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD, 's3-archive-queue')])

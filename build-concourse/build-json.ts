@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs'
 import { join } from 'path'
-import { STEP_MAP, ARCHIVE_WEB_STEPS, CLI_GIT_PDF_STEPS, CLI_GIT_WEB_STEPS, CLI_GIT_GDOC_STEPS, CLI_ARCHIVE_PDF_STEPS, Step } from "./step-definitions";
+import { STEP_MAP, ARCHIVE_WEB_STEPS, CLI_GIT_PDF_STEPS, CLI_GIT_WEB_STEPS, CLI_GIT_GDOC_STEPS, CLI_ARCHIVE_PDF_STEPS, Step, CLI_GIT_EPUB_STEPS } from "./step-definitions";
 import { Env } from './util';
 
 const toName = (s: Step) => s.name
@@ -24,6 +24,7 @@ const json = {
     pipelines: {
         'all-git-pdf': CLI_GIT_PDF_STEPS.map(toName),
         'all-git-web': CLI_GIT_WEB_STEPS.map(toName),
+        'all-git-epub': CLI_GIT_EPUB_STEPS.map(toName),
         'all-git-gdoc': CLI_GIT_GDOC_STEPS.map(toName),
         'all-archive-pdf': CLI_ARCHIVE_PDF_STEPS.map(toName),
         'all-archive-web': ARCHIVE_WEB_STEPS.map(toName),

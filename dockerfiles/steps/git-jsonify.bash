@@ -14,10 +14,12 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 
     # Glob here to avoid hardcoding web style file suffix
     style_file=("$style_resource_root/$style_name"*.css)
-    style_filename="$(basename "${style_file[0]}")"
-    if [[ ${#style_file[@]} -gt 1 ]]; then
+    styles_length=${#style_file[@]}
+    if [[ $styles_length -gt 1 ]]; then # https://stackoverflow.com/a/69041782
         die "Could not find exact match for $style_name in IO_RESOURCES" # LCOV_EXCL_LINE
-    elif [[ ! -f "${style_file[0]}" ]]; then
+    elif [[ $styles_length -eq 1 && -f "${style_file[0]}" ]]; then
+        style_filename="$(basename "${style_file[0]}")" # LCOV_EXCL_LINE
+    else
         style_filename="$generic_style"
     fi
 
