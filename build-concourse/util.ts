@@ -71,7 +71,6 @@ export type ConcourseTask = {
 
 export enum RESOURCES {
     S3_GIT_QUEUE = 's3-git-queue',
-    S3_ARCHIVE_QUEUE = 's3-archive-queue',
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
     OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',

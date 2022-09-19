@@ -43,17 +43,5 @@ In https://drive.google.com create a new Folder (e.g. “Test GDocs Root” ) an
 Use the [CLI](./enki) to generate DOCX files for a book. For example: (the exact syntax is subject to change):
 
 ```sh
-./enki ./data/socio all-archive-gdoc col11762 sociology latest
+./enki --command all-git-gdoc --repo openstax/osbooks-introduction-sociology --book-slug introduction-sociology-3e --ref main --style default
 ```
-
-## Upload the DOCX files to Google Drive
-
-Run the following to Upload to Google Drive:
-
-```sh
-GDOC_GOOGLE_FOLDER_ID='kqj24h9s8fsdfh_98324hkajehr' \
-GOOGLE_SERVICE_ACCOUNT_CREDENTIALS="$(cat ~/Downloads/openstax-pipeline-gdocs-1234-d34db33f.json)" \
-./enki ./data/socio archive-upload-docx
-```
-
-As a bonus, you can run it again to verify the files are updated instead of created (logs will say “Updating” instead of “Creating”)

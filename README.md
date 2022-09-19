@@ -48,12 +48,6 @@ Then try the following to build PDFs and other formats:
 ./enki --command all-git-web  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
 ./enki --command all-git-epub --repo 'openstax/osbooks-introduction-anthropology' --book-slug 'introduction-anthropology' --style default --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
-
-# All-in-one Archive-based books
-#  CLI           command                col_id           recipe                version
-./enki --command all-archive-pdf --repo col12006 --style college-physics --ref latest
-./enki --command all-archive-pdf --repo col11762 --style sociology       --ref latest
-./enki --command all-archive-web --repo col11762 --style sociology       --ref latest
 ```
 
 ### REX preview

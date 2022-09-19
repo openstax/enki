@@ -1,147 +1,6 @@
 {
     "__note__": "This file is autogenerted. Do not edit it directly",
     "steps": {
-        "archive-fetch": {
-            "inputDirs": [
-                "IO_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "requiredEnv": []
-        },
-        "archive-fetch-metadata": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "requiredEnv": [
-                "ABL_FILE_URL"
-            ]
-        },
-        "archive-validate-cnxml": {
-            "inputDirs": [
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "archive-assemble": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-assemble-metadata": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_FETCHED",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-link-extras": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-bake": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-bake-metadata": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_FETCHED",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-validate-xhtml-mathified": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-checksum": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-disassemble": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-patch-disassembled-links": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-jsonify": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_JSONIFIED",
-                "IO_ARTIFACTS"
-            ],
-            "requiredEnv": []
-        },
-        "archive-validate-xhtml-jsonify": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_JSONIFIED"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
         "git-fetch": {
             "inputDirs": [
                 "IO_BOOK"
@@ -410,74 +269,6 @@
                 "CORGI_ARTIFACTS_S3_BUCKET"
             ]
         },
-        "archive-mathify": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-link-rex": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_BOOK"
-            ],
-            "requiredEnv": []
-        },
-        "archive-pdf": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_BOOK",
-                "IO_ARCHIVE_FETCHED"
-            ],
-            "outputDirs": [
-                "IO_ARTIFACTS"
-            ],
-            "requiredEnv": []
-        },
-        "archive-pdf-metadata": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARTIFACTS"
-            ],
-            "outputDirs": [
-                "IO_ARTIFACTS"
-            ],
-            "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
-            ]
-        },
-        "archive-dequeue-book": {
-            "inputDirs": [
-                "IO_S3_ARCHIVE_QUEUE"
-            ],
-            "outputDirs": [
-                "IO_BOOK"
-            ],
-            "requiredEnv": [
-                "S3_QUEUE",
-                "CODE_VERSION"
-            ]
-        },
-        "archive-report-book-complete": {
-            "inputDirs": [
-                "IO_BOOK"
-            ],
-            "outputDirs": [],
-            "requiredEnv": [
-                "CODE_VERSION",
-                "WEB_QUEUE_STATE_S3_BUCKET",
-                "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
-            ]
-        },
         "git-dequeue-book": {
             "inputDirs": [
                 "IO_S3_GIT_QUEUE"
@@ -498,22 +289,6 @@
             "requiredEnv": [
                 "CODE_VERSION",
                 "WEB_QUEUE_STATE_S3_BUCKET",
-                "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
-            ]
-        },
-        "archive-upload-book": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ARCHIVE_FETCHED",
-                "IO_ARCHIVE_JSONIFIED",
-                "IO_ARCHIVE_BOOK"
-            ],
-            "outputDirs": [
-                "IO_ARCHIVE_UPLOAD"
-            ],
-            "requiredEnv": [
-                "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]
@@ -577,31 +352,6 @@
             "git-validate-xhtml-jsonify",
             "git-gdocify",
             "git-convert-docx"
-        ],
-        "all-archive-pdf": [
-            "archive-fetch",
-            "archive-fetch-metadata",
-            "archive-assemble",
-            "archive-link-extras",
-            "archive-bake",
-            "archive-mathify",
-            "archive-validate-xhtml-mathified",
-            "archive-link-rex",
-            "archive-pdf"
-        ],
-        "all-archive-web": [
-            "archive-fetch",
-            "archive-fetch-metadata",
-            "archive-assemble",
-            "archive-assemble-metadata",
-            "archive-link-extras",
-            "archive-bake",
-            "archive-bake-metadata",
-            "archive-checksum",
-            "archive-disassemble",
-            "archive-patch-disassembled-links",
-            "archive-jsonify",
-            "archive-validate-xhtml-jsonify"
         ]
     }
 }

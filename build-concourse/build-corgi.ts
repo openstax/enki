@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { ARCHIVE_PDF_STEPS, ARCHIVE_WEB_STEPS_WITH_UPLOAD, buildLookUpBook, GIT_OR_ARCHIVE, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS } from './step-definitions'
+import { buildLookUpBook, GIT_OR_ARCHIVE, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS } from './step-definitions'
 import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
@@ -162,8 +162,6 @@ function makePipeline(env: KeyValue) {
     const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
     const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
     const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_GDOC_STEPS))
-    const archivePdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.PDF, ARCHIVE_PDF_STEPS))
-    const archiveWebJob = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.WEB, ARCHIVE_WEB_STEPS_WITH_UPLOAD))
 
     const resourceTypes = [
         {
@@ -173,7 +171,7 @@ function makePipeline(env: KeyValue) {
         }
     ]
 
-    return { jobs: [gitPdfJob, gitWeb, gitDocx, archivePdfJob, archiveWebJob], resources, resource_types: resourceTypes }
+    return { jobs: [gitPdfJob, gitWeb, gitDocx], resources, resource_types: resourceTypes }
 }
 
 export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
