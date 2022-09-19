@@ -37,7 +37,7 @@ RUN set -x \
     # ... for bakery-scripts
     build-essential libicu-dev pkg-config libmagic1 \
     mime-support wget curl xsltproc lsb-release git \
-    imagemagick icc-profiles-free curl unzip zip \
+    imagemagick icc-profiles-free curl unzip \
     # ... for neb:
     python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
