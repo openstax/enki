@@ -85,11 +85,6 @@ export enum IO {
     COMMON_LOG = 'common-log',
     ARTIFACTS_SINGLE = 'artifacts-single',
     PREVIEW_URLS = 'preview-urls',
-    // Archive directories
-    ARCHIVE_FETCHED = 'archive-fetched',
-    ARCHIVE_BOOK = 'archive-book',
-    ARCHIVE_JSONIFIED = 'archive-jsonified',
-    ARCHIVE_UPLOAD = 'archive-upload',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'

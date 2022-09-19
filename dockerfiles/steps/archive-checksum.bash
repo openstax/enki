@@ -1,1 +1,0 @@
-try checksum "$IO_ARCHIVE_BOOK" "$IO_ARCHIVE_BOOK"

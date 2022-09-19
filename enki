@@ -230,7 +230,7 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $data_dir ]] || mkdir -p "$data_dir"
 
-[[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by archive books.
+[[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by __CI_KCOV_MERGE_ALL__.
 [[ $arg_repo && $arg_book_slug ]] && arg_repo_and_slug="$arg_repo/$arg_book_slug"
 
 # specify a directory to sideload the book from instead of cloning from github

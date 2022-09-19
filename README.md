@@ -210,31 +210,6 @@ Then, to run the step inside the container, run `docker-entrypoint.sh {step_name
 1. Open `./coverage/index.html` in a browser to see coverage
 
 
-## Run one step
-
-If you want to run a single step at a time specify it as the first argument. Later steps use files in the data directory to remember which book & version is being used.
-
-```sh
-# Common steps
-./enki --command local-create-book-directory col11762 sociology latest
-./enki --command look-up-book
-./enki --command archive-fetch
-./enki --command archive-assemble
-./enki --command archive-link-extras
-./enki --command archive-bake
-
-# PDF steps
-./enki --command archive-mathify
-./enki --command archive-pdf
-
-# Concourse-only steps (AWS_ environemnt variables will likely need to be set)
-CODE_VERSION='main' \
-ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state \
-./enki --command archive-report-book-complete
-```
-
-With the above command, docker will use the `$(pwd)/data/...` directory to read/write files during each step.
-
 ## Run steps beginning with a step
 
 Often, developers would like to rerun only part of the pipeline (e.g. `bake`) to skip expensive steps like fetching the book contents.
