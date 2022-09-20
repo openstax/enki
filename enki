@@ -137,10 +137,11 @@ EOF
 # Defaults
 image_name=enki
 if [[ $XDG_DATA_HOME ]]; then
-    data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
+    default_data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
 else
-    data_dir=$HOME/.local/share/enki-data # LCOV_EXCL_LINE
+    default_data_dir=$HOME/.local/share/enki-data # LCOV_EXCL_LINE
 fi
+data_dir="$default_data_dir"
 
 
 while [ -n "$1" ]; do
@@ -174,6 +175,11 @@ while [ -n "$1" ]; do
     esac
     shift
 done
+
+if [[ $data_dir == $default_data_dir ]]; then
+    echo "Using default data directory: $data_dir"
+    sleep 2
+fi
 
 if [[ $arg_command == 'rex-preview' ]]; then
     [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
