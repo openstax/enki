@@ -10,6 +10,13 @@ TRACE_ON=${TRACE_ON:-}
 [[ $TRACE_ON ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
 
 # https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+declare -x c_red=''
+declare -x c_green=''
+declare -x c_yellow=''
+declare -x c_blue=''
+declare -x c_purple=''
+declare -x c_cyan=''
+declare -x c_none=''
 if [[ $(tput colors) -ge 8 ]]; then
     # LCOV_EXCL_START
     declare -x c_red=$(tput setaf 1)
