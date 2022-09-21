@@ -5,6 +5,7 @@ parse_book_dir
 creds_dir=$(pwd)/tmp-gh-creds
 
 # Support sideloading the book
+LOCAL_SIDELOAD_REPO_PATH=${LOCAL_SIDELOAD_REPO_PATH:-}
 if [[ $LOCAL_SIDELOAD_REPO_PATH && -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
     [[ -d $IO_FETCHED ]] && rm -rf "$IO_FETCHED" # LCOV_EXCL_LINE
     warn "-----------------------------------" # LCOV_EXCL_LINE
