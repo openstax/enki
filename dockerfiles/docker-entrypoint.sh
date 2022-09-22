@@ -153,8 +153,6 @@ function parse_book_dir() {
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
     [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
-    [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
-    [[ "$ARG_REPO_NAME" == */* ]] || ARG_REPO_NAME="openstax/$ARG_REPO_NAME"
 }
 
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
