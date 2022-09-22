@@ -4,9 +4,6 @@ repo_root=$IO_FETCH_META
 col_sep='|'
 # https://stackoverflow.com/a/31838754
 xpath_sel="//*[@slug]" # All the book entries
-if [[ $ARG_TARGET_SLUG_NAME ]]; then
-    xpath_sel="//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" # LCOV_EXCL_LINE
-fi
 while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
     IFS=$col_sep read -r slug href _ <<< "$line"
     path="$repo_root/META-INF/$href"

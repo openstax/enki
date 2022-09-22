@@ -1,5 +1,7 @@
 parse_book_dir
 
+[[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
+
 try cp -R "$IO_FETCHED/." "$IO_FETCH_META"
 
 # Based on https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32

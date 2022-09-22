@@ -1,4 +1,5 @@
 parse_book_dir
+
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 [[ "$ARG_REPO_NAME" == */* ]] || ARG_REPO_NAME="openstax/$ARG_REPO_NAME"
 
