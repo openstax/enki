@@ -8,10 +8,6 @@
 import os
 import sys
 from io import BytesIO
-try:
-    from importlib import reload
-except ImportError:
-    pass  # reload() is a built-in global in py2
 
 from lxml import etree
 
@@ -44,20 +40,6 @@ class TestCnxml2Html(BaseTestCase):
 
         assert '<html' in content
         assert '<body' in content
-
-        # Check for ctoh version
-        import rhaptos.cnxmlutils
-        assert rhaptos.cnxmlutils.__version__ in content
-
-    def test_dev_cxnml2html_version(self):
-        import rhaptos.cnxmlutils
-        # Mimic the in-database environment: no path
-        os.environ['PATH'] = ''
-        reload(rhaptos.cnxmlutils)
-        cnxml = self.get_file('m42033-1.3.cnxml')
-        content = cnxml_to_full_html(cnxml)
-
-        assert '0+unknown' not in content
 
 
 def test_cnxml_abstract_to_html():

@@ -10,12 +10,7 @@
 import os
 import sys
 from io import BytesIO
-try:
-    from importlib import reload
-except ImportError:
-    pass  # reload() is a built-in global in py2
 
-import rhaptos.cnxmlutils
 from lxml import etree
 
 __all__ = (
@@ -27,24 +22,22 @@ __all__ = (
 
 here = os.path.abspath(os.path.dirname(__file__))
 LOCAL_XSL_DIR = os.path.abspath(os.path.join(here, 'xsl'))
-RHAPTOS_CNXMLUTILS_DIR = os.path.dirname(rhaptos.cnxmlutils.__file__)
 
-XSL_DIR = os.path.abspath(os.path.join(RHAPTOS_CNXMLUTILS_DIR, 'xsl'))
 MATHML_XSL_PATH = os.path.abspath(os.path.join(
     LOCAL_XSL_DIR, 'content2presentation.xsl'))
 
 
-def _gen_xsl(f, d=XSL_DIR):
+def _gen_xsl(f, d=LOCAL_XSL_DIR):
     transform = etree.XSLT(etree.parse(os.path.join(d, f)))
 
     def transform_w_version(*args, **kwargs):
-        # If git is not in $PATH, rhaptos.cnxmlutils.__version__ returns
-        # "0+unknown"
-        if '/usr/bin' not in os.getenv('PATH', ''):
-            os.environ['PATH'] = '/usr/bin:{}'.format(os.environ['PATH'])
-            reload(rhaptos.cnxmlutils)
-        kwargs['version'] = etree.XSLT.strparam(
-            rhaptos.cnxmlutils.__version__)
+        # # If git is not in $PATH, rhaptos.cnxmlutils.__version__ returns
+        # # "0+unknown"
+        # if '/usr/bin' not in os.getenv('PATH', ''):
+        #     os.environ['PATH'] = '/usr/bin:{}'.format(os.environ['PATH'])
+        #     reload(rhaptos.cnxmlutils)
+        # kwargs['version'] = etree.XSLT.strparam(
+        #     rhaptos.cnxmlutils.__version__)
         return transform(*args, **kwargs)
 
     return transform_w_version
