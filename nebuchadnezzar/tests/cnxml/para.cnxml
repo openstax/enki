@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" id="idm45159773362944" cnxml-version="0.7" module-id="mXXXX">
+  <title>Test Module</title>
+  <content>
+    <para id="keep1">This test unwraps blockish elements (table, figure, list, etc) that are a child of a para.</para>
+
+    <para id="inline-quote1"><quote id="keep2"></quote></para>
+
+    <para id="inline-quote2">
+      <quote id="keep3"></quote>
+    </para>
+
+    <!-- ensure the attributes on this para are preserved -->
+    <para id="keep4" class="keep">
+      before
+      <term id="keep5">inline element1</term>
+      before2
+      <quote id="keep6"></quote>
+      between
+      <term id="keep7">inline element2</term>
+      between2
+      <quote id="keep8"></quote>
+      after
+      <term id="keep9">inline element3</term>
+      after2
+    </para>
+
+
+    <!-- TODO: ensure the attributes on this para are preserved -->
+    <para id="keep-but-move-down10" class="keep">
+      <note id="keep11"></note>
+      <note id="keep12"></note>
+      after
+    </para>
+
+    <para id="keep13">
+      before
+      <note id="keep14"></note>
+      between
+      <note id="keep15"></note>
+      after
+    </para>
+
+    <para id="REMOVE3">
+      <table id="keep16" summary="">
+        <tgroup cols="1">
+          <tbody>
+            <row>
+              <entry/>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>
+
+
+    <para id="keep17">
+      some text
+      <term id="keep18">and an element</term>
+      and more text
+      <table id="keep19" summary="">
+        <tgroup cols="1">
+          <tbody>
+            <row>
+              <entry/>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      some text
+      <term id="keep20">and an element</term>
+      and more text
+      <table id="keep21" summary="">
+        <tgroup cols="1">
+          <tbody>
+            <row>
+              <entry/>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      and even more text
+    </para>
+
+
+    <para id="REMOVE4">
+      <equation id="keep22"></equation>
+    </para>
+
+    <para id="xsl-fo-attributes" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" fo:font-weight="bold">some text</para>
+
+    <para id="with-pre">
+      I have some preformatted text
+      <preformat id="pre1">hi</preformat>
+    </para>
+
+    <para id="with-note">
+      What is 1+1?
+      <note id="note1">This is asking for the mathematical answer</note>
+    </para>
+
+    <para id="with-inline-list">
+      foo
+      <list list-type="labeled-item" display="inline" id="inline-list1">
+        <item>1</item>
+      </list>
+    </para>
+
+    <para id="with-list">
+      foo
+      <list id="list1">
+        <item>1</item>
+      </list>
+    </para>
+
+
+    <para id="with-figure">
+      foo
+      <figure id="fig1">
+        <media alt="" id="media1">
+          <image mime-type="image/jpg" src=""/>
+        </media>
+      </figure>
+    </para>
+
+    <para id="with-media">
+      foo
+      <media alt="" id="media2">
+        <image mime-type="image/jpg" src=""/>
+      </media>
+    </para>
+
+    <para id="with-block-media">
+      foo
+      <media alt="" id="media4" display="block">
+        <image mime-type="image/jpg" src=""/>
+      </media>
+    </para>
+
+    <para id="with-inline-media">
+      foo
+      <media alt="" id="media3" display="inline">
+        <image mime-type="image/jpg" src=""/>
+      </media>
+    </para>
+
+    <para id="with-preformat">
+      foo
+      <preformat id="pre2">preformatted text</preformat>
+    </para>
+
+    <para id="with-exercise">
+      foo
+      <exercise id="ex1">
+        <problem id="problem1">
+          <para id="problem1-para">123</para>
+        </problem>
+      </exercise>
+    </para>
+  </content>
+</document>

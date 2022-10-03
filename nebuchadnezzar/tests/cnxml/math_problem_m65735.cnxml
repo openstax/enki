@@ -1,0 +1,1023 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:cxlxt="http://katalysteducation.org/cxlxt/1.0" xmlns:cmlnle="http://katalysteducation.org/cmlnle/1.0" id="new" cnxml-version="0.7" module-id="new">
+  <title>Konwersja jednostek</title>
+
+<content>
+  <para id="fs-id1168327934938">Często spotykamy się z koniecznością przekształcania jednostek. Załóżmy, że chcesz użyć przepisu z amerykańskiej książki kucharskiej. Jeśli objętość podano w uncjach, musisz je przekształcić na mililitry. Jeśli natomiast czytasz opis szlaku górskiego znajdującego się w Anglii i chcesz wiedzieć, jak wysoko położony jest szczyt, przeliczysz stopy na metry.</para><para id="fs-id1168328205340">Zaraz przekonamy się, jak proste jest przekształcanie jednostek. Załóżmy, że chcemy przedstawić 80 m w kilometrach. Na początku powinniśmy wypisać jednostki, w których podany jest pomiar oraz jednostki, na które chcemy dokonać konwersji – w rozważanym przez nas przypadku pomiar podany jest w metrach, a chcemy przedstawić go przy pomocy kilometrów. Następnie musimy określić przelicznik metrów na kilometry. <term class="no-emphasis" cmlnle:reference="przelicznik">Przelicznik</term> (ang. <foreign><term cxlxt:index="foreign" class="no-emphasis">conversion factor</term></foreign>) jest to stosunek, który określa, ile razy dana jednostka mieści się w innej. Na przykład 12 cali to jedna stopa, 1609 m to mila, 100 cm to 1 m, 60 s to 1 min i tak dalej. Aby zobaczyć listę przeliczników zajrzyj do <link class="target-chapter" document="m65852">Dodatku B</link>. Wiemy, że 1000 m to 1 km, więc możemy dokonać konwersji jednostek. Wypisujemy podaną wartość wraz z jednostką, a następnie mnożymy ją przez przelicznik tak, aby jednostki się skróciły:</para><equation id="fs-id1168328201234" class="unnumbered">
+    <label/>
+    <m:math>
+      <m:mn>80</m:mn>
+      <m:mspace width="0.2em"/>
+      <m:menclose notation="updiagonalstrike">
+        <m:mtext>m</m:mtext>
+      </m:menclose>
+      <m:mo>·</m:mo>
+      <m:mfrac>
+        <m:mrow>
+          <m:mn>1</m:mn>
+          <m:mspace width="0.2em"/>
+          <m:mtext>km</m:mtext>
+        </m:mrow>
+        <m:mrow>
+          <m:mn>1000</m:mn>
+          <m:mspace width="0.2em"/>
+          <m:menclose notation="updiagonalstrike">
+            <m:mtext>m</m:mtext>
+          </m:menclose>
+        </m:mrow>
+      </m:mfrac>
+      <m:mo>=</m:mo>
+      <m:mn>0,080</m:mn>
+      <m:mspace width="0.2em"/>
+      <m:mtext>km</m:mtext>
+      <m:mo>.</m:mo>
+    </m:math>
+  </equation>
+  <para id="fs-id1168327941758">Zauważ, że metry ulegają skróceniu, w związku z czym otrzymujemy wynik w kilometrach. Tej metody możesz użyć do konwersji jednostek opisujących wszystkie wielkości fizyczne. Konwersji 80 m na kilometry można dokonać tylko poprzez użycie odpowiedniego przedrostka, więc taki sam wynik możemy uzyskać za pomocą sposobu opisanego w poprzednim podrozdziale:</para>
+  <equation id="fs-id1168328191070" class="unnumbered">
+    <label/>
+    <m:math>
+      <m:mn>80</m:mn>
+      <m:mspace width="0.2em"/>
+      <m:mrow>
+        <m:mi mathvariant="normal">m</m:mi>
+      </m:mrow>
+      <m:mo>=</m:mo>
+      <m:mn>8,0</m:mn>
+      <m:mo>⋅</m:mo>
+      <m:msup>
+        <m:mn>10</m:mn>
+        <m:mn>1</m:mn>
+      </m:msup>
+      <m:mspace width="0.2em"/>
+      <m:mrow>
+        <m:mi mathvariant="normal">m</m:mi>
+      </m:mrow>
+      <m:mo>=</m:mo>
+      <m:mn>8,0</m:mn>
+      <m:mo>⋅</m:mo>
+      <m:msup>
+        <m:mn>10</m:mn>
+        <m:mrow>
+          <m:mo>−</m:mo>
+          <m:mn>2</m:mn>
+        </m:mrow>
+      </m:msup>
+      <m:mspace width="0.2em"/>
+      <m:mrow>
+        <m:mi mathvariant="normal">k</m:mi>
+        <m:mi mathvariant="normal">m</m:mi>
+      </m:mrow>
+      <m:mo>=</m:mo>
+      <m:mn>0,080</m:mn>
+      <m:mspace width="0.2em"/>
+      <m:mrow>
+        <m:mi mathvariant="normal">k</m:mi>
+        <m:mi mathvariant="normal">m</m:mi>
+      </m:mrow>
+      <m:mo>,</m:mo>
+    </m:math>
+  </equation>
+  <para id="fs-id1168328144040">ponieważ „kilo-” oznacza <m:math>
+    <m:msup>
+      <m:mn>10</m:mn>
+      <m:mn>3</m:mn>
+    </m:msup>
+  </m:math> (patrz <link target-id="fs-id1168326843228" document="m65734"/>), a <m:math>
+<m:mrow>
+<m:mn>1</m:mn>
+<m:mo>–</m:mo>
+<m:mn>3</m:mn>
+<m:mo>=</m:mo>
+<m:mn>–2</m:mn>
+</m:mrow>
+</m:math>. Jeśli jednak mamy do czynienia z systemem niemetrycznym lub z jednostkami pochodnymi, jak w kolejnym przykładzie, musimy skorzystać z metody przeliczników.</para><example id="fs-id1168328168078">
+    <para id="fs-id1168327943333">
+      <title>Konwersja jednostek niemetrycznych na metryczne</title>Uczelnia jest oddalona od domu o 10 mil i dotarcie do niej samochodem zajmuje 20 minut. Oblicz średnią prędkość w metrach na sekundę (m/s). (<emphasis effect="italics">Uwaga:</emphasis> prędkość średnia to iloraz drogi i czasu potrzebnego na jej przebycie).</para>
+      <para id="fs-id1168328184191">
+        <title>Strategia rozwiązania </title>Na początku obliczamy średnią szybkość w jednostkach, w których podana jest wartość, a następnie dokonujemy konwersji, mnożąc wynik przez odpowiedni przelicznik. Użycie przelicznika powinno spowodować skrócenie jednostek. Ponieważ chcemy przeliczyć mile na metry, musimy wiedzieć, że 1 mila jest równa 1609 metrom. Musimy również wykorzystać fakt, że 1 minuta to 60 sekund.</para>
+        <para id="fs-id1168327916801">
+          <title>Rozwiązanie</title>
+        </para>
+        <list id="fs-id1168327949701" list-type="enumerated" number-style="arabic">
+          <item>Oblicz prędkość średnią. Prędkość średnia to iloraz drogi i czasu potrzebnego na jej przebycie. (Po prostu zapamiętaj tę definicję. Tłumaczeniem prędkości średniej oraz innych zagadnień związanych z ruchem zajmiemy się w kolejnych rozdziałach). Do następującego wzoru:<newline/>
+            <equation id="fs-id1168328070162" class="unnumbered">
+              <label/>
+              <m:math>
+                <m:mtext>prędkość średnia</m:mtext>
+                <m:mo>=</m:mo>
+                <m:mfrac>
+                  <m:mtext>droga</m:mtext>
+                  <m:mtext>czas</m:mtext>
+                </m:mfrac>
+                <m:mo>.</m:mo>
+              </m:math>
+            </equation>
+podstaw podane w treści zadania wartości drogi i czasu:<newline/>
+            <equation id="fs-id1168327942214" class="unnumbered">
+              <label/>
+              <m:math>
+                <m:mtext>średnia szybkość</m:mtext>
+                <m:mo>=</m:mo>
+                <m:mfrac>
+                  <m:mrow>
+                    <m:mn>10</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:mrow>
+                      <m:mi mathvariant="normal">m</m:mi>
+                      <m:mi mathvariant="normal">i</m:mi>
+                    </m:mrow>
+                  </m:mrow>
+                  <m:mrow>
+                    <m:mn>20</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:mrow>
+                      <m:mi mathvariant="normal">m</m:mi>
+                      <m:mi mathvariant="normal">i</m:mi>
+                      <m:mi mathvariant="normal">n</m:mi>
+                    </m:mrow>
+                  </m:mrow>
+                </m:mfrac>
+                <m:mo>=</m:mo>
+                <m:mn>0,50</m:mn>
+                <m:mspace width="0.2em"/>
+                <m:mfrac>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">m</m:mi>
+                    <m:mi mathvariant="normal">i</m:mi>
+                  </m:mrow>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">m</m:mi>
+                    <m:mi mathvariant="normal">i</m:mi>
+                    <m:mi mathvariant="normal">n</m:mi>
+                  </m:mrow>
+                </m:mfrac>
+                <m:mo>.</m:mo>
+              </m:math>
+            </equation>
+          </item>
+          <item>Zamień mile na minutę na metry na sekundę, mnożąc wynik przez pierwszy przelicznik, którego użycie spowoduje skrócenie mil, oraz przez drugi przelicznik, którego użycie spowoduje skrócenie minut:<newline/>
+            <equation id="fs-id1168327891322" class="unnumbered">
+              <label/>
+              <m:math>
+                <m:mn>0,50</m:mn>
+                <m:mspace width="0.2em"/>
+                <m:mfrac>
+                  <m:menclose notation="updiagonalstrike">
+                    <m:mtext>mi</m:mtext>
+                  </m:menclose>
+                  <m:menclose notation="downdiagonalstrike">
+                    <m:mtext>min</m:mtext>
+                  </m:menclose>
+                </m:mfrac>
+                <m:mo>·</m:mo>
+                <m:mfrac>
+                  <m:mrow>
+                    <m:mn>1609</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:mtext>m</m:mtext>
+                  </m:mrow>
+                  <m:mrow>
+                    <m:mn>1</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:menclose notation="updiagonalstrike">
+                      <m:mtext>mi</m:mtext>
+                    </m:menclose>
+                  </m:mrow>
+                </m:mfrac>
+                <m:mo>·</m:mo>
+                <m:mfrac>
+                  <m:mrow>
+                    <m:mn>1</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:menclose notation="downdiagonalstrike">
+                      <m:mtext>min</m:mtext>
+                    </m:menclose>
+                  </m:mrow>
+                  <m:mrow>
+                    <m:mn>60</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:mtext>s</m:mtext>
+                  </m:mrow>
+                </m:mfrac>
+                <m:mo>=</m:mo>
+                <m:mfrac>
+                  <m:mrow>
+                    <m:mn>0,50</m:mn>
+                    <m:mo>·</m:mo>
+                    <m:mn>1609</m:mn>
+                  </m:mrow>
+                  <m:mn>60</m:mn>
+                </m:mfrac>
+                <m:mspace width="0.2em"/>
+                <m:mtext>m/s</m:mtext>
+                <m:mo>=</m:mo>
+                <m:mn>13</m:mn>
+                <m:mspace width="0.2em"/>
+                <m:mtext>m/s</m:mtext>
+                <m:mo>.</m:mo>
+              </m:math>
+            </equation>
+          </item>
+        </list>
+        <para id="fs-id1168327957037">
+          <title>Znaczenie</title>Możesz sprawdzić swój wynik w następujący sposób:</para>
+          <list id="fs-id1168328187129" list-type="enumerated" number-style="arabic">
+            <item>Upewnij się, że jednostki ulegają skróceniu. Jeżeli się pomylisz i zamienisz licznik z mianownikiem, jednostki się nie skrócą. Mile znajdujące się w liczniku pierwszego ułamka skracają się z milami znajdującymi się w mianowniku drugiego ułamka, natomiast minuty znajdujące się w mianowniku pierwszego ułamka skracają się z minutami znajdującymi się w liczniku drugiego.</item>
+            <item>Upewnij się również, że wynik przedstawiony jest w odpowiednich jednostkach – w naszym przypadku mają to być metry na sekundę. Ponieważ mile uległy skróceniu, jedyne jednostki, jakie pozostały, to metry w liczniku oraz sekundy w mianowniku – jednostki są poprawne.</item>
+          </list>
+        </example>
+        <note id="fs-id1168327874278" class="check-understanding">
+          <exercise id="fs-id1168328327747">
+            <problem id="fs-id1168327988106">
+              <para id="fs-id1168328242532">
+                <emphasis effect="bold">Sprawdź, czy rozumiesz. </emphasis> Światło przebywa drogę około 9 Pm na rok. Wiedząc, że rok ma około <m:math>
+                  <m:mn>3</m:mn>
+                  <m:mo>⋅</m:mo>
+                  <m:msup>
+                    <m:mn>10</m:mn>
+                    <m:mn>7</m:mn>
+                  </m:msup>
+                  <m:mspace width="0.2em"/>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">s</m:mi>
+                  </m:mrow>
+                  </m:math>, oblicz prędkość światła w metrach na sekundę.</para>
+                </problem>
+                <solution id="fs-id1168328199684">
+                  <para id="fs-id1168327986853">
+                    <m:math>
+                      <m:mn>3</m:mn>
+                      <m:mo>⋅</m:mo>
+                      <m:msup>
+                        <m:mn>10</m:mn>
+                        <m:mn>8</m:mn>
+                      </m:msup>
+                      <m:mspace width="0.2em"/>
+                      <m:mrow>
+                        <m:mi mathvariant="normal">m</m:mi>
+                        <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                        <m:mi mathvariant="normal">s</m:mi>
+                      </m:mrow>
+                    </m:math>
+                  </para>
+                </solution>
+              </exercise>
+            </note>
+            <example id="fs-id1168328289500">
+              <para id="fs-id1168327965188">
+                <title>Zamiana jednostek metrycznych</title>W warunkach normalnych żelazo ma gęstość <m:math>
+                  <m:mn>7,86</m:mn>
+                  <m:mspace width="0.2em"/>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">g</m:mi>
+                    <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                    <m:mi mathvariant="normal">c</m:mi>
+                    <m:msup>
+                      <m:mi mathvariant="normal">m</m:mi>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                  </m:mrow>
+                </m:math>. Przedstaw tę liczbę w <m:math>
+                <m:mrow>
+                  <m:mi mathvariant="normal">k</m:mi>
+                  <m:mi mathvariant="normal">g</m:mi>
+                  <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                  <m:msup>
+                    <m:mi mathvariant="normal">m</m:mi>
+                    <m:mn>3</m:mn>
+                  </m:msup>
+                </m:mrow>
+                </m:math>.</para>
+                <para id="fs-id1168327961631">
+                  <title>Strategia rozwiązania </title>Musimy zamienić gramy na kilogramy oraz centymetry sześcienne na metry sześcienne. Przeliczniki, które będą nam potrzebne, to <m:math>
+                    <m:mn>1</m:mn>
+                    <m:mspace width="0.2em"/>
+                    <m:mrow>
+                      <m:mi mathvariant="normal">k</m:mi>
+                      <m:mi mathvariant="normal">g</m:mi>
+                    </m:mrow>
+                    <m:mo>=</m:mo>
+                    <m:msup>
+                      <m:mn>10</m:mn>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                    <m:mspace width="0.2em"/>
+                    <m:mrow>
+                      <m:mi mathvariant="normal">g</m:mi>
+                    </m:mrow>
+                  </m:math> i <m:math>
+                  <m:mn>1</m:mn>
+                  <m:mspace width="0.2em"/>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">c</m:mi>
+                    <m:mi mathvariant="normal">m</m:mi>
+                  </m:mrow>
+                  <m:mo>=</m:mo>
+                  <m:msup>
+                    <m:mn>10</m:mn>
+                    <m:mrow>
+                      <m:mo>−</m:mo>
+                      <m:mn>2</m:mn>
+                    </m:mrow>
+                  </m:msup>
+                  <m:mspace width="0.2em"/>
+                  <m:mrow>
+                    <m:mi mathvariant="normal">m</m:mi>
+                  </m:mrow>
+                </m:math>. Ponieważ jednak w zadaniu występują centymetry sześcienne (<m:math>
+                <m:mrow>
+                  <m:mi mathvariant="normal">c</m:mi>
+                  <m:msup>
+                    <m:mi mathvariant="normal">m</m:mi>
+                    <m:mn>3</m:mn>
+                  </m:msup>
+                </m:mrow>
+                <m:mo>=</m:mo>
+                <m:mrow>
+                  <m:mi mathvariant="normal">c</m:mi>
+                  <m:mi mathvariant="normal">m</m:mi>
+                  <m:mo>⋅</m:mo>
+                  <m:mi mathvariant="normal">c</m:mi>
+                  <m:mi mathvariant="normal">m</m:mi>
+                  <m:mo>⋅</m:mo>
+                  <m:mi mathvariant="normal">c</m:mi>
+                  <m:mi mathvariant="normal">m</m:mi>
+                </m:mrow>
+                </m:math>), drugiego przelicznika będziemy musieli użyć trzy razy (to znaczy podnieść go do trzeciej potęgi). Wciąż zależy nam na tym, aby niechciane jednostki się skróciły.</para>
+                <para id="fs-id1168328196730">
+                  <title>Rozwiązanie</title>
+                </para>
+                <equation id="fs-id1168328194417" class="unnumbered">
+                  <label/>
+                  <m:math>
+                    <m:mn>7,86</m:mn>
+                    <m:mspace width="0.1em"/>
+                    <m:mfrac>
+                      <m:menclose notation="updiagonalstrike">
+                        <m:mtext>g</m:mtext>
+                      </m:menclose>
+                      <m:msup>
+                        <m:menclose notation="downdiagonalstrike">
+                          <m:mtext>cm</m:mtext>
+                        </m:menclose>
+                        <m:mn>3</m:mn>
+                      </m:msup>
+                    </m:mfrac>
+                    <m:mo>·</m:mo>
+                    <m:mfrac>
+                      <m:mtext>kg</m:mtext>
+                      <m:mrow>
+                        <m:msup>
+                          <m:mn>10</m:mn>
+                          <m:mn>3</m:mn>
+                        </m:msup>
+                        <m:menclose notation="updiagonalstrike">
+                          <m:mtext>g</m:mtext>
+                        </m:menclose>
+                      </m:mrow>
+                    </m:mfrac>
+                    <m:mo>·</m:mo>
+                    <m:msup>
+                      <m:mrow>
+                        <m:mo>(</m:mo>
+                        <m:mfrac>
+                          <m:menclose notation="downdiagonalstrike">
+                            <m:mtext>cm</m:mtext>
+                          </m:menclose>
+                          <m:mrow>
+                            <m:msup>
+                              <m:mn>10</m:mn>
+                              <m:mn>−2</m:mn>
+                            </m:msup>
+                            <m:mo/>
+                            <m:mtext>m</m:mtext>
+                          </m:mrow>
+                        </m:mfrac>
+                        <m:mo>)</m:mo>
+                      </m:mrow>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                    <m:mo>=</m:mo>
+                    <m:mfrac>
+                      <m:mn>7,86</m:mn>
+                      <m:mrow>
+                        <m:msup>
+                          <m:mn>10</m:mn>
+                          <m:mn>3</m:mn>
+                        </m:msup>
+                        <m:mo>·</m:mo>
+                        <m:msup>
+                          <m:mn>10</m:mn>
+                          <m:mn>−6</m:mn>
+                        </m:msup>
+                      </m:mrow>
+                    </m:mfrac>
+                    <m:mspace width="0.1em"/>
+                    <m:msup>
+                      <m:mtext>kg/m</m:mtext>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                    <m:mo>=</m:mo>
+                    <m:mn>7,86</m:mn>
+                    <m:mo>·</m:mo>
+                    <m:msup>
+                      <m:mn>10</m:mn>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                    <m:mspace width="0.2em"/>
+                    <m:msup>
+                      <m:mtext>kg/m</m:mtext>
+                      <m:mn>3</m:mn>
+                    </m:msup>
+                  </m:math>
+                </equation>
+                <para id="fs-id1168328280234">
+                  <title>Znaczenie</title>Pamiętaj, aby zawsze sprawdzić swoje rozwiązanie.</para>
+                  <list id="fs-id1168327984172" list-type="enumerated" number-style="arabic"><item>Upewnij się, że poprawnie skracasz jednostki. Widzimy, że gramy (g) w liczniku pierwszego ułamka skracają się z gramami znajdującymi się w mianowniku pierwszego przelicznika oraz że centymetry sześcienne (<m:math display="inline"><m:msup><m:mi mathvariant="normal">m</m:mi><m:mn>3</m:mn></m:msup></m:math>) znajdujące się w mianowniku pierwszego ułamka skracają się z centymetrami podniesionymi do potęgi trzeciej w liczniku drugiego przelicznika.</item>
+                      <item>Upewnij się, że wynik podany jest w wymaganych jednostkach. W tym przypadku wynik mieliśmy podać w kilogramach na metr sześcienny. Po skróceniu jednostek otrzymujemy [kg] w liczniku oraz „m” podniesione do potęgi trzeciej w mianowniku (czyli metr sześcienny lub [<m:math>
+                        <m:msup>
+                          <m:mtext>m</m:mtext>
+                          <m:mn>3</m:mn>
+                        </m:msup>
+                        </m:math>] – oznacza to, że wynik jest poprawny).</item>
+                      </list></example>
+                    <note id="fs-id1168327874671" class="check-understanding">
+                      <exercise id="fs-id1168327876191">
+                        <problem id="fs-id1168328204361">
+                          <para id="fs-id1168327929521"><emphasis effect="bold">Sprawdź, czy rozumiesz.</emphasis> Dzięki informacjom zawartym w <link target-id="CNX_UPhysics_01_01_MagnitTb" document="m65733" cmlnle:case="locative"/> wiesz, że rząd wielkości średnicy Ziemi jest równy <m:math>
+                              <m:msup>
+                                <m:mn>10</m:mn>
+                                <m:mn>7</m:mn>
+                              </m:msup>
+                              <m:mspace width="0.2em"/>
+                              <m:mrow>
+                                <m:mi mathvariant="normal">m</m:mi>
+                              </m:mrow>
+                            </m:math>, a więc rząd wielkości jej powierzchni wynosi <m:math>
+                            <m:msup>
+                              <m:mn>10</m:mn>
+                              <m:mrow>
+                                <m:mn>14</m:mn>
+                              </m:mrow>
+                            </m:msup>
+                            <m:mspace width="0.2em"/>
+                            <m:mrow>
+                              <m:msup>
+                                <m:mi mathvariant="normal">m</m:mi>
+                                <m:mn>2</m:mn>
+                              </m:msup>
+                            </m:mrow>
+                          </m:math>. Przedstaw tę wartość w kilometrach kwadratowych (<m:math>
+                          <m:msup>
+                            <m:mtext>km</m:mtext>
+                            <m:mn>2</m:mn>
+                          </m:msup>
+                        </m:math>). (Spróbuj zamienić jednostki na dwa sposoby: najpierw zamieniając <m:math>
+                        <m:msup>
+                          <m:mn>10</m:mn>
+                          <m:mrow>
+                            <m:mn>7</m:mn>
+                          </m:mrow>
+                        </m:msup>
+                        <m:mspace width="0.2em"/>
+                        <m:mrow>
+                          <m:mi mathvariant="normal">m</m:mi>
+                        </m:mrow>
+                      </m:math> na kilometry i podnosząc wynik do kwadratu, a następnie bezpośrednio zamieniając <m:math>
+                      <m:msup>
+                        <m:mn>10</m:mn>
+                        <m:mrow>
+                          <m:mn>14</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                      <m:mspace width="0.2em"/>
+                      <m:mrow>
+                        <m:msup>
+                          <m:mi mathvariant="normal">m</m:mi>
+                          <m:mn>2</m:mn>
+                        </m:msup>
+                      </m:mrow>
+                      </m:math> na kilometry kwadratowe. W obu przypadkach powinieneś uzyskać taką samą odpowiedź).</para></problem>
+                    <solution id="fs-id1168327864339">
+                      <para id="fs-id1168328228670">
+                        <m:math>
+                          <m:msup>
+                            <m:mn>10</m:mn>
+                            <m:mrow>
+                              <m:mn>8</m:mn>
+                            </m:mrow>
+                          </m:msup>
+                          <m:mspace width="0.2em"/>
+                          <m:mrow>
+                            <m:mi mathvariant="normal">k</m:mi>
+                            <m:msup>
+                              <m:mi mathvariant="normal">m</m:mi>
+                              <m:mn>2</m:mn>
+                            </m:msup>
+                          </m:mrow>
+                        </m:math>
+                      </para>
+                    </solution>
+                  </exercise>
+                </note>
+                <para id="fs-id1168328063269">Zamiana jednostek może wydawać się niezbyt ciekawa, ale pominięcie jej podczas obliczeń może nas wiele kosztować. Taka sytuacja miała miejsce, kiedy NASA wysłała w przestrzeń kosmiczną sondę <term class="no-emphasis">Mars Climate Orbiter</term>. Sondę wystrzelono 11 grudnia 1998 roku, a 23 września 1999 roku, podczas próby skierowania sondy na orbitę Marsa, utracono z nią kontakt. W wyniku późniejszego dochodzenia odkryto, że oprogramowanie SM_FORCES (lub <emphasis effect="italics">small forces</emphasis>) odbierające instrukcje dotyczące trajektorii lotu jako jednostki używało funt-siły, podczas gdy oprogramowanie służące do wyznaczania korekty tej trajektorii wyrażone było w niutonach. Tor lotu uległ znacznej zmianie, w związku z czym sonda prawdopodobnie odleciała w przestrzeń lub spaliła się w atmosferze Marsa. Ten błąd kosztował setki milionów dolarów, nie wspominając o straconym czasie, jaki poświęcono na zaplanowanie misji.</para>
+                  <note id="fs-id1168327869372" class="check-understanding">
+                    <exercise id="fs-id1168328059712">
+                      <problem id="fs-id1168328224586">
+                        <para id="fs-id1168327873248">
+                          <emphasis effect="bold">Sprawdź, czy rozumiesz.</emphasis> Wiedząc, że 1 lb (funt-siła) jest równy 4,45 N (niutonom), oceń, czy SM_FORCES generowało zbyt duże, czy zbyt małe wartości siły.</para>
+                        </problem>
+                        <solution id="fs-id1168328289312">
+                          <para id="fs-id1168328242737">Wartości były 4,45 raza za małe.</para>
+                        </solution>
+                      </exercise>
+                    </note>
+                    <section id="fs-id1168328267596" class="key-concepts">
+                      <title>Podsumowanie</title>
+                      <list id="fs-id1168328066342" list-type="bulleted" bullet-style="bullet"><item>Aby zamienić daną jednostkę na inną, pomnóż wartość przez przelicznik w taki sposób, aby niechciana jednostka uległa skróceniu.</item>
+                        <item>Zwróć uwagę na obliczenia zawierające pola powierzchni i objętości. Jednostki podlegają prawom matematyki, więc nie możemy skrócić jednostki podniesionej do kwadratu z jednostką, która jest w pierwszej potędze.</item>
+                      </list></section>
+                    <section id="fs-id1168327956216" class="review-problems">
+                      <title>Zadania</title>
+                      <exercise id="fs-id1168327939270">
+                        <problem id="fs-id1168327926028">
+                          <para id="fs-id1168328193378">Rząd objętości kuli ziemskiej jest równy <m:math>
+                            <m:msup>
+                              <m:mn>10</m:mn>
+                              <m:mrow>
+                                <m:mn>21</m:mn>
+                              </m:mrow>
+                            </m:msup>
+                            <m:mspace width="0.2em"/>
+                            <m:mrow>
+                              <m:msup>
+                                <m:mi mathvariant="normal">m</m:mi>
+                                <m:mn>3</m:mn>
+                              </m:msup>
+                            </m:mrow>
+                          </m:math>. <list id="eip-idm610992768" list-type="enumerated" number-style="lower-alpha">
+                          <item> Przedstaw tę wartość w metrach sześciennych (<m:math>
+                            <m:msup>
+                              <m:mtext>km</m:mtext>
+                              <m:mn>3</m:mn>
+                            </m:msup>
+                            </m:math>). </item>
+                            <item> Przedstaw tę wartość w milach sześciennych (<m:math>
+                              <m:msup>
+                                <m:mtext>mi</m:mtext>
+                                <m:mn>3</m:mn>
+                              </m:msup>
+                              </m:math>). </item>
+                              <item> Przedstaw tę wartość w centymetrach sześciennych (<m:math>
+                                <m:msup>
+                                  <m:mtext>cm</m:mtext>
+                                  <m:mn>3</m:mn>
+                                </m:msup>
+                                </m:math>). </item>
+                              </list>
+                            </para>
+                          </problem>
+                        </exercise>
+                        <exercise id="fs-id1168327854111">
+                          <problem id="fs-id1168327874834">
+                            <para id="fs-id1168328177870">Ograniczenie prędkości na niektórych drogach ekspresowych jest równe 100 km/h.
+<list id="eip-idm464707728" list-type="enumerated" number-style="lower-alpha">
+                                <item> Przedstaw tę wartość w metrach na sekundę. </item>
+                                <item> Przedstaw tę wartość w milach na godzinę. </item>
+                              </list>
+                            </para>
+                          </problem>
+                          <solution id="fs-id1168328294280">
+                            <list id="fs-id1168328269910" list-type="enumerated" number-style="lower-alpha">
+                              <item> 27,8 m/s; </item>
+                              <item> 62 mi/h.</item>
+                            </list>
+                          </solution>
+                        </exercise>
+                        <exercise id="fs-id1168328285914">
+                          <problem id="fs-id1168328071458">
+                            <para id="fs-id1168327876205">Samochód jedzie z prędkością 33 m/s.<list id="eip-idm189120192" list-type="enumerated" number-style="lower-alpha">
+                              <item> Przedstaw tę wartość w kilometrach na godzinę. </item>
+                              <item> Czy kierowca przekroczył dopuszczalną prędkość, jeśli ograniczenie na tej drodze jest równe 90 km/h? </item>
+                            </list>
+                          </para>
+                        </problem>
+                      </exercise>
+                      <exercise id="fs-id1168328059510">
+                        <problem id="fs-id1168328229974">
+                          <para id="fs-id1168327951931">Jednostką prędkości w układzie SI jest metr na sekundę (m/s). Być może przyzwyczaiłeś się jednak do tego, że prędkość podaje się w kilometrach na godzinę (km/h) lub w milach na godzinę (mi/h), w zależności od tego, gdzie mieszkasz. Rozwiązanie tego zadania uświadomi ci, że 1 m/s jest równy około 4 km/h lub 2 mi/h – ta wiedza pomoże ci kształtować fizyczną intuicję. Udowodnij, że <list id="eip-idm459809552" list-type="enumerated" number-style="lower-alpha">
+                            <item>
+                              <m:math>
+                                <m:mn>1,0</m:mn>
+                                <m:mspace width="0.2em"/>
+                                <m:mrow>
+                                  <m:mi mathvariant="normal">m</m:mi>
+                                  <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                  <m:mi mathvariant="normal">s</m:mi>
+                                </m:mrow>
+                                <m:mo>=</m:mo>
+                                <m:mn>3,6</m:mn>
+                                <m:mspace width="0.2em"/>
+                                <m:mrow>
+                                  <m:mi mathvariant="normal">k</m:mi>
+                                  <m:mi mathvariant="normal">m</m:mi>
+                                  <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                  <m:mi mathvariant="normal">h</m:mi>
+                                </m:mrow>
+                                </m:math>; </item>
+                                <item>
+                                  <m:math>
+                                    <m:mn>1,0</m:mn>
+                                    <m:mspace width="0.2em"/>
+                                    <m:mrow>
+                                      <m:mi mathvariant="normal">m</m:mi>
+                                      <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                      <m:mi mathvariant="normal">s</m:mi>
+                                    </m:mrow>
+                                    <m:mo>=</m:mo>
+                                    <m:mn>2,2</m:mn>
+                                    <m:mspace width="0.2em"/>
+                                    <m:mrow>
+                                      <m:mi mathvariant="normal">m</m:mi>
+                                      <m:mi mathvariant="normal">i</m:mi>
+                                      <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                      <m:mi mathvariant="normal">h</m:mi>
+                                    </m:mrow>
+                                    </m:math>. </item>
+                                  </list>
+                                </para>
+                              </problem>
+                            </exercise>
+                            <exercise id="fs-id1168327924198">
+                              <problem id="fs-id1168328170085">
+                                <para id="fs-id1168328293595">Boisko do amerykańskiego futbolu ma długość 100 jardów, nie wliczając w to stref końcowych. Jaka jest długość boiska w metrach? (Przyjmij, że <m:math>
+                                  <m:mn>1</m:mn>
+                                  <m:mspace width="0.2em"/>
+                                  <m:mrow>
+                                    <m:mi mathvariant="normal">m</m:mi>
+                                  </m:mrow>
+                                  <m:mo>=</m:mo>
+                                  <m:mn>3,281</m:mn>
+                                  <m:mspace width="0.2em"/>
+                                  <m:mtext>stopy</m:mtext>
+                                  </m:math>).</para>
+                                </problem>
+                              </exercise>
+                              <exercise id="fs-id1168328297906">
+                                <problem id="fs-id1168327931904">
+                                  <para id="fs-id1168327933995">Boiska do piłki nożnej mają różne wymiary. Duże boisko może mieć 115 m długości i 85,0 m szerokości. Jaka jest jego powierzchnia w stopach kwadratowych? (Przyjmij, że <m:math>
+                                    <m:mn>1</m:mn>
+                                    <m:mspace width="0.2em"/>
+                                    <m:mrow>
+                                      <m:mi mathvariant="normal">m</m:mi>
+                                    </m:mrow>
+                                    <m:mo>=</m:mo>
+                                    <m:mn>3,281</m:mn>
+                                    <m:mspace width="0.2em"/>
+                                    <m:mtext>stopy</m:mtext>
+                                    </m:math>).</para>
+                                  </problem>
+                                  <solution id="fs-id1168328059139">
+                                    <para id="fs-id1168328169332">
+                                      <m:math>
+                                        <m:mn>1,05</m:mn>
+                                        <m:mo>⋅</m:mo>
+                                        <m:msup>
+                                          <m:mn>10</m:mn>
+                                          <m:mn>5</m:mn>
+                                        </m:msup>
+                                        <m:mspace width="0.2em"/>
+                                        <m:mrow>
+                                          <m:mi mathvariant="normal">s</m:mi>
+                                          <m:mi mathvariant="normal">t</m:mi>
+                                          <m:mi mathvariant="normal">o</m:mi>
+                                          <m:mi mathvariant="normal">p</m:mi>
+                                          <m:msup>
+                                            <m:mi mathvariant="normal">a</m:mi>
+                                            <m:mn>2</m:mn>
+                                          </m:msup>
+                                        </m:mrow>
+                                      </m:math>
+                                    </para>
+                                  </solution>
+                                </exercise>
+                                <exercise id="fs-id1168328222458">
+                                  <problem id="fs-id1168327943116">
+                                    <para id="fs-id1168327956404">Jeśli pewien człowiek mierzy 6 stóp i 1,0 cala, to jaki jest jego wzrost w metrach?</para>
+                                  </problem>
+                                </exercise>
+                                <exercise id="fs-id1168327939869">
+                                  <problem id="fs-id1168327922500">
+                                    <para id="fs-id1168328295075">Mount Everest ma wysokość 29,028 ft i jest najwyższym szczytem na Ziemi. Jaka jest jego wysokość w kilometrach? (Przyjmij, że <m:math>
+                                      <m:mn>1</m:mn>
+                                      <m:mspace width="0.2em"/>
+                                      <m:mrow>
+                                        <m:mi mathvariant="normal">m</m:mi>
+                                      </m:mrow>
+                                      <m:mo>=</m:mo>
+                                      <m:mn>3,281</m:mn>
+                                      <m:mspace width="0.2em"/>
+                                      <m:mtext>stopy</m:mtext>
+                                      </m:math>).</para>
+                                    </problem>
+                                    <solution id="fs-id1168328025151">
+                                      <para id="fs-id1168328059572">8,847 km</para>
+                                    </solution>
+                                  </exercise>
+                                  <exercise id="fs-id1168328222906">
+                                    <problem id="fs-id1168328189735">
+                                      <para id="fs-id1168328301961">Zmierzono prędkość dźwięku i uzyskano pomiar 342 m/s. Przedstaw tę wartość w kilometrach na godzinę.</para>
+                                    </problem>
+                                  </exercise>
+                                  <exercise id="fs-id1168328171083">
+                                    <problem id="fs-id1168328247343">
+                                      <para id="fs-id1168328222416">Płyty tektoniczne są to olbrzymie segmenty litosfery, które powoli się przemieszczają. Załóżmy, że jedna z tych płyt porusza się ze średnią prędkością równą 4,0 cm na rok.                                         <list id="eip-idm1215633728" list-type="enumerated" number-style="lower-alpha">
+                                          <item> O ile przesuwa się płyta w ciągu 1,0 s? </item>
+                                          <item> Jaka jest prędkość płyty w kilometrach na milion lat? </item>
+                                        </list>
+                                      </para>
+                                    </problem>
+                                    <solution id="fs-id1168327911343">
+                                      <list id="fs-id1168327940797" list-type="enumerated" number-style="lower-alpha">
+                                        <item>
+                                          <m:math>
+                                            <m:mn>1,3</m:mn>
+                                            <m:mo>⋅</m:mo>
+                                            <m:msup>
+                                              <m:mn>10</m:mn>
+                                              <m:mrow>
+                                                <m:mo>−</m:mo>
+                                                <m:mn>9</m:mn>
+                                              </m:mrow>
+                                            </m:msup>
+                                            <m:mspace width="0.2em"/>
+                                            <m:mrow>
+                                              <m:mi mathvariant="normal">m</m:mi>
+                                            </m:mrow>
+                                            </m:math>; </item>
+                                            <item> 40 km na million lat.</item>
+                                          </list>
+                                        </solution>
+                                      </exercise>
+                                      <exercise id="fs-id1168328294774">
+                                        <problem id="fs-id1168328222883">
+                                          <para id="fs-id1168327872186">Średnia odległość Ziemi od Słońca jest równa <m:math>
+                                            <m:mn>1,5</m:mn>
+                                            <m:mo>⋅</m:mo>
+                                            <m:msup>
+                                              <m:mn>10</m:mn>
+                                              <m:mrow>
+                                                <m:mn>11</m:mn>
+                                              </m:mrow>
+                                            </m:msup>
+                                            <m:mspace width="0.2em"/>
+                                            <m:mrow>
+                                              <m:mi mathvariant="normal">m</m:mi>
+                                            </m:mrow>
+                                          </m:math>. <newline/>
+                                          <list id="eip-idm228015824" list-type="enumerated" number-style="lower-alpha">
+                                            <item> Oblicz średnią prędkość ruchu Ziemi po orbicie w metrach na sekundę (przyjmij, że orbita jest okrągła). </item>
+                                            <item> Przedstaw tę prędkość w milach na godzinę. </item>
+                                          </list>
+                                        </para>
+                                      </problem>
+                                    </exercise>
+                                    <exercise id="fs-id1168328311640">
+                                      <problem id="fs-id1168328364226">
+                                        <para id="fs-id1168328025058">Gęstość materii jądrowej jest równa około <m:math>
+                                          <m:msup>
+                                            <m:mn>10</m:mn>
+                                            <m:mrow>
+                                              <m:mn>18</m:mn>
+                                            </m:mrow>
+                                          </m:msup>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">k</m:mi>
+                                            <m:mi mathvariant="normal">g</m:mi>
+                                            <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                            <m:msup>
+                                              <m:mi mathvariant="normal">m</m:mi>
+                                              <m:mn>3</m:mn>
+                                            </m:msup>
+                                          </m:mrow>
+                                        </m:math>. Wiedząc, że 1 ml ma objętość <m:math>
+                                        <m:mn>1</m:mn>
+                                        <m:mspace width="0.2em"/>
+                                        <m:mrow>
+                                          <m:mi mathvariant="normal">c</m:mi>
+                                          <m:msup>
+                                            <m:mi mathvariant="normal">m</m:mi>
+                                            <m:mn>3</m:mn>
+                                          </m:msup>
+                                        </m:mrow>
+                                      </m:math>, przedstaw gęstość materii jądrowej w megagramach na mikrolitr (<m:math>
+                                      <m:mrow>
+                                        <m:mi mathvariant="normal">M</m:mi>
+                                        <m:mi mathvariant="normal">g</m:mi>
+                                        <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                        <m:mi>μ</m:mi>
+                                        <m:mi mathvariant="normal">l</m:mi>
+                                      </m:mrow>
+                                      </m:math>)?</para>
+                                    </problem>
+                                    <solution id="fs-id1168328240950">
+                                      <para id="fs-id1168328329673">
+                                        <m:math>
+                                          <m:msup>
+                                            <m:mn>10</m:mn>
+                                            <m:mrow>
+                                              <m:mn>6</m:mn>
+                                            </m:mrow>
+                                          </m:msup>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">M</m:mi>
+                                            <m:mi mathvariant="normal">g</m:mi>
+                                            <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                            <m:mi>μ</m:mi>
+                                            <m:mi mathvariant="normal">l</m:mi>
+                                          </m:mrow>
+                                        </m:math>.
+                                      </para>
+                                    </solution>
+                                  </exercise>
+                                  <exercise id="fs-id1168328064287">
+                                    <problem id="fs-id1168328201081">
+                                      <para id="fs-id1168328175768">Aluminium ma gęstość <m:math>
+                                        <m:mn>2,7</m:mn>
+                                        <m:mspace width="0.2em"/>
+                                        <m:mrow>
+                                          <m:mi mathvariant="normal">g</m:mi>
+                                          <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                          <m:mi mathvariant="normal">c</m:mi>
+                                          <m:msup>
+                                            <m:mi mathvariant="normal">m</m:mi>
+                                            <m:mn>3</m:mn>
+                                          </m:msup>
+                                        </m:mrow>
+                                        </m:math>. Podaj jego gęstość w kilogramach na metr sześcienny. </para>
+                                      </problem>
+                                    </exercise>
+                                    <exercise id="fs-id1168328170090">
+                                      <problem id="fs-id1168327961174">
+                                        <para id="fs-id1168327923356">Jednostką masy w brytyjskim systemie miar jest funt (lbm). Oblicz gęstość wody w funtach na stopę sześcienną wiedząc, że <m:math>
+                                          <m:mn>1</m:mn>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">l</m:mi>
+                                            <m:mi mathvariant="normal">b</m:mi>
+                                            <m:mi mathvariant="normal">m</m:mi>
+                                          </m:mrow>
+                                          <m:mo>=</m:mo>
+                                          <m:mn>0,454</m:mn>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">k</m:mi>
+                                            <m:mi mathvariant="normal">g</m:mi>
+                                          </m:mrow>
+                                          </m:math>.</para>
+                                        </problem>
+                                        <solution id="fs-id1168327931285">
+                                          <para id="fs-id1168327879321">62,4 funtów na stopę sześcienną</para>
+                                        </solution>
+                                      </exercise>
+                                      <exercise id="fs-id1168327871170">
+                                        <problem id="fs-id1168327935365">
+                                          <para id="fs-id1168327873821">Furlong to 220 jardów. Przekształć 1 furlong na dwa tygodnie na milimetry na sekundę. </para>
+                                        </problem>
+                                      </exercise>
+                                      <exercise id="fs-id1168327941954">
+                                        <problem id="fs-id1168327918284">
+                                          <para id="fs-id1168328181668">Aby okrążyć koło, potrzebne są <m:math>
+                                            <m:mrow>
+                                              <m:mn>2</m:mn>
+                                              <m:mi>π</m:mi>
+                                            </m:mrow>
+                                          </m:math> radiany (rad), czyli <m:math>
+                                          <m:msup>
+                                            <m:mn>360</m:mn>
+                                            <m:mo>∘</m:mo>
+                                          </m:msup>
+                                        </m:math>. Ile radianów jest w <m:math>
+                                        <m:msup>
+                                          <m:mn>1</m:mn>
+                                          <m:mo>∘</m:mo>
+                                        </m:msup>
+                                        </m:math> ?</para>
+                                      </problem>
+                                      <solution id="fs-id1168327854847">
+                                        <para id="fs-id1168328190635">0,017 rad</para>
+                                      </solution>
+                                    </exercise>
+                                    <exercise id="fs-id1168328293255">
+                                      <problem id="fs-id1168327953647">
+                                        <para id="fs-id1168328185095">Światło przebywa drogę około <m:math>
+                                          <m:mn>3</m:mn>
+                                          <m:mo>⋅</m:mo>
+                                          <m:msup>
+                                            <m:mn>10</m:mn>
+                                            <m:mn>8</m:mn>
+                                          </m:msup>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">m</m:mi>
+                                            <m:mspace width="0.1em"/><m:mtext>/</m:mtext><m:mspace width="0.1em"/>
+                                            <m:mi mathvariant="normal">s</m:mi>
+                                          </m:mrow>
+                                        </m:math>. Światłominuta to droga, jaką przebywa światło w ciągu 1 min. Słońce znajduje się <m:math>
+                                        <m:mn>1,5</m:mn>
+                                        <m:mo>⋅</m:mo>
+                                        <m:msup>
+                                          <m:mn>10</m:mn>
+                                          <m:mrow>
+                                            <m:mn>11</m:mn>
+                                          </m:mrow>
+                                        </m:msup>
+                                        <m:mspace width="0.2em"/>
+                                        <m:mrow>
+                                          <m:mi mathvariant="normal">m</m:mi>
+                                        </m:mrow>
+                                        </m:math> od Ziemi. Przedstaw tę odległość w światłominutach.</para>
+                                      </problem>
+                                    </exercise>
+                                    <exercise id="fs-id1168328303932">
+                                      <problem id="fs-id1168327927709">
+                                        <para id="fs-id1168327983780">Światłonanosekunda to droga, jaką przebywa światło w ciągu 1 ns. Przekształć 1 stopę na światłonanosekundy. </para>
+                                      </problem>
+                                      <solution id="fs-id1168327943341">
+                                        <para id="fs-id1168328329635">1 światłonanosekunda</para>
+                                      </solution>
+                                    </exercise>
+                                    <exercise id="fs-id1168327934441">
+                                      <problem id="fs-id1168327982880">
+                                        <para id="fs-id1168327943847">Masa elektronu jest równa <m:math>
+                                          <m:mn>9,11</m:mn>
+                                          <m:mo>⋅</m:mo>
+                                          <m:msup>
+                                            <m:mn>10</m:mn>
+                                            <m:mrow>
+                                              <m:mo>−</m:mo>
+                                              <m:mn>31</m:mn>
+                                            </m:mrow>
+                                          </m:msup>
+                                          <m:mspace width="0.2em"/>
+                                          <m:mrow>
+                                            <m:mi mathvariant="normal">k</m:mi>
+                                            <m:mi mathvariant="normal">g</m:mi>
+                                          </m:mrow>
+                                        </m:math>. Masa protonu jest równa <m:math>
+                                        <m:mn>1,67</m:mn>
+                                        <m:mo>⋅</m:mo>
+                                        <m:msup>
+                                          <m:mn>10</m:mn>
+                                          <m:mrow>
+                                            <m:mo>−</m:mo>
+                                            <m:mn>27</m:mn>
+                                          </m:mrow>
+                                        </m:msup>
+                                        <m:mspace width="0.2em"/>
+                                        <m:mrow>
+                                          <m:mi mathvariant="normal">k</m:mi>
+                                          <m:mi mathvariant="normal">g</m:mi>
+                                        </m:mrow>
+                                        </m:math>. Przedstaw masę protonu przy pomocy masy elektronu.</para>
+                                      </problem>
+                                    </exercise>
+                                    <exercise id="fs-id1168328195795">
+                                      <problem id="fs-id1168328286055">
+                                        <para id="fs-id1168328289390">Jedna uncja płynu to około 30 ml. Puszka coli ma objętość 12 uncji płynu. Jaka to objętość w metrach sześciennych? </para>
+                                      </problem>
+                                      <solution id="fs-id1168328280449">
+                                        <para id="fs-id1168327870505">
+                                          <m:math>
+                                            <m:mn>3,6</m:mn>
+                                            <m:mo>⋅</m:mo>
+                                            <m:msup>
+                                              <m:mn>10</m:mn>
+                                              <m:mrow>
+                                                <m:mo>−</m:mo>
+                                                <m:mn>4</m:mn>
+                                              </m:mrow>
+                                            </m:msup>
+                                            <m:mspace width="0.2em"/>
+                                            <m:mrow>
+                                              <m:msup>
+                                                <m:mi mathvariant="normal">m</m:mi>
+                                                <m:mn>3</m:mn>
+                                              </m:msup>
+                                            </m:mrow>
+                                          </m:math>
+                                        </para>
+                                      </solution>
+                                    </exercise>
+                                  </section>
+                                </content>
+                                <glossary>
+                                  <definition id="fs-id1168327920641">
+                                    <term class="no-emphasis" cmlnle:reference="przelicznik">przelicznik (ang. <foreign><term cxlxt:index="foreign" class="no-emphasis">conversion factor</term></foreign>)</term>
+                                    <meaning id="fs-id1168328329236">liczba wskazująca, ile razy dana jednostka mieści się w innej</meaning>
+                                  </definition>
+                                </glossary>
+                              </document>

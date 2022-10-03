@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml"><title>Test Module</title></head>
+
+<body xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:qml="http://cnx.rice.edu/qml/1.0" xmlns:mod="http://cnx.rice.edu/#moduleIds" xmlns:bib="http://bibtexml.sf.net/" xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" xmlns:epub="http://www.idpf.org/2007/ops"><div data-type="document-title">Test Module</div>
+    <p id="keep1">This test unwraps blockish elements (table, figure, list, etc) that are a child of a para.</p>
+
+    <p id="inline-quote1"><q id="keep2"/></p>
+
+    <p id="inline-quote2">
+      <q id="keep3"/>
+    </p>
+
+    <!-- ensure the attributes on this para are preserved -->
+    <p id="keep4" class="keep">
+      before
+      <span data-type="term" id="keep5">inline element1</span>
+      before2
+      <q id="keep6"/>
+      between
+      <span data-type="term" id="keep7">inline element2</span>
+      between2
+      <q id="keep8"/>
+      after
+      <span data-type="term" id="keep9">inline element3</span>
+      after2
+    </p>
+
+
+    <!-- TODO: ensure the attributes on this para are preserved -->
+    <div data-type="note" id="keep11"><!-- no-selfclose --></div><div data-type="note" id="keep12"><!-- no-selfclose --></div><p>
+      after
+    </p>
+
+    <p id="keep13">
+      before
+      </p><div data-type="note" id="keep14"><!-- no-selfclose --></div><p>
+      between
+      </p><div data-type="note" id="keep15"><!-- no-selfclose --></div><p>
+      after
+    </p>
+
+    <table id="keep16" summary=""><tbody>
+            <tr>
+              <td/>
+            </tr>
+          </tbody></table>
+
+
+    <p id="keep17">
+      some text
+      <span data-type="term" id="keep18">and an element</span>
+      and more text
+      </p><table id="keep19" summary=""><tbody>
+            <tr>
+              <td/>
+            </tr>
+          </tbody></table><p>
+      some text
+      <span data-type="term" id="keep20">and an element</span>
+      and more text
+      </p><table id="keep21" summary=""><tbody>
+            <tr>
+              <td/>
+            </tr>
+          </tbody></table><p>
+      and even more text
+    </p>
+
+
+    <div data-type="equation" id="keep22"><!-- no-selfclose --></div>
+
+    <p xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" id="xsl-fo-attributes" fo:font-weight="bold">some text</p>
+
+    <p id="with-pre">
+      I have some preformatted text
+      </p><pre data-type="code" id="pre1">hi</pre>
+
+    <p id="with-note">
+      What is 1+1?
+      </p><div data-type="note" id="note1">This is asking for the mathematical answer</div>
+
+    <p id="with-inline-list">
+      foo
+      <span data-type="list" data-list-type="labeled-item" id="inline-list1" data-display="inline">
+        <span data-type="item">1</span>
+      </span>
+    </p>
+
+    <p id="with-list">
+      foo
+      </p><ul id="list1">
+        <li>1</li>
+      </ul>
+
+
+    <p id="with-figure">
+      foo
+      </p><figure id="fig1">
+        <span data-type="media" data-alt="" id="media1">
+          <img src="" data-media-type="image/jpg" alt=""/>
+        </span>
+      </figure>
+
+    <p id="with-media">
+      foo
+      </p><span data-type="media" data-alt="" id="media2">
+        <img src="" data-media-type="image/jpg" alt=""/>
+      </span>
+
+    <p id="with-block-media">
+      foo
+      </p><span data-type="media" data-alt="" id="media4" data-display="block">
+        <img src="" data-media-type="image/jpg" alt=""/>
+      </span>
+
+    <p id="with-inline-media">
+      foo
+      <span data-type="media" data-alt="" id="media3" data-display="inline">
+        <img src="" data-media-type="image/jpg" alt=""/>
+      </span>
+    </p>
+
+    <p id="with-preformat">
+      foo
+      </p><pre data-type="code" id="pre2">preformatted text</pre>
+
+    <p id="with-exercise">
+      foo
+      </p><div data-type="exercise" id="ex1">
+        <div data-type="problem" id="problem1">
+          <p id="problem1-para">123</p>
+        </div>
+      </div>
+  </body>
+
+</html>

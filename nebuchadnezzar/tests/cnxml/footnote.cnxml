@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" id="imported-from-openoffice" module-id="imported-from-openoffice" cnxml-version="0.7">
+  <title>Footnote test</title>
+
+<content>
+
+  <para id="idm46678431439360"> ... </para>
+
+  <para id="idm46678431438976">(observed<footnote id="eip-id1169737806114">Predicted by theory and first observed in 1983.</footnote>)</para>
+
+  <para id="idm46678431437824">Gluons (conjectured<footnote id="eip-id1169738239687">Eight proposed—indirect evidence of existence. Underlie meson exchange.</footnote>)</para>
+
+  <para id="idm46678431436560"> ... </para>
+
+  <para id="m42720-example">
+    <footnote id="import-auto-footnote-1"> Stated values are according to the National Institute of Standards and Technology Reference on Constants, Units, and Uncertainty,
+      <link url="http://www.physics.nist.gov/cuu">www.physics.nist.gov/cuu</link>(accessed May 18, 2012). Values in parentheses are the uncertainties in the last digits. Numbers without uncertainties are exact as defined.
+    </footnote>
+  </para>
+
+  <para>
+    <footnote id="p1">
+      <para id="p012">I am blockish and should be unwrapped</para>
+    </footnote>
+  </para>
+
+  <para>
+    <footnote id="p2"> contains blockish element: <para id="p123">I am blockish</para> more text</footnote>
+  </para>
+
+  <para>
+    <footnote id="p3"> contains blockish element: <para id="p234">I am blockish</para><para id="p345">I am also blockish</para> more text</footnote>
+  </para>
+
+  <para>
+    <footnote id="p4">
+      <list>
+        <item>I am blockish</item>
+        <item>Not sure what to do with lists</item>
+      </list>
+    </footnote>
+  </para>
+
+  <para>
+    Content with footnote
+    <footnote id="p5">
+      Footnote with equation: <equation id="eq1" class="unnumbered">x=2</equation>
+    </footnote>
+  </para>
+
+  <note><!-- just to make sure the note doesn't also collect the footnotes -->
+    <table>
+      <title>
+        <footnote id="linktome-tt">should remain in the table caption but below the title span</footnote>
+        <sup><footnote id="linktome-tts">should remain in the table caption but below the title span</footnote></sup>
+      </title>
+      <caption>
+        <footnote id="linktome-tc">should remain in the caption</footnote>
+      </caption>
+      <tgroup>
+        <thead>
+          <row>
+            <entry>
+              <footnote id="linktome-th">should remain in the th</footnote>
+            </entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <footnote id="linktome-tb">should remain in the td</footnote>
+            </entry>
+            <entry>
+              <para>
+                <footnote id="linktome-tbp">should move below the para</footnote>
+              </para>
+            </entry>
+            <entry>
+              <sup>
+                <footnote id="linktome-tbs">should remain in the td but be below the sup</footnote>
+              </sup>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </note>
+
+<note>
+  <title>
+    <footnote id="linktome-nt">should move below the title or below the note</footnote>
+  </title>
+  <para>
+    <footnote id="linktome-np">should move below the para</footnote>
+    <sup>
+      <footnote id="linktome-nps">should move below the para</footnote>
+    </sup>
+  </para>
+</note>
+
+<exercise>
+  <problem>
+    <para>
+      <footnote id="linktome-epp">should move below the para</footnote>
+    </para>
+  </problem>
+  <solution>
+    <para>
+      <footnote id="linktome-esp">should move below the para</footnote>
+    </para>
+  </solution>
+</exercise>
+
+<figure>
+  <caption>
+    <footnote id="linktome-fc">should remain in the caption</footnote>
+  </caption>
+</figure>
+
+<example>
+  <para>
+    <footnote id="linktome-ep">should move below the para</footnote>
+  </para>
+</example>
+
+<section>
+  <section>
+    <title>
+      <footnote id="linktome-sst">should move below the title or below the section</footnote>
+    </title>
+    <para>
+      <quote>
+        <footnote id="linktome-sspq">should move below the para</footnote>
+      </quote>
+    </para>
+    <note>
+      <para>
+        <quote>
+          <footnote id="linktome-ssnpq">should move below the para</footnote>
+        </quote>
+      </para>
+      <list>
+        <item>
+          <footnote id="linktome-ssnli">should remain in the list item</footnote>
+          <para><footnote id="linktome-ssnlip">should remain in the list item</footnote></para>
+        </item>
+      </list>
+      <figure>
+        <caption>
+          <footnote id="linktome-ssnfc">should remain in the caption</footnote>
+        </caption>
+      </figure>
+    </note>
+    <para>
+      <footnote id="linktome-ssp">should end up below the para</footnote>
+      <sup><footnote id="linktome-ssps">should end up below the para</footnote></sup>
+    </para>
+    <list>
+      <item>
+        <footnote id="linktome-ssli">should remain as a child of item</footnote>
+        <para><footnote id="linktome-sslip">should remain as a child of item</footnote></para>
+      </item>
+    </list>
+  </section>
+</section>
+
+<para>
+  <footnote id="linktome-p">should move below the para</footnote>
+</para>
+
+</content>
+<!-- Ensure the glossary appears after the footnotes. -->
+<!-- Note, there aren't any //c:glossary//c:footnote entries in production. -->
+<glossary>
+  <definition id="import-auto-id1169737716876"><term>Feynman diagram</term> <meaning id="fs-id1169738208078">a graph of time versus position that describes the exchange of virtual particles between subatomic particles</meaning></definition>
+  <definition id="import-auto-id1169737813579"><term>gluons</term> <meaning id="fs-id1169738116395">exchange particles, analogous to the exchange of photons that gives rise to the electromagnetic force between two charged particles</meaning></definition>
+  <definition id="import-auto-id1169738065015"><term>quantum electrodynamics</term> <meaning id="fs-id1169737896970">the theory of electromagnetism on the particle scale</meaning></definition>
+</glossary>
+</document>

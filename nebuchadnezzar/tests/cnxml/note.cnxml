@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" cnxml-version="0.7" id="note-test-id" module-id="m12345">
+  <title>Test Module</title>
+
+<content>
+
+  <note id="id123">Body</note>
+  <note id="id456" class="custom">Body</note>
+
+  <note id="idm46182773372208" type="Point of Interest">Body</note>
+  <note id="idm46182773371520" type="Tip">Body</note>
+
+  <note id="idm46182773370816"><label>Custom Label</label>Body</note>
+
+  <note id="id789">
+    <label>Custom Label</label>
+    <title>Custom Title</title>
+    <para id="id1234">
+      <title>Para Title</title>
+      Para Text
+    </para>
+  </note>
+
+  <note id="label-and-type-1" type="Hint">
+    <label>Hint</label>Hint Body
+  </note>
+
+  <note id="label-and-type-2" type="Hint">
+    <label>Custom Label</label>Hint Body 2
+  </note>
+
+  <note id="label-and-type-3" type="Hint">Hint Body 3
+  </note>
+
+</content>
+</document>
