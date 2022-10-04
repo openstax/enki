@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" cnxml-version="0.7" id="test-emphasis" module-id="m12345">
+  <title>Test Emphasis</title>
+  <content>
+    <para id="emphexample">
+      In addition to bananas and ice cream, a
+      <emphasis effect="underline">proper</emphasis> banana split requires whipped cream,
+      nuts, <emphasis effect="underline"/>
+      <emphasis>and</emphasis>
+      cherries.  Remember that the
+      <emphasis effect="smallcaps">quality</emphasis> of
+      the dessert depends on the ice cream, so do
+      <emphasis effect="italics">not</emphasis>
+      use a
+      <emphasis effect="normal">generic</emphasis>brand.
+      <emphasis effect="double-underline">double underlined content</emphasis>
+    </para>
+    <para id="broken-content">
+      In m42218,
+      <emphasis effect="italic">italic</emphasis> was used instead of
+      <emphasis effect="italics"> italics</emphasis>.
+      If the effect is
+      <emphasis effect="itelics">misspelled</emphasis>, it should be treated as not having an effect.
+    </para>
+  </content>
+</document>

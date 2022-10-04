@@ -8,10 +8,6 @@
 import os
 import sys
 from io import BytesIO
-try:
-    from importlib import reload
-except ImportError:
-    pass  # reload() is a built-in global in py2
 
 from lxml import etree
 
@@ -44,20 +40,6 @@ class TestCnxml2Html(BaseTestCase):
 
         assert '<html' in content
         assert '<body' in content
-
-        # Check for ctoh version
-        import rhaptos.cnxmlutils
-        assert rhaptos.cnxmlutils.__version__ in content
-
-    def test_dev_cxnml2html_version(self):
-        import rhaptos.cnxmlutils
-        # Mimic the in-database environment: no path
-        os.environ['PATH'] = ''
-        reload(rhaptos.cnxmlutils)
-        cnxml = self.get_file('m42033-1.3.cnxml')
-        content = cnxml_to_full_html(cnxml)
-
-        assert '0+unknown' not in content
 
 
 def test_cnxml_abstract_to_html():
@@ -102,3 +84,43 @@ class TestHtml2Cnxml(BaseTestCase):
         # Check for partial conversion.
         # rhaptos.cnxmlutils has tests to ensure full conversion.
         assert b'<document' in content
+
+
+def get_file(filename):
+    path = os.path.join(HERE, filename)
+    with open(path, 'r') as fp:
+        return fp.read()
+
+
+def test_diffs(snapshot):
+    conversions = [
+        'cite',
+        'classed',
+        'code',
+        'definition',
+        'div_span_not_self_closing',
+        'emphasis',
+        'exercise-injected',
+        'figure',
+        'footnote',
+        'glossary',
+        'img-longdesc',
+        'label',
+        'lang',
+        'link',
+        'list',
+        'math_problem_m65735',
+        'media',
+        'newline',
+        'note',
+        'para',
+        'problem_m58457_1.6.self_closing',
+        'table',
+        'term-and-link',
+        'title',
+        'xhtml-characters',
+    ]
+    for t in conversions:
+        cnxml = get_file(f'./cnxml/{t}.cnxml')
+        html = cnxml_to_full_html(cnxml)
+        snapshot.assert_match(html, f'{t}.xhtml')
