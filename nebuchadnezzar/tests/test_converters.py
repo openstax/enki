@@ -84,3 +84,43 @@ class TestHtml2Cnxml(BaseTestCase):
         # Check for partial conversion.
         # rhaptos.cnxmlutils has tests to ensure full conversion.
         assert b'<document' in content
+
+
+def get_file(filename):
+    path = os.path.join(HERE, filename)
+    with open(path, 'r') as fp:
+        return fp.read()
+
+
+def test_diffs(snapshot):
+    conversions = [
+        'cite',
+        'classed',
+        'code',
+        'definition',
+        'div_span_not_self_closing',
+        'emphasis',
+        'exercise-injected',
+        'figure',
+        'footnote',
+        'glossary',
+        'img-longdesc',
+        'label',
+        'lang',
+        'link',
+        'list',
+        'math_problem_m65735',
+        'media',
+        'newline',
+        'note',
+        'para',
+        'problem_m58457_1.6.self_closing',
+        'table',
+        'term-and-link',
+        'title',
+        'xhtml-characters',
+    ]
+    for t in conversions:
+        cnxml = get_file(f'./cnxml/{t}.cnxml')
+        html = cnxml_to_full_html(cnxml)
+        snapshot.assert_match(html, f'{t}.xhtml')

@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" cnxml-version="0.7" id="test-link" module-id="m12345">
+  <title>Test Module</title>
+  <content>
+    <para id="linkexample">
+      There are many ways to grill
+      <link document="m10275" version="2.1">a good
+      steak</link>.  My favorite can be found
+      <link url="http://en.wikibooks.org/" window="new">on wikibooks</link>.
+    </para>
+    <para id="linkexample2">
+      Link with
+      <link document="col12345" target-id="image1">a target id</link>in another document.
+    </para>
+    <para id="linkexample3">
+      Link with
+      <link class="cnxn" target-id="uid12" window="replace">a target id</link>in this document.
+    </para>
+    <para id="linkexample4">
+      Link to
+      <link document="m12345" resource="form.pdf">a resource file</link>.
+    </para>
+    <para id="linkexample5">
+      Link with
+      <link id="link5" strength="2" url="http://cnx.org">strength</link>.
+    </para>
+    <para id="linkexample6">
+      <span>
+        <link target-id="uid27"/>with no text.
+      </span>
+    </para>
+    <para id="linkexample7">
+      Link with existing class no text
+      <link class="some-class" document="m12345"/>.
+    </para>
+  </content>
+</document>

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" cnxml-version="0.7" id="test" module-id="m12345">
+  <title>Test</title>
+  <content>
+    <exercise id="ex-id-1">
+        <problem id="prob-id-1">
+            <para id="para-id-1">
+                <link url="#exercise/searchstring123">link</link>
+            </para>
+        </problem>
+    </exercise>
+
+    <exercise id="ex-id-2">
+        <problem id="prob-id-2">
+            <para id="para-id-2">
+                <link target-id="ost/api/ex/searchstring234">link</link>
+            </para>
+        </problem>
+    </exercise>
+
+    <link url="#exercise/searchstring345">link</link>
+    <link target-id="ost/api/ex/searchstring456">link</link>
+
+    <exercise id="ex-id-3">
+        <problem id="prob-id-3">
+            <para id="para-id-3">
+                <link url="#ost/api/ex/searchstring567">link</link>
+            </para>
+        </problem>
+    </exercise>
+    <exercise id="ex-id-4">
+        <problem id="prob-id-4">
+            <para id="para-id-4">
+                <link target-id="exercise/searchstring678">link</link>
+            </para>
+        </problem>
+    </exercise>
+
+    <exercise id="ex-id-5">
+        <problem id="prob-id-5">
+            <para id="para-id-5">
+                <link target-id="exercise-just-starts-with-the-word-but-does-not-have-a-slash-so-do-not-change-this">link</link>
+            </para>
+        </problem>
+    </exercise>
+
+  </content>
+</document>

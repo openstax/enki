@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml"><title>Test Module</title></head>
+
+<body xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:qml="http://cnx.rice.edu/qml/1.0" xmlns:mod="http://cnx.rice.edu/#moduleIds" xmlns:bib="http://bibtexml.sf.net/" xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" xmlns:epub="http://www.idpf.org/2007/ops"><div data-type="document-title">Test Module</div>
+    <ol id="list-enumerated">
+      <li>item</li>
+    </ol>
+    <ol id="list-arabic" type="1">
+      <li>item</li>
+    </ol>
+    <ol id="list-upper-alpha" type="A">
+      <li>item</li>
+    </ol>
+    <ol id="list-lower-alpha" type="a">
+      <li>item</li>
+    </ol>
+    <ol id="list-upper-roman" type="I">
+      <li>item</li>
+    </ol>
+    <ol id="list-lower-roman" type="i">
+      <li>item</li>
+    </ol>
+
+    <ol id="para-list-enumerated-list" type="A" start="3">
+        <li>item</li>
+      </ol>
+
+    <section data-depth="1" id="idm45159773377600"><h3 data-type="title">Lists NOT in a paragraph</h3>
+      <ul id="idm45159773376592">
+        <li>list with item</li>
+      </ul>
+      <div data-type="list" id="idm45159773375472"><div data-type="title">and title</div><ul>
+        <li>and item</li>
+      </ul></div>
+      <section data-depth="2" id="idm45159773276544"><h4 data-type="title">Default list:</h4>
+        <p id="idm45159773275632">with just an id attribute</p>
+        <ul id="idm45159773274928">
+          <li>and item</li>
+        </ul>
+        <div data-type="list" id="idm45159773273792"><div data-type="title">and title</div><ul>
+          <li>and item</li>
+        </ul></div>
+        <p id="idm45159773272336">... enumerated lower-alpha</p>
+        <ol id="idm45159773271584" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST_TYPE" type="a">
+          <li>list with all attributes</li>
+        </ol>
+        <p id="idm45159773268624">... bulleted lower-alpha</p>
+        <div data-type="list" id="idm45159773267920"><div data-type="title">list with all attributes and title</div><ul data-bullet-style="open-circle" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST_TYPE">
+          <li>and item</li>
+        </ul></div>
+        <section data-depth="3" id="id-empty-section"><!-- no-selfclose --></section>
+      </section>
+      <section data-depth="2" id="idm45159773264416"><h4 data-type="title">Bulleted list:</h4>
+        <p id="idm45159773263472">with just an id attribute</p>
+        <ul id="idm45159773262768">
+          <li>and item</li>
+        </ul>
+        <div data-type="list" id="idm45159773261424"><div data-type="title">and title</div><ul>
+          <li>and item</li>
+        </ul></div>
+        <p id="idm45159773259664">... with all attributes</p>
+        <ul id="idm45159773258976" data-bullet-style="open-circle" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+          <li>list with all attributes</li>
+        </ul>
+        <div data-type="list" id="idm45159773256016"><div data-type="title">list with all attributes and title</div><ul data-bullet-style="open-circle" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+          <li>and item</li>
+        </ul></div>
+      </section>
+      <section data-depth="2" id="idm45159773252464"><h4 data-type="title">Enumerated list:</h4>
+        <p id="idm45159773251520">with just an id attribute</p>
+        <ol id="idm45159773250816">
+          <li>and item</li>
+        </ol>
+        <div data-type="list" id="idm45159773249504"><div data-type="title">and title</div><ol>
+          <li>and item</li>
+        </ol></div>
+        <p id="idm45159773247776">... with all attributes</p>
+        <ul id="idm45159773247040" data-bullet-style="open-circle" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+          <li>list with all attributes</li>
+        </ul>
+        <div data-type="list" id="idm45159773243568"><div data-type="title">list with all attributes and title</div><ul data-bullet-style="open-circle" data-display="none" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+          <li>and item</li>
+        </ul></div>
+      </section>
+      <section data-depth="2" id="idm45159773239552"><h4 data-type="title">Labeled-Item list:</h4>
+        <ul data-labeled-item="true" id="idm45159773238608">
+          <li data-label="with a label">and item
+          </li>
+        </ul>
+      </section>
+    </section>
+    <p id="idm45159773236576">---------------------------------------------------------------------------------------</p>
+    <p id="idm45159773235920">---------------------------------------------------------------------------------------</p>
+    <p id="idm45159773235168">---------------------------------------------------------------------------------------</p>
+    <section data-depth="1" id="idm45159773234416"><h3 data-type="title">The same tests but inside a paragraph (lists with titles should become spans instead of divs</h3>
+      <p id="idm45159773233392">...
+        </p><ul id="idm45159773232832">
+          <li>list with item</li>
+        </ul><p>...
+      </p>
+      <p id="idm45159773231600">...
+        <span data-type="list" data-list-type="bulleted" data-display="inline">
+          <span data-type="item">list with item (inline)</span>
+        </span>...
+      </p>
+      <p id="idm45159773229536">...
+        </p><div data-type="list" id="idm45159773228976"><div data-type="title">and title</div><ul>
+          <li>and item</li>
+        </ul></div><p>...
+      </p>
+      <p id="idm45159773227328">...
+        <span data-type="list"><span data-type="title">and title</span><span data-type="list" data-list-type="bulleted" data-display="inline">
+          <span data-type="item">and item (inline)</span>
+        </span></span>...
+      </p>
+      <section data-depth="2" id="idm45159773224848"><h4 data-type="title">Default list:</h4>
+        <p id="idm45159773223904">with just an id attribute</p>
+        <p id="idm45159773223200">...
+          </p><ul id="idm45159773222640">
+            <li>and item</li>
+          </ul><p>...
+        </p>
+        <p id="idm45159773221440">...
+          <span data-type="list" data-list-type="bulleted" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773219376">...
+          </p><div data-type="list" id="idm45159773218816"><div data-type="title">and title</div><ul>
+            <li>and item</li>
+          </ul></div><p>...
+        </p>
+        <p id="idm45159773217200">...
+          <span data-type="list"><span data-type="title">and title</span><span data-type="list" data-list-type="bulleted" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+        <p id="idm45159773214720">... with all attributes</p>
+        <p id="idm45159773214032">...
+          </p><ol id="idm45159773213472" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <li>list with all attributes</li>
+          </ol><p>...
+        </p>
+        <p id="idm45159773210384">...
+          <span data-type="list" data-list-type="enumerated" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <span data-type="item">list with all attributes (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773206432">...
+          </p><div data-type="list" id="idm45159773205872"><div data-type="title">list with all attributes and title</div><ol data-display="block" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <li>and item</li>
+          </ol></div><p>...
+        </p>
+        <p id="idm45159773202096">...
+          <span data-type="list"><span data-type="title">list with all attributes and title</span><span data-type="list" data-list-type="enumerated" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+      </section>
+      <section data-depth="2" id="idm45159773197600"><h4 data-type="title">Bulleted list:</h4>
+        <p id="idm45159773196656">with just an id attribute</p>
+        <p id="idm45159773195952">...
+          </p><ul id="idm45159773195392">
+            <li>and item</li>
+          </ul><p>...
+        </p>
+        <p id="idm45159773193920">...
+          <span data-type="list" data-list-type="bulleted" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773191584">...
+          </p><div data-type="list" id="idm45159773191024"><div data-type="title">and title</div><ul>
+            <li>and item</li>
+          </ul></div><p>...
+        </p>
+        <p id="idm45159773189136">...
+          <span data-type="list"><span data-type="title">and title</span><span data-type="list" data-list-type="bulleted" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+        <p id="idm45159773186384">... with all attributes</p>
+        <p id="idm45159773185696">...
+          </p><ul id="idm45159773185136" data-bullet-style="open-circle" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+            <li>list with all attributes</li>
+          </ul><p>...
+        </p>
+        <p id="idm45159773181776">...
+          <span data-type="list" data-list-type="bulleted" data-bullet-style="open-circle" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+            <span data-type="item">list with all attributes (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773177552">...
+          </p><div data-type="list" id="idm45159773176992"><div data-type="title">list with all attributes and title</div><ul data-bullet-style="open-circle" data-display="block" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+            <li>and item</li>
+          </ul></div><p>...
+        </p>
+        <p id="idm45159773172944">...
+          <span data-type="list"><span data-type="title">list with all attributes and title</span><span data-type="list" data-list-type="bulleted" data-bullet-style="open-circle" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" data-element-type="LIST-TYPE">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+      </section>
+      <section data-depth="2" id="idm45159773168176"><h4 data-type="title">Enumerated list:</h4>
+        <p id="idm45159773167232">with just an id attribute</p>
+        <p id="idm45159773166528">...
+          </p><ol id="idm45159773165968">
+            <li>and item</li>
+          </ol><p>...
+        </p>
+        <p id="idm45159773164496">...
+          <span data-type="list" data-list-type="enumerated" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773162160">...
+          </p><div data-type="list" id="idm45159773161600"><div data-type="title">and title</div><ol>
+            <li>and item</li>
+          </ol></div><p>...
+        </p>
+        <p id="idm45159773159712">...
+          <span data-type="list"><span data-type="title">and title</span><span data-type="list" data-list-type="enumerated" data-display="inline">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+        <p id="idm45159773156960">... with all attributes</p>
+        <p id="idm45159773156272">...
+          </p><ol id="idm45159773155712" data-display="block" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <li>list with all attributes</li>
+          </ol><p>...
+        </p>
+        <p id="idm45159773152080">...
+          <span data-type="list" data-list-type="enumerated" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <span data-type="item">list with all attributes (inline)</span>
+          </span>...
+        </p>
+        <p id="idm45159773147856">...
+          </p><div data-type="list" id="idm45159773147296"><div data-type="title">list with all attributes and title</div><ol data-display="block" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <li>and item</li>
+          </ol></div><p>...
+        </p>
+        <p id="idm45159773143248">...
+          <span data-type="list"><span data-type="title">list with all attributes and title</span><span data-type="list" data-list-type="enumerated" data-display="inline" data-item-sep="[SEPARATOR]" data-mark-prefix="[PREFIX]" data-mark-suffix="[SUFFIX]" type="a" start="3" data-element-type="LIST-TYPE">
+            <span data-type="item">and item (inline)</span>
+          </span></span>...
+        </p>
+      </section>
+      <section data-depth="2" id="idm45159773138480"><h4 data-type="title">Labeled-Item list:</h4>
+        <p id="idm45159773137536">...
+          </p><ul data-labeled-item="true" id="idm45159773136976">
+            <li data-label="with a label">and item
+            </li>
+          </ul><p>...
+        </p>
+        <p id="idm45159773135040">...
+          <span data-type="list" data-list-type="labeled-item" data-display="inline">
+            <span data-type="item" data-label="with a label">and item (inline)
+            </span>
+          </span>...
+        </p>
+      </section>
+    </section>
+  </body>
+
+</html>

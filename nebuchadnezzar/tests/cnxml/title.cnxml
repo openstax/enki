@@ -1,0 +1,270 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:m="http://www.w3.org/1998/Math/MathML" id="id1164845029421" module-id="m12345" cnxml-version="0.7">
+<title>Document testing the use of the title tag</title>
+<content>
+<?chapter-toc label="Learning Objectives"?>
+<?cnx.eoc class="section-summary" title="Section Summary"?>
+<?cnx.eoc class="conceptual-questions" title="Conceptual Questions"?>
+<?cnx.eoc class="problems-exercises" title="Problems & Exercises"?>
+<!-- forward compatible processing-instruction for //c:document/@class -->
+<?cnx.flag.introduction class="introduction"?>
+
+  <section id="sectioned-section">
+    <title>Introduction </title>
+    <para id="titled"><title>Sumario en espanol</title>Principales programas de la preparación son diseñados para asegurar que candidatos que completen exitosamente los programas son calificados e informado, y han tenido experiencias de liderazgo que preparan ellos competir para posiciones de liderazgo en las escuelas de hoy (Arrastre y Moorma, 2003). ... </para>
+    <para id="id1164845159023">...</para>
+  </section>
+
+  <section id="section-with-empty-title">
+    <title />
+  </section>
+
+    <section id="listed-section">
+      <title>Section Title</title>
+      <!-- This list should be a section, because it has a title. -->
+      <list id="listed-section-list" list-type="bulleted" bullet-style="bullet">
+        <title>1. First you:</title>
+        <item><emphasis effect="italics">Convene a group of teachers to evaluate progress toward the school mission. </emphasis></item>
+        <item><emphasis effect="italics">Evaluate the effectiveness of the reading (or math) intervention program.</emphasis></item>
+      </list>
+
+      <section id="listed-subsection-one">
+        <title>subsection 1</title>
+        <section id="listed-subsection-one-one">
+          <title>subsection 1.1</title>
+          <!-- The list will now be created as a section of depth 4 -->
+          <list id="listed-subsectioned-list">
+            <title>1. Maybe you can...</title>
+            <item><emphasis effect="italics">Assess the rigor or coherence of the curricular program at my school</emphasis></item>
+            <item><emphasis effect="italics">Develop an induction plan for new teachers</emphasis></item>
+          </list>
+        </section>
+      </section>
+    </section>
+
+    <section id="tabled-section">
+
+      <table id="tabled-section-table" summary="Table 1">
+        <title>
+          <emphasis effect="italics">Board Member Community Types</emphasis>
+        </title>
+        <tgroup cols="3">
+          <colspec colnum="1" colname="c1"/>
+          <colspec colnum="2" colname="c2"/>
+          <colspec colnum="3" colname="c3"/>
+          <tbody>
+            <row>
+              <entry>Community Type</entry>
+              <entry>Percentage of Males Responding</entry>
+              <entry>Percentage of Females Responding</entry>
+            </row>
+            <row>
+              <entry>Large City</entry>
+              <entry>6. 6</entry>
+              <entry>4. 1</entry>
+            </row>
+            <row>
+              <entry>Small City</entry>
+              <entry>14. 8</entry>
+              <entry>21. 6</entry>
+            </row>
+            <row>
+              <entry>Suburban</entry>
+              <entry>31. 1</entry>
+              <entry>16. 2</entry>
+            </row>
+            <row>
+              <entry>Rural and Small Town</entry>
+              <entry>47. 5</entry>
+              <entry>58. 1</entry>
+            </row>
+            <row>
+              <entry>TOTAL</entry>
+              <entry>100. 0</entry>
+              <entry>100. 0</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </section>
+
+    <!-- m48096 // 6965fe04-f7fd-4214-b1d9-cdf67a49a6b8 -->
+    <section id="noted-section">
+      <note id="noted-section-note" class="interactive">
+        <label/>
+        <title>Link to Learning</title>
+        <para id="fs-idm39005168">
+          This combination
+          <link window="new" url="http://shapeoflife.org/video/animation/annelid-animation-body-plan">video and animation</link>
+          provides a close-up look at annelid anatomy.
+        </para>
+      </note>
+    </section>
+
+    <!-- m44388 note with 1 para -->
+    <section id="noted-section-1">
+      <note id="fs-id2681692" class="career">
+        <label/>
+        <title>Career Connection</title>
+        <para id="fs-id1808500"><title>Forensic Scientist</title>Forensic science is the application of science to answer questions related to the law.</para>
+      </note>
+    </section>
+
+    <!-- m44388 note with 2 paras -->
+    <section id="noted-section-2">
+      <note id="fs-id2581806" class="evolution">
+        <label/>
+        <title>Evolution Connection</title>
+        <para id="fs-id2024686"><title>Carl Woese and the Phylogenetic Tree</title>In the past, biologists grouped living organisms into five kingdoms...</para>
+        <para id="fs-id2956594">Woese’s tree was constructed from comparative sequencing of the genes that are universally distributed, present in every organism, and conserved.</para>
+      </note>
+    </section>
+
+    <section id="pre-section">
+      <!-- m46109 // 13c63123-7ecf-4a25-877f-b1468f34a303 -->
+      <code id="coded" display="block">
+        <title>Formatting an Interrupt in Code Composer C</title></code>
+      <!-- no c:preformat/c:title records exist in connextions-->
+    </section>
+
+    <!-- m21405 // abef6f6b-bb16-49b2-a40a-fac28a96cfb2 -->
+    <quote id="quote-test">
+      <title>Sir Francis Bacon, 1623</title>
+      ...a man may express and signifie the intentions of his minde, at any distance... by... objects... capable of a twofold difference onely.
+    </quote>
+
+
+    <!-- m47370 // abc1d9ac-cf38-48a3-8fd0-6b8210949d9a -->
+    <equation id="equation-test">
+      <title>Discrete-Time Fourier Transform</title>
+      <m:math>
+        <m:apply>
+          <m:eq/>
+          <m:apply>
+            <m:ci type="fn" class="continuous">X</m:ci>
+            <m:ci>Ω</m:ci>
+          </m:apply>
+          <m:apply>
+            <m:sum/>
+            <m:bvar>
+              <m:ci>n</m:ci>
+            </m:bvar>
+            <m:lowlimit>
+              <m:apply>
+                <m:minus/>
+                <m:infinity/>
+              </m:apply>
+            </m:lowlimit>
+            <m:uplimit>
+              <m:infinity/>
+            </m:uplimit>
+            <m:apply>
+              <m:times/>
+              <m:apply>
+                <m:ci type="fn" class="discrete">f</m:ci>
+                <m:ci>n</m:ci>
+              </m:apply>
+              <m:apply>
+                <m:exp/>
+                <m:apply>
+                  <m:minus/>
+                  <m:apply>
+                    <m:times/>
+                    <m:ci>j</m:ci>
+                    <m:ci>Ω</m:ci>
+                    <m:ci>n</m:ci>
+                  </m:apply>
+                </m:apply>
+              </m:apply>
+            </m:apply>
+          </m:apply>
+        </m:apply>
+      </m:math>
+    </equation>
+
+    <!-- m46793 // cd6a0ee9-4ca0-4a1c-8498-0a26fa474fa1 -->
+    <figure id="figure-test">
+      <title>Intslación de GNU Octave 6.3.1</title>
+      <media id="id-mediaa" display="block" alt="Video">
+        <image src="example.png" mime-type="image/png"/>
+      </media>
+    </figure>
+      <!-- m46185 // 3a3321e4-29e5-4709-a9f3-f9c342fe0127 -->
+    <figure id="figure-subfigure-test">
+      <subfigure id="subfigure-test">
+        <title>Zero Correlation</title>
+        <media id="id1165447908510" alt="Scatterplot of points in a horizontal configuration.">
+          <image src="example.png" mime-type="image/png" print-width="2in"/>
+        </media>
+      </subfigure>
+      <subfigure id="subfigure-test-2">
+        <title>Intslación de GNU Octave 6.3.1</title>
+        <media id="id-mediab" display="block" alt="Video">
+          <image src="example.png" mime-type="image/png"/>
+        </media>
+      </subfigure>
+    </figure>
+
+    <!-- m47819 // d7397b20-8abb-40e4-b074-dc58e46b399c -->
+    <example id="example-test" type="listing">
+      <label>Listing</label>
+      <title>
+        <emphasis id="Listing_1" effect="bold"/>
+        Question 4.
+      </title>
+      <para id="idm45615968092288"> ... </para>
+    </example>
+
+    <!-- m42219 // 030347e9-f128-486f-a779-019ac474ff90 -->
+    <exercise id="exercise-test" print-placement="here" type="check-understanding">
+      <label/>
+      <title>Check Your Understanding</title>
+      <!-- m31849 // fea36ff3-dc5d-43ee-ab74-f40da2a94c1a -->
+      <problem id="problem-test" type="problem-type">
+        <title>Extra Credit Problem</title>
+        <para id="new1">
+          One extra credit point will be awarded to you and your partner if you can implement the dual-channel system without using the auxiliary registers
+          <code>AR0</code>
+          ,
+          <code>AR3</code>
+          , and
+          <code>AR5</code>
+          . Why is this more difficult? Renaming the registers using the
+          <code>.asg</code>
+          directive does not count!
+        </para>
+      </problem>
+      <!-- m46909 // cb418599-f69b-46c1-b0ef-60d9e36e677f -->
+      <solution id="solution-test" class="solutions" print-placement="here" type="solution-type">
+        <label/>
+        <title>Try It Solutions</title>
+        <para id="fs-idp54569968">
+          The
+          <emphasis>population</emphasis>
+          is all families with children attending Knoll Academy.
+        </para>
+      </solution>
+    </exercise>
+
+    <!-- No commentary/title found in the production cnx database. -->
+
+    <!-- No meaning/title found in the production cnx database. -->
+
+    <!-- m47353 // 7bc0c611-be01-4bcf-9e92-d3209d525828 -->
+    <rule id="rule-test" type="rule">
+      <title>Real Signals</title>
+      <statement id="statement-test">
+        <!-- m18908 // 3082636b-c837-4cf3-bae4-e3d9cbb19a00 -->
+        <title>Real Symmetry</title>
+        <para id="idm45615968078112"> ... </para>
+      </statement>
+      <proof id="proof-test">
+        <!-- m12849 // 5c38f888-5797-46ab-9d48-6b99d79281f1 -->
+        <title>Real Proof</title>
+        <para id="idm45615968076272"> ... </para>
+      </proof>
+    </rule>
+
+  </content>
+</document>

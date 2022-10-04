@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" cnxml-version="0.7" id="m10548" module-id="">
+ <title>Test Tables</title>
+  <content>
+    <section id="section-1">
+      <table id="report_card" summary="The first column             lists each course. Each row in the second column             delineates a semester. The corresponding row in            the third column shows that semester's grade.              The footer tallies the student's average.">
+        <title>Report card</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colnum="1"/>
+          <colspec colname="c2" colnum="2"/>
+          <colspec colname="c3" colnum="3"/>
+          <thead>
+            <row>
+              <entry align="center" valign="top">Course</entry>
+              <entry class="gray-background">Semester</entry>
+              <entry>Grade</entry>
+            </row>
+          </thead>
+          <tfoot>
+            <row>
+              <entry nameend="c2" namest="c1" id="average">
+		Average:
+              </entry>
+              <entry>85.5%</entry>
+            </row>
+          </tfoot>
+          <tbody>
+            <row>
+              <entry morerows="1" id="biology">Biology</entry>
+              <entry align="center">1</entry>
+              <entry class="table-data">86%</entry>
+            </row>
+            <row>
+              <entry>2</entry>
+              <entry>91%</entry>
+            </row>
+            <row>
+              <entry morerows="1">English</entry>
+              <entry>1</entry>
+              <entry>87%</entry>
+            </row>
+            <row>
+              <entry>2</entry>
+              <entry>78%</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table frame="none" id="import-auto-id1169737909561" summary="">
+        <label/>
+        <title>Quark Composition of Selected Hadrons</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colnum="1"/>
+          <colspec colname="c2" colnum="2" colwidth="4*"/>
+          <colspec colname="c3" colnum="3" align="right"/>
+          <thead>
+            <row>
+              <entry>
+                <emphasis>Particle</emphasis>
+              </entry>
+              <entry nameend="c3" namest="c2">
+                <emphasis>Quark Composition</emphasis>
+              </entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry nameend="c3" namest="c1">
+                <emphasis>
+                  <emphasis effect="italics">Mesons</emphasis>
+                </emphasis>
+              </entry>
+            </row>
+            <row>
+              <entry nameend="c2" namest="c1">0</entry>
+              <entry>1</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </content>
+</document>
