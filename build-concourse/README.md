@@ -101,8 +101,6 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
 
 ```yaml
 # See https://github.com/openstax/output-producer-resource/blob/master/src/in_.py for the consumer of this API
-# JobType.ARCHIVE_PDF = 1
-# JobType.ARCHIVE_DIST_PREVIEW = 2
 # JobType.GIT_PDF = 3
 # JobType.GIT_DIST_PREVIEW = 4
 - request:
@@ -121,54 +119,8 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
             "job_type_id": "4",
             "id": "4444",
             "status_id": "1"
-        },
-        {
-            "job_type_id": "1",
-            "id": "1111",
-            "status_id": "1"
-        },
-        {
-            "job_type_id": "2",
-            "id": "2222",
-            "status_id": "1"
         }]
 
-- request:
-    method: GET
-    path: /api/jobs/1111
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        {
-            "collection_id": "col11992",
-            "version": null,
-            "style": "astronomy",
-            "content_server": {
-                "hostname": "cnx.org",
-                "host_url": "https://cnx.org",
-                "name": "production",
-                "id": "11"
-            }
-        }
-- request:
-    method: GET
-    path: /api/jobs/2222
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        {
-            "collection_id": "col11992",
-            "version": null,
-            "style": "astronomy",
-            "content_server": {
-                "hostname": "cnx.org",
-                "host_url": "https://cnx.org",
-                "name": "production",
-                "id": "11"
-            }
-        }
 - request:
     method: GET
     path: /api/jobs/3333
@@ -196,22 +148,6 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
             "content_server": null
         }
 
-- request:
-    method: PUT
-    path: /api/jobs/1111
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        {"id": "1111"}
-- request:
-    method: PUT
-    path: /api/jobs/2222
-  response:
-    headers:
-      Content-Type: application/json
-    body: >
-        {"id": "2222"}
 - request:
     method: PUT
     path: /api/jobs/3333
@@ -228,15 +164,6 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
       Content-Type: application/json
     body: >
         {"id": "4444"}
-```
-
-
-# Linux-specific Notes
-
-If you are testing a legacy archive job (rather than a git job) then be sure to set the BAGGAGECLAIM_DRIVER to naive in the docker-compose.yml file when starting up concourse. The archive job reuses the same directory for different tasks.
-
-```
-CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
 ```
 
 

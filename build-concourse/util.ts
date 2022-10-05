@@ -73,9 +73,7 @@ export enum RESOURCES {
     S3_GIT_QUEUE = 's3-git-queue',
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
-    OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
     OUTPUT_PRODUCER_GIT_WEB = 'output-producer-git-dist-preview',
-    OUTPUT_PRODUCER_ARCHIVE_WEB = 'output-producer-dist-preview',
     CORGI_GIT_DOCX = 'corgi-git-docx'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use

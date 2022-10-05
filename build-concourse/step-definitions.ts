@@ -1,9 +1,5 @@
 import { Env, IO, RESOURCES } from "./util";
 
-export enum GIT_OR_ARCHIVE {
-    GIT = 'git',
-}
-
 export type Step = {
     name: string
     inputs: string[]
