@@ -39,7 +39,7 @@ shopt -s globstar nullglob
 for collection in "$IO_MATHIFIED/"*.mathified.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    try link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
+    try-coverage /workspace/enki/venv/bin/link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
 
 done
 shopt -u globstar nullglob

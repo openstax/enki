@@ -31,7 +31,7 @@ done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-o
 # NOTE: This file is also used in convert-docx
 try jo -a $jo_args > "$book_slugs_file"
 
-try gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
+try-coverage /workspace/enki/venv/bin/gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
 try cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"
 
 lang="$(try jq -r '.language' "$IO_JSONIFIED/"*.toc.json | uniq)"

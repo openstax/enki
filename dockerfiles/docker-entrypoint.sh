@@ -41,6 +41,14 @@ die() {
 }
 try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 
+try-coverage() {
+    echo "Attempting to run coverage on this command: '$1' . Current directory is '$(pwd)'"
+    # Packages: bakery_scripts cnxcommon cnxeasybake cnxepub cnxml cnxtransforms cssselect2 litezip nebu rhaptos.cnxmlutils slugify tinycss2
+    # Exclusions: _distutils_hack aiodns aiohttp aiosignal async_timeout attr backoff brotli cached_property cchardet certifi charset_normalizer click cssselect2 dateutil frozenlist icu idna imagesize jinja2 lxml magic markupsafe multidict pkg_resources pycares pygit2 requests six text_unidecode tinycss2 urllib3 webencodings yarl
+    # Optionally set --debug=trace in the next command for verbose tracing
+    coverage run --branch --append "$@" || die "ERROR: could not run [$*]$c_none" 112
+}
+
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
 STEP_CONFIG_FILE=${STEP_CONFIG_FILE:-$PROJECT_ROOT/step-config.json}

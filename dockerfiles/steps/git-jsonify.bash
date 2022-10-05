@@ -1,6 +1,6 @@
 parse_book_dir
 
-try jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
+try-coverage /workspace/enki/venv/bin/jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
 
 repo_schema_version=$(try xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCHED/META-INF/books.xml")
 style_resource_root="$IO_RESOURCES/styles"

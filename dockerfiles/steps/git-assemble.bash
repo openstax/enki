@@ -21,7 +21,7 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
         rm temp-assembly/collection.assembled.xhtml # LCOV_EXCL_LINE
     fi
 
-    try neb assemble "$IO_FETCH_META/modules" temp-assembly/
+    try-coverage /workspace/enki/venv/bin/neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
     try cp "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
     try rm -rf temp-assembly
