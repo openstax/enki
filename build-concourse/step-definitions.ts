@@ -1,10 +1,5 @@
 import { Env, IO, RESOURCES } from "./util";
 
-export enum GIT_OR_ARCHIVE {
-    GIT = 'git',
-    ARCHIVE = 'archive'
-}
-
 export type Step = {
     name: string
     inputs: string[]
@@ -30,22 +25,6 @@ function set(step: Step) {
         STEP_MAP.set(step.name, step)
     }
 }
-
-// ARCHIVE_WEB_STEPS
-set({name: 'archive-fetch', inputs: [IO.BOOK], outputs: [IO.ARCHIVE_FETCHED], env: {}})
-set({name: 'archive-fetch-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_FETCHED], env: {ABL_FILE_URL: true}})
-set({name: 'archive-validate-cnxml', inputs: [IO.ARCHIVE_FETCHED], outputs: [], env: {}})
-set({name: 'archive-assemble', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-assemble-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-link-extras', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-bake', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-bake-metadata', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-validate-xhtml-mathified', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-checksum', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-disassemble', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-patch-disassembled-links', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK, IO.ARCHIVE_JSONIFIED, IO.ARTIFACTS], env: {}})
-set({name: 'archive-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.ARCHIVE_JSONIFIED], outputs: [], env: {}})
 
 // GIT_PDF_STEPS
 set({name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
@@ -80,36 +59,9 @@ set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISA
 set({name: 'git-convert-docx', inputs: [IO.BOOK, IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
 set({name: 'git-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
-// ARCHIVE_PDF_STEPS
-set({name: 'archive-mathify', inputs: [IO.BOOK, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-link-rex', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARCHIVE_BOOK], env: {}})
-set({name: 'archive-pdf', inputs: [IO.BOOK, IO.ARCHIVE_BOOK, IO.ARCHIVE_FETCHED], outputs: [IO.ARTIFACTS], env: {}})
-set({name: 'archive-pdf-metadata', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
-
 // Concourse-specific steps
-set({name: 'archive-dequeue-book', inputs: [RESOURCES.S3_ARCHIVE_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_ARCHIVE_QUEUE, CODE_VERSION: true }})
-set({name: 'archive-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
 set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
-
-set(buildArchiveUploadStep(false, false))
-
-// These are used both by CORGI when building a preview and by the webhosting pipeline
-export const ARCHIVE_WEB_STEPS = [
-    get('archive-fetch'),
-    get('archive-fetch-metadata'),
-    // get('archive-validate-cnxml'),
-    get('archive-assemble'),
-    get('archive-assemble-metadata'),
-    get('archive-link-extras'),
-    get('archive-bake'),
-    get('archive-bake-metadata'),
-    get('archive-checksum'),
-    get('archive-disassemble'),
-    get('archive-patch-disassembled-links'),
-    get('archive-jsonify'),
-    get('archive-validate-xhtml-jsonify'),
-]
 
 export const CLI_GIT_PDF_STEPS = [
     get('git-fetch'),
@@ -180,39 +132,9 @@ export const GIT_GDOC_STEPS = [
     get('git-docx-meta'),
 ]
 
-export const CLI_ARCHIVE_PDF_STEPS = [
-    get('archive-fetch'),
-    get('archive-fetch-metadata'), // used by archive-link-rex
-    // get('archive-validate-cnxml'),
-    get('archive-assemble'),
-    get('archive-link-extras'),
-    get('archive-bake'),
-    get('archive-mathify'),
-    get('archive-validate-xhtml-mathified'),
-    get('archive-link-rex'),
-    get('archive-pdf'),
-]
-export const ARCHIVE_PDF_STEPS = [
-    ...CLI_ARCHIVE_PDF_STEPS,
-    get('archive-pdf-metadata'),
-]
-
-function buildArchiveUploadStep(requireCorgiBucket: boolean, requireWebhostingBucket: boolean) {
-    return {name: 'archive-upload-book', inputs: [IO.BOOK, IO.ARCHIVE_FETCHED, IO.ARCHIVE_JSONIFIED, IO.ARCHIVE_BOOK], outputs: [IO.ARCHIVE_UPLOAD], env: {CORGI_ARTIFACTS_S3_BUCKET: requireCorgiBucket, WEB_S3_BUCKET: requireWebhostingBucket, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}}
-}
-
 export function buildLookUpBook(inputSource: RESOURCES): Step {
     return {name: 'look-up-book', inputs: [inputSource], outputs: [IO.BOOK, IO.COMMON_LOG], env: { INPUT_SOURCE_DIR: inputSource }}
 }
-
-export const ARCHIVE_WEB_STEPS_WITH_UPLOAD = [...ARCHIVE_WEB_STEPS, buildArchiveUploadStep(true, false)]
-
-export const ARCHIVE_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
-    get('archive-dequeue-book'),
-    ...ARCHIVE_WEB_STEPS, 
-    buildArchiveUploadStep(false, true), 
-    get('archive-report-book-complete')
-]
 
 export const GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD = [
     get('git-dequeue-book'),

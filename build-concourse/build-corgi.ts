@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
-import { ARCHIVE_PDF_STEPS, ARCHIVE_WEB_STEPS_WITH_UPLOAD, buildLookUpBook, GIT_OR_ARCHIVE, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS } from './step-definitions'
+import { buildLookUpBook, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS } from './step-definitions'
 import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
@@ -11,24 +11,6 @@ const s3UploadFailMessage = 'Error occurred upload to S3.'
 function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
     const resources = [
-        {
-            name: RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF,
-            type: 'output-producer',
-            source: {
-                api_root: env.CORGI_API_URL,
-                job_type_id: JobType.PDF,
-                status_id: 1
-            }
-        },
-        {
-            name: RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB,
-            type: 'output-producer',
-            source: {
-                api_root: env.CORGI_API_URL,
-                job_type_id: JobType.DIST_PREVIEW,
-                status_id: 1
-            }
-        },
         {
             name: RESOURCES.OUTPUT_PRODUCER_GIT_PDF,
             type: 'output-producer',
@@ -70,13 +52,13 @@ function makePipeline(env: KeyValue) {
     ]
 
     const taskOverrideCommonLog = (message: string) => toConcourseTask(env, 'override-common-log', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/override_common_log.sh'))
-    const taskGenPreviewUrls = (contentSource: GIT_OR_ARCHIVE) => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CONTENT_SOURCE: contentSource, CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
+    const taskGenPreviewUrls = () => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
 
-    const buildArchiveOrGitPdfJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
+    const buildPdfJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
-        return wrapGenericCorgiJob(env, `build-pdf-${gitOrArchive}`, resource, {
+        return wrapGenericCorgiJob(env, `build-pdf`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
@@ -103,11 +85,11 @@ function makePipeline(env: KeyValue) {
         })
     }
 
-    const buildArchiveOrGitWebJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
+    const buildWebJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
-        return wrapGenericCorgiJob(env, `web-preview-${gitOrArchive}`, resource, {
+        return wrapGenericCorgiJob(env, `web-preview`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
@@ -115,7 +97,7 @@ function makePipeline(env: KeyValue) {
                 lookupBookTask,
                 report(Status.PROCESSING),
                 ...tasks,
-                taskGenPreviewUrls(gitOrArchive)
+                taskGenPreviewUrls()
             ],
             on_success: report(Status.SUCCEEDED, {
                 pdf_url: `${IO.PREVIEW_URLS}/content_urls`
@@ -127,12 +109,12 @@ function makePipeline(env: KeyValue) {
 
     }
 
-    const buildGitDocxJob = (resource: RESOURCES, gitOrArchive: GIT_OR_ARCHIVE, tasks: any[]) => {
+    const buildGitDocxJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToOutputProducer(resource)
         const lookupBookDef = buildLookUpBook(resource)
         // PDF_OR_WEB argument does not seem to actually do anything
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
-        return wrapGenericCorgiJob(env, `build-docx-${gitOrArchive}`, resource, {
+        return wrapGenericCorgiJob(env, `build-docx`, resource, {
             do: [
                 report(Status.ASSIGNED, {
                     worker_version: env.CODE_VERSION
@@ -159,11 +141,9 @@ function makePipeline(env: KeyValue) {
         })
     }
 
-    const gitPdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
-    const gitWeb = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
-    const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, GIT_OR_ARCHIVE.GIT, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_GDOC_STEPS))
-    const archivePdfJob = buildArchiveOrGitPdfJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_PDF, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.PDF, ARCHIVE_PDF_STEPS))
-    const archiveWebJob = buildArchiveOrGitWebJob(RESOURCES.OUTPUT_PRODUCER_ARCHIVE_WEB, GIT_OR_ARCHIVE.ARCHIVE, stepsToTasks(env, PDF_OR_WEB.WEB, ARCHIVE_WEB_STEPS_WITH_UPLOAD))
+    const gitPdfJob = buildPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
+    const gitWeb = buildWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
+    const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_GDOC_STEPS))
 
     const resourceTypes = [
         {
@@ -173,7 +153,7 @@ function makePipeline(env: KeyValue) {
         }
     ]
 
-    return { jobs: [gitPdfJob, gitWeb, gitDocx, archivePdfJob, archiveWebJob], resources, resource_types: resourceTypes }
+    return { jobs: [gitPdfJob, gitWeb, gitDocx], resources, resource_types: resourceTypes }
 }
 
 export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {

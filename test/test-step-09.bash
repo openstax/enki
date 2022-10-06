@@ -5,7 +5,7 @@ set -e
 
 # Lint the bash scripts
 if [[ $(command -v shellcheck) ]]; then
-    shellcheck --severity=warning ../cli.sh ../enki ../dockerfiles/steps/* ../dockerfiles/build/* ../dockerfiles/enki-in-container ../build-dockerfile.sh # ../dockerfiles/docker-entrypoint.sh
+    shellcheck --severity=warning ../enki ../dockerfiles/steps/* ../dockerfiles/build/* ../dockerfiles/enki-in-container ../build-dockerfile.sh # ../dockerfiles/docker-entrypoint.sh
 else
     echo "Warning: Linting failed, shellcheck not found"
 fi

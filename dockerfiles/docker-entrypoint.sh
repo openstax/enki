@@ -216,37 +216,23 @@ function do_step() {
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
             cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
-            # Detect if this is a git book or an archive book.
-            # Git books have at least one slash in the collection_id
-            temp_collection_id=$(cat $INPUT_SOURCE_DIR/collection_id)
-            if [[ $temp_collection_id == */* ]]; then
-                # Git book
-                if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
-                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
-                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
-                else
-                    # LCOV_EXCL_START
-                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-                    cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
-                    # LCOV_EXCL_STOP
-                fi
-                # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
-                if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
-                    rm $IO_BOOK/slug # LCOV_EXCL_LINE
-                fi
-
-                pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
-                echo "$pdf_filename" > $IO_BOOK/pdf_filename
+            # Git book
+            if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
             else
-                # Archive book
-                cp $INPUT_SOURCE_DIR/collection_id $IO_BOOK/collection_id
-                cp $INPUT_SOURCE_DIR/content_server $IO_BOOK/server
-
-                server_shortname="$(cat $INPUT_SOURCE_DIR/job.json | jq -r '.content_server.name')"
-                echo "$server_shortname" >$IO_BOOK/server_shortname
-                pdf_filename="$(cat $IO_BOOK/collection_id)-$(cat $IO_BOOK/version)-$(cat $IO_BOOK/server_shortname)-$(cat $IO_BOOK/job_id).pdf"
-                echo "$pdf_filename" > $IO_BOOK/pdf_filename
+                # LCOV_EXCL_START
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+                # LCOV_EXCL_STOP
             fi
+            # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
+            if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
+                rm $IO_BOOK/slug # LCOV_EXCL_LINE
+            fi
+
+            pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
+            echo "$pdf_filename" > $IO_BOOK/pdf_filename
             
             return
         ;;
@@ -263,9 +249,9 @@ function do_step() {
         output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
         required_envs=$(jq -r ".steps.\"$step_name\".requiredEnv|@sh" < $STEP_CONFIG_FILE)
 
-        for required_env in $required_envs; do
-            ensure_arg $(echo $required_env | tr -d "'")
-        done        
+        for required_env in $required_envs; do # LCOV_EXCL_LINE
+            ensure_arg $(echo $required_env | tr -d "'") # LCOV_EXCL_LINE
+        done
         for input_dir in $input_dirs; do
             check_input_dir $(echo $input_dir | tr -d "'")
         done

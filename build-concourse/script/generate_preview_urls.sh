@@ -2,7 +2,6 @@
 [[ -d $IO_BOOK ]] || { echo "Undefined Environment variable: IO_BOOK"; exit 1; }
 [[ -d $IO_ARTIFACTS ]] || { echo "Undefined Environment variable: IO_ARTIFACTS"; exit 1; }
 [[ -d $IO_PREVIEW_URLS ]] || { echo "Undefined Environment variable: IO_PREVIEW_URLS"; exit 1; }
-[[ $CONTENT_SOURCE ]] || { echo "Undefined Environment variable: CONTENT_SOURCE"; exit 1; }
 [[ $CORGI_CLOUDFRONT_URL ]] || { echo "Undefined Environment variable: CORGI_CLOUDFRONT_URL"; exit 1; }
 [[ $CODE_VERSION ]] || { echo "Undefined Environment variable: CODE_VERSION"; exit 1; }
 [[ $PREVIEW_APP_URL_PREFIX ]] || { echo "Undefined Environment variable: PREVIEW_APP_URL_PREFIX"; exit 1; }
@@ -11,20 +10,8 @@
 
 exec > >(tee $IO_COMMON_LOG/log >&2) 2>&1
 
-case $CONTENT_SOURCE in
-    archive)
-        collection_id="$(cat $IO_BOOK/collection_id)"
-        book_metadata="$IO_ARTIFACTS/collection.toc.json"
-        ;;
-    git)
-        book_slug="$(cat $IO_BOOK/slug)"
-        book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
-        ;;
-    *)
-        echo "CONTENT_SOURCE unrecognized: $CONTENT_SOURCE"
-        exit 1
-        ;;
-esac
+book_slug="$(cat $IO_BOOK/slug)"
+book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
 
 book_uuid=$(jq -r '.id' "$book_metadata")
 book_version=$(jq -r '.version' "$book_metadata")

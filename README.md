@@ -48,12 +48,6 @@ Then try the following to build PDFs and other formats:
 ./enki --command all-git-web  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
 ./enki --command all-git-epub --repo 'openstax/osbooks-introduction-anthropology' --book-slug 'introduction-anthropology' --style default --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
-
-# All-in-one Archive-based books
-#  CLI           command                col_id           recipe                version
-./enki --command all-archive-pdf --repo col12006 --style college-physics --ref latest
-./enki --command all-archive-pdf --repo col11762 --style sociology       --ref latest
-./enki --command all-archive-web --repo col11762 --style sociology       --ref latest
 ```
 
 ### REX preview
@@ -215,31 +209,6 @@ Then, to run the step inside the container, run `docker-entrypoint.sh {step_name
 1. Run `./test.sh`
 1. Open `./coverage/index.html` in a browser to see coverage
 
-
-## Run one step
-
-If you want to run a single step at a time specify it as the first argument. Later steps use files in the data directory to remember which book & version is being used.
-
-```sh
-# Common steps
-./enki --command local-create-book-directory col11762 sociology latest
-./enki --command look-up-book
-./enki --command archive-fetch
-./enki --command archive-assemble
-./enki --command archive-link-extras
-./enki --command archive-bake
-
-# PDF steps
-./enki --command archive-mathify
-./enki --command archive-pdf
-
-# Concourse-only steps (AWS_ environemnt variables will likely need to be set)
-CODE_VERSION='main' \
-ARG_WEB_QUEUE_STATE_S3_BUCKET=openstax-sandbox-web-hosting-content-queue-state \
-./enki --command archive-report-book-complete
-```
-
-With the above command, docker will use the `$(pwd)/data/...` directory to read/write files during each step.
 
 ## Run steps beginning with a step
 

@@ -71,12 +71,9 @@ export type ConcourseTask = {
 
 export enum RESOURCES {
     S3_GIT_QUEUE = 's3-git-queue',
-    S3_ARCHIVE_QUEUE = 's3-archive-queue',
     TICKER = 'ticker',
     OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
-    OUTPUT_PRODUCER_ARCHIVE_PDF = 'output-producer-pdf',
     OUTPUT_PRODUCER_GIT_WEB = 'output-producer-git-dist-preview',
-    OUTPUT_PRODUCER_ARCHIVE_WEB = 'output-producer-dist-preview',
     CORGI_GIT_DOCX = 'corgi-git-docx'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
@@ -86,11 +83,6 @@ export enum IO {
     COMMON_LOG = 'common-log',
     ARTIFACTS_SINGLE = 'artifacts-single',
     PREVIEW_URLS = 'preview-urls',
-    // Archive directories
-    ARCHIVE_FETCHED = 'archive-fetched',
-    ARCHIVE_BOOK = 'archive-book',
-    ARCHIVE_JSONIFIED = 'archive-jsonified',
-    ARCHIVE_UPLOAD = 'archive-upload',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
