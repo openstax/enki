@@ -17,7 +17,6 @@ __all__ = (
     'DEFAULT_XMLPARSER', 'ensure_bytes',
     'cnxml_abstract_to_html',
     'cnxml_to_html', 'cnxml_to_full_html',
-    'html_to_cnxml', 'html_to_full_cnxml',
 )
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -29,23 +28,11 @@ MATHML_XSL_PATH = os.path.abspath(os.path.join(
 
 def _gen_xsl(f, d=LOCAL_XSL_DIR):
     transform = etree.XSLT(etree.parse(os.path.join(d, f)))
-
-    def transform_w_version(*args, **kwargs):
-        # # If git is not in $PATH, rhaptos.cnxmlutils.__version__ returns
-        # # "0+unknown"
-        # if '/usr/bin' not in os.getenv('PATH', ''):
-        #     os.environ['PATH'] = '/usr/bin:{}'.format(os.environ['PATH'])
-        #     reload(rhaptos.cnxmlutils)
-        # kwargs['version'] = etree.XSLT.strparam(
-        #     rhaptos.cnxmlutils.__version__)
-        return transform(*args, **kwargs)
-
-    return transform_w_version
+    return transform
 
 
 CNXML_TO_HTML_XSL = _gen_xsl('cnxml-to-html5.xsl')
 CNXML_TO_HTML_METADATA_XSL = _gen_xsl('cnxml-to-html5-metadata.xsl')
-HTML_TO_CNXML_XSL = _gen_xsl('html5-to-cnxml.xsl')
 MATHML_XSL = _gen_xsl(MATHML_XSL_PATH, '.')
 
 XML_PARSER_OPTIONS = {
@@ -83,8 +70,8 @@ def _transform_cnxml_to_html_metadata(xml):
 
 
 def ensure_bytes(text):
-    if sys.version_info > (3,) and isinstance(text, str):
-        text = text.encode('utf-8')
+    assert sys.version_info > (3,) and isinstance(text, str)
+    text = text.encode('utf-8')
     return text
 
 
@@ -100,8 +87,9 @@ def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
 
 def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     """Transform raw cnxml content to a full html."""
-    if not isinstance(cnxml, (etree._ElementTree, etree._Element,)):
-        cnxml = etree.parse(BytesIO(ensure_bytes(cnxml)), xml_parser)
+    assert not isinstance(cnxml, (etree._ElementTree, etree._Element,))
+
+    cnxml = etree.parse(BytesIO(ensure_bytes(cnxml)), xml_parser)
 
     # Transform the content to html.
     content = cnxml_to_html(cnxml)
@@ -131,36 +119,3 @@ def cnxml_abstract_to_html(abstract):
     container.tag = 'div'
 
     return etree.tostring(abstract_html)
-
-
-# ############### #
-#   HTML->CNXML   #
-# ############### #
-
-
-def html_to_cnxml(html, xml_parser=DEFAULT_XMLPARSER):
-    """Transform html content to cnxml."""
-    if not isinstance(html, (etree._ElementTree, etree._Element,)):
-        html = etree.parse(BytesIO(ensure_bytes(html)), xml_parser).getroot()
-    elif isinstance(html, etree._ElementTree):
-        html = html.getroot()
-
-    # Do the namespace dance...
-    nsmap = html.nsmap.copy()
-    nsmap['h'] = nsmap.pop(None)
-
-    # The transform only works when the root tag is 'body'.
-    if html.xpath('/h:html', namespaces=nsmap):
-        html = html.xpath('/h:html/h:body', namespaces=nsmap)[0]
-
-    # Transform the content.
-    cnxml = HTML_TO_CNXML_XSL(html)
-    return etree.tostring(cnxml)
-
-
-# FFF (18-Jan-2015) Forward compatible version of html_to_cnxml.
-#     The forseable future shows a conversion that doesn't rely on legacy
-#     to fill in the metadata for us. (FYI, legacy currently produces an
-#     exported version of the cnxml that contains all the metadata
-#     which it acquires from the database.
-html_to_full_cnxml = html_to_cnxml
