@@ -92,6 +92,7 @@ fi
 
 # If the user wants to build one book then check that the book exists
 # so we can error early.
+ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-}
 if [[ $ARG_TARGET_SLUG_NAME ]]; then
     manifest_file="$IO_FETCHED/META-INF/books.xml"
     set +e
