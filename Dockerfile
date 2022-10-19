@@ -288,14 +288,14 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
 # Install the Concourse Resource
 # ---------------------------
 
-COPY ./output-producer-resource $PROJECT_ROOT/output-producer-resource/
+COPY ./corgi-concourse-resource $PROJECT_ROOT/corgi-concourse-resource/
 
-WORKDIR $PROJECT_ROOT/output-producer-resource/
+WORKDIR $PROJECT_ROOT/corgi-concourse-resource/
 
 RUN set -x \
     && . $PROJECT_ROOT/venv/bin/activate \
     && python3 setup.py sdist \
-    && pip3 install dist/output-producer-resource-*.tar.gz
+    && pip3 install dist/corgi-concourse-resource-*.tar.gz
 
 RUN mkdir -p /opt/resource
 RUN set -x \

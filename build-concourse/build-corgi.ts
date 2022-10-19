@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { buildLookUpBook, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS } from './step-definitions'
-import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToOutputProducer, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
+import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToCorgi, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -12,8 +12,8 @@ function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
     const resources = [
         {
-            name: RESOURCES.OUTPUT_PRODUCER_GIT_PDF,
-            type: 'output-producer',
+            name: RESOURCES.CORGI_GIT_PDF,
+            type: 'corgi-resource',
             source: {
                 api_root: env.CORGI_API_URL,
                 job_type_id: JobType.GIT_PDF,
@@ -21,8 +21,8 @@ function makePipeline(env: KeyValue) {
             }
         },
         {
-            name: RESOURCES.OUTPUT_PRODUCER_GIT_WEB,
-            type: 'output-producer',
+            name: RESOURCES.CORGI_GIT_WEB,
+            type: 'corgi-resource',
             source: {
                 api_root: env.CORGI_API_URL,
                 job_type_id: JobType.GIT_DIST_PREVIEW,
@@ -31,7 +31,7 @@ function makePipeline(env: KeyValue) {
         },
         {
             name: RESOURCES.CORGI_GIT_DOCX,
-            type: 'output-producer',
+            type: 'corgi-resource',
             source: {
                 api_root: env.CORGI_API_URL,
                 job_type_id: JobType.GIT_DOCX,
@@ -55,7 +55,7 @@ function makePipeline(env: KeyValue) {
     const taskGenPreviewUrls = () => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
 
     const buildPdfJob = (resource: RESOURCES, tasks: any[]) => {
-        const report = reportToOutputProducer(resource)
+        const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `build-pdf`, resource, {
@@ -86,7 +86,7 @@ function makePipeline(env: KeyValue) {
     }
 
     const buildWebJob = (resource: RESOURCES, tasks: any[]) => {
-        const report = reportToOutputProducer(resource)
+        const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
         return wrapGenericCorgiJob(env, `web-preview`, resource, {
@@ -110,7 +110,7 @@ function makePipeline(env: KeyValue) {
     }
 
     const buildGitDocxJob = (resource: RESOURCES, tasks: any[]) => {
-        const report = reportToOutputProducer(resource)
+        const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
         // PDF_OR_WEB argument does not seem to actually do anything
         const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
@@ -141,13 +141,13 @@ function makePipeline(env: KeyValue) {
         })
     }
 
-    const gitPdfJob = buildPdfJob(RESOURCES.OUTPUT_PRODUCER_GIT_PDF, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
-    const gitWeb = buildWebJob(RESOURCES.OUTPUT_PRODUCER_GIT_WEB, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
+    const gitPdfJob = buildPdfJob(RESOURCES.CORGI_GIT_PDF, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
+    const gitWeb = buildWebJob(RESOURCES.CORGI_GIT_WEB, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
     const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_GDOC_STEPS))
 
     const resourceTypes = [
         {
-            name: 'output-producer',
+            name: 'corgi-resource',
             type: 'docker-image',
             source: toDockerSourceSection(env)
         }

@@ -17,11 +17,11 @@ def get_version():
 
 
 setup(
-    name="output-producer-resource",
+    name="corgi-concourse-resource",
     version=get_version(),
-    description='Concourse CI resource for Content Output Producer Service (COPS)',
+    description='Concourse CI resource for Content Output Review and Generation Interface (CORGI)',
     long_description=read_readme(),
-    url='https://github.com/openstax/output-producer-resource',
+    url='https://github.com/openstax/enki',
     author='OpenStax Content Engineering',
     license='AGPLv3.0',
     packages=['tests', 'src'],

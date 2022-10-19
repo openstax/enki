@@ -10,7 +10,7 @@ help_submake:
 
 ORG_NAME := openstax
 VERSION := $$(cat VERSION)
-NAMESPACE := output-producer-resource
+NAMESPACE := corgi-concourse-resource
 BUILD_ARGS := $(BUILD_ARGS)
 MAJOR := $(word 1,$(subst ., ,$(VERSION)))
 MINOR := $(word 2,$(subst ., ,$(VERSION)))

@@ -1,4 +1,4 @@
-# output-producer-resource
+# corgi-concourse-resource
 
 ## Examples
 
@@ -7,7 +7,7 @@ resource_types:
   - name: cops-jobs
     type: docker-image
     source:
-      repository: openstax/output-producer-resource
+      repository: openstax/enki
 
 resources:
   - name: cops-jobs-queued
@@ -55,9 +55,9 @@ plan:
 
 ## Configure Dev Environment
 
-Change into the output-producer-resource working directory
+Change into the corgi-concourse-resource working directory
 
-`cd ./output-producer-resource`
+`cd ./corgi-concourse-resource`
 
 Create a virtualenv:
 
@@ -75,7 +75,7 @@ Install dependencies:
 
 The VCR cassettes used for unit tests are generated using a local COPS environment. In order to create new cassettes (e.g. for API changes, etc.):
 
-1. Setup a local environment using directions [here](https://github.com/openstax/output-producer-service/blob/master/README.md). Make sure it is in a clean, vanilla state (e.g. make sure your COPS UI has no jobs listed).
+1. Setup a local environment using directions [here](https://github.com/openstax/corgi/blob/main/README.md). Make sure it is in a clean, vanilla state (e.g. make sure your COPS UI has no jobs listed).
 
 2. Delete the existing cassettes which you'd like to update
 
