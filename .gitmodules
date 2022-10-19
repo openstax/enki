@@ -14,10 +14,6 @@
 	path = xhtml-validator
 	url = https://github.com/openstax/xhtml-validator
 	branch = main
-[submodule "output-producer-resource"]
-	path = output-producer-resource
-	url = https://github.com/openstax/output-producer-resource
-	branch = main
 [submodule "ce-styles"]
 	path = ce-styles
 	url = https://github.com/openstax/ce-styles
