@@ -79,7 +79,7 @@ The VCR cassettes used for unit tests are generated using a local COPS environme
 
 2. Delete the existing cassettes which you'd like to update
 
-3. Run the utility script to initialize your local COPS environment with jobs (you may need / want to update this script as well depending upon the changes):
+3. Run the utility script to initialize your local CORGI environment with jobs (you may need / want to update this script as well depending upon the changes):
 
 ```
 python tests/cassettes/init_local_cops.py

@@ -18,7 +18,7 @@ MAJOR_MINOR_PATCH := $(word 1,$(subst -, ,$(VERSION)))
 
 .PHONY: build-sdist
 build-sdist:
-	python setup.py sdist
+	poetry build -f sdist
 
 .PHONY: build-image
 build-image: build-sdist
@@ -39,8 +39,8 @@ release:
 
 .PHONY: lint
 lint:
-	flake8 src/ tests/
+	poetry run flake8 src/ tests/
 
 .PHONY: test
 test:
-	pytest tests/test_resource.py -vvv --cov src/ --cov-report html --cov-report term
+	poetry run pytest tests/test_resource.py -vvv --cov src/ --cov-report html --cov-report term
