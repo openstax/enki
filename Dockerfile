@@ -21,7 +21,6 @@
 # vvvvvvvvvvvvvvv Dockerfile.common vvvvvvvvvvvvvvv
 FROM sudobmitch/base:scratch as base-scratch
 FROM buildpack-deps:focal as base
-# FROM openstax/python3-poetry as poetry-builder
 
 
 # ---------------------------
