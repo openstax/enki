@@ -2,8 +2,8 @@ import json
 import os
 import sys
 
-from src import cops_api as api
-from src.utils import msg, write_file
+from . import cops_api as api
+from .utils import msg, write_file
 
 
 def in_(dest_path, in_stream):

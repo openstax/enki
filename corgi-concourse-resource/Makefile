@@ -9,7 +9,7 @@ help_submake:
 	@echo "make lint                  Lint source and test files"
 
 ORG_NAME := openstax
-VERSION := $$(cat VERSION)
+VERSION := $$(poetry version -s)
 NAMESPACE := corgi-concourse-resource
 BUILD_ARGS := $(BUILD_ARGS)
 MAJOR := $(word 1,$(subst ., ,$(VERSION)))
@@ -39,8 +39,8 @@ release:
 
 .PHONY: lint
 lint:
-	poetry run flake8 src/ tests/
+	poetry run flake8 corgi_concourse_resource/ tests/
 
 .PHONY: test
 test:
-	poetry run pytest tests/test_resource.py -vvv --cov src/ --cov-report html --cov-report term
+	poetry run pytest tests/test_resource.py -vvv --cov corgi_concourse_resource/ --cov-report html --cov-report term

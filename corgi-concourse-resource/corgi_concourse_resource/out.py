@@ -2,8 +2,8 @@ import os
 import sys
 import json
 
-from src.cops_api import update_job
-from src.utils import msg
+from .cops_api import update_job
+from .utils import msg
 
 
 def out(src_path, in_stream):

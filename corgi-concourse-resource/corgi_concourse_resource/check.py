@@ -1,8 +1,8 @@
 import json
 import sys
 
-from src.cops_api import get_jobs
-from src.utils import msg
+from .cops_api import get_jobs
+from .utils import msg
 
 
 def check(in_stream):

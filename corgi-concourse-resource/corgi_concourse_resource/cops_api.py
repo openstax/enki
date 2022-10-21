@@ -1,7 +1,7 @@
 import json
 import requests
 
-from src.utils import msg
+from .utils import msg
 
 
 def build_url(api_root, *args):

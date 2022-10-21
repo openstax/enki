@@ -21,6 +21,7 @@
 # vvvvvvvvvvvvvvv Dockerfile.common vvvvvvvvvvvvvvv
 FROM sudobmitch/base:scratch as base-scratch
 FROM buildpack-deps:focal as base
+# FROM openstax/python3-poetry as poetry-builder
 
 
 # ---------------------------
@@ -230,6 +231,7 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-xhtmlvalidator.sh
 
 # ---------------------------
 # Install kcov
+# ---------------------------
 FROM base AS build-kcov-stage
 
 RUN git clone https://github.com/SimonKagstrom/kcov /kcov-src/
@@ -268,6 +270,17 @@ RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo
     && make install \
     ;
 
+# ---------------------------
+# Build concourse resource
+# ---------------------------
+
+FROM openstax/python3-poetry as concourse-resource-builder
+
+WORKDIR /code
+COPY ./corgi-concourse-resource .
+
+RUN poetry build -f sdist
+
 # ===========================
 # The Final Stage
 # ===========================
@@ -288,20 +301,18 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
 # Install the Concourse Resource
 # ---------------------------
 
-COPY ./corgi-concourse-resource $PROJECT_ROOT/corgi-concourse-resource/
-
 WORKDIR $PROJECT_ROOT/corgi-concourse-resource/
 
-RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
-    && python3 setup.py sdist \
-    && pip3 install dist/corgi-concourse-resource-*.tar.gz
+COPY --from=concourse-resource-builder /code/dist .
 
-RUN mkdir -p /opt/resource
 RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
+    && pip3 install corgi-concourse-resource-*.tar.gz \
+    && mkdir -p /opt/resource \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
 
+# ---------------------------
+# Install epub validator
+# ---------------------------
 
 RUN mv /root/.nvm $PROJECT_ROOT/nvm
 ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/

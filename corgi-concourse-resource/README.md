@@ -82,7 +82,7 @@ The VCR cassettes used for unit tests are generated using a local COPS environme
 3. Run the utility script to initialize your local CORGI environment with jobs (you may need / want to update this script as well depending upon the changes):
 
 ```
-python tests/cassettes/init_local_cops.py
+python tests/cassettes/init_local_corgi.py
 ```
 
 4. Run the tests via `make test` to generate cassette files

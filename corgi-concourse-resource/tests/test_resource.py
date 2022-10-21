@@ -5,7 +5,7 @@ import tempfile
 
 import vcr
 
-from src import check, in_, out
+from corgi_concourse_resource import check, in_, out
 
 DATA_DIR = os.path.join(os.path.realpath(os.path.dirname(__file__)), "data")
 
