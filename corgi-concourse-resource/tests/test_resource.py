@@ -44,6 +44,8 @@ def make_input_stream(version, **kwargs):
 
 class TestCheck(object):
 
+    # I have no idea what edge case this is testing
+    # Should probably be renamed to `test_jobs_by_status_id`
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
     def test_edge_case_queued_jobs(self):
         version = None
@@ -51,7 +53,8 @@ class TestCheck(object):
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{'id': '2'},
+        assert result == [{'id': '3'},
+                          {'id': '2'},
                           {'id': '1'}]
 
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
@@ -65,12 +68,12 @@ class TestCheck(object):
 
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
     def test_has_newest_job(self):
-        version = {"id": 1}
+        version = {"id": 2}
 
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{"id": "2"}]
+        assert result == [{"id": "3"}]
 
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
     def test_has_newer_jobs(self):
@@ -79,7 +82,7 @@ class TestCheck(object):
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{'id': '2'}, {'id': '1'}]
+        assert result == [{"id": "3"}, {'id': '2'}, {'id': '1'}]
 
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
     def test_check_without_status_id(self):
@@ -100,16 +103,6 @@ class TestCheck(object):
         assert result == [version]
 
     @vcr.use_cassette("tests/cassettes/test_check.yaml")
-    def test_check_without_version_with_status(self):
-        payload = make_input(None, status_id=5)
-        del payload["version"]
-
-        in_stream = make_stream(payload)
-        result = check.check(in_stream)
-
-        assert result == [{'id': '10'}, {'id': '9'}]
-
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
     def test_check_without_version_without_status(self):
         payload = make_input(None)
         del payload["version"]
@@ -126,7 +119,7 @@ class TestCheck(object):
         in_stream = make_input_stream(version, status_id=1, job_type_id=2)
         result = check.check(in_stream)
 
-        assert result == [{'id': '2'}]
+        assert result == []
 
 
 class TestIn(object):
@@ -159,8 +152,6 @@ class TestIn(object):
         collection_style = read_file(os.path.join(dest_path, "collection_style"))
         assert collection_style == read_file(os.path.join(DATA_DIR, "collection_style"))
 
-        content_server = read_file(os.path.join(dest_path, "content_server"))
-        assert content_server == read_file(os.path.join(DATA_DIR, "content_server"))
 
 
 class TestOut(object):
