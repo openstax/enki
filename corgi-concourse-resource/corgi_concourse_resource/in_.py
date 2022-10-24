@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-from . import cops_api as api
+from . import corgi_api as api
 from .utils import msg, write_file
 
 

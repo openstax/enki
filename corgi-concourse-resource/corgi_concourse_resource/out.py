@@ -2,7 +2,7 @@ import os
 import sys
 import json
 
-from .cops_api import update_job
+from .corgi_api import update_job
 from .utils import msg
 
 

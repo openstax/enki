@@ -1,7 +1,7 @@
 import json
 import sys
 
-from .cops_api import get_jobs
+from .corgi_api import get_jobs
 from .utils import msg
 
 
