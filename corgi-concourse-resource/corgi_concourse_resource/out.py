@@ -28,7 +28,7 @@ def out(src_path, in_stream):
     error_message = data.get("error_message")
     if not error_message:
         error_message_file = data.get("error_message_file")
-        if error_message_file:
+        if error_message_file:  # pragma: no cover
             with open(os.path.join(src_path, error_message_file), "r") as infile:
                 error_message_file_data = infile.read()
                 data["error_message"] = error_message_file_data
@@ -42,7 +42,7 @@ def out(src_path, in_stream):
     return {"version": {"id": response["id"]}}
 
 
-def main():
+def main():  # pragma: no cover
     src_path = sys.argv[1]
     msg("Source dir {}", src_path)
     print(json.dumps(out(src_path, sys.stdin)))

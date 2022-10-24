@@ -31,9 +31,9 @@ def check(in_stream):
         return [{"id": job["id"]} for job in jobs]
 
 
-def main():
+def main():  # pragma: no cover
     print(json.dumps(check(sys.stdin)))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

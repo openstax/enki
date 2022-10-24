@@ -32,12 +32,12 @@ def in_(dest_path, in_stream):
     return {"version": {"id": job_id}}
 
 
-def main():
+def main():  # pragma: no cover
     dest_path = sys.argv[1]
     msg("Output dir {}", dest_path)
     version = in_(dest_path, sys.stdin)
     print(json.dumps(version))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

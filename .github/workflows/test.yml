@@ -52,6 +52,9 @@ jobs:
       - name: Run Bakery Scripts Tests
         if: steps.cache-pipenv.outputs.cache-hit != 'true'
         run: CI_TEST=true ./test/test-step-10.bash
+      - name: Run CORGI Concourse Resource Tests
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        run: CI_TEST=true ./test/test-step-12.bash
       - name: Collect coverage and upload
         run: CI_TEST=true ./test/test-step-08.bash
       - name: Lint scripts

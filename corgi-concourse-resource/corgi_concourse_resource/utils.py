@@ -2,7 +2,7 @@ import json
 import sys
 
 
-def msg(msg, *args, **kwargs):
+def msg(msg, *args, **kwargs):  # pragma: no cover
     if args or kwargs:
         msg = msg.format(*args, **kwargs)
     print(msg, file=sys.stderr)
@@ -14,7 +14,7 @@ def msg(msg, *args, **kwargs):
 
 
 def write_file(filepath, data):
-    if (data is None):
+    if (data is None):  # pragma: no cover
         return
     if filepath.endswith(".json"):
         with open(filepath, "w") as file:
