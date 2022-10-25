@@ -10,7 +10,7 @@ services:
       PGDATA: /database
 
   concourse:
-    image: concourse/concourse:7.3
+    image: concourse/concourse:7.3.2
     command: quickstart
     privileged: true
     depends_on: [concourse-db]
@@ -25,6 +25,7 @@ services:
       CONCOURSE_MAIN_TEAM_LOCAL_USER: test
       # overlay BAGGAGECLAIM_DRIVER does not work in linux when multiple tasks write to a dir
       CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive
+      CONCOURSE_WORKER_RUNTIME: "containerd"
 
       # CONCOURSE_CLIENT_SECRET: '...='
       # CONCOURSE_TSA_CLIENT_SECRET: '...='

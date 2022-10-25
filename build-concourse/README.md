@@ -92,7 +92,7 @@ Once the .yml file is created, upload it to concourse by running the following:
 
 To trigger the CORGI pipeline you will need to mock the CORGI API. docker-compose has already started a mock webserver (smocker) that you just need to upload the CORGI JSON responses to.
 
-Once you upload the the mock you can wait a minute for concourse to poll and find it our you can refresh the resource directly by clicking it in http://localhost:8080/teams/main/pipelines/corgi
+Once you upload the mock you can wait a minute for concourse to poll and find it our you can refresh the resource directly by clicking it in http://localhost:8080/teams/main/pipelines/corgi
 
 Ensure that CORGI_API_URL in [env/corgi-local.json](./env/corgi-local.json) points to `http://smocker:8080/api`
 
@@ -100,7 +100,7 @@ The following snippet starts up one of each type of CORGI job but you can tweak 
 Upload the following (tweak it to change which jobs are pulled) by visiting http://localhost:8081/pages/mocks
 
 ```yaml
-# See https://github.com/openstax/output-producer-resource/blob/master/src/in_.py for the consumer of this API
+# See https://github.com/openstax/enki/blob/main/corgi-concourse-resource/src/in_.py for the consumer of this API
 # JobType.GIT_PDF = 3
 # JobType.GIT_DIST_PREVIEW = 4
 - request:
@@ -169,7 +169,7 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
 
 # Debugging
 
-## `resource type 'output-producer' has no version`
+## `resource type 'corgi-resource' has no version`
 
 This usually means the resource is not in the registry. Verify that the resource definition in the pipeline.yml file is correct. If you are using a local registry, you can use these API links to see which images are in the local registry:
 
@@ -185,3 +185,12 @@ Same error as above. The registry might have _a_ tag of the repo but not _the_ t
 If you are running an archive job on Linux try setting `CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: naive` in docker-compose.yml. The archive jobs read/write to the same directories and the this method (which just copies everything between tasks) seems to work.
 
 Also, if you are running out of disk space consider running `docker volume prune` to remove any dangling volumes.
+
+## `failed to fetch image`
+
+If you are getting this error, it might help if you modify `corgi-local.yml` to use your host machine's IP address instead of `registry` and `smocker` (i.e. `registry:5000/openstax/enki` -> `x.x.x.x:5000/openstax/enki`). 
+
+If you are still having problems, here are some additional things to try
+  - Try adding `CONCOURSE_WORKER_RUNTIME: "containerd"`
+  - If that does not help, download the [official concourse docker-compose.yml](https://concourse-ci.org/docker-compose.yml) file and add registry/smocker to it and use that instead of the one in this directory
+  - If that does not help, check to make sure that your concourse instance is utilizing its volumes. If all of it's volumes are at 0 bytes even after you `docker-compose down` it, you should consider trying a different version of concourse.

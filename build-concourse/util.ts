@@ -72,8 +72,8 @@ export type ConcourseTask = {
 export enum RESOURCES {
     S3_GIT_QUEUE = 's3-git-queue',
     TICKER = 'ticker',
-    OUTPUT_PRODUCER_GIT_PDF = 'output-producer-git-pdf',
-    OUTPUT_PRODUCER_GIT_WEB = 'output-producer-git-dist-preview',
+    CORGI_GIT_PDF = 'corgi-git-pdf',
+    CORGI_GIT_WEB = 'corgi-git-dist-preview',
     CORGI_GIT_DOCX = 'corgi-git-docx'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
@@ -179,7 +179,7 @@ export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[
 })
 export const readScript = (pathToFile: string) => `${fs.readFileSync(path.resolve(__dirname, pathToFile), { encoding: 'utf-8' })}\n# Source: ${pathToFile}`
 
-export const reportToOutputProducer = (resource: RESOURCES) => {
+export const reportToCorgi = (resource: RESOURCES) => {
     return (status: number, extras?: any) => {
         return {
             put: resource,
@@ -210,7 +210,7 @@ const taskStatusCheck = (env: KeyValue, taskArgs: TaskArgs) => {
 }
 
 const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) => {
-    const reporter = reportToOutputProducer(resource)
+    const reporter = reportToCorgi(resource)
     const steps = [step]
     /* istanbul ignore else */
     if (!env.SKIP_TORPEDO_TASK) {
@@ -237,7 +237,7 @@ const runWithStatusCheck = (env: KeyValue, resource: RESOURCES, step: Pipeline) 
 }
 
 export const wrapGenericCorgiJob = (env: KeyValue, jobName: string, resource: RESOURCES, step: Pipeline, extraArgs?: any) => {
-    const report = reportToOutputProducer(resource)
+    const report = reportToCorgi(resource)
     return {
         name: jobName,
         build_log_retention: {
