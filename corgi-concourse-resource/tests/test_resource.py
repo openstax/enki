@@ -157,7 +157,7 @@ class TestIn(object):
 class TestOut(object):
 
     @vcr.use_cassette("tests/cassettes/test_out.yaml")
-    def test_update_job_status_and_url(self):
+    def test_update_job_status_and_url(self, monkeypatch):
         id = "1"
         pdf_url = "http://dummy.cops.org/col12345-latest.pdf"
         src_path = tempfile.mkdtemp()
@@ -179,6 +179,17 @@ class TestOut(object):
         payload["params"] = params
 
         in_stream = make_stream(payload)
+
+        import corgi_concourse_resource.out
+        from corgi_concourse_resource.corgi_api import update_job
+        def test_data(api_root, id, data):
+            assert data
+            assert id
+            assert "status_id" in data
+            assert "artifact_urls" in data
+            return update_job(api_root, id, data)
+        
+        monkeypatch.setattr("corgi_concourse_resource.out.update_job", test_data)
 
         result = out.out(src_path, in_stream)
 

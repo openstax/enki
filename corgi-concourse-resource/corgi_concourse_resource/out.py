@@ -22,8 +22,11 @@ def out(src_path, in_stream):
     pdf_url = data.get("pdf_url")
     if pdf_url:
         with open(os.path.join(src_path, pdf_url), "r") as infile:
-            pdf_url = infile.read()
-            data["pdf_url"] = pdf_url
+            artifact_url = payload = infile.read()
+            if "View - Rex Web" in payload:  # pragma: no cover
+                json_payload = json.loads(payload)
+                artifact_url = json_payload["View - Rex Web Prod"]
+            data["artifact_urls"] = artifact_url
 
     error_message = data.get("error_message")
     if not error_message:
