@@ -25,7 +25,7 @@ def out(src_path, in_stream):
             artifact_url = payload = infile.read()
             if "View - Rex Web" in payload:  # pragma: no cover
                 json_payload = json.loads(payload)
-                artifact_url = json_payload["View - Rex Web Prod"]
+                artifact_url = json_payload[1]["href"]  # View - Rex Web Prod
             data["artifact_urls"] = artifact_url
 
     error_message = data.get("error_message")
