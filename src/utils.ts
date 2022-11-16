@@ -101,14 +101,14 @@ class XMLSerializer {
     }
     public writeFiles() {
         const sourcemapFile = `${this.outputFile}.map`
-        this.recWrite(this.root)
+        this.recWrite(this.root, null)
         this.w.finish(sourcemapFile)
     }
 
-    private recWrite(n: Node) {
+    private recWrite(n: Node, currentDefaultNamespace: string | null) {
         if (n.nodeType === n.DOCUMENT_NODE) {
             const doc = n as Document
-            this.recWrite(doc.documentElement)
+            this.recWrite(doc.documentElement, currentDefaultNamespace)
     
         } else if (n.nodeType === n.TEXT_NODE) {
             const textNode = n as Text
@@ -125,19 +125,23 @@ class XMLSerializer {
             const el = n as Element
             const prefixedTag = el.tagName
             const localTag = el.tagName
+            const newDefaultNamespace = el.prefix ? currentDefaultNamespace : el.namespaceURI
             this.w.writeText(n, `<${prefixedTag}`)
+            if (newDefaultNamespace !== currentDefaultNamespace) {
+                this.w.writeText(n, ` xmlns="${escapeAttribute(assertValue(newDefaultNamespace))}"`)
+            }
             for (const attr of Array.from(el.attributes)) {
-                this.recWrite(attr)
+                this.recWrite(attr, newDefaultNamespace)
             }
             if (isSelfClosing(this.format, localTag, el.namespaceURI)) {
-                assertTrue(el.childElementCount === 0)
+                assertTrue(el.childElementCount === 0 || el.childElementCount === undefined)
                 this.w.writeText(n, '/>')
             } else if (el.childElementCount === 0) {
                 this.w.writeText(n, '/>')
             } else {
                 this.w.writeText(n, '>')
                 for (const child of Array.from(el.childNodes)) {
-                    this.recWrite(child)
+                    this.recWrite(child, newDefaultNamespace)
                 }
                 this.w.writeText(n, `</${prefixedTag}>`)
             }
@@ -311,7 +315,7 @@ export function writeXmlWithSourcemap(filename: string, root: Node, xmlFormat: X
 
 
 
-const NAMESPACES = {
+export const NAMESPACES = {
     'c': 'http://cnx.rice.edu/cnxml',
     'md': 'http://cnx.rice.edu/mdml',
     'h': 'http://www.w3.org/1999/xhtml',
