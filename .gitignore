@@ -16,3 +16,6 @@
 test/cov.xml
 test/.coverage
 test/cov.html/
+
+/node_modules
+/dist
