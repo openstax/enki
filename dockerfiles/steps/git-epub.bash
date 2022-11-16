@@ -173,7 +173,9 @@ for slug in ${all_slugs[@]}; do
     license=$(try jq -r '.license.url' < $IO_DISASSEMBLE_LINKED/$slug.toc-metadata.json)
 
     # cnx-usr-books: get collection id from META-INF/books.xml. Referenced in `dcterms:alternative`
-    collection_id=$(try xmlstarlet sel -t --match "//*[@collection-id][@slug=\"$slug\"]" --value-of '@collection-id' < "$fetch_root/META-INF/books.xml")
+    set +e
+    collection_id=$(xmlstarlet sel -t --match "//*[@collection-id][@slug=\"$slug\"]" --value-of '@collection-id' < "$fetch_root/META-INF/books.xml")
+    set -e
 
     # HACK get the authors from the original .collection.xml file
     book_href=$(xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' --nl < $fetch_root/META-INF/books.xml)
