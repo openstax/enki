@@ -1,18 +1,25 @@
 import json
-import requests
+from urllib.parse import quote
 
+import requests
 from .utils import msg
 
 
-def build_url(api_root, *args):
+def build_url(api_root, *args, **kwargs):
     parts = [api_root]
+    query = []
     parts.extend(args)
     parts = [str(p) for p in parts]
-    return "/".join(parts)
+    url = "/".join(parts)
+    for item in kwargs.items():
+        query.append("=".join(map(quote, map(str, item))))
+    if query:
+        return "?".join((url, "&".join(query)))
+    return url
 
 
-def get_jobs(api_root):
-    url = build_url(api_root, "jobs")
+def get_jobs(api_root, **kwargs):
+    url = build_url(api_root, "jobs", "check", **kwargs)
     response = requests.get(url)
     msg(response.text)
     return response.json()

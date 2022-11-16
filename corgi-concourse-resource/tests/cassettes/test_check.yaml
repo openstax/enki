@@ -9,24 +9,24 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.23.0
+      - python-requests/2.28.1
     method: GET
-    uri: http://localhost/api/jobs
+    uri: http://localhost/api/jobs/check?status_id=1
   response:
     body:
-      string: ''
+      string: '[{"id":"3","status_id":"1","job_type_id":"5"},{"id":"2","status_id":"1","job_type_id":"4"},{"id":"1","status_id":"1","job_type_id":"3"}]'
     headers:
       Content-Length:
-      - '0'
+      - '136'
+      Content-Type:
+      - application/json
       Date:
-      - Thu, 10 Sep 2020 18:35:28 GMT
-      Location:
-      - http://localhost/api/jobs/
+      - Wed, 16 Nov 2022 19:27:28 GMT
       Server:
       - uvicorn
     status:
-      code: 307
-      message: Temporary Redirect
+      code: 200
+      message: OK
 - request:
     body: null
     headers:
@@ -37,19 +37,271 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.23.0
+      - python-requests/2.28.1
     method: GET
-    uri: http://localhost/api/jobs/
+    uri: http://localhost/api/jobs/check?status_id=999
   response:
     body:
-      string: '[{"status_id":"5","job_type_id":"5","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"15","created_at":"2022-10-24T22:44:13.362506","updated_at":"2022-10-24T22:44:13.362512","status":{"name":"completed","id":"5"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-docx","display_name":"Docx (git)","id":"5"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"5","job_type_id":"4","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"14","created_at":"2022-10-24T22:44:12.994742","updated_at":"2022-10-24T22:44:12.994748","status":{"name":"completed","id":"5"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-web-hosting-preview","display_name":"Web Preview (git)","id":"4"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"5","job_type_id":"3","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"13","created_at":"2022-10-24T22:44:12.677726","updated_at":"2022-10-24T22:44:12.677732","status":{"name":"completed","id":"5"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-pdf","display_name":"PDF (git)","id":"3"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"4","job_type_id":"5","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"12","created_at":"2022-10-24T22:44:12.301582","updated_at":"2022-10-24T22:44:12.301588","status":{"name":"failed","id":"4"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-docx","display_name":"Docx (git)","id":"5"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"4","job_type_id":"4","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"11","created_at":"2022-10-24T22:44:11.950902","updated_at":"2022-10-24T22:44:11.950908","status":{"name":"failed","id":"4"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-web-hosting-preview","display_name":"Web Preview (git)","id":"4"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"4","job_type_id":"3","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"10","created_at":"2022-10-24T22:44:11.640150","updated_at":"2022-10-24T22:44:11.640155","status":{"name":"failed","id":"4"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-pdf","display_name":"PDF (git)","id":"3"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"3","job_type_id":"5","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"9","created_at":"2022-10-24T22:44:11.263381","updated_at":"2022-10-24T22:44:11.263387","status":{"name":"processing","id":"3"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-docx","display_name":"Docx (git)","id":"5"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"3","job_type_id":"4","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"8","created_at":"2022-10-24T22:44:10.896925","updated_at":"2022-10-24T22:44:10.896931","status":{"name":"processing","id":"3"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-web-hosting-preview","display_name":"Web Preview (git)","id":"4"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"3","job_type_id":"3","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"7","created_at":"2022-10-24T22:44:10.589951","updated_at":"2022-10-24T22:44:10.589957","status":{"name":"processing","id":"3"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-pdf","display_name":"PDF (git)","id":"3"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"2","job_type_id":"5","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"6","created_at":"2022-10-24T22:44:10.222078","updated_at":"2022-10-24T22:44:10.222083","status":{"name":"assigned","id":"2"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-docx","display_name":"Docx (git)","id":"5"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"2","job_type_id":"4","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"5","created_at":"2022-10-24T22:44:09.845510","updated_at":"2022-10-24T22:44:09.845515","status":{"name":"assigned","id":"2"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-web-hosting-preview","display_name":"Web Preview (git)","id":"4"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"2","job_type_id":"3","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"4","created_at":"2022-10-24T22:44:09.540801","updated_at":"2022-10-24T22:44:09.540806","status":{"name":"assigned","id":"2"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-pdf","display_name":"PDF (git)","id":"3"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"1","job_type_id":"5","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"3","created_at":"2022-10-24T22:44:09.178104","updated_at":"2022-10-24T22:44:09.178109","status":{"name":"queued","id":"1"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-docx","display_name":"Docx (git)","id":"5"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"1","job_type_id":"4","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"2","created_at":"2022-10-24T22:44:08.813080","updated_at":"2022-10-24T22:44:08.813085","status":{"name":"queued","id":"1"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-web-hosting-preview","display_name":"Web Preview (git)","id":"4"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]},{"status_id":"1","job_type_id":"3","version":"18ca7dfc49392e2cb93352c528a140e7d02a030c","worker_version":"1","id":"1","created_at":"2022-10-24T22:44:08.490630","updated_at":"2022-10-24T22:44:08.490637","status":{"name":"queued","id":"1"},"repository":{"name":"osbooks-college-success","owner":"openstax"},"job_type":{"name":"git-pdf","display_name":"PDF (git)","id":"3"},"user":{"name":"TylerZeroMaster","avatar_url":"https://avatars.githubusercontent.com/u/33585550?v=4","id":"33585550"},"books":[{"slug":"college-success","commit_id":"1","edition":0,"style":"college-success","uuid":"e8668a14-9a7d-4d74-b58c-3681f8351224"}],"artifact_urls":[{"slug":"college-success","url":null}]}]'
+      string: '[]'
     headers:
       Content-Length:
-      - '4295'
+      - '2'
       Content-Type:
       - application/json
       Date:
-      - Thu, 10 Sep 2020 18:35:28 GMT
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=1
+  response:
+    body:
+      string: '[]'
+    headers:
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=2
+  response:
+    body:
+      string: '[]'
+    headers:
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=3
+  response:
+    body:
+      string: '[{"id":"1","status_id":"1","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=4
+  response:
+    body:
+      string: '[{"id":"2","status_id":"1","job_type_id":"4"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=5
+  response:
+    body:
+      string: '[{"id":"3","status_id":"1","job_type_id":"5"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=2
+  response:
+    body:
+      string: '[{"id":"6","status_id":"2","job_type_id":"5"},{"id":"5","status_id":"2","job_type_id":"4"},{"id":"4","status_id":"2","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=3
+  response:
+    body:
+      string: '[{"id":"9","status_id":"3","job_type_id":"5"},{"id":"8","status_id":"3","job_type_id":"4"},{"id":"7","status_id":"3","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=4
+  response:
+    body:
+      string: '[{"id":"12","status_id":"4","job_type_id":"5"},{"id":"11","status_id":"4","job_type_id":"4"},{"id":"10","status_id":"4","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '139'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=5
+  response:
+    body:
+      string: '[{"id":"15","status_id":"5","job_type_id":"5"},{"id":"14","status_id":"5","job_type_id":"4"},{"id":"13","status_id":"5","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '139'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
       Server:
       - uvicorn
     status:
