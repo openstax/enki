@@ -3,7 +3,6 @@ import { readFileSync, writeFileSync, WriteStream, createWriteStream } from 'fs'
 import { dirname, relative, resolve } from 'path'
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map'
 import { DOMParser } from 'xmldom'
-import { useNamespaces } from 'xpath-ts'
 
 class ParseError extends Error { }
 
@@ -292,53 +291,3 @@ export function writeXmlWithSourcemap(filename: string, root: Node, xmlFormat: X
     const w = new XMLSerializer(filename, root, xmlFormat)
     w.writeFiles()
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export const NAMESPACES = {
-    'c': 'http://cnx.rice.edu/cnxml',
-    'md': 'http://cnx.rice.edu/mdml',
-    'h': 'http://www.w3.org/1999/xhtml',
-    'm': 'http://www.w3.org/1998/Math/MathML'
-}
-
-const select = useNamespaces(NAMESPACES)
-
-export function selectAll<T>(xpath: string, node: Node) {
-    const res = select(xpath, node)
-    if (Array.isArray(res)) {
-        return res as T[]
-    } else {
-        return [res] as T[]
-    }
-}
-export function selectOne<T>(xpath: string, node: Node) {
-    const res = select(xpath, node)
-    if (Array.isArray(res)) {
-        assertTrue(res.length === 1)
-        return res[0] as T
-    } else {
-        return res as T
-    }
-}
-

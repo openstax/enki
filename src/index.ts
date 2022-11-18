@@ -1,6 +1,10 @@
 import { resolve, relative, join, dirname } from 'path'
+import * as sourceMapSupport from 'source-map-support';
 import { Factory, Opt } from './factory'
-import { assertValue, readXmlWithSourcemap, selectAll, selectOne, writeXmlWithSourcemap, XmlFormat, NAMESPACES } from './utils'
+import { $, $$, $$node, Dom, dom } from './minidom'
+import { assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from './utils'
+
+sourceMapSupport.install()
 
 class Factorio {
     public readonly pages = new Factory(absPath => new XHTMLPageFile(this, absPath), resolve)
@@ -39,20 +43,20 @@ class XHTMLPageFile extends File {
         const doc = await readXmlWithSourcemap(this.absPath)
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(doc, sel, attrName)).flat()
         return {
-            hasMathML: selectAll('//m:math', doc).length > 0,
-            hasRemoteResources: selectAll('//h:iframe|//h:object/h:embed', doc).length > 0,
-            hasScripts: selectAll('//h:script', doc).length > 0,
+            hasMathML: $$('//m:math', doc).length > 0,
+            hasRemoteResources: $$('//h:iframe|//h:object/h:embed', doc).length > 0,
+            hasScripts: $$('//h:script', doc).length > 0,
             resources
         }
     }
     private resourceFinder(node: Node, sel: string, attrName: string) {
-        return selectAll<Element>(sel, node).map(img => this.factorio.resources.getOrAdd(assertValue(img.getAttribute(attrName)), this.absPath))
+        return $$(sel, node).map(img => this.factorio.resources.getOrAdd(assertValue(img.attr(attrName)), this.absPath))
     }
     private resourceRenamer(node: Node, sel: string, attrName: string) {
-        const resources = selectAll<Element>(sel, node)
+        const resources = $$(sel, node)
         for (const node of resources) {
-            const resource = this.factorio.resources.getOrAdd(assertValue(node.getAttribute(attrName)), this.absPath)
-            node.setAttribute(attrName, relative(dirname(this.absPath), resource.newPath()))
+            const resource = this.factorio.resources.getOrAdd(assertValue(node.attr(attrName)), this.absPath)
+            node.attr(attrName, relative(dirname(this.absPath), resource.newPath()))
         }
     }
     async write() {
@@ -61,30 +65,24 @@ class XHTMLPageFile extends File {
         RESOURCE_SELECTORS.forEach(([sel, attrName]) => this.resourceRenamer(doc, sel, attrName))
         
         // Add a CSS file
-        const head = selectOne<Element>('//h:head', doc)
-        const cssEl = doc.createElementNS(NAMESPACES.h, 'link')
-        cssEl.setAttribute('rel', 'stylesheet')
-        cssEl.setAttribute('type', 'text/css')
-        cssEl.setAttribute('href', 'the-style-epub.css')
-        head.appendChild(cssEl)
+        $('//h:head', doc).children = [
+            dom(doc, 'h:link', {
+                rel: 'stylesheet',
+                type: 'text/css',
+                href: 'the-style-epub.css'
+            })
+        ]
 
         // Re-namespace the MathML elements
-        const mathEls = selectAll<Element>('//h:math|//h:math//*', doc)
-        function helper(doc: Document, el: Element, newNamespace: string) {
-            const newEl = doc.createElementNS(newNamespace, el.tagName)
-            for (const attr of Array.from(el.attributes)) {
-                newEl.setAttribute(attr.name, attr.value)
-            }
-            for (const child of Array.from(el.childNodes)) {
-                newEl.appendChild(child)
-            }
-            el.parentNode?.replaceChild(newEl, el)
-        }
-        mathEls.forEach(el => helper(doc, el, NAMESPACES.m))
+        const mathEls = $$('//h:math|//h:math//*', doc)
+        mathEls.forEach(el => {
+            el.replaceWith(dom(doc, `m:${el.tagName}`, el.attrs, el.children))
+        })
+
 
         // Remove annotation-xml elements because the validator requires an optional "name" attribute
         // This element is added by https://github.com/openstax/cnx-transforms/blob/85cd5edd5209fcb4c4d72698836a10e084b9ba00/cnxtransforms/xsl/content2presentation-files/cnxmathmlc2p.xsl#L49
-        removeElements(doc, '//m:math//m:annotation-xml|//h:math//h:annotation-xml')
+        $$('//m:math//m:annotation-xml|//h:math//h:annotation-xml', doc).forEach(n => n.remove())
 
         const attrsToRemove = [
             'itemprop',
@@ -92,16 +90,12 @@ class XHTMLPageFile extends File {
             'group-by',
             'use-subtitle'
         ]
-        attrsToRemove.forEach(attrName => selectAll<Element>(`//*[@${attrName}]`, doc).forEach(el => el.removeAttribute(attrName)))
+        attrsToRemove.forEach(attrName => $$(`//*[@${attrName}]`, doc).forEach(el => el.attr(attrName, null)))
         
-        removeElements(doc, '//h:script|//h:style')
+        $$('//h:script|//h:style', doc).forEach(n => n.remove())
 
         writeXmlWithSourcemap(this.newPath(), doc, XmlFormat.XHTML5)
     }
-}
-
-function removeElements(doc: Node, sel: string) {
-    selectAll<Element>(sel, doc).forEach(el => el.parentNode?.removeChild(el))
 }
 
 enum TocTreeType {
@@ -120,20 +114,20 @@ type TocTree = {
 class XHTMLTocFile extends File {
     async parse(): Promise<TocTree[]> {
         const doc = await readXmlWithSourcemap(this.absPath)
-        const tree = selectAll<Element>('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
+        const tree = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
         return tree
     }
-    private buildChildren(li: Element): TocTree {
+    private buildChildren(li: Dom): TocTree {
         // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
-        const children = selectAll<Element>('h:ol/h:li', li)
+        const children = $$('h:ol/h:li', li)
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 children: children.map(c => this.buildChildren(c))
             }
-        } else if (selectAll('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
-            const href = assertValue(selectOne<Element>('h:a[not(starts-with(@href, "#"))]', li).getAttribute('href'))
+        } else if ($$('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
+            const href = assertValue($('h:a[not(starts-with(@href, "#"))]', li).attr('href'))
             return {
                 type: TocTreeType.LEAF,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
@@ -143,8 +137,8 @@ class XHTMLTocFile extends File {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
     }
-    private selectText(sel: string, node: Node) {
-        return selectAll<Text>(sel, node).map(t => t.textContent).join('')
+    private selectText(sel: string, node: Dom) {
+        return $$node<Text>(sel, node).map(t => t.textContent).join('')
     }
 }
 
