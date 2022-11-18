@@ -14,7 +14,7 @@ class Factorio {
 
 abstract class File {
     private _newPath: Opt<string>
-    constructor(protected readonly factorio: Factorio, protected readonly absPath: string) { }
+    constructor(protected readonly factorio: Factorio, public readonly absPath: string) { }
     rename(relPath: string, relTo: Opt<string>) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
     }
@@ -117,28 +117,75 @@ class XHTMLTocFile extends File {
         const tree = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
         return tree
     }
-    private buildChildren(li: Dom): TocTree {
+    private buildChildren(li: Dom, acc?: XHTMLPageFile[]): TocTree {
         // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
         const children = $$('h:ol/h:li', li)
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-                children: children.map(c => this.buildChildren(c))
+                children: children.map(c => this.buildChildren(c, acc))
             }
         } else if ($$('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
             const href = assertValue($('h:a[not(starts-with(@href, "#"))]', li).attr('href'))
+            const page = this.factorio.pages.getOrAdd(href, this.absPath)
+            acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-                page: this.factorio.pages.getOrAdd(href, this.absPath)
+                page
             }
         } else {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
     }
+    /** HACK: Lazy... Maybe jsut flatten the ToC in the future */
+    async getPages() {
+        const doc = await readXmlWithSourcemap(this.absPath)
+        const ret: XHTMLPageFile[] = []
+        $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(el, ret))
+        return ret
+    }
     private selectText(sel: string, node: Dom) {
         return $$node<Text>(sel, node).map(t => t.textContent).join('')
+    }
+    async write() {
+        const doc = await readXmlWithSourcemap(this.absPath)
+
+        // Remove ToC entries that have non-Page leaves
+        $$('//h:nav//h:li[not(.//h:a)]', doc).forEach(e => e.remove())
+
+        // Unwrap chapter links and combine titles into a single span
+        $$('h:a[starts-with(@href, "#")]', doc).forEach(el => {
+            const children = $$('h:span/node()', el)
+            el.replaceWith(dom(doc, 'h:span', {}, children))
+        })
+
+        $$('h:a[not(starts-with(@href, "#")) and h:span]', doc).forEach(el => {
+            const children = $$('h:span/node()', doc)
+            el.children = [
+                dom(doc, 'h:span', {}, children)
+            ]
+        })
+        
+        // Rename the hrefs to XHTML files to their new name
+        $$('//*[@href]', doc).forEach(el => {
+            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.absPath)
+            el.attr('href', relative(dirname(this.absPath), page.newPath()))
+        })
+    
+        // Remove extra attributes
+        const attrsToRemove = [
+            'cnx-archive-shortid',
+            'cnx-archive-uri',
+            'itemprop',
+        ]
+        attrsToRemove.forEach(attrName => $$(`//*[@${attrName}]`, doc).forEach(el => el.attr(attrName, null)))
+        
+        // Add the epub:type="nav" attribute
+        $('//h:nav', doc).attr('epub:type', 'toc')
+
+        writeXmlWithSourcemap(this.newPath(), doc, XmlFormat.XHTML5)
     }
 }
 
@@ -146,7 +193,7 @@ async function fn() {
 
     const factorio = new Factorio()
 
-    const toc = factorio.tocs.getOrAdd('../test.xhtml', __filename)
+    const toc = factorio.tocs.getOrAdd('../test-toc.xhtml', __filename)
     const tocInfo = await toc.parse()
     console.log(tocInfo)
 
@@ -165,10 +212,30 @@ async function fn() {
         //   ]
         // }
 
-        first.page.rename('../test-out.xhtml', __filename)
+        // first.page.rename('../test-out.xhtml', __filename)
         pageInfo.resources[0].rename('../foo/bar.jpg', first.page.newPath())
-        await first.page.write()
+        // await first.page.write()
     } else { throw new Error('BUG: expected first child in Toc to be a Page') }
+
+
+    let allPages: XHTMLPageFile[] = []
+    const tocFiles = Array.from(factorio.tocs.all)
+    for (const tocFile of tocFiles) {
+        const pages = await tocFile.getPages()
+        allPages = [...allPages, ...pages]
+    }
+
+    allPages.forEach(p => p.rename(p.absPath.replace(':', '%3A'), undefined))
+    
+    
+    tocFiles.forEach(p => p.rename(`${p.absPath}-out.xhtml`, undefined))
+
+    for (const page of allPages) {
+        await page.write()
+    }
+    for (const tocFile of tocFiles) {
+        await tocFile.write()
+    }
 }
 
 fn().catch(err => console.error(err))

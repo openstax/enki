@@ -118,6 +118,10 @@ class XMLSerializer {
             this.w.writeText(n, `<!--${escapeText(comment.data)}-->`)
     
         } else if (n.nodeType === n.ATTRIBUTE_NODE) {
+            const attr = n as Attr
+            if (attr.prefix && attr.prefix !== 'xmlns') {
+                this.w.writeText(n, ` xmlns:${attr.prefix}="${escapeAttribute(assertValue(attr.namespaceURI))}"`)
+            }
             this.w.writeText(n, ` ${n.nodeName}="${escapeAttribute(n.nodeValue || '')}"`)
     
         } else if (n.nodeType === n.ELEMENT_NODE) {
@@ -126,7 +130,7 @@ class XMLSerializer {
             const localTag = el.tagName
             const newDefaultNamespace = el.prefix ? currentDefaultNamespace : el.namespaceURI
             this.w.writeText(n, `<${prefixedTag}`)
-            if (newDefaultNamespace !== currentDefaultNamespace) {
+            if (newDefaultNamespace !== currentDefaultNamespace && !el.getAttribute('xmlns')) {
                 this.w.writeText(n, ` xmlns="${escapeAttribute(assertValue(newDefaultNamespace))}"`)
             }
             for (const attr of Array.from(el.attributes)) {

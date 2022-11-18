@@ -52,16 +52,19 @@ export class Dom {
     remove() { this.el.parentNode?.removeChild(this.el) }
     replaceWith(newNode: Node | Dom) { assertValue(this.el.parentNode).replaceChild(newNode instanceof Dom ? newNode.el : newNode, this.el)}
     set attrs(attrs: Attrs) {
-        Object.entries(attrs).forEach(([name, value]) => this.el.setAttribute(name, value as string))
+        Object.entries(attrs).forEach(([name, value]) => this.attr(name, value as string))
     }
     get attrs(): Attrs { 
         return Array.from(this.el.attributes).reduce((o, attr) => Object.assign(o, {[attr.name]: attr.value}), {})
     }
     /** Get/Set/Remove a single attribute. To remove the attribute pass in `null` for the `newValue` */
     attr(name: string, newValue?: string | null) {
-        const old = this.el.getAttribute(name)
-        if (newValue === null) this.el.removeAttribute(name)
-        else if (newValue !== undefined) this.el.setAttribute(name, newValue)
+        const [localName, prefix] = name.split(':').reverse()
+        const ns = (NAMESPACES as any)[prefix]
+
+        const old = this.el.getAttributeNS(ns, localName)
+        if (newValue === null) this.el.removeAttributeNS(ns, localName)
+        else if (newValue !== undefined) this.el.setAttributeNS(ns, name, newValue)
         return old
     }
     get tagName() { return this.el.tagName }
@@ -104,7 +107,8 @@ export const NAMESPACES = {
     'c': 'http://cnx.rice.edu/cnxml',
     'md': 'http://cnx.rice.edu/mdml',
     'h': 'http://www.w3.org/1999/xhtml',
-    'm': 'http://www.w3.org/1998/Math/MathML'
+    'm': 'http://www.w3.org/1998/Math/MathML',
+    'epub': 'http://www.idpf.org/2007/ops'
 }
 
 const xpathSelect = useNamespaces(NAMESPACES)
