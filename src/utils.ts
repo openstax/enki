@@ -51,7 +51,7 @@ function visit(n: Node, visitor: (n: Node) => void) {
     }
 }
 
-function parseXml(fileContent: string, _filename: string) {
+export function parseXml(fileContent: string, _filename: string) {
     const locator = { lineNumber: 0, columnNumber: 0 }
     const cb = () => {
         const pos = {
@@ -137,9 +137,9 @@ class XMLSerializer {
                 this.recWrite(attr, newDefaultNamespace)
             }
             if (isSelfClosing(this.format, localTag, el.namespaceURI)) {
-                assertTrue(el.childElementCount === 0 || el.childElementCount === undefined)
+                assertTrue(el.childNodes.length === 0)
                 this.w.writeText(n, '/>')
-            } else if (el.childElementCount === 0) {
+            } else if (el.childNodes.length === 0) {
                 this.w.writeText(n, '/>')
             } else {
                 this.w.writeText(n, '>')

@@ -104,11 +104,14 @@ export function $$node<T>(xpath: string, parent: Node | Dom) {
 }
 
 export const NAMESPACES = {
-    'c': 'http://cnx.rice.edu/cnxml',
-    'md': 'http://cnx.rice.edu/mdml',
-    'h': 'http://www.w3.org/1999/xhtml',
-    'm': 'http://www.w3.org/1998/Math/MathML',
-    'epub': 'http://www.idpf.org/2007/ops'
+    c: 'http://cnx.rice.edu/cnxml',
+    md: 'http://cnx.rice.edu/mdml',
+    h: 'http://www.w3.org/1999/xhtml',
+    m: 'http://www.w3.org/1998/Math/MathML',
+    epub: 'http://www.idpf.org/2007/ops',
+    ncx: 'http://www.daisy.org/z3986/2005/ncx/',
+    opf: 'http://www.idpf.org/2007/opf',
+    dc: 'http://purl.org/dc/elements/1.1/'
 }
 
 const xpathSelect = useNamespaces(NAMESPACES)
