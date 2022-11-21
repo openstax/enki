@@ -1,0 +1,9 @@
+{
+    "title": "TestBookTitle",
+    "revised": "2000-01-01T01:23:45+00:00",
+    "slug": "testbookslug",
+    "license": {
+        "url": "http://example.com/someproprietarylicense"
+    },
+    "language": "eo"
+}

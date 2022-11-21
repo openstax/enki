@@ -15,12 +15,12 @@ class Factorio {
 
 abstract class File {
     private _newPath: Opt<string>
-    constructor(protected readonly factorio: Factorio, public readonly absPath: string) { }
+    constructor(protected readonly factorio: Factorio, public readonly origPath: string) { }
     rename(relPath: string, relTo: Opt<string>) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
     }
     public newPath() {
-        return this._newPath || this.absPath
+        return this._newPath || this.origPath
     }
 }
 
@@ -30,7 +30,7 @@ abstract class XMLFile extends File {
     }
     protected abstract transform(doc: Document): void
     public async write() {
-        const doc = await readXmlWithSourcemap(this.absPath)
+        const doc = await readXmlWithSourcemap(this.origPath)
         this.transform(doc)
         writeXmlWithSourcemap(this.newPath(), doc, XmlFormat.XHTML5)
     }
@@ -39,7 +39,7 @@ abstract class XMLFile extends File {
 class ResourceFile extends File {
 
     async parse() {
-        const metadataFile = `${this.absPath}.json`
+        const metadataFile = `${this.origPath}.json`
         const json = JSON.parse(readFileSync(metadataFile, 'utf-8'))
         return {
             mimeType: json.mime_type as string,
@@ -63,7 +63,7 @@ type PropsAndResources = {
 }
 class XHTMLPageFile extends XMLFile {
     async parse(): Promise<PropsAndResources> {
-        const doc = await readXmlWithSourcemap(this.absPath)
+        const doc = await readXmlWithSourcemap(this.origPath)
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(doc, sel, attrName)).flat()
         return {
             hasMathML: $$('//m:math', doc).length > 0,
@@ -73,12 +73,12 @@ class XHTMLPageFile extends XMLFile {
         }
     }
     private resourceFinder(node: Node, sel: string, attrName: string) {
-        return $$(sel, node).map(img => this.factorio.resources.getOrAdd(assertValue(img.attr(attrName)), this.absPath))
+        return $$(sel, node).map(img => this.factorio.resources.getOrAdd(assertValue(img.attr(attrName)), this.origPath))
     }
     private resourceRenamer(node: Node, sel: string, attrName: string) {
         const resources = $$(sel, node)
         for (const node of resources) {
-            const resource = this.factorio.resources.getOrAdd(assertValue(node.attr(attrName)), this.absPath)
+            const resource = this.factorio.resources.getOrAdd(assertValue(node.attr(attrName)), this.origPath)
             node.attr(attrName, this.relativeToMe(resource.newPath()))
         }
     }
@@ -148,7 +148,7 @@ type TocTree = {
 }
 class XHTMLTocFile extends XMLFile {
     async parse(): Promise<TocTree[]> {
-        const doc = await readXmlWithSourcemap(this.absPath)
+        const doc = await readXmlWithSourcemap(this.origPath)
         const tree = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
         return tree
     }
@@ -163,7 +163,7 @@ class XHTMLTocFile extends XMLFile {
             }
         } else if ($$('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
             const href = assertValue($('h:a[not(starts-with(@href, "#"))]', li).attr('href'))
-            const page = this.factorio.pages.getOrAdd(href, this.absPath)
+            const page = this.factorio.pages.getOrAdd(href, this.origPath)
             acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
@@ -186,6 +186,17 @@ class XHTMLTocFile extends XMLFile {
             toc.children.forEach(c => this.getPagesFromToc(c, acc))
         }
         return acc
+    }
+    async parseMetadata() {
+        const metadataFile = this.origPath.replace('.toc.xhtml', '.toc-metadata.json')
+        const json = JSON.parse(readFileSync(metadataFile, 'utf-8'))
+        return {
+            title: json.title as string,
+            revised: json.revised as string,
+            slug: json.slug as string,
+            licenseUrl: json.license.url as string,
+            language: json.language as string,
+        }
     }
     
     private selectText(sel: string, node: Dom) {
@@ -210,7 +221,7 @@ class XHTMLTocFile extends XMLFile {
         
         // Rename the hrefs to XHTML files to their new name
         $$('//*[@href]', doc).forEach(el => {
-            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.absPath)
+            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.origPath)
             el.attr('href', this.relativeToMe(page.newPath()))
         })
     
@@ -227,7 +238,7 @@ class XHTMLTocFile extends XMLFile {
     }
 
     public async writeOPFFile(destPath: string) {
-        const inDoc = await readXmlWithSourcemap(this.absPath)
+        const inDoc = await readXmlWithSourcemap(this.origPath)
         const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
         const pkg = $('opf:package', doc)
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
@@ -269,15 +280,19 @@ class XHTMLTocFile extends XMLFile {
         }
 
         
+        const bookMetadata = await this.parseMetadata()
+        // Remove the timezone from the revised_date
+        const revised = bookMetadata.revised.replace('+00:00', 'Z')
+    
     
         pkg.children = [ dom(doc, 'opf:metadata', {}, [
-            dom(doc, 'dc:title', {}, [ 'Astronomy 2e']),
-            dom(doc, 'dc:language', {}, ['en']),
-            dom(doc, 'opf:meta', {property: 'dcterms:modified'}, [ '2022-10-19T15:39:18Z']),
-            dom(doc, 'opf:meta', {property: 'dcterms:license'}, [ 'http://creativecommons.org/licenses/by/4.0/']),
+            dom(doc, 'dc:title', {}, [ bookMetadata.title ]),
+            dom(doc, 'dc:language', {}, [bookMetadata.language]),
+            dom(doc, 'opf:meta', {property: 'dcterms:modified'}, [ revised]),
+            dom(doc, 'opf:meta', {property: 'dcterms:license'}, [ bookMetadata.licenseUrl]),
             // dom(doc, 'opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
-            dom(doc, 'dc:identifier', {id: 'uid'}, ['dummy-cnx.org-id.astronomy-2e']),
-            dom(doc, 'dc:creator', {}, []),
+            dom(doc, 'dc:identifier', {id: 'uid'}, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
+            dom(doc, 'dc:creator', {}, ['Is it OpenStax???']),
         ]), dom(doc, 'opf:manifest', {}, [
             dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
             dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: this.newPath()}),
@@ -294,7 +309,7 @@ async function fn() {
 
     const factorio = new Factorio()
 
-    const toc = factorio.tocs.getOrAdd('../test-toc.xhtml', __filename)
+    const toc = factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
     const tocInfo = await toc.parse()
     console.log(tocInfo)
 
@@ -326,10 +341,10 @@ async function fn() {
         allPages = [...allPages, ...pages]
     }
 
-    allPages.forEach(p => p.rename(p.absPath.replace(':', '%3A'), undefined))
+    allPages.forEach(p => p.rename(p.origPath.replace(':', '%3A'), undefined))
     
     
-    tocFiles.forEach(p => p.rename(`${p.absPath}-out.xhtml`, undefined))
+    tocFiles.forEach(p => p.rename(`${p.origPath}-out.xhtml`, undefined))
 
     for (const page of allPages) {
         await page.write()
