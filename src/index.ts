@@ -33,7 +33,7 @@ async function fn() {
         // }
 
         // first.page.rename('../test-out.xhtml', __filename)
-        pageInfo.resources[0].rename('../foo/bar.jpg', first.page.newPath())
+        pageInfo.resources[0].rename('../foo/bar.jpg', first.page.newPath)
         // await first.page.write()
     } else { throw new Error('BUG: expected first child in Toc to be a Page') }
 
@@ -45,10 +45,10 @@ async function fn() {
         allPages = [...allPages, ...pages]
     }
 
-    allPages.forEach(p => p.rename(p.newPath().replace(':', '%3A'), undefined))
+    allPages.forEach(p => p.rename(p.newPath.replace(':', '%3A'), undefined))
     
     
-    tocFiles.forEach(p => p.rename(`${p.newPath()}-out.xhtml`, undefined))
+    tocFiles.forEach(p => p.rename(`${p.newPath}-out.xhtml`, undefined))
 
     for (const page of allPages) {
         await page.write()

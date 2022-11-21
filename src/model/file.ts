@@ -21,11 +21,11 @@ export class Factorio {
 
 export abstract class File {
     private _newPath: Opt<string>
-    constructor(protected readonly factorio: Factorio, public readonly readPath: string) { }
+    constructor(protected readonly factorio: Factorio, protected readonly readPath: string) { }
     rename(relPath: string, relTo: Opt<string>) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
     }
-    public newPath() {
+    public get newPath() {
         return this._newPath || this.readPath
     }
     public readJson<T>(file: string) { return JSON.parse(readFileSync(file, 'utf-8')) as T }
@@ -33,7 +33,7 @@ export abstract class File {
 
 export abstract class XMLFile extends File {
     protected relativeToMe(absPath: string) {
-        return relative(dirname(this.newPath()), absPath)
+        return relative(dirname(this.newPath), absPath)
     }
     protected abstract transform(doc: Document): void
     
@@ -43,7 +43,7 @@ export abstract class XMLFile extends File {
     public async write() {
         const doc = await this.readXml(this.readPath)
         this.transform(doc)
-        this.writeXml(this.newPath(), doc, XmlFormat.XHTML5)
+        this.writeXml(this.newPath, doc, XmlFormat.XHTML5)
     }
 }
 

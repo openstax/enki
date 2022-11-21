@@ -109,7 +109,7 @@ export class TocFile extends XMLFile {
         // Rename the hrefs to XHTML files to their new name
         $$('//*[@href]', doc).forEach(el => {
             const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.readPath)
-            el.attr('href', this.relativeToMe(page.newPath()))
+            el.attr('href', this.relativeToMe(page.newPath))
         })
     
         // Remove extra attributes
@@ -156,9 +156,9 @@ export class TocFile extends XMLFile {
 
             bookItems.push(dom(doc, 'opf:item', {
                 'media-type': 'application/xhtml+xml', 
-                id: `idxhtml_${basename(page.newPath())}`, 
+                id: `idxhtml_${basename(page.newPath)}`, 
                 properties: props.join(' '), 
-                href: relative(dirname(destPath), page.newPath())}),)
+                href: relative(dirname(destPath), page.newPath)}),)
             
             for(const r of p.resources) {
                 allResources.add(r)
@@ -170,12 +170,12 @@ export class TocFile extends XMLFile {
             const {mimeType, originalExtension} = await resource.parse()
 
             let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
-            resource.rename(`${resource.newPath()}.${newExtension}`, undefined)
+            resource.rename(`${resource.newPath}.${newExtension}`, undefined)
 
             bookItems.push(dom(doc, 'opf:item', {
                 'media-type': mimeType, 
                 id: `idresource_${i}`, 
-                href: relative(dirname(destPath), resource.newPath())}),)
+                href: relative(dirname(destPath), resource.newPath)}),)
             i++
         }
 
@@ -195,7 +195,7 @@ export class TocFile extends XMLFile {
             dom(doc, 'dc:creator', {}, ['Is it OpenStax???']),
         ]), dom(doc, 'opf:manifest', {}, [
             dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
-            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath())}),
+            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath)}),
             ...bookItems
         ])]
     

@@ -36,7 +36,7 @@ export class PageFile extends XMLFile {
         const resources = $$(sel, node)
         for (const node of resources) {
             const resource = this.factorio.resources.getOrAdd(assertValue(node.attr(attrName)), this.readPath)
-            node.attr(attrName, this.relativeToMe(resource.newPath()))
+            node.attr(attrName, this.relativeToMe(resource.newPath))
         }
     }
     protected transform(doc: Document) {
