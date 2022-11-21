@@ -45,10 +45,10 @@ async function fn() {
         allPages = [...allPages, ...pages]
     }
 
-    allPages.forEach(p => p.rename(p.origPath.replace(':', '%3A'), undefined))
+    allPages.forEach(p => p.rename(p.newPath().replace(':', '%3A'), undefined))
     
     
-    tocFiles.forEach(p => p.rename(`${p.origPath}-out.xhtml`, undefined))
+    tocFiles.forEach(p => p.rename(`${p.newPath()}-out.xhtml`, undefined))
 
     for (const page of allPages) {
         await page.write()

@@ -1,7 +1,6 @@
-import { readFileSync } from 'fs';
 import { relative, dirname, basename } from 'path'
 import { $, $$, $$node, Dom, dom } from '../minidom'
-import { assertValue, parseXml, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
+import { assertValue, parseXml, readXmlWithSourcemap, XmlFormat } from '../utils'
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
 
@@ -36,7 +35,7 @@ export type TocTree = {
 }
 export class TocFile extends XMLFile {
     async parse(): Promise<TocTree[]> {
-        const doc = await readXmlWithSourcemap(this.origPath)
+        const doc = await readXmlWithSourcemap(this.readPath)
         const tree = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
         return tree
     }
@@ -51,7 +50,7 @@ export class TocFile extends XMLFile {
             }
         } else if ($$('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
             const href = assertValue($('h:a[not(starts-with(@href, "#"))]', li).attr('href'))
-            const page = this.factorio.pages.getOrAdd(href, this.origPath)
+            const page = this.factorio.pages.getOrAdd(href, this.readPath)
             acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
@@ -76,8 +75,8 @@ export class TocFile extends XMLFile {
         return acc
     }
     async parseMetadata() {
-        const metadataFile = this.origPath.replace('.toc.xhtml', '.toc-metadata.json')
-        const json = JSON.parse(readFileSync(metadataFile, 'utf-8'))
+        const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
+        const json = this.readJson<any>(metadataFile)
         return {
             title: json.title as string,
             revised: json.revised as string,
@@ -109,7 +108,7 @@ export class TocFile extends XMLFile {
         
         // Rename the hrefs to XHTML files to their new name
         $$('//*[@href]', doc).forEach(el => {
-            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.origPath)
+            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.readPath)
             el.attr('href', this.relativeToMe(page.newPath()))
         })
     
@@ -126,7 +125,7 @@ export class TocFile extends XMLFile {
     }
 
     public async writeOPFFile(destPath: string) {
-        const inDoc = await readXmlWithSourcemap(this.origPath)
+        const inDoc = await readXmlWithSourcemap(this.readPath)
         const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
         const pkg = $('opf:package', doc)
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
@@ -200,7 +199,7 @@ export class TocFile extends XMLFile {
             ...bookItems
         ])]
     
-        writeXmlWithSourcemap(destPath, doc, XmlFormat.XHTML5)
+        this.writeXml(destPath, doc, XmlFormat.XHTML5)
     }
 
 }

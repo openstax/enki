@@ -21,13 +21,14 @@ export class Factorio {
 
 export abstract class File {
     private _newPath: Opt<string>
-    constructor(protected readonly factorio: Factorio, public readonly origPath: string) { }
+    constructor(protected readonly factorio: Factorio, public readonly readPath: string) { }
     rename(relPath: string, relTo: Opt<string>) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
     }
     public newPath() {
-        return this._newPath || this.origPath
+        return this._newPath || this.readPath
     }
+    public readJson<T>(file: string) { return JSON.parse(readFileSync(file, 'utf-8')) as T }
 }
 
 export abstract class XMLFile extends File {
@@ -35,18 +36,22 @@ export abstract class XMLFile extends File {
         return relative(dirname(this.newPath()), absPath)
     }
     protected abstract transform(doc: Document): void
+    
+    public async readXml(file: string): Promise<Document> { return readXmlWithSourcemap(file) }
+    public async writeXml(file: string, doc: Document, format: XmlFormat) { writeXmlWithSourcemap(file, doc, format) }
+
     public async write() {
-        const doc = await readXmlWithSourcemap(this.origPath)
+        const doc = await this.readXml(this.readPath)
         this.transform(doc)
-        writeXmlWithSourcemap(this.newPath(), doc, XmlFormat.XHTML5)
+        this.writeXml(this.newPath(), doc, XmlFormat.XHTML5)
     }
 }
 
 export class ResourceFile extends File {
 
     async parse() {
-        const metadataFile = `${this.origPath}.json`
-        const json = JSON.parse(readFileSync(metadataFile, 'utf-8'))
+        const metadataFile = `${this.readPath}.json`
+        const json = this.readJson<any>(metadataFile)
         return {
             mimeType: json.mime_type as string,
             originalExtension: json.original_name.split('.').reverse()[0] as string
