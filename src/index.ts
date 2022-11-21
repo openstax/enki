@@ -1,4 +1,5 @@
-import { resolve, relative, join, dirname } from 'path'
+import { readFileSync } from 'fs';
+import { resolve, relative, join, dirname, basename } from 'path'
 import * as sourceMapSupport from 'source-map-support';
 import { Factory, Opt } from './factory'
 import { $, $$, $$node, Dom, dom } from './minidom'
@@ -35,7 +36,17 @@ abstract class XMLFile extends File {
     }
 }
 
-class ResourceFile extends File { }
+class ResourceFile extends File {
+
+    async parse() {
+        const metadataFile = `${this.absPath}.json`
+        const json = JSON.parse(readFileSync(metadataFile, 'utf-8'))
+        return {
+            mimeType: json.mime_type as string,
+            originalExtension: json.original_name.split('.').reverse()[0] as string
+        }
+    }
+}
 
 const RESOURCE_SELECTORS: Array<[string, string]> = [
     [ '//h:img', 'src'],
@@ -106,6 +117,22 @@ class XHTMLPageFile extends XMLFile {
     }
 }
 
+const mimetypeExtensions: {[k: string]: string} = {
+    'image/jpeg':         'jpeg',
+    'image/png':          'png',
+    'image/gif':          'gif',
+    'image/tiff':         'tiff',
+    'image/svg+xml':      'svg',
+    'audio/mpeg':         'mpg',
+    'audio/basic':        'au',
+    'application/pdf':    'pdf',
+    'application/zip':    'zip',
+    'audio/midi':         'midi',
+    'audio/x-wav':        'wav',
+    // 'text/plain':         'txt',
+    'application/x-shockwave-flash': 'swf',
+    // 'application/octet-stream':
+}
 enum TocTreeType {
     INNER = 'INNER',
     LEAF = 'LEAF'
@@ -147,13 +174,20 @@ class XHTMLTocFile extends XMLFile {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
     }
-    /** HACK: Lazy... Maybe jsut flatten the ToC in the future */
-    async getPages() {
-        const doc = await readXmlWithSourcemap(this.absPath)
+    protected getPagesFromDoc(doc: Document) {
         const ret: XHTMLPageFile[] = []
         $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(el, ret))
         return ret
     }
+    public getPagesFromToc(toc: TocTree, acc: XHTMLPageFile[] = []) {
+        if (toc.type === TocTreeType.LEAF) {
+            acc?.push(toc.page)
+        } else {
+            toc.children.forEach(c => this.getPagesFromToc(c, acc))
+        }
+        return acc
+    }
+    
     private selectText(sel: string, node: Dom) {
         return $$node<Text>(sel, node).map(t => t.textContent).join('')
     }
@@ -191,30 +225,68 @@ class XHTMLTocFile extends XMLFile {
         // Add the epub:type="nav" attribute
         $('//h:nav', doc).attr('epub:type', 'toc')
     }
-}
 
-function createOpfDoc(/*tocDoc: Document, metadataJson: any, collectionDoc: Document, */) {
-    const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
-    const pkg = $('opf:package', doc)
-    pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
+    public async writeOPFFile(destPath: string) {
+        const inDoc = await readXmlWithSourcemap(this.absPath)
+        const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
+        const pkg = $('opf:package', doc)
+        pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
+    
+        const allPages = new Set(this.getPagesFromDoc(inDoc))
+        const allResources: Set<ResourceFile> = new Set()
+        /* TODO: keep looking through XHTML file links and add those to the set of allPages */
+        const bookItems: Dom[] = []
+        for (const page of allPages) {
+            const p = await page.parse()
+            const props: string[] = []
+            if (p.hasMathML) props.push('mathml')
+            if (p.hasRemoteResources) props.push('remote-resources')
+            if (p.hasScripts) props.push('scripted')
 
-    pkg.children = [ dom(doc, 'opf:metadata', {}, [
-        dom(doc, 'dc:title', {}, [ 'Astronomy 2e']),
-        dom(doc, 'dc:language', {}, ['en']),
-        dom(doc, 'opf:meta', {property: 'dcterms:modified'}, [ '2022-10-19T15:39:18Z']),
-        dom(doc, 'opf:meta', {property: 'dcterms:license'}, [ 'http://creativecommons.org/licenses/by/4.0/']),
-        // dom(doc, 'opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
-        dom(doc, 'dc:identifier', {id: 'uid'}, ['dummy-cnx.org-id.astronomy-2e']),
-        dom(doc, 'dc:creator', {}, []),
-    ]), dom(doc, 'opf:manifest', {}, [
-        dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
-        // <item properties="nav" id="nav" href="astronomy-2e.toc.xhtml" media-type="application/xhtml+xml" />
-        // <item id="the-ncx-file" href="astronomy-2e.toc.ncx"  media-type="application/x-dtbncx+xml"/>
-        // <item id="just-the-book-style" href="the-style-epub.css" media-type="text/css" />
-        // <item  id="idxhtml_-dot--slash-4c29f9e5-a53d-42c0-bdb5-091990527d79-at-371880b-colon-b795b4f7-3318-4419-a338-8f5eeb0874ee-dot-xhtml" href="4c29f9e5-a53d-42c0-bdb5-091990527d79@371880b%3Ab795b4f7-3318-4419-a338-8f5eeb0874ee.xhtml" media-type="application/xhtml+xml"/>
-    ])]
+            bookItems.push(dom(doc, 'opf:item', {
+                'media-type': 'application/xhtml+xml', 
+                id: `idxhtml_${basename(page.newPath())}`, 
+                properties: props.join(' '), 
+                href: relative(dirname(destPath), page.newPath())}),)
+            
+            for(const r of p.resources) {
+                allResources.add(r)
+            }
+        }
 
-    return doc
+        let i = 0
+        for (const resource of allResources) {
+            const {mimeType, originalExtension} = await resource.parse()
+
+            let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
+            resource.rename(`${resource.newPath()}.${newExtension}`, undefined)
+
+            bookItems.push(dom(doc, 'opf:item', {
+                'media-type': mimeType, 
+                id: `idresource_${i}`, 
+                href: relative(dirname(destPath), resource.newPath())}),)
+            i++
+        }
+
+        
+    
+        pkg.children = [ dom(doc, 'opf:metadata', {}, [
+            dom(doc, 'dc:title', {}, [ 'Astronomy 2e']),
+            dom(doc, 'dc:language', {}, ['en']),
+            dom(doc, 'opf:meta', {property: 'dcterms:modified'}, [ '2022-10-19T15:39:18Z']),
+            dom(doc, 'opf:meta', {property: 'dcterms:license'}, [ 'http://creativecommons.org/licenses/by/4.0/']),
+            // dom(doc, 'opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
+            dom(doc, 'dc:identifier', {id: 'uid'}, ['dummy-cnx.org-id.astronomy-2e']),
+            dom(doc, 'dc:creator', {}, []),
+        ]), dom(doc, 'opf:manifest', {}, [
+            dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
+            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: this.newPath()}),
+            ...bookItems
+        ])]
+    
+        writeXmlWithSourcemap(destPath, doc, XmlFormat.XHTML5)
+    }
+
 }
 
 
@@ -250,7 +322,7 @@ async function fn() {
     let allPages: XHTMLPageFile[] = []
     const tocFiles = Array.from(factorio.tocs.all)
     for (const tocFile of tocFiles) {
-        const pages = await tocFile.getPages()
+        const pages = (await tocFile.parse()).map(t => tocFile.getPagesFromToc(t)).flat()
         allPages = [...allPages, ...pages]
     }
 
@@ -264,9 +336,8 @@ async function fn() {
     }
     for (const tocFile of tocFiles) {
         await tocFile.write()
-        const opf = createOpfDoc()
-        writeXmlWithSourcemap('foo.opf', opf, XmlFormat.XML)
-    }
+        await tocFile.writeOPFFile('foo.opf')
+   }
 }
 
 fn().catch(err => console.error(err))
