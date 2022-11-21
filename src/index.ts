@@ -59,16 +59,19 @@ type PropsAndResources = {
     hasMathML: boolean
     hasRemoteResources: boolean
     hasScripts: boolean
+    pageLinks: XHTMLPageFile[]
     resources: ResourceFile[]
 }
 class XHTMLPageFile extends XMLFile {
     async parse(): Promise<PropsAndResources> {
         const doc = await readXmlWithSourcemap(this.origPath)
+        const pageLinks = $$('//h:a', doc).map(a => this.factorio.pages.getOrAdd(assertValue(a.attr('href')), this.origPath))
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(doc, sel, attrName)).flat()
         return {
             hasMathML: $$('//m:math', doc).length > 0,
             hasRemoteResources: $$('//h:iframe|//h:object/h:embed', doc).length > 0,
             hasScripts: $$('//h:script', doc).length > 0,
+            pageLinks,
             resources
         }
     }
@@ -243,9 +246,22 @@ class XHTMLTocFile extends XMLFile {
         const pkg = $('opf:package', doc)
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
     
-        const allPages = new Set(this.getPagesFromDoc(inDoc))
+        const allPages = new Set<XHTMLPageFile>()
         const allResources: Set<ResourceFile> = new Set()
-        /* TODO: keep looking through XHTML file links and add those to the set of allPages */
+        
+        // keep looking through XHTML file links and add those to the set of allPages
+        async function recPages(allPages: Set<XHTMLPageFile>, allResources: Set<ResourceFile>, page: XHTMLPageFile) {
+            if (allPages.has(page)) return
+            const p = await page.parse()
+            for (const r of p.resources) { allResources.add(r) }
+            for (const c of p.pageLinks) {
+                await recPages(allPages, allResources, c)
+            }
+        }
+        for (const page of this.getPagesFromDoc(inDoc)) {
+            recPages(allPages, allResources, page)
+        }
+
         const bookItems: Dom[] = []
         for (const page of allPages) {
             const p = await page.parse()
@@ -295,7 +311,7 @@ class XHTMLTocFile extends XMLFile {
             dom(doc, 'dc:creator', {}, ['Is it OpenStax???']),
         ]), dom(doc, 'opf:manifest', {}, [
             dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
-            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: this.newPath()}),
+            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath())}),
             ...bookItems
         ])]
     
