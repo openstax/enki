@@ -33,11 +33,40 @@ export type TocTree = {
     title: string
     page: PageFile
 }
-export class TocFile extends XMLFile {
-    async parse(): Promise<TocTree[]> {
+type TocData = {
+    toc: TocTree[]
+    allPages: Set<PageFile>
+    allResources: Set<ResourceFile>
+}
+export class TocFile extends XMLFile<TocData> {
+    protected async innerParse() {
         const doc = await readXmlWithSourcemap(this.readPath)
-        const tree = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
-        return tree
+        const toc = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
+
+        const allPages = new Set<PageFile>()
+        const allResources = new Set<ResourceFile>()
+
+        // keep looking through XHTML file links and add those to the set of allPages
+        async function recPages(page: PageFile) {
+            if (allPages.has(page)) return
+            await page.parse()
+            allPages.add(page)
+            const p = page.data
+            for (const r of p.resources) { await r.parse(); allResources.add(r) }
+            for (const c of p.pageLinks) {
+                await recPages(c)
+            }
+        }
+        const tocPages: PageFile[] = []
+        $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(el, tocPages))
+
+        for (const page of tocPages) {
+            await recPages(page)
+        }
+        
+        return {
+            toc, allPages, allResources
+        }
     }
     private buildChildren(li: Dom, acc?: PageFile[]): TocTree {
         // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
@@ -60,11 +89,6 @@ export class TocFile extends XMLFile {
         } else {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
-    }
-    protected getPagesFromDoc(doc: Document) {
-        const ret: PageFile[] = []
-        $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(el, ret))
-        return ret
     }
     public getPagesFromToc(toc: TocTree, acc: PageFile[] = []) {
         if (toc.type === TocTreeType.LEAF) {
@@ -125,30 +149,15 @@ export class TocFile extends XMLFile {
     }
 
     public async writeOPFFile(destPath: string) {
-        const inDoc = await readXmlWithSourcemap(this.readPath)
         const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
         const pkg = $('opf:package', doc)
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
     
-        const allPages = new Set<PageFile>()
-        const allResources: Set<ResourceFile> = new Set()
+        const { allPages, allResources} = this.data
         
-        // keep looking through XHTML file links and add those to the set of allPages
-        async function recPages(allPages: Set<PageFile>, allResources: Set<ResourceFile>, page: PageFile) {
-            if (allPages.has(page)) return
-            const p = await page.parse()
-            for (const r of p.resources) { allResources.add(r) }
-            for (const c of p.pageLinks) {
-                await recPages(allPages, allResources, c)
-            }
-        }
-        for (const page of this.getPagesFromDoc(inDoc)) {
-            recPages(allPages, allResources, page)
-        }
-
         const bookItems: Dom[] = []
         for (const page of allPages) {
-            const p = await page.parse()
+            const p = page.data
             const props: string[] = []
             if (p.hasMathML) props.push('mathml')
             if (p.hasRemoteResources) props.push('remote-resources')
@@ -167,7 +176,7 @@ export class TocFile extends XMLFile {
 
         let i = 0
         for (const resource of allResources) {
-            const {mimeType, originalExtension} = await resource.parse()
+            const {mimeType, originalExtension} = resource.data
 
             let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
             resource.rename(`${resource.newPath}.${newExtension}`, undefined)

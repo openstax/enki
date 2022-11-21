@@ -13,13 +13,16 @@ async function fn() {
         absPath => new ResourceFile(factorio, absPath),
     )
 
+    // const toc = factorio.tocs.getOrAdd('../data/astronomy/_attic/IO_DISASSEMBLE_LINKED/astronomy-2e.toc.xhtml', __filename)
     const toc = factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
-    const tocInfo = await toc.parse()
+    await toc.parse()
+    const tocInfo = toc.data.toc
     console.log(tocInfo)
 
     const first = tocInfo[0]
     if (first.type === TocTreeType.LEAF) {
-        const pageInfo = await first.page.parse()
+        await first.page.parse()
+        const pageInfo = first.page.data
         console.log(pageInfo)
         // {
         //   hasMathML: true,
@@ -41,7 +44,8 @@ async function fn() {
     let allPages: PageFile[] = []
     const tocFiles = Array.from(factorio.tocs.all)
     for (const tocFile of tocFiles) {
-        const pages = (await tocFile.parse()).map(t => tocFile.getPagesFromToc(t)).flat()
+        await tocFile.parse()
+        const pages = tocFile.data.toc.map(t => tocFile.getPagesFromToc(t)).flat()
         allPages = [...allPages, ...pages]
     }
 

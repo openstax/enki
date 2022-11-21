@@ -9,17 +9,20 @@ const RESOURCE_SELECTORS: Array<[string, string]> = [
     [ '//h:embed', 'src'],
 ]
 
-export type PropsAndResources = {
+export type PageData = {
     hasMathML: boolean
     hasRemoteResources: boolean
     hasScripts: boolean
     pageLinks: PageFile[]
     resources: ResourceFile[]
 }
-export class PageFile extends XMLFile {
-    async parse(): Promise<PropsAndResources> {
+export class PageFile extends XMLFile<PageData> {
+    protected async innerParse() {
         const doc = await readXmlWithSourcemap(this.readPath)
-        const pageLinks = $$('//h:a', doc).map(a => this.factorio.pages.getOrAdd(assertValue(a.attr('href')), this.readPath))
+        const pageLinks = $$('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', doc).map(a => {
+            const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
+            return this.factorio.pages.getOrAdd(u.pathname, this.readPath)
+        })
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(doc, sel, attrName)).flat()
         return {
             hasMathML: $$('//m:math', doc).length > 0,

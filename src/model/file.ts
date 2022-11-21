@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
 import { Factory, Opt } from './factory'
-import { readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
+import { assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
 import type { PageFile } from './page';
 import type { TocFile } from './toc';
 
@@ -19,8 +19,9 @@ export class Factorio {
     }
 }
 
-export abstract class File {
+export abstract class File<T> {
     private _newPath: Opt<string>
+    private _data: Opt<T>
     constructor(protected readonly factorio: Factorio, protected readonly readPath: string) { }
     rename(relPath: string, relTo: Opt<string>) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
@@ -29,9 +30,24 @@ export abstract class File {
         return this._newPath || this.readPath
     }
     public readJson<T>(file: string) { return JSON.parse(readFileSync(file, 'utf-8')) as T }
+
+    public get data() {
+        return assertValue(this._data, `BUG: File has not been parsed yet: '${this.readPath}'`)
+    }
+
+    protected abstract innerParse(): Promise<T>
+    public async parse() {
+        if (this._data !== undefined) {
+            console.warn(`BUG? Attempting to parse a file a second time: '${this.readPath}'`)
+            return
+        }
+        const d = await this.innerParse()
+        this._data = d
+        // return d
+    }
 }
 
-export abstract class XMLFile extends File {
+export abstract class XMLFile<T> extends File<T> {
     protected relativeToMe(absPath: string) {
         return relative(dirname(this.newPath), absPath)
     }
@@ -47,10 +63,14 @@ export abstract class XMLFile extends File {
     }
 }
 
-export class ResourceFile extends File {
+export type ResourceData = {
+    mimeType: string
+    originalExtension: string
+}
+export class ResourceFile extends File<ResourceData> {
 
-    async parse() {
-        const metadataFile = `${this.readPath}.json`
+    protected async innerParse() {
+        const metadataFile = `${this.readPath}.json`.replace('/resources/', '/IO_RESOURCES/')
         const json = this.readJson<any>(metadataFile)
         return {
             mimeType: json.mime_type as string,
