@@ -114,8 +114,7 @@ export class TocFile extends XMLFile<TocData> {
     private selectText(sel: string, node: Dom) {
         return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
-    protected transform(d: Document) {
-        const doc = dom(d)
+    protected transform(doc: Dom) {
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
         doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())

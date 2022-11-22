@@ -1,5 +1,7 @@
 import { readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
+import type { Dom } from '../minidom';
+import { dom } from '../minidom';
 import { assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
 import type { Factory, Opt } from './factory';
 import type { PageFile } from './page';
@@ -41,14 +43,14 @@ export abstract class XMLFile<T> extends File<T> {
     protected toAbsolute(relPath: string) {
         return resolve(dirname(this.readPath), relPath)
     }
-    protected abstract transform(doc: Document): void
+    protected abstract transform(doc: Dom): void
     
     public async readXml(file: string): Promise<Document> { return readXmlWithSourcemap(file) }
     public async writeXml(file: string, doc: Document, format: XmlFormat) { writeXmlWithSourcemap(file, doc, format) }
 
     public async write() {
         const doc = await this.readXml(this.readPath)
-        this.transform(doc)
+        this.transform(dom(doc))
         this.writeXml(this.newPath, doc, XmlFormat.XHTML5)
     }
 }

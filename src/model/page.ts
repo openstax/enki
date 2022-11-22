@@ -45,8 +45,7 @@ export class PageFile extends XMLFile<PageData> {
             node.attr(attrName, this.relativeToMe(resource.newPath))
         }
     }
-    protected transform(d: Document) {
-        const doc = dom(d)
+    protected transform(doc: Dom) {
         // Rename the resources
         RESOURCE_SELECTORS.forEach(([sel, attrName]) => this.resourceRenamer(doc, sel, attrName))
         
