@@ -11,7 +11,7 @@ class Factorio {
     public readonly pages: Factory<PageFile>
     public readonly tocs: Factory<TocFile>
     public readonly resources: Factory<ResourceFile>
-    
+
     constructor(pageBuilder: Builder<PageFile>, tocBuilder: Builder<TocFile>, resourceBuilder: Builder<ResourceFile>) {
         this.pages = new Factory(pageBuilder, resolve)
         this.tocs = new Factory(tocBuilder, resolve)
@@ -64,8 +64,8 @@ async function fn() {
     }
 
     allPages.forEach(p => p.rename(p.newPath.replace(':', '%3A'), undefined))
-    
-    
+
+
     tocFiles.forEach(p => p.rename(`${p.newPath}-out.xhtml`, undefined))
 
     for (const page of allPages) {
@@ -74,7 +74,7 @@ async function fn() {
     for (const tocFile of tocFiles) {
         await tocFile.write()
         await tocFile.writeOPFFile('foo.opf')
-   }
+    }
 }
 
 fn().catch(err => console.error(err))

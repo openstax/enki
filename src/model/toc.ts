@@ -5,18 +5,18 @@ import type { Factory } from './factory';
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
 
-const mimetypeExtensions: {[k: string]: string} = {
-    'image/jpeg':         'jpeg',
-    'image/png':          'png',
-    'image/gif':          'gif',
-    'image/tiff':         'tiff',
-    'image/svg+xml':      'svg',
-    'audio/mpeg':         'mpg',
-    'audio/basic':        'au',
-    'application/pdf':    'pdf',
-    'application/zip':    'zip',
-    'audio/midi':         'midi',
-    'audio/x-wav':        'wav',
+const mimetypeExtensions: { [k: string]: string } = {
+    'image/jpeg': 'jpeg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/tiff': 'tiff',
+    'image/svg+xml': 'svg',
+    'audio/mpeg': 'mpg',
+    'audio/basic': 'au',
+    'application/pdf': 'pdf',
+    'application/zip': 'zip',
+    'audio/midi': 'midi',
+    'audio/x-wav': 'wav',
     // 'text/plain':         'txt',
     'application/x-shockwave-flash': 'swf',
     // 'application/octet-stream':
@@ -64,7 +64,7 @@ export class TocFile extends XMLFile<TocData> {
         for (const page of tocPages) {
             await recPages(page)
         }
-        
+
         return {
             toc, allPages, allResources
         }
@@ -110,7 +110,7 @@ export class TocFile extends XMLFile<TocData> {
             language: json.language as string,
         }
     }
-    
+
     private selectText(sel: string, node: Dom) {
         return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
@@ -131,13 +131,13 @@ export class TocFile extends XMLFile<TocData> {
                 doc.create('h:span', {}, children)
             ]
         })
-        
+
         // Rename the hrefs to XHTML files to their new name
         doc.forEach('//*[@href]', el => {
             const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
             el.attr('href', this.relativeToMe(page.newPath))
         })
-    
+
         // Remove extra attributes
         const attrsToRemove = [
             'cnx-archive-shortid',
@@ -145,7 +145,7 @@ export class TocFile extends XMLFile<TocData> {
             'itemprop',
         ]
         attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
-        
+
         // Add the epub:type="nav" attribute
         doc.findOne('//h:nav').attr('epub:type', 'toc')
     }
@@ -154,10 +154,10 @@ export class TocFile extends XMLFile<TocData> {
         const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
         const doc = dom(d)
         const pkg = doc.findOne('opf:package')
-        pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
-    
-        const { allPages, allResources} = this.data
-        
+        pkg.attrs = { version: '3.0', 'unique-identifier': 'uid' }
+
+        const { allPages, allResources } = this.data
+
         const bookItems: Dom[] = []
         for (const page of allPages) {
             const p = page.data
@@ -167,50 +167,52 @@ export class TocFile extends XMLFile<TocData> {
             if (p.hasScripts) props.push('scripted')
 
             bookItems.push(doc.create('opf:item', {
-                'media-type': 'application/xhtml+xml', 
-                id: `idxhtml_${basename(page.newPath)}`, 
-                properties: props.join(' '), 
-                href: relative(dirname(destPath), page.newPath)}),)
-            
-            for(const r of p.resources) {
+                'media-type': 'application/xhtml+xml',
+                id: `idxhtml_${basename(page.newPath)}`,
+                properties: props.join(' '),
+                href: relative(dirname(destPath), page.newPath)
+            }),)
+
+            for (const r of p.resources) {
                 allResources.add(r)
             }
         }
 
         let i = 0
         for (const resource of allResources) {
-            const {mimeType, originalExtension} = resource.data
+            const { mimeType, originalExtension } = resource.data
 
             let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
             resource.rename(`${resource.newPath}.${newExtension}`, undefined)
 
             bookItems.push(doc.create('opf:item', {
-                'media-type': mimeType, 
-                id: `idresource_${i}`, 
-                href: relative(dirname(destPath), resource.newPath)}),)
+                'media-type': mimeType,
+                id: `idresource_${i}`,
+                href: relative(dirname(destPath), resource.newPath)
+            }),)
             i++
         }
 
-        
+
         const bookMetadata = await this.parseMetadata()
         // Remove the timezone from the revised_date
         const revised = bookMetadata.revised.replace('+00:00', 'Z')
-    
-    
-        pkg.children = [ doc.create('opf:metadata', {}, [
-            doc.create('dc:title', {}, [ bookMetadata.title ]),
+
+
+        pkg.children = [doc.create('opf:metadata', {}, [
+            doc.create('dc:title', {}, [bookMetadata.title]),
             doc.create('dc:language', {}, [bookMetadata.language]),
-            doc.create('opf:meta', {property: 'dcterms:modified'}, [ revised]),
-            doc.create('opf:meta', {property: 'dcterms:license'}, [ bookMetadata.licenseUrl]),
+            doc.create('opf:meta', { property: 'dcterms:modified' }, [revised]),
+            doc.create('opf:meta', { property: 'dcterms:license' }, [bookMetadata.licenseUrl]),
             // doc.create('opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
-            doc.create('dc:identifier', {id: 'uid'}, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
+            doc.create('dc:identifier', { id: 'uid' }, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
             doc.create('dc:creator', {}, ['Is it OpenStax???']),
         ]), doc.create('opf:manifest', {}, [
-            doc.create('opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
-            doc.create('opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath)}),
+            doc.create('opf:item', { id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css" }),
+            doc.create('opf:item', { id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath) }),
             ...bookItems
         ])]
-    
+
         this.writeXml(destPath, d, XmlFormat.XHTML5)
     }
 

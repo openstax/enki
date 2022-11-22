@@ -4,10 +4,10 @@ import type { Factory } from './factory'
 import { ResourceFile, XMLFile } from './file'
 
 const RESOURCE_SELECTORS: Array<[string, string]> = [
-    [ '//h:img', 'src'],
-    [ '//h:a[starts-with(@href, "../resources/")]', 'href'],
-    [ '//h:object', 'data'],
-    [ '//h:embed', 'src'],
+    ['//h:img', 'src'],
+    ['//h:a[starts-with(@href, "../resources/")]', 'href'],
+    ['//h:object', 'data'],
+    ['//h:embed', 'src'],
 ]
 
 export type PageData = {
@@ -48,7 +48,7 @@ export class PageFile extends XMLFile<PageData> {
     protected transform(doc: Dom) {
         // Rename the resources
         RESOURCE_SELECTORS.forEach(([sel, attrName]) => this.resourceRenamer(doc, sel, attrName))
-        
+
         // Add a CSS file
         doc.findOne('//h:head').children = [
             doc.create('h:link', {
@@ -74,7 +74,7 @@ export class PageFile extends XMLFile<PageData> {
             'use-subtitle'
         ]
         attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
-        
+
         doc.forEach('//h:script|//h:style', n => n.remove())
     }
 }

@@ -39,7 +39,7 @@ type Attrs = { [key: string]: string }
 export class Dom {
     constructor(private readonly node: ParentNode) { }
     private get doc() {
-        const {ownerDocument} = this.node
+        const { ownerDocument } = this.node
         return ownerDocument !== null ? ownerDocument : this.node as unknown as Document
     }
     private get el() {
@@ -47,17 +47,17 @@ export class Dom {
         throw new Error('BUG: Expected node to be an element but it was not')
     }
     remove() { this.node.parentNode?.removeChild(this.node) }
-    replaceWith(newNode: Node | Dom) { assertValue(this.node.parentNode).replaceChild(newNode instanceof Dom ? newNode.node : newNode, this.node)}
+    replaceWith(newNode: Node | Dom) { assertValue(this.node.parentNode).replaceChild(newNode instanceof Dom ? newNode.node : newNode, this.node) }
     set attrs(attrs: Attrs) {
         Object.entries(attrs).forEach(([name, value]) => this.attr(name, value as string))
     }
-    get attrs(): Attrs { 
-        return Array.from(this.el.attributes).reduce((o, attr) => Object.assign(o, {[attr.name]: attr.value}), {})
+    get attrs(): Attrs {
+        return Array.from(this.el.attributes).reduce((o, attr) => Object.assign(o, { [attr.name]: attr.value }), {})
     }
     /** Get/Set/Remove a single attribute. To remove the attribute pass in `null` for the `newValue` */
     attr(name: string, newValue?: string | null) {
         const [localName, prefix] = name.split(':').reverse()
-        const ns = (NAMESPACES as {[k: string]: string})[prefix]
+        const ns = (NAMESPACES as { [k: string]: string })[prefix]
         const old = this.el.getAttributeNS(ns, localName)
         if (newValue === null) this.el.removeAttributeNS(ns, localName)
         else if (newValue !== undefined) this.el.setAttributeNS(ns, name, newValue)
@@ -94,11 +94,11 @@ export class Dom {
         return Array.from(ret, el => dom(el))
     }
     /** Apply `callbackfn` to every Node that matches `xpath` */
-    forEach(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => void) { this.find(xpath).forEach(callbackfn)}
+    forEach(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => void) { this.find(xpath).forEach(callbackfn) }
     /** Apply `callbackfn` to every Node that matches `xpath` and return a new Array of type `T` */
-    map<T>(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => T): T[] { return this.find(xpath).map(callbackfn)}
+    map<T>(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => T): T[] { return this.find(xpath).map(callbackfn) }
     /** Check if this node contains Nodes that match `xpath` */
-    has(xpath: string) { return this.find(xpath).length > 0}
+    has(xpath: string) { return this.find(xpath).length > 0 }
     /** Find **the** one Node that matches `xpath`, otherwise error */
     findOne(xpath: string) {
         const res = this.find(xpath)
