@@ -60,7 +60,7 @@ export class Dom {
     /** Get/Set/Remove a single attribute. To remove the attribute pass in `null` for the `newValue` */
     attr(name: string, newValue?: string | null) {
         const [localName, prefix] = name.split(':').reverse()
-        const ns = (NAMESPACES as any)[prefix]
+        const ns = (NAMESPACES as {[k: string]: string})[prefix]
 
         const old = this.el.getAttributeNS(ns, localName)
         if (newValue === null) this.el.removeAttributeNS(ns, localName)
@@ -81,26 +81,27 @@ export class Dom {
         const c = b.map(c => c.nodeType === c.TEXT_NODE ? assertValue(c.textContent) : dom(c as Element))
         return c
     }
+
+    /** Select all MiniDom nodes in `parent` that match `xpath` */
+    $$(xpath: string) {
+        const ret = this.$$node(xpath)
+        return Array.from(ret, el => dom(el as Element))
+    }
+    /** Select the one MiniDom node in `parent` that matches `xpath` */
+    $(xpath: string) {
+        const res = this.$$(xpath)
+        assertTrue(res.length === 1, `ERROR: Expected to find 1 element matching the selector '${xpath}' but found ${res.length}`)
+        return res[0]
+    }
+    /** Select all the dom nodes in `parent` that match `xpath` */
+    $$node<T>(xpath: string) {
+        return xpathSelect(xpath, this.el) as T[]
+    }
 }
 
 /** Create an element or wrap an existing element */
 export function dom(docOrEl: ParentNode, tagName: string | null = null, attrs?: any, children?: Array<Dom | Element | string>) {
     return new Dom(docOrEl, tagName, attrs, children)
-}
-/** Select all MiniDom nodes in `parent` that match `xpath` */
-export function $$(xpath: string, parent: Node | Dom) {
-    const ret = $$node(xpath, parent)
-    return Array.from(ret, el => dom(el as Element))
-}
-/** Select the one MiniDom node in `parent` that matches `xpath` */
-export function $(xpath: string, parent: Node | Dom) {
-    const res = $$(xpath, parent)
-    assertTrue(res.length === 1, `ERROR: Expected to find 1 element matching the selector '${xpath}' but found ${res.length}`)
-    return res[0]
-}
-/** Select all the dom nodes in `parent` that match `xpath` */
-export function $$node<T>(xpath: string, parent: Node | Dom) {
-    return xpathSelect(xpath, parent instanceof Dom ? parent.el : parent) as T[]
 }
 
 export const NAMESPACES = {
