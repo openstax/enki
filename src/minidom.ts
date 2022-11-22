@@ -89,18 +89,18 @@ export class Dom {
     }
 
     /** Find all MiniDom nodes that match `xpath` */
-    $$(xpath: string) {
-        const ret = this.$$node<ParentNode>(xpath)
+    find(xpath: string) {
+        const ret = this.findNodes<ParentNode>(xpath)
         return Array.from(ret, el => dom(el))
     }
     /** Find the one MiniDom node that matches `xpath` */
-    $(xpath: string) {
-        const res = this.$$(xpath)
+    findOne(xpath: string) {
+        const res = this.find(xpath)
         assertTrue(res.length === 1, `ERROR: Expected to find 1 element matching the selector '${xpath}' but found ${res.length}`)
         return res[0]
     }
     /** Find all the dom nodes that match `xpath` */
-    $$node<T>(xpath: string) {
+    findNodes<T>(xpath: string) {
         return xpathSelect(xpath, this.node) as T[]
     }
 }

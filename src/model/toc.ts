@@ -42,7 +42,7 @@ type TocData = {
 export class TocFile extends XMLFile<TocData> {
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         const doc = dom(await readXmlWithSourcemap(this.readPath))
-        const toc = doc.$$('//h:nav/h:ol/h:li').map(el => this.buildChildren(pageFactory, el))
+        const toc = doc.find('//h:nav/h:ol/h:li').map(el => this.buildChildren(pageFactory, el))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -59,7 +59,7 @@ export class TocFile extends XMLFile<TocData> {
             }
         }
         const tocPages: PageFile[] = []
-        doc.$$('//h:nav/h:ol/h:li').forEach(el => this.buildChildren(pageFactory, el, tocPages))
+        doc.find('//h:nav/h:ol/h:li').forEach(el => this.buildChildren(pageFactory, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
@@ -71,15 +71,15 @@ export class TocFile extends XMLFile<TocData> {
     }
     private buildChildren(pageFactory: Factory<PageFile>, li: Dom, acc?: PageFile[]): TocTree {
         // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
-        const children = li.$$('h:ol/h:li')
+        const children = li.find('h:ol/h:li')
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
-        } else if (li.$$('h:a[not(starts-with(@href, "#"))]').length > 0) {
-            const href = assertValue(li.$('h:a[not(starts-with(@href, "#"))]').attr('href'))
+        } else if (li.find('h:a[not(starts-with(@href, "#"))]').length > 0) {
+            const href = assertValue(li.findOne('h:a[not(starts-with(@href, "#"))]').attr('href'))
             const page = pageFactory.getOrAdd(href, this.readPath)
             acc?.push(page)
             return {
@@ -112,29 +112,29 @@ export class TocFile extends XMLFile<TocData> {
     }
     
     private selectText(sel: string, node: Dom) {
-        return node.$$node<Text>(sel).map(t => t.textContent).join('')
+        return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
     protected transform(d: Document) {
         const doc = dom(d)
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
-        doc.$$('//h:nav//h:li[not(.//h:a)]').forEach(e => e.remove())
+        doc.find('//h:nav//h:li[not(.//h:a)]').forEach(e => e.remove())
 
         // Unwrap chapter links and combine titles into a single span
-        doc.$$('h:a[starts-with(@href, "#")]').forEach(el => {
-            const children = el.$$('h:span/node()')
+        doc.find('h:a[starts-with(@href, "#")]').forEach(el => {
+            const children = el.find('h:span/node()')
             el.replaceWith(doc.create('h:span', {}, children))
         })
 
-        doc.$$('h:a[not(starts-with(@href, "#")) and h:span]').forEach(el => {
-            const children = doc.$$('h:span/node()')
+        doc.find('h:a[not(starts-with(@href, "#")) and h:span]').forEach(el => {
+            const children = doc.find('h:span/node()')
             el.children = [
                 doc.create('h:span', {}, children)
             ]
         })
         
         // Rename the hrefs to XHTML files to their new name
-        doc.$$('//*[@href]').forEach(el => {
+        doc.find('//*[@href]').forEach(el => {
             const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
             el.attr('href', this.relativeToMe(page.newPath))
         })
@@ -145,16 +145,16 @@ export class TocFile extends XMLFile<TocData> {
             'cnx-archive-uri',
             'itemprop',
         ]
-        attrsToRemove.forEach(attrName => doc.$$(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
+        attrsToRemove.forEach(attrName => doc.find(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
         
         // Add the epub:type="nav" attribute
-        doc.$('//h:nav').attr('epub:type', 'toc')
+        doc.findOne('//h:nav').attr('epub:type', 'toc')
     }
 
     public async writeOPFFile(destPath: string) {
         const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
         const doc = dom(d)
-        const pkg = doc.$('opf:package')
+        const pkg = doc.findOne('opf:package')
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
     
         const { allPages, allResources} = this.data
