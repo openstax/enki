@@ -6,51 +6,48 @@ type Attrs = { [key: string]: string }
 /**
  * API:
  *
+ * Wrap an element (or document)
+ * 
+ * ```$doc = dom(window.document)```
+ * 
  * Create an element:
  *
- * ```el = dom('h:h1', {class: ['foo', 'bar']}, [child1, child2])```
+ * ```$el = $doc.create('h:h1', {class: ['foo', 'bar']}, [child1, child2])```
  *
  * Get/Set attributes/children:
  *
  * ```
- * el.attrs = {...el.attrs, 'data-counter', 1}
- * el.children = []
+ * $el.attrs = {...$el.attrs, 'data-counter': 1}
+ * $el.children = []
  *```
  * 
  * Add/Remove attributes:
  *
  * ```
- * el.attr('id', 'para-1234')    // add
- * el.attr('id', null)           // remove
- * id = el.attr('id')            // get
+ * $el.attr('id', 'para-1234')    // add
+ * $el.attr('id', null)           // remove
+ * id = $el.attr('id')            // get
  * ```
  *
  * Select existing element(s):
  *
  * ```
- * els = $$('//h:ol/h:li')           // xpath
- * els.forEach(el => el.remove())
+ * $els = $doc.$$('//h:ol/h:li')           // xpath
+ * $els.forEach($el => $el.remove())
  * ```
  */
 export class Dom {
-    public readonly el: Element
-    constructor(docOrEl: ParentNode, tagName: string | null = null, attrs?: Attrs, children?: Array<Dom | Element | string>) {
-        const doc = assertValue(docOrEl.ownerDocument ? docOrEl.ownerDocument : docOrEl as Document)
-        if (typeof tagName === 'string') {
-            const [tag, ns] = tagName.split(':').reverse()
-            if (ns !== undefined) {
-                this.el = doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag)
-            } else {
-                this.el = doc.createElement(tag)
-            }
-        } else {
-            this.el = docOrEl as Element
-        }
-        if (attrs !== undefined) this.attrs = attrs
-        if (children !== undefined) children.forEach(c => c instanceof Dom ? this.el.appendChild(c.el) : typeof c === 'string' ? this.el.appendChild(doc.createTextNode(c)) : this.el.appendChild(c))
+    constructor(private readonly node: ParentNode) { }
+    private get doc() {
+        const {ownerDocument} = this.node
+        return ownerDocument !== null ? ownerDocument : this.node as unknown as Document
     }
-    remove() { this.el.parentNode?.removeChild(this.el) }
-    replaceWith(newNode: Node | Dom) { assertValue(this.el.parentNode).replaceChild(newNode instanceof Dom ? newNode.el : newNode, this.el)}
+    private get el() {
+        if (this.node.nodeType === this.node.ELEMENT_NODE) return this.node as Element
+        throw new Error('BUG: Expected node to be an element but it was not')
+    }
+    remove() { this.node.parentNode?.removeChild(this.node) }
+    replaceWith(newNode: Node | Dom) { assertValue(this.node.parentNode).replaceChild(newNode instanceof Dom ? newNode.node : newNode, this.node)}
     set attrs(attrs: Attrs) {
         Object.entries(attrs).forEach(([name, value]) => this.attr(name, value as string))
     }
@@ -61,7 +58,6 @@ export class Dom {
     attr(name: string, newValue?: string | null) {
         const [localName, prefix] = name.split(':').reverse()
         const ns = (NAMESPACES as {[k: string]: string})[prefix]
-
         const old = this.el.getAttributeNS(ns, localName)
         if (newValue === null) this.el.removeAttributeNS(ns, localName)
         else if (newValue !== undefined) this.el.setAttributeNS(ns, name, newValue)
@@ -72,11 +68,11 @@ export class Dom {
     removeClass(cls: string) { this.el.classList.remove(cls) }
     get classes() { return new Set(Array.from(this.el.classList)) }
     set children(children: Array<Dom | string>) {
-        Array.from(this.el.childNodes).forEach(c => c.parentNode?.removeChild(c))
-        children.forEach(c => typeof c === 'string' ? this.el.appendChild(this.el.ownerDocument.createTextNode(c)) : this.el.appendChild(c.el))
+        Array.from(this.node.childNodes).forEach(c => c.parentNode?.removeChild(c))
+        children.forEach(c => typeof c === 'string' ? this.node.appendChild(this.doc.createTextNode(c)) : this.node.appendChild(c.node))
     }
     get children(): Array<Dom | string> {
-        const a = Array.from(this.el.childNodes)
+        const a = Array.from(this.node.childNodes)
         const b = a.filter(c => c.nodeType === c.ELEMENT_NODE || c.nodeType === c.TEXT_NODE)
         const c = b.map(c => c.nodeType === c.TEXT_NODE ? assertValue(c.textContent) : dom(c as Element))
         return c
@@ -84,35 +80,34 @@ export class Dom {
 
     /** Creates a new element but does not attach it to the DOM */
     create(tagName: string, attrs?: Attrs, children?: Array<Dom | Element | string>) {
-        const doc = assertValue(this.el.ownerDocument ? this.el.ownerDocument : this.el as unknown as Document)
         const [tag, ns] = tagName.split(':').reverse()
-        const el = (ns !== undefined) ? doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : doc.createElement(tag)
+        const el = (ns !== undefined) ? this.doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : this.doc.createElement(tag)
         const $el = dom(el)
         if (attrs !== undefined) $el.attrs = attrs
-        if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.el.appendChild(c.el) : typeof c === 'string' ? $el.el.appendChild(doc.createTextNode(c)) : $el.el.appendChild(c))
+        if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.node.appendChild(c.node) : typeof c === 'string' ? $el.node.appendChild(this.doc.createTextNode(c)) : $el.node.appendChild(c))
         return $el
     }
 
-    /** Select all MiniDom nodes in `parent` that match `xpath` */
+    /** Find all MiniDom nodes that match `xpath` */
     $$(xpath: string) {
-        const ret = this.$$node(xpath)
-        return Array.from(ret, el => dom(el as Element))
+        const ret = this.$$node<ParentNode>(xpath)
+        return Array.from(ret, el => dom(el))
     }
-    /** Select the one MiniDom node in `parent` that matches `xpath` */
+    /** Find the one MiniDom node that matches `xpath` */
     $(xpath: string) {
         const res = this.$$(xpath)
         assertTrue(res.length === 1, `ERROR: Expected to find 1 element matching the selector '${xpath}' but found ${res.length}`)
         return res[0]
     }
-    /** Select all the dom nodes in `parent` that match `xpath` */
+    /** Find all the dom nodes that match `xpath` */
     $$node<T>(xpath: string) {
-        return xpathSelect(xpath, this.el) as T[]
+        return xpathSelect(xpath, this.node) as T[]
     }
 }
 
 /** Create an element or wrap an existing element */
-export function dom(docOrEl: ParentNode, tagName: string | null = null, attrs?: any, children?: Array<Dom | Element | string>) {
-    return new Dom(docOrEl, tagName, attrs, children)
+export function dom(docOrEl: ParentNode) {
+    return new Dom(docOrEl)
 }
 
 export const NAMESPACES = {
