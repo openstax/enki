@@ -5,6 +5,7 @@ import { dom } from '../minidom';
 import { assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
 import type { Factory, Opt } from './factory';
 import type { PageFile } from './page';
+import type { TocFile } from './toc';
 
 export type Builder<T> = (absPath: string) => T
 
@@ -25,13 +26,13 @@ export abstract class File<T> {
     }
 
     abstract write(): Promise<void>
-    protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>): Promise<T>
-    public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
+    protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>, tocFactory?: Factory<TocFile>): Promise<T>
+    public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<TocFile>) {
         if (this._data !== undefined) {
             console.warn(`BUG? Attempting to parse a file a second time: '${this.readPath}'`)
             return
         }
-        const d = await this.innerParse(pageFactory, resourceFactory)
+        const d = await this.innerParse(pageFactory, resourceFactory, tocFactory)
         this._data = d
         // return d
     }
@@ -44,15 +45,15 @@ export abstract class XMLFile<T> extends File<T> {
     protected toAbsolute(relPath: string) {
         return resolve(dirname(this.readPath), relPath)
     }
-    protected abstract transform(doc: Dom): void
+    protected abstract transform(doc: Dom): Dom
     
     public async readXml(file: string): Promise<Document> { return readXmlWithSourcemap(file) }
-    public async writeXml(file: string, doc: Document, format: XmlFormat) { writeXmlWithSourcemap(file, doc, format) }
+    public async writeXml(file: string, root: Node, format: XmlFormat) { writeXmlWithSourcemap(file, root, format) }
 
     public async write() {
-        const doc = await this.readXml(this.readPath)
-        this.transform(dom(doc))
-        this.writeXml(this.newPath, doc, XmlFormat.XHTML5)
+        const doc = dom(await this.readXml(this.readPath))
+        const root = this.transform(doc)
+        this.writeXml(this.newPath, root.node, XmlFormat.XHTML5)
     }
 }
 

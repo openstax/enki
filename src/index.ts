@@ -1,5 +1,6 @@
 import { basename, join, resolve } from 'path';
 import * as sourceMapSupport from 'source-map-support';
+import { ContainerFile } from './model/container';
 import { Factory } from './model/factory';
 import { Builder, ResourceFile } from './model/file';
 import { PageFile } from './model/page';
@@ -27,20 +28,21 @@ async function fn() {
         absPath => new ResourceFile(absPath),
     )
 
-    // factorio.tocs.getOrAdd('../data/astronomy/_attic/IO_DISASSEMBLE_LINKED/astronomy-2e.toc.xhtml', __filename)
-    factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
+    const c = new ContainerFile(resolve('./data/astronomy/_attic/IO_FETCHED/META-INF/books.xml'))
+    await c.parse(factorio.pages, factorio.resources, factorio.tocs)
+    c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
     // Load up the models
     for (const tocFile of factorio.tocs.all) {
-        await tocFile.parse(factorio.pages, factorio.resources)
+        await tocFile.parse(factorio.pages, factorio.resources, factorio.tocs)
     }
     for (const page of factorio.pages.all) {
-        await page.parse(factorio.pages, factorio.resources)
+        await page.parse(factorio.pages, factorio.resources, factorio.tocs)
     }
     for (const resource of factorio.resources.all) {
-        await resource.parse(factorio.pages, factorio.resources)
+        await resource.parse(factorio.pages, factorio.resources, factorio.tocs)
     }
-    const allFiles = [...factorio.tocs.all, ...factorio.pages.all, ...factorio.resources.all]
+    const allFiles = [c, ...factorio.tocs.all, ...factorio.pages.all, ...factorio.resources.all]
 
     // Rename Page files
     Array.from(factorio.pages.all).forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
@@ -57,6 +59,7 @@ async function fn() {
     for (const f of allFiles) {
         f.rename(`${join(__dirname, '../testing')}/${basename(f.newPath)}`, undefined)
     }
+    
     for (const f of allFiles) {
         await f.write()
     }

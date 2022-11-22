@@ -1,6 +1,6 @@
 import { relative, dirname, basename } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertValue, parseXml, readXmlWithSourcemap, XmlFormat } from '../utils'
+import { assertValue, parseXml, XmlFormat } from '../utils'
 import type { Factory } from './factory';
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
@@ -24,8 +24,8 @@ type TocData = {
     allResources: Set<ResourceFile>
 }
 export class TocFile extends XMLFile<TocData> {
-    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
-        const doc = dom(await readXmlWithSourcemap(this.readPath))
+    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<TocFile>) {
+        const doc = dom(await this.readXml(this.readPath))
         const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el))
 
         const allPages = new Set<PageFile>()
@@ -34,10 +34,10 @@ export class TocFile extends XMLFile<TocData> {
         // keep looking through XHTML file links and add those to the set of allPages
         async function recPages(page: PageFile) {
             if (allPages.has(page)) return
-            await page.parse(pageFactory, resourceFactory)
+            await page.parse(pageFactory, resourceFactory, tocFactory)
             allPages.add(page)
             const p = page.data
-            for (const r of p.resources) { await r.parse(pageFactory, resourceFactory); allResources.add(r) }
+            for (const r of p.resources) { await r.parse(pageFactory, resourceFactory, tocFactory); allResources.add(r) }
             for (const c of p.pageLinks) {
                 await recPages(c)
             }
@@ -133,6 +133,8 @@ export class TocFile extends XMLFile<TocData> {
 
         // Add the epub:type="nav" attribute
         doc.findOne('//h:nav').attr('epub:type', 'toc')
+
+        return doc
     }
 
     public async writeOPFFile(destPath: string) {

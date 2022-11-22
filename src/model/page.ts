@@ -1,5 +1,5 @@
 import { Dom, dom } from '../minidom'
-import { assertValue, readXmlWithSourcemap } from '../utils'
+import { assertValue } from '../utils'
 import type { Factory } from './factory'
 import { ResourceFile, XMLFile } from './file'
 
@@ -19,7 +19,7 @@ export type PageData = {
 }
 export class PageFile extends XMLFile<PageData> {
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
-        const doc = dom(await readXmlWithSourcemap(this.readPath))
+        const doc = dom(await this.readXml(this.readPath))
         const pageLinks = doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
             return pageFactory.getOrAdd(u.pathname, this.readPath)
@@ -76,5 +76,6 @@ export class PageFile extends XMLFile<PageData> {
         attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
 
         doc.forEach('//h:script|//h:style', n => n.remove())
+        return doc
     }
 }

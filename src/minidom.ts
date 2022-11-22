@@ -37,7 +37,7 @@ type Attrs = { [key: string]: string }
  * ```
  */
 export class Dom {
-    constructor(private readonly node: ParentNode) { }
+    constructor(public readonly node: ParentNode) { }
     private get doc() {
         const { ownerDocument } = this.node
         return ownerDocument !== null ? ownerDocument : this.node as unknown as Document
@@ -124,7 +124,9 @@ export const NAMESPACES = {
     epub: 'http://www.idpf.org/2007/ops',
     ncx: 'http://www.daisy.org/z3986/2005/ncx/',
     opf: 'http://www.idpf.org/2007/opf',
-    dc: 'http://purl.org/dc/elements/1.1/'
+    dc: 'http://purl.org/dc/elements/1.1/',
+    books: 'https://openstax.org/namespaces/book-container',
+    cont: 'urn:oasis:names:tc:opendocument:xmlns:container'
 }
 
 const xpathSelect = useNamespaces(NAMESPACES)
