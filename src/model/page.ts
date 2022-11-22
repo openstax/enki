@@ -20,21 +20,21 @@ export type PageData = {
 export class PageFile extends XMLFile<PageData> {
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         const doc = dom(await readXmlWithSourcemap(this.readPath))
-        const pageLinks = doc.find('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]').map(a => {
+        const pageLinks = doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
             return pageFactory.getOrAdd(u.pathname, this.readPath)
         })
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(resourceFactory, doc, sel, attrName)).flat()
         return {
-            hasMathML: doc.find('//m:math').length > 0,
-            hasRemoteResources: doc.find('//h:iframe|//h:object/h:embed').length > 0,
-            hasScripts: doc.find('//h:script').length > 0,
+            hasMathML: doc.has('//m:math'),
+            hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
+            hasScripts: doc.has('//h:script'),
             pageLinks,
             resources
         }
     }
     private resourceFinder(resourceFactory: Factory<ResourceFile>, node: Dom, sel: string, attrName: string) {
-        return node.find(sel).map(img => resourceFactory.getOrAdd(assertValue(img.attr(attrName)), this.readPath))
+        return node.map(sel, img => resourceFactory.getOrAdd(assertValue(img.attr(attrName)), this.readPath))
     }
     private resourceRenamer(node: Dom, sel: string, attrName: string) {
         const allResources = new Map(this.data.resources.map(r => ([r.readPath, r])))
@@ -60,14 +60,13 @@ export class PageFile extends XMLFile<PageData> {
         ]
 
         // Re-namespace the MathML elements
-        const mathEls = doc.find('//h:math|//h:math//*')
-        mathEls.forEach(el => {
+        doc.forEach('//h:math|//h:math//*', el => {
             el.replaceWith(doc.create(`m:${el.tagName}`, el.attrs, el.children))
         })
 
         // Remove annotation-xml elements because the validator requires an optional "name" attribute
         // This element is added by https://github.com/openstax/cnx-transforms/blob/85cd5edd5209fcb4c4d72698836a10e084b9ba00/cnxtransforms/xsl/content2presentation-files/cnxmathmlc2p.xsl#L49
-        doc.find('//m:math//m:annotation-xml|//h:math//h:annotation-xml').forEach(n => n.remove())
+        doc.forEach('//m:math//m:annotation-xml|//h:math//h:annotation-xml', n => n.remove())
 
         const attrsToRemove = [
             'itemprop',
@@ -75,8 +74,8 @@ export class PageFile extends XMLFile<PageData> {
             'group-by',
             'use-subtitle'
         ]
-        attrsToRemove.forEach(attrName => doc.find(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
+        attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
         
-        doc.find('//h:script|//h:style').forEach(n => n.remove())
+        doc.forEach('//h:script|//h:style', n => n.remove())
     }
 }

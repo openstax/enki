@@ -32,7 +32,7 @@ type Attrs = { [key: string]: string }
  * Select existing element(s):
  *
  * ```
- * $els = $doc.$$('//h:ol/h:li')           // xpath
+ * $els = $doc.find('//h:ol/h:li')           // xpath
  * $els.forEach($el => $el.remove())
  * ```
  */
@@ -93,7 +93,13 @@ export class Dom {
         const ret = this.findNodes<ParentNode>(xpath)
         return Array.from(ret, el => dom(el))
     }
-    /** Find the one MiniDom node that matches `xpath` */
+    /** Apply `callbackfn` to every Node that matches `xpath` */
+    forEach(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => void) { this.find(xpath).forEach(callbackfn)}
+    /** Apply `callbackfn` to every Node that matches `xpath` and return a new Array of type `T` */
+    map<T>(xpath: string, callbackfn: (value: Dom, index: number, array: Dom[]) => T): T[] { return this.find(xpath).map(callbackfn)}
+    /** Check if this node contains Nodes that match `xpath` */
+    has(xpath: string) { return this.find(xpath).length > 0}
+    /** Find **the** one Node that matches `xpath`, otherwise error */
     findOne(xpath: string) {
         const res = this.find(xpath)
         assertTrue(res.length === 1, `ERROR: Expected to find 1 element matching the selector '${xpath}' but found ${res.length}`)
@@ -105,7 +111,7 @@ export class Dom {
     }
 }
 
-/** Create an element or wrap an existing element */
+/** Wrap an existing Document, Element, or other Node */
 export function dom(docOrEl: ParentNode) {
     return new Dom(docOrEl)
 }

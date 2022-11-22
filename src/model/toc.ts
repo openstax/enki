@@ -42,7 +42,7 @@ type TocData = {
 export class TocFile extends XMLFile<TocData> {
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         const doc = dom(await readXmlWithSourcemap(this.readPath))
-        const toc = doc.find('//h:nav/h:ol/h:li').map(el => this.buildChildren(pageFactory, el))
+        const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -59,7 +59,7 @@ export class TocFile extends XMLFile<TocData> {
             }
         }
         const tocPages: PageFile[] = []
-        doc.find('//h:nav/h:ol/h:li').forEach(el => this.buildChildren(pageFactory, el, tocPages))
+        doc.forEach('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
@@ -78,7 +78,7 @@ export class TocFile extends XMLFile<TocData> {
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
-        } else if (li.find('h:a[not(starts-with(@href, "#"))]').length > 0) {
+        } else if (li.has('h:a[not(starts-with(@href, "#"))]')) {
             const href = assertValue(li.findOne('h:a[not(starts-with(@href, "#"))]').attr('href'))
             const page = pageFactory.getOrAdd(href, this.readPath)
             acc?.push(page)
@@ -118,15 +118,15 @@ export class TocFile extends XMLFile<TocData> {
         const doc = dom(d)
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
-        doc.find('//h:nav//h:li[not(.//h:a)]').forEach(e => e.remove())
+        doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())
 
         // Unwrap chapter links and combine titles into a single span
-        doc.find('h:a[starts-with(@href, "#")]').forEach(el => {
+        doc.forEach('h:a[starts-with(@href, "#")]', el => {
             const children = el.find('h:span/node()')
             el.replaceWith(doc.create('h:span', {}, children))
         })
 
-        doc.find('h:a[not(starts-with(@href, "#")) and h:span]').forEach(el => {
+        doc.forEach('h:a[not(starts-with(@href, "#")) and h:span]', el => {
             const children = doc.find('h:span/node()')
             el.children = [
                 doc.create('h:span', {}, children)
@@ -134,7 +134,7 @@ export class TocFile extends XMLFile<TocData> {
         })
         
         // Rename the hrefs to XHTML files to their new name
-        doc.find('//*[@href]').forEach(el => {
+        doc.forEach('//*[@href]', el => {
             const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
             el.attr('href', this.relativeToMe(page.newPath))
         })
@@ -145,7 +145,7 @@ export class TocFile extends XMLFile<TocData> {
             'cnx-archive-uri',
             'itemprop',
         ]
-        attrsToRemove.forEach(attrName => doc.find(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
+        attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
         
         // Add the epub:type="nav" attribute
         doc.findOne('//h:nav').attr('epub:type', 'toc')
