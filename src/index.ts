@@ -1,27 +1,41 @@
+import { resolve } from 'path';
 import * as sourceMapSupport from 'source-map-support';
-import { Factorio, ResourceFile } from './model/file';
+import { Factory } from './model/factory';
+import { Builder, ResourceFile } from './model/file';
 import { PageFile } from './model/page';
 import { TocTreeType, TocFile } from './model/toc';
 
 sourceMapSupport.install()
 
+class Factorio {
+    public readonly pages: Factory<PageFile>
+    public readonly tocs: Factory<TocFile>
+    public readonly resources: Factory<ResourceFile>
+    
+    constructor(pageBuilder: Builder<PageFile>, tocBuilder: Builder<TocFile>, resourceBuilder: Builder<ResourceFile>) {
+        this.pages = new Factory(pageBuilder, resolve)
+        this.tocs = new Factory(tocBuilder, resolve)
+        this.resources = new Factory(resourceBuilder, resolve)
+    }
+}
+
 async function fn() {
 
     const factorio: Factorio = new Factorio(
-        absPath => new PageFile(factorio, absPath),
-        absPath => new TocFile(factorio, absPath),
-        absPath => new ResourceFile(factorio, absPath),
+        absPath => new PageFile(absPath),
+        absPath => new TocFile(absPath),
+        absPath => new ResourceFile(absPath),
     )
 
     // const toc = factorio.tocs.getOrAdd('../data/astronomy/_attic/IO_DISASSEMBLE_LINKED/astronomy-2e.toc.xhtml', __filename)
     const toc = factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
-    await toc.parse()
+    await toc.parse(factorio.pages, factorio.resources)
     const tocInfo = toc.data.toc
     console.log(tocInfo)
 
     const first = tocInfo[0]
     if (first.type === TocTreeType.LEAF) {
-        await first.page.parse()
+        await first.page.parse(factorio.pages, factorio.resources)
         const pageInfo = first.page.data
         console.log(pageInfo)
         // {
@@ -44,7 +58,7 @@ async function fn() {
     let allPages: PageFile[] = []
     const tocFiles = Array.from(factorio.tocs.all)
     for (const tocFile of tocFiles) {
-        await tocFile.parse()
+        await tocFile.parse(factorio.pages, factorio.resources)
         const pages = tocFile.data.toc.map(t => tocFile.getPagesFromToc(t)).flat()
         allPages = [...allPages, ...pages]
     }

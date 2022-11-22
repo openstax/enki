@@ -1,5 +1,6 @@
 import { $, $$, dom } from '../minidom'
 import { assertValue, readXmlWithSourcemap } from '../utils'
+import type { Factory } from './factory'
 import { ResourceFile, XMLFile } from './file'
 
 const RESOURCE_SELECTORS: Array<[string, string]> = [
@@ -17,13 +18,13 @@ export type PageData = {
     resources: ResourceFile[]
 }
 export class PageFile extends XMLFile<PageData> {
-    protected async innerParse() {
+    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         const doc = await readXmlWithSourcemap(this.readPath)
         const pageLinks = $$('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', doc).map(a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
-            return this.factorio.pages.getOrAdd(u.pathname, this.readPath)
+            return pageFactory.getOrAdd(u.pathname, this.readPath)
         })
-        const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(doc, sel, attrName)).flat()
+        const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(resourceFactory, doc, sel, attrName)).flat()
         return {
             hasMathML: $$('//m:math', doc).length > 0,
             hasRemoteResources: $$('//h:iframe|//h:object/h:embed', doc).length > 0,
@@ -32,13 +33,15 @@ export class PageFile extends XMLFile<PageData> {
             resources
         }
     }
-    private resourceFinder(node: Node, sel: string, attrName: string) {
-        return $$(sel, node).map(img => this.factorio.resources.getOrAdd(assertValue(img.attr(attrName)), this.readPath))
+    private resourceFinder(resourceFactory: Factory<ResourceFile>, node: Node, sel: string, attrName: string) {
+        return $$(sel, node).map(img => resourceFactory.getOrAdd(assertValue(img.attr(attrName)), this.readPath))
     }
     private resourceRenamer(node: Node, sel: string, attrName: string) {
+        const allResources = new Map(this.data.resources.map(r => ([r.readPath, r])))
         const resources = $$(sel, node)
         for (const node of resources) {
-            const resource = this.factorio.resources.getOrAdd(assertValue(node.attr(attrName)), this.readPath)
+            const resPath = this.toAbsolute(assertValue(node.attr(attrName)))
+            const resource = assertValue(allResources.get(resPath), `BUG: Could not find resource in the set of resources that were parsed: '${resPath}'`)
             node.attr(attrName, this.relativeToMe(resource.newPath))
         }
     }

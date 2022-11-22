@@ -1,6 +1,7 @@
 import { relative, dirname, basename } from 'path'
 import { $, $$, $$node, Dom, dom } from '../minidom'
 import { assertValue, parseXml, readXmlWithSourcemap, XmlFormat } from '../utils'
+import type { Factory } from './factory';
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
 
@@ -39,9 +40,9 @@ type TocData = {
     allResources: Set<ResourceFile>
 }
 export class TocFile extends XMLFile<TocData> {
-    protected async innerParse() {
+    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         const doc = await readXmlWithSourcemap(this.readPath)
-        const toc = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(el))
+        const toc = $$('//h:nav/h:ol/h:li', doc).map(el => this.buildChildren(pageFactory, el))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -49,16 +50,16 @@ export class TocFile extends XMLFile<TocData> {
         // keep looking through XHTML file links and add those to the set of allPages
         async function recPages(page: PageFile) {
             if (allPages.has(page)) return
-            await page.parse()
+            await page.parse(pageFactory, resourceFactory)
             allPages.add(page)
             const p = page.data
-            for (const r of p.resources) { await r.parse(); allResources.add(r) }
+            for (const r of p.resources) { await r.parse(pageFactory, resourceFactory); allResources.add(r) }
             for (const c of p.pageLinks) {
                 await recPages(c)
             }
         }
         const tocPages: PageFile[] = []
-        $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(el, tocPages))
+        $$('//h:nav/h:ol/h:li', doc).forEach(el => this.buildChildren(pageFactory, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
@@ -68,18 +69,18 @@ export class TocFile extends XMLFile<TocData> {
             toc, allPages, allResources
         }
     }
-    private buildChildren(li: Dom, acc?: PageFile[]): TocTree {
+    private buildChildren(pageFactory: Factory<PageFile>, li: Dom, acc?: PageFile[]): TocTree {
         // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
         const children = $$('h:ol/h:li', li)
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
                 title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-                children: children.map(c => this.buildChildren(c, acc))
+                children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
         } else if ($$('h:a[not(starts-with(@href, "#"))]', li).length > 0) {
             const href = assertValue($('h:a[not(starts-with(@href, "#"))]', li).attr('href'))
-            const page = this.factorio.pages.getOrAdd(href, this.readPath)
+            const page = pageFactory.getOrAdd(href, this.readPath)
             acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
@@ -114,6 +115,7 @@ export class TocFile extends XMLFile<TocData> {
         return $$node<Text>(sel, node).map(t => t.textContent).join('')
     }
     protected transform(doc: Document) {
+        const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
         $$('//h:nav//h:li[not(.//h:a)]', doc).forEach(e => e.remove())
 
@@ -132,7 +134,7 @@ export class TocFile extends XMLFile<TocData> {
         
         // Rename the hrefs to XHTML files to their new name
         $$('//*[@href]', doc).forEach(el => {
-            const page = this.factorio.pages.getOrAdd(assertValue(el.attr('href')), this.readPath)
+            const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
             el.attr('href', this.relativeToMe(page.newPath))
         })
     
