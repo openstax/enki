@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { constants, copyFileSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
 import type { Dom } from '../minidom';
 import { dom } from '../minidom';
@@ -24,6 +24,7 @@ export abstract class File<T> {
         return assertValue(this._data, `BUG: File has not been parsed yet: '${this.readPath}'`)
     }
 
+    abstract write(): Promise<void>
     protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>): Promise<T>
     public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
         if (this._data !== undefined) {
@@ -55,12 +56,28 @@ export abstract class XMLFile<T> extends File<T> {
     }
 }
 
+
 export type ResourceData = {
     mimeType: string
     originalExtension: string
 }
 export class ResourceFile extends File<ResourceData> {
-
+    static mimetypeExtensions: { [k: string]: string } = {
+        'image/jpeg': 'jpeg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/tiff': 'tiff',
+        'image/svg+xml': 'svg',
+        'audio/mpeg': 'mpg',
+        'audio/basic': 'au',
+        'application/pdf': 'pdf',
+        'application/zip': 'zip',
+        'audio/midi': 'midi',
+        'audio/x-wav': 'wav',
+        // 'text/plain':         'txt',
+        'application/x-shockwave-flash': 'swf',
+        // 'application/octet-stream':
+    }
     protected async innerParse() {
         const metadataFile = `${this.readPath}.json`.replace('/resources/', '/IO_RESOURCES/')
         const json = this.readJson<any>(metadataFile)
@@ -68,5 +85,10 @@ export class ResourceFile extends File<ResourceData> {
             mimeType: json.mime_type as string,
             originalExtension: json.original_name.split('.').reverse()[0] as string
         }
+    }
+
+    public async write() {
+        if (this.readPath !== this.newPath)
+            copyFileSync(this.readPath.replace('/resources/', '/IO_RESOURCES/'), this.newPath, constants.COPYFILE_EXCL)
     }
 }

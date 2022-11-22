@@ -19,3 +19,4 @@ test/cov.html/
 
 /node_modules
 /dist
+/testing

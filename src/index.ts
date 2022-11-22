@@ -1,9 +1,9 @@
-import { resolve } from 'path';
+import { basename, join, resolve } from 'path';
 import * as sourceMapSupport from 'source-map-support';
 import { Factory } from './model/factory';
 import { Builder, ResourceFile } from './model/file';
 import { PageFile } from './model/page';
-import { TocTreeType, TocFile } from './model/toc';
+import { TocFile } from './model/toc';
 
 sourceMapSupport.install()
 
@@ -27,53 +27,41 @@ async function fn() {
         absPath => new ResourceFile(absPath),
     )
 
-    // const toc = factorio.tocs.getOrAdd('../data/astronomy/_attic/IO_DISASSEMBLE_LINKED/astronomy-2e.toc.xhtml', __filename)
-    const toc = factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
-    await toc.parse(factorio.pages, factorio.resources)
-    const tocInfo = toc.data.toc
-    console.log(tocInfo)
+    // factorio.tocs.getOrAdd('../data/astronomy/_attic/IO_DISASSEMBLE_LINKED/astronomy-2e.toc.xhtml', __filename)
+    factorio.tocs.getOrAdd('../test.toc.xhtml', __filename)
 
-    const first = tocInfo[0]
-    if (first.type === TocTreeType.LEAF) {
-        await first.page.parse(factorio.pages, factorio.resources)
-        const pageInfo = first.page.data
-        console.log(pageInfo)
-        // {
-        //   hasMathML: true,
-        //   hasRemoteResources: true,
-        //   hasScripts: true,
-        //   resources: [
-        //     ResourceFile {
-        //       absPath: '/home/...path-to.../enki/resources/foo.jpg'
-        //     }
-        //   ]
-        // }
-
-        // first.page.rename('../test-out.xhtml', __filename)
-        pageInfo.resources[0].rename('../foo/bar.jpg', first.page.newPath)
-        // await first.page.write()
-    } else { throw new Error('BUG: expected first child in Toc to be a Page') }
-
-
-    let allPages: PageFile[] = []
-    const tocFiles = Array.from(factorio.tocs.all)
-    for (const tocFile of tocFiles) {
+    // Load up the models
+    for (const tocFile of factorio.tocs.all) {
         await tocFile.parse(factorio.pages, factorio.resources)
-        const pages = tocFile.data.toc.map(t => tocFile.getPagesFromToc(t)).flat()
-        allPages = [...allPages, ...pages]
     }
-
-    allPages.forEach(p => p.rename(p.newPath.replace(':', '%3A'), undefined))
-
-
-    tocFiles.forEach(p => p.rename(`${p.newPath}-out.xhtml`, undefined))
-
-    for (const page of allPages) {
-        await page.write()
+    for (const page of factorio.pages.all) {
+        await page.parse(factorio.pages, factorio.resources)
     }
-    for (const tocFile of tocFiles) {
-        await tocFile.write()
-        await tocFile.writeOPFFile('foo.opf')
+    for (const resource of factorio.resources.all) {
+        await resource.parse(factorio.pages, factorio.resources)
+    }
+    const allFiles = [...factorio.tocs.all, ...factorio.pages.all, ...factorio.resources.all]
+
+    // Rename Page files
+    Array.from(factorio.pages.all).forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
+
+    // Rename Resource files by adding a file extension to them
+    Array.from(factorio.resources.all).forEach(r => {
+        const { mimeType, originalExtension } = r.data
+        let newExtension = (ResourceFile.mimetypeExtensions)[mimeType] || originalExtension
+        r.rename(`${r.newPath}.${newExtension}`, undefined)
+    })
+
+
+    // Move all the files to a test directory
+    for (const f of allFiles) {
+        f.rename(`${join(__dirname, '../testing')}/${basename(f.newPath)}`, undefined)
+    }
+    for (const f of allFiles) {
+        await f.write()
+    }
+    for (const tocFile of factorio.tocs.all) {
+        await tocFile.writeOPFFile(`${tocFile.newPath}.opf`)
     }
 }
 

@@ -5,22 +5,6 @@ import type { Factory } from './factory';
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
 
-const mimetypeExtensions: { [k: string]: string } = {
-    'image/jpeg': 'jpeg',
-    'image/png': 'png',
-    'image/gif': 'gif',
-    'image/tiff': 'tiff',
-    'image/svg+xml': 'svg',
-    'audio/mpeg': 'mpg',
-    'audio/basic': 'au',
-    'application/pdf': 'pdf',
-    'application/zip': 'zip',
-    'audio/midi': 'midi',
-    'audio/x-wav': 'wav',
-    // 'text/plain':         'txt',
-    'application/x-shockwave-flash': 'swf',
-    // 'application/octet-stream':
-}
 export enum TocTreeType {
     INNER = 'INNER',
     LEAF = 'LEAF'
@@ -133,8 +117,9 @@ export class TocFile extends XMLFile<TocData> {
         })
 
         // Rename the hrefs to XHTML files to their new name
-        doc.forEach('//*[@href]', el => {
-            const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
+        doc.forEach('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', el => {
+            const href = assertValue(el.attr('href')).split('#')[0]
+            const page = assertValue(allPages.get(this.toAbsolute(href)))
             el.attr('href', this.relativeToMe(page.newPath))
         })
 
@@ -180,10 +165,7 @@ export class TocFile extends XMLFile<TocData> {
 
         let i = 0
         for (const resource of allResources) {
-            const { mimeType, originalExtension } = resource.data
-
-            let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
-            resource.rename(`${resource.newPath}.${newExtension}`, undefined)
+            const { mimeType } = resource.data
 
             bookItems.push(doc.create('opf:item', {
                 'media-type': mimeType,
