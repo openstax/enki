@@ -41,8 +41,8 @@ type TocData = {
 }
 export class TocFile extends XMLFile<TocData> {
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
-        const doc = await readXmlWithSourcemap(this.readPath)
-        const toc = dom(doc).$$('//h:nav/h:ol/h:li').map(el => this.buildChildren(pageFactory, el))
+        const doc = dom(await readXmlWithSourcemap(this.readPath))
+        const toc = doc.$$('//h:nav/h:ol/h:li').map(el => this.buildChildren(pageFactory, el))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -59,7 +59,7 @@ export class TocFile extends XMLFile<TocData> {
             }
         }
         const tocPages: PageFile[] = []
-        dom(doc).$$('//h:nav/h:ol/h:li').forEach(el => this.buildChildren(pageFactory, el, tocPages))
+        doc.$$('//h:nav/h:ol/h:li').forEach(el => this.buildChildren(pageFactory, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
@@ -114,26 +114,27 @@ export class TocFile extends XMLFile<TocData> {
     private selectText(sel: string, node: Dom) {
         return node.$$node<Text>(sel).map(t => t.textContent).join('')
     }
-    protected transform(doc: Document) {
+    protected transform(d: Document) {
+        const doc = dom(d)
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
-        dom(doc).$$('//h:nav//h:li[not(.//h:a)]').forEach(e => e.remove())
+        doc.$$('//h:nav//h:li[not(.//h:a)]').forEach(e => e.remove())
 
         // Unwrap chapter links and combine titles into a single span
-        dom(doc).$$('h:a[starts-with(@href, "#")]').forEach(el => {
+        doc.$$('h:a[starts-with(@href, "#")]').forEach(el => {
             const children = el.$$('h:span/node()')
-            el.replaceWith(dom(doc, 'h:span', {}, children))
+            el.replaceWith(doc.create('h:span', {}, children))
         })
 
-        dom(doc).$$('h:a[not(starts-with(@href, "#")) and h:span]').forEach(el => {
-            const children = dom(doc).$$('h:span/node()')
+        doc.$$('h:a[not(starts-with(@href, "#")) and h:span]').forEach(el => {
+            const children = doc.$$('h:span/node()')
             el.children = [
-                dom(doc, 'h:span', {}, children)
+                doc.create('h:span', {}, children)
             ]
         })
         
         // Rename the hrefs to XHTML files to their new name
-        dom(doc).$$('//*[@href]').forEach(el => {
+        doc.$$('//*[@href]').forEach(el => {
             const page = assertValue(allPages.get(this.toAbsolute(assertValue(el.attr('href')))))
             el.attr('href', this.relativeToMe(page.newPath))
         })
@@ -144,15 +145,16 @@ export class TocFile extends XMLFile<TocData> {
             'cnx-archive-uri',
             'itemprop',
         ]
-        attrsToRemove.forEach(attrName => dom(doc).$$(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
+        attrsToRemove.forEach(attrName => doc.$$(`//*[@${attrName}]`).forEach(el => el.attr(attrName, null)))
         
         // Add the epub:type="nav" attribute
-        dom(doc).$('//h:nav').attr('epub:type', 'toc')
+        doc.$('//h:nav').attr('epub:type', 'toc')
     }
 
     public async writeOPFFile(destPath: string) {
-        const doc = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
-        const pkg = dom(doc).$('opf:package')
+        const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
+        const doc = dom(d)
+        const pkg = doc.$('opf:package')
         pkg.attrs = {version: '3.0', 'unique-identifier': 'uid'}
     
         const { allPages, allResources} = this.data
@@ -165,7 +167,7 @@ export class TocFile extends XMLFile<TocData> {
             if (p.hasRemoteResources) props.push('remote-resources')
             if (p.hasScripts) props.push('scripted')
 
-            bookItems.push(dom(doc, 'opf:item', {
+            bookItems.push(doc.create('opf:item', {
                 'media-type': 'application/xhtml+xml', 
                 id: `idxhtml_${basename(page.newPath)}`, 
                 properties: props.join(' '), 
@@ -183,7 +185,7 @@ export class TocFile extends XMLFile<TocData> {
             let newExtension = (mimetypeExtensions)[mimeType] || originalExtension
             resource.rename(`${resource.newPath}.${newExtension}`, undefined)
 
-            bookItems.push(dom(doc, 'opf:item', {
+            bookItems.push(doc.create('opf:item', {
                 'media-type': mimeType, 
                 id: `idresource_${i}`, 
                 href: relative(dirname(destPath), resource.newPath)}),)
@@ -196,21 +198,21 @@ export class TocFile extends XMLFile<TocData> {
         const revised = bookMetadata.revised.replace('+00:00', 'Z')
     
     
-        pkg.children = [ dom(doc, 'opf:metadata', {}, [
-            dom(doc, 'dc:title', {}, [ bookMetadata.title ]),
-            dom(doc, 'dc:language', {}, [bookMetadata.language]),
-            dom(doc, 'opf:meta', {property: 'dcterms:modified'}, [ revised]),
-            dom(doc, 'opf:meta', {property: 'dcterms:license'}, [ bookMetadata.licenseUrl]),
-            // dom(doc, 'opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
-            dom(doc, 'dc:identifier', {id: 'uid'}, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
-            dom(doc, 'dc:creator', {}, ['Is it OpenStax???']),
-        ]), dom(doc, 'opf:manifest', {}, [
-            dom(doc, 'opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
-            dom(doc, 'opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath)}),
+        pkg.children = [ doc.create('opf:metadata', {}, [
+            doc.create('dc:title', {}, [ bookMetadata.title ]),
+            doc.create('dc:language', {}, [bookMetadata.language]),
+            doc.create('opf:meta', {property: 'dcterms:modified'}, [ revised]),
+            doc.create('opf:meta', {property: 'dcterms:license'}, [ bookMetadata.licenseUrl]),
+            // doc.create('opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
+            doc.create('dc:identifier', {id: 'uid'}, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
+            doc.create('dc:creator', {}, ['Is it OpenStax???']),
+        ]), doc.create('opf:manifest', {}, [
+            doc.create('opf:item', {id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css"}),
+            doc.create('opf:item', {id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath)}),
             ...bookItems
         ])]
     
-        this.writeXml(destPath, doc, XmlFormat.XHTML5)
+        this.writeXml(destPath, d, XmlFormat.XHTML5)
     }
 
 }

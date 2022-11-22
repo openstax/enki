@@ -82,6 +82,17 @@ export class Dom {
         return c
     }
 
+    /** Creates a new element but does not attach it to the DOM */
+    create(tagName: string, attrs?: Attrs, children?: Array<Dom | Element | string>) {
+        const doc = assertValue(this.el.ownerDocument ? this.el.ownerDocument : this.el as unknown as Document)
+        const [tag, ns] = tagName.split(':').reverse()
+        const el = (ns !== undefined) ? doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : doc.createElement(tag)
+        const $el = dom(el)
+        if (attrs !== undefined) $el.attrs = attrs
+        if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.el.appendChild(c.el) : typeof c === 'string' ? $el.el.appendChild(doc.createTextNode(c)) : $el.el.appendChild(c))
+        return $el
+    }
+
     /** Select all MiniDom nodes in `parent` that match `xpath` */
     $$(xpath: string) {
         const ret = this.$$node(xpath)
