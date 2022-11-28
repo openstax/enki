@@ -3,12 +3,16 @@ import * as sourceMapSupport from 'source-map-support';
 import { ContainerFile } from './model/container';
 import { factorio } from './model/factorio';
 import { ResourceFile } from './model/file';
+import { assertValue } from './utils';
 
 sourceMapSupport.install()
 
 async function fn() {
 
-    const c = new ContainerFile(resolve('./data/astronomy/_attic/IO_FETCHED/META-INF/books.xml'))
+    const pathToBooksXML = process.argv[2]
+    assertValue(pathToBooksXML, 'Missing console parameter. specify something like ./data/astronomy/_attic/IO_FETCHED/META-INF/books.xml')
+
+    const c = new ContainerFile(resolve(pathToBooksXML))
     await c.parse(factorio.pages, factorio.resources, factorio.tocs)
     c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
