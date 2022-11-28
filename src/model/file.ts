@@ -2,7 +2,7 @@ import { constants, copyFileSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
 import type { Dom } from '../minidom';
 import { dom } from '../minidom';
-import { assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
+import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
 import type { Factory, Opt } from './factory';
 import type { PageFile } from './page';
 import type { TocFile } from './toc';
@@ -79,8 +79,11 @@ export class ResourceFile extends File<ResourceData> {
         'application/x-shockwave-flash': 'swf',
         // 'application/octet-stream':
     }
+    private realReadPath() {
+        return this.readPath.replace('/resources/', '/IO_RESOURCES/')
+    }
     protected async innerParse() {
-        const metadataFile = `${this.readPath}.json`.replace('/resources/', '/IO_RESOURCES/')
+        const metadataFile = `${this.realReadPath()}.json`
         const json = this.readJson<any>(metadataFile)
         return {
             mimeType: json.mime_type as string,
@@ -89,7 +92,8 @@ export class ResourceFile extends File<ResourceData> {
     }
 
     public async write() {
-        if (this.readPath !== this.newPath)
-            copyFileSync(this.readPath.replace('/resources/', '/IO_RESOURCES/'), this.newPath, constants.COPYFILE_EXCL)
+        assertTrue(this.readPath !== this.newPath)
+        const readPath = this.realReadPath()
+        copyFileSync(readPath, this.newPath, constants.COPYFILE_EXCL)
     }
 }
