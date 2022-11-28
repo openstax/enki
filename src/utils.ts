@@ -51,7 +51,7 @@ function visit(n: Node, visitor: (n: Node) => void) {
     }
 }
 
-export function parseXml(fileContent: string, _filename: string) {
+export function parseXml(fileContent: string) {
     const locator = { lineNumber: 0, columnNumber: 0 }
     const cb = () => {
         const pos = {
@@ -244,7 +244,7 @@ class SourceMapWriter {
 export async function readXmlWithSourcemap(filename: string) {
     filename = resolve(filename) // make absolute for sourcemaps
     const fileContent = readFileSync(filename, 'utf-8')
-    const doc = parseXml(fileContent, filename)
+    const doc = parseXml(fileContent)
 
     // Add the source file info to every node
     visit(doc.documentElement, n => {
