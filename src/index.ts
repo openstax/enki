@@ -1,32 +1,12 @@
 import { basename, join, resolve } from 'path';
 import * as sourceMapSupport from 'source-map-support';
 import { ContainerFile } from './model/container';
-import { Factory } from './model/factory';
-import { Builder, ResourceFile } from './model/file';
-import { PageFile } from './model/page';
-import { TocFile } from './model/toc';
+import { factorio } from './model/factorio';
+import { ResourceFile } from './model/file';
 
 sourceMapSupport.install()
 
-class Factorio {
-    public readonly pages: Factory<PageFile>
-    public readonly tocs: Factory<TocFile>
-    public readonly resources: Factory<ResourceFile>
-
-    constructor(pageBuilder: Builder<PageFile>, tocBuilder: Builder<TocFile>, resourceBuilder: Builder<ResourceFile>) {
-        this.pages = new Factory(pageBuilder, resolve)
-        this.tocs = new Factory(tocBuilder, resolve)
-        this.resources = new Factory(resourceBuilder, resolve)
-    }
-}
-
 async function fn() {
-
-    const factorio: Factorio = new Factorio(
-        absPath => new PageFile(absPath),
-        absPath => new TocFile(absPath),
-        absPath => new ResourceFile(absPath),
-    )
 
     const c = new ContainerFile(resolve('./data/astronomy/_attic/IO_FETCHED/META-INF/books.xml'))
     await c.parse(factorio.pages, factorio.resources, factorio.tocs)

@@ -138,7 +138,7 @@ export class TocFile extends XMLFile<TocData> {
     }
 
     public async writeOPFFile(destPath: string) {
-        const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>', '_unused......')
+        const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>')
         const doc = dom(d)
         const pkg = doc.findOne('opf:package')
         pkg.attrs = { version: '3.0', 'unique-identifier': 'uid' }
