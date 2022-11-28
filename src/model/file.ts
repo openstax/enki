@@ -1,4 +1,4 @@
-import { constants, copyFileSync, readFileSync } from 'fs';
+import { constants, copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
 import type { Dom } from '../minidom';
 import { dom } from '../minidom';
@@ -94,6 +94,7 @@ export class ResourceFile extends File<ResourceData> {
     public async write() {
         assertTrue(this.readPath !== this.newPath)
         const readPath = this.realReadPath()
+        if (!existsSync(this.newPath)) mkdirSync(dirname(this.newPath), { recursive: true })
         copyFileSync(readPath, this.newPath, constants.COPYFILE_EXCL)
     }
 }

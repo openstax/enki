@@ -1,4 +1,4 @@
-import {describe, expect, it, afterEach, beforeEach} from '@jest/globals'
+import {describe, expect, it, afterEach, beforeEach, jest} from '@jest/globals'
 import { readFileSync } from 'fs'
 import mockfs from 'mock-fs'
 import { factorio } from './factorio'
@@ -13,13 +13,14 @@ describe('ResourceFile', () => {
         mime_type: 'image/jpeg', 
     }
     const resourceContents = 'the contents of the image'
+    const destPath = '/bar/resources/fakepath2'
 
     it('renames the input directory to IO_RESOURCES and parses the JSON meta file to find out the mime type', async () => {
         const r = new ResourceFile(resourceHref)
-        r.readJson = <T>(filename: string): T => {
-            expect(filename).toBe(metadataPath)
-            return metadataJSON as T
-        }
+        // Replace the read method with a mock
+        const s = jest.spyOn(r, 'readJson')
+        s.mockReturnValue(metadataJSON)
+
         await r.parse(factorio.pages, factorio.resources, factorio.tocs)
         expect(r.data.mimeType).toBe('image/jpeg')
         expect(r.data.originalExtension).toBe('jpg')
@@ -29,7 +30,6 @@ describe('ResourceFile', () => {
         const fs: any = {}
         fs[resourcePath] = resourceContents
         fs[metadataPath] = JSON.stringify(metadataJSON)
-        fs['/bar/resources/'] = {} // ensure the destination dir exists
         mockfs(fs)
     })
 
@@ -38,7 +38,6 @@ describe('ResourceFile', () => {
     })
 
     it('copies the resource to the destination directory', async () => {
-        const destPath = '/bar/resources/fakepath2'
         const r = new ResourceFile(resourceHref)
         await r.parse(factorio.pages, factorio.resources, factorio.tocs)
         r.rename(destPath, undefined)
