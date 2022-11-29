@@ -19,8 +19,14 @@ async function fn() {
     c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
     // Load up the models
-    for (const tocFile of factorio.opfs.all) {
-        await tocFile.parse(factorio.pages, factorio.resources, factorio.opfs)
+    const tocFiles = []
+    const ncxFiles = []
+    for (const opfFile of factorio.opfs.all) {
+        await opfFile.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await opfFile.tocFile.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await opfFile.ncxFile.parse(factorio.pages, factorio.resources, factorio.opfs)
+        tocFiles.push(opfFile.tocFile)
+        ncxFiles.push(opfFile.ncxFile)
     }
     for (const page of factorio.pages.all) {
         await page.parse(factorio.pages, factorio.resources, factorio.opfs)
@@ -28,7 +34,13 @@ async function fn() {
     for (const resource of factorio.resources.all) {
         await resource.parse(factorio.pages, factorio.resources, factorio.opfs)
     }
-    const allFiles = [c, ...factorio.opfs.all, ...factorio.pages.all, ...factorio.resources.all]
+    const allFiles = [c, ...factorio.opfs.all, ...factorio.pages.all, ...factorio.resources.all, ...tocFiles, ...ncxFiles]
+
+    // Rename OPF Files (they were XHTML)
+    Array.from(factorio.opfs.all).forEach(p => p.rename(p.newPath.replace('.xhtml', '.opf'), undefined))
+    // Rename ToC files
+    // Rename NCX files
+    Array.from(ncxFiles).forEach(p => p.rename(p.newPath.replace('.xhtml', '.ncx'), undefined))
 
     // Rename Page files
     Array.from(factorio.pages.all).forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
@@ -51,9 +63,6 @@ async function fn() {
     
     for (const f of allFiles) {
         await f.write()
-    }
-    for (const tocFile of factorio.opfs.all) {
-        await tocFile.writeOPFFile(`${tocFile.newPath}.opf`)
     }
 }
 

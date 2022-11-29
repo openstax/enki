@@ -1,6 +1,6 @@
 import { relative, dirname, basename } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertValue, parseXml, XmlFormat } from '../utils'
+import { assertValue, parseXml } from '../utils'
 import type { Factory } from './factory';
 import { ResourceFile, XMLFile } from './file';
 import type { PageFile } from './page';
@@ -31,7 +31,8 @@ type TocData = {
     language: string
 
 }
-export class OpfFile extends XMLFile<TocData> {
+export class TocFile extends XMLFile<TocData> {
+
     protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<OpfFile>) {
 
         const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
@@ -111,7 +112,8 @@ export class OpfFile extends XMLFile<TocData> {
     private selectText(sel: string, node: Dom) {
         return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
-    protected transform(doc: Dom) {
+
+    protected transform(doc: Dom): Dom {
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
         doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())
@@ -149,8 +151,20 @@ export class OpfFile extends XMLFile<TocData> {
 
         return doc
     }
+}
 
-    public async writeOPFFile(destPath: string) {
+export class OpfFile extends TocFile {
+
+    public readonly tocFile: TocFile
+    public readonly ncxFile: NcxFile
+
+    constructor(readPath: string) {
+        super(readPath)
+        this.tocFile = new TocFile(readPath)
+        this.ncxFile = new NcxFile(readPath)
+    }
+
+    protected override transform(_: Dom) {
         const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>')
         const doc = dom(d)
         const pkg = doc.findOne('opf:package')
@@ -169,7 +183,7 @@ export class OpfFile extends XMLFile<TocData> {
                 'media-type': 'application/xhtml+xml',
                 id: `idxhtml_${basename(page.newPath)}`,
                 properties: props.join(' '),
-                href: relative(dirname(destPath), page.newPath)
+                href: relative(dirname(this.newPath), page.newPath)
             }),)
 
             for (const r of p.resources) {
@@ -184,7 +198,7 @@ export class OpfFile extends XMLFile<TocData> {
             bookItems.push(doc.create('opf:item', {
                 'media-type': mimeType,
                 id: `idresource_${i}`,
-                href: relative(dirname(destPath), resource.newPath)
+                href: relative(dirname(this.newPath), resource.newPath)
             }),)
             i++
         }
@@ -205,19 +219,50 @@ export class OpfFile extends XMLFile<TocData> {
             doc.create('dc:creator', {}, ['Is it OpenStax???']),
         ]), doc.create('opf:manifest', {}, [
             doc.create('opf:item', { id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css" }),
-            doc.create('opf:item', { id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(destPath), this.newPath) }),
+            doc.create('opf:item', { id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(this.newPath), this.tocFile.newPath) }),
             ...bookItems
         ])]
 
-        this.writeXml(destPath, d, XmlFormat.XHTML5)
+        return doc
+    }
+}
+
+export class NcxFile extends TocFile {
+
+    public findDepth(toc: TocTree):number{
+
+        if(toc.type== TocTreeType.LEAF)
+        return 1
+        else 
+            return 1+ Math.max(...toc.children.map(d=>{
+                return this.findDepth(d);
+            }))
     }
 
-}
+    protected override transform(_: Dom): Dom {
+        const d = parseXml('<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>')
+        const doc = dom(d)
+        const pkg = doc.findOne('ncx:package')
+        pkg.attrs = { version: '2005-1'}
 
-export class TocFile extends OpfFile {
-    
-}
+        const { toc, allPages } = this.data
+        const bookMetadata = this.data
+        //Find the depth of the table of content
+        const depth = Math.max(...toc.map(t=>this.findDepth(t)))
 
-export class NcXFile extends OpfFile {
+        pkg.children = [doc.create('ncx:head',{},[
+            doc.create('ncx:meta', {name: 'dtb:uid', content: `dummy-openstax.org-id.${bookMetadata.slug}`}),
+            doc.create('ncx:meta', {name: 'dtb:depth', content: `${depth}`}),
+            doc.create('ncx:meta', {name: 'dtb:generator', content: `OpenStax EPUB Maker 2022-08`}),
+            // Is the Max Page Number eq to the Total Page Count? 
+            doc.create('ncx:meta', {name: 'dtb:totalPageCount', content: `${allPages.size}`}),
+            doc.create('ncx:meta', {name: 'dtb:maxPageNumber', content: `${allPages.size}`}),
+        ]), 
+        doc.create('ncx:docTitle', {},[bookMetadata.title]),
+        //TODO fill the navMap element
+        doc.create('ncx:navMap',{},[]) 
+        ]
 
+        return doc
+    }
 }
