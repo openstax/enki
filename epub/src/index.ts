@@ -1,3 +1,4 @@
+import { copyFileSync } from 'fs';
 import { basename, join, resolve } from 'path';
 import * as sourceMapSupport from 'source-map-support';
 import { ContainerFile } from './model/container';
@@ -9,10 +10,11 @@ sourceMapSupport.install()
 
 async function fn() {
 
-    const pathToBooksXML = process.argv[2]
-    assertValue(pathToBooksXML, 'Missing console parameter. specify something like ./data/astronomy/_attic/IO_FETCHED/META-INF/books.xml')
+    const dataDirPath = process.argv[2]
+    assertValue(dataDirPath, 'Missing console parameter. specify something like ../data/astronomy/_attic (something that contains IO_FETCHED/META-INF/books.xml, IO_RESOURCES/ , IO_DISASSEMBLED/ , ')
 
-    const c = new ContainerFile(resolve(pathToBooksXML))
+    const booksXmlPath = `${dataDirPath}/IO_FETCHED/META-INF/books.xml`
+    const c = new ContainerFile(resolve(booksXmlPath))
     await c.parse(factorio.pages, factorio.resources, factorio.tocs)
     c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
@@ -43,6 +45,9 @@ async function fn() {
     for (const f of allFiles) {
         f.rename(`${join(__dirname, '../testing')}/${basename(f.newPath)}`, undefined)
     }
+
+    // Copy the CSS file to the destination
+    copyFileSync(`${dataDirPath}/IO_BAKED/the-style-pdf.css`, `${join(__dirname, '../testing')}/the-style-epub.css`)
     
     for (const f of allFiles) {
         await f.write()
