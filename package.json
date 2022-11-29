@@ -9,8 +9,8 @@
         "prestart": "npm run-script build",
         "start": "node ./dist/index.js",
         "clean": "git clean -dfqX",
-        "test": "jest",
-        "test:ci": "jest --coverage --ci --maxWorkers=2 --reporters=default --reporters=jest-junit"
+        "test": "jest --coverage",
+        "test:ci": "jest --ci --maxWorkers=2 --reporters=default --reporters=jest-junit"
     },
     "devDependencies": {
         "@types/mock-fs": "^4.13.1",

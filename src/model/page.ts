@@ -13,7 +13,6 @@ const RESOURCE_SELECTORS: Array<[string, string]> = [
 export type PageData = {
     hasMathML: boolean
     hasRemoteResources: boolean
-    hasScripts: boolean
     pageLinks: PageFile[]
     resources: ResourceFile[]
 }
@@ -28,7 +27,6 @@ export class PageFile extends XMLFile<PageData> {
         return {
             hasMathML: doc.has('//m:math'),
             hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
-            hasScripts: doc.has('//h:script'),
             pageLinks,
             resources
         }

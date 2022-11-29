@@ -151,7 +151,6 @@ export class TocFile extends XMLFile<TocData> {
             const props: string[] = []
             if (p.hasMathML) props.push('mathml')
             if (p.hasRemoteResources) props.push('remote-resources')
-            if (p.hasScripts) props.push('scripted')
 
             bookItems.push(doc.create('opf:item', {
                 'media-type': 'application/xhtml+xml',
