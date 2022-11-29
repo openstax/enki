@@ -75,6 +75,16 @@ export class TocFile extends XMLFile<TocData> {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
     }
+    public findDepth(toc: TocTree):number{
+
+        if(toc.type== TocTreeType.LEAF)
+        return 1
+        else 
+            return 1+ Math.max(...toc.children.map(d=>{
+                return this.findDepth(d);
+            }))
+    }
+
     public getPagesFromToc(toc: TocTree, acc: PageFile[] = []) {
         if (toc.type === TocTreeType.LEAF) {
             acc?.push(toc.page)
@@ -197,6 +207,33 @@ export class TocFile extends XMLFile<TocData> {
             ...bookItems
         ])]
 
+        this.writeXml(destPath, d, XmlFormat.XHTML5)
+    }
+    public async writeNCXFile(destPath: string){
+
+        const d = parseXml('<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>')
+        const doc = dom(d)
+        const pkg = doc.findOne('ncx:package')
+        pkg.attrs = { version: '2005-1'}
+
+        const { toc, allPages } = this.data
+        const bookMetadata = await this.parseMetadata()
+        //Find the depth of the table of content
+        const depth = Math.max(...toc.map(t=>this.findDepth(t)))
+
+        pkg.children = [doc.create('ncx:head',{},[
+            doc.create('ncx:meta', {name: 'dtb:uid', content: `dummy-openstax.org-id.${bookMetadata.slug}`}),
+            doc.create('ncx:meta', {name: 'dtb:depth', content: `${depth}`}),
+            doc.create('ncx:meta', {name: 'dtb:generator', content: `OpenStax EPUB Maker 2022-08`}),
+            // Is the Max Page Number eq to the Total Page Count? 
+            doc.create('ncx:meta', {name: 'dtb:totalPageCount', content: `${allPages.size}`}),
+            doc.create('ncx:meta', {name: 'dtb:maxPageNumber', content: `${allPages.size}`}),
+        ]), 
+        doc.create('ncx:docTitle', {},[bookMetadata.title]),
+        //TODO fill the navMap element
+        doc.create('ncx:navMap',{},[]) 
+        ]
+        //TODO Write tests
         this.writeXml(destPath, d, XmlFormat.XHTML5)
     }
 

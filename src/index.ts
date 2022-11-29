@@ -49,6 +49,7 @@ async function fn() {
     }
     for (const tocFile of factorio.tocs.all) {
         await tocFile.writeOPFFile(`${tocFile.newPath}.opf`)
+        await tocFile.writeNCXFile(`${tocFile.newPath}.ncx`)
     }
 }
 
