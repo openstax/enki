@@ -15,20 +15,20 @@ async function fn() {
 
     const booksXmlPath = `${dataDirPath}/IO_FETCHED/META-INF/books.xml`
     const c = new ContainerFile(resolve(booksXmlPath))
-    await c.parse(factorio.pages, factorio.resources, factorio.tocs)
+    await c.parse(factorio.pages, factorio.resources, factorio.opfs)
     c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
     // Load up the models
-    for (const tocFile of factorio.tocs.all) {
-        await tocFile.parse(factorio.pages, factorio.resources, factorio.tocs)
+    for (const tocFile of factorio.opfs.all) {
+        await tocFile.parse(factorio.pages, factorio.resources, factorio.opfs)
     }
     for (const page of factorio.pages.all) {
-        await page.parse(factorio.pages, factorio.resources, factorio.tocs)
+        await page.parse(factorio.pages, factorio.resources, factorio.opfs)
     }
     for (const resource of factorio.resources.all) {
-        await resource.parse(factorio.pages, factorio.resources, factorio.tocs)
+        await resource.parse(factorio.pages, factorio.resources, factorio.opfs)
     }
-    const allFiles = [c, ...factorio.tocs.all, ...factorio.pages.all, ...factorio.resources.all]
+    const allFiles = [c, ...factorio.opfs.all, ...factorio.pages.all, ...factorio.resources.all]
 
     // Rename Page files
     Array.from(factorio.pages.all).forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
@@ -52,7 +52,7 @@ async function fn() {
     for (const f of allFiles) {
         await f.write()
     }
-    for (const tocFile of factorio.tocs.all) {
+    for (const tocFile of factorio.opfs.all) {
         await tocFile.writeOPFFile(`${tocFile.newPath}.opf`)
     }
 }

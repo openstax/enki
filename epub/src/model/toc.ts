@@ -22,9 +22,26 @@ type TocData = {
     toc: TocTree[]
     allPages: Set<PageFile>
     allResources: Set<ResourceFile>
+    
+    // From the metadata.json file
+    title: string
+    revised: string
+    slug: string
+    licenseUrl: string
+    language: string
+
 }
-export class TocFile extends XMLFile<TocData> {
-    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<TocFile>) {
+export class OpfFile extends XMLFile<TocData> {
+    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<OpfFile>) {
+
+        const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
+        const json = this.readJson<any>(metadataFile)
+        const title = json.title as string
+        const revised = json.revised as string
+        const slug = json.slug as string
+        const licenseUrl = json.license.url as string
+        const language = json.language as string
+
         const doc = dom(await this.readXml(this.readPath))
         const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el))
 
@@ -50,7 +67,14 @@ export class TocFile extends XMLFile<TocData> {
         }
 
         return {
-            toc, allPages, allResources
+            toc, 
+            allPages, 
+            allResources,
+            title,
+            revised,
+            slug,
+            licenseUrl,
+            language
         }
     }
     private buildChildren(pageFactory: Factory<PageFile>, li: Dom, acc?: PageFile[]): TocTree {
@@ -82,17 +106,6 @@ export class TocFile extends XMLFile<TocData> {
             toc.children.forEach(c => this.getPagesFromToc(c, acc))
         }
         return acc
-    }
-    async parseMetadata() {
-        const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
-        const json = this.readJson<any>(metadataFile)
-        return {
-            title: json.title as string,
-            revised: json.revised as string,
-            slug: json.slug as string,
-            licenseUrl: json.license.url as string,
-            language: json.language as string,
-        }
     }
 
     private selectText(sel: string, node: Dom) {
@@ -177,7 +190,7 @@ export class TocFile extends XMLFile<TocData> {
         }
 
 
-        const bookMetadata = await this.parseMetadata()
+        const bookMetadata = this.data
         // Remove the timezone from the revised_date
         const revised = bookMetadata.revised.replace('+00:00', 'Z')
 
@@ -198,5 +211,13 @@ export class TocFile extends XMLFile<TocData> {
 
         this.writeXml(destPath, d, XmlFormat.XHTML5)
     }
+
+}
+
+export class TocFile extends OpfFile {
+    
+}
+
+export class NcXFile extends OpfFile {
 
 }

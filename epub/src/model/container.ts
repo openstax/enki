@@ -3,13 +3,13 @@ import { dom, Dom } from "../minidom"
 import type { Factory } from "./factory"
 import { ResourceFile, XMLFile } from "./file"
 import type { PageFile } from "./page"
-import type { TocFile } from "./toc"
+import type { OpfFile } from "./toc"
 import { dirname, relative } from "path"
 
-type ContainerData = TocFile[]
+type ContainerData = OpfFile[]
 
 export class ContainerFile extends XMLFile<ContainerData> {
-    protected async innerParse(_1: Factory<PageFile>, _2: Factory<ResourceFile>, tocFactory: Factory<TocFile>): Promise<ContainerData> {
+    protected async innerParse(_1: Factory<PageFile>, _2: Factory<ResourceFile>, tocFactory: Factory<OpfFile>): Promise<ContainerData> {
         const doc = dom(await this.readXml(this.readPath))
         return doc.map('//books:book', b => {
             const slug = assertValue(b.attr('slug'))

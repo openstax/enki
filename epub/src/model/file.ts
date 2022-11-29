@@ -5,7 +5,7 @@ import { dom } from '../minidom';
 import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
 import type { Factory, Opt } from './factory';
 import type { PageFile } from './page';
-import type { TocFile } from './toc';
+import type { OpfFile } from './toc';
 
 export type Builder<T> = (absPath: string) => T
 
@@ -26,8 +26,8 @@ export abstract class File<T> {
     }
 
     abstract write(): Promise<void>
-    protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>, tocFactory?: Factory<TocFile>): Promise<T>
-    public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<TocFile>) {
+    protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>, tocFactory?: Factory<OpfFile>): Promise<T>
+    public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<OpfFile>) {
         if (this._data !== undefined) {
             console.warn(`BUG? Attempting to parse a file a second time: '${this.readPath}'`)
             return
