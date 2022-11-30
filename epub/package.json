@@ -4,13 +4,16 @@
     "license": "AGPL",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "bin": {
+        "epub": "./bin/epub"
+    },
     "scripts": {
         "build": "tsc --build tsconfig.build.json",
         "prestart": "npm run-script build",
-        "start": "node ./dist/index.js",
+        "start": "./bin/epub",
         "clean": "git clean -dfqX",
-        "test": "jest",
-        "test:ci": "jest --coverage --ci --maxWorkers=2 --reporters=default --reporters=jest-junit"
+        "test": "jest --coverage",
+        "test:ci": "jest --ci --maxWorkers=2 --reporters=default --reporters=jest-junit"
     },
     "devDependencies": {
         "@types/mock-fs": "^4.13.1",
@@ -23,6 +26,7 @@
         "typescript": "4.8.4"
     },
     "dependencies": {
+        "@commander-js/extra-typings": "^9.4.1",
         "@jest/types": "^29.3.1",
         "mock-fs": "^5.2.0",
         "source-map": "^0.7.4",

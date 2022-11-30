@@ -17,6 +17,7 @@ test/cov.xml
 test/.coverage
 test/cov.html/
 
-/node_modules
-/dist
-/testing
+/epub/coverage
+/epub/node_modules
+/epub/dist
+/epub/testing
