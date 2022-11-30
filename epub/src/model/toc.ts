@@ -185,7 +185,7 @@ export class OpfFile extends TocFile {
             bookItems.push(doc.create('opf:item', {
                 'media-type': 'application/xhtml+xml',
                 id: `idxhtml_${basename(page.newPath)}`,
-                properties: props.join(' '),
+                properties: props.length === 0 ? undefined : props.join(' '),
                 href: relative(dirname(this.newPath), page.newPath)
             }),)
 

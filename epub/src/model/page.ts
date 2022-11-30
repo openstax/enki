@@ -28,7 +28,7 @@ export class PageFile extends XmlFile<PageData> {
         })
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(factorio.resources, doc, sel, attrName)).flat()
         this.data = {
-            hasMathML: doc.has('//m:math'),
+            hasMathML: doc.has('//m:math|//h:math'),
             hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
             pageLinks,
             resources

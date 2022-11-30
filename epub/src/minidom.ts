@@ -1,7 +1,7 @@
 import { useNamespaces } from 'xpath-ts'
 import { assertTrue, assertValue } from "./utils"
 
-type Attrs = { [key: string]: string }
+type Attrs = { [key: string]: string | undefined }
 
 /**
  * API:
