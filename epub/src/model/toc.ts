@@ -1,8 +1,9 @@
 import { relative, dirname, basename } from 'path'
-import { Dom, dom } from '../minidom'
-import { assertValue, parseXml } from '../utils'
+import { dom, Dom } from '../minidom'
+import { assertValue, parseXml, XmlFormat } from '../utils'
+import type { Factorio } from './factorio';
 import type { Factory } from './factory';
-import { ResourceFile, XMLFile } from './file';
+import { ResourceFile, XmlFile } from './file';
 import type { PageFile } from './page';
 
 export enum TocTreeType {
@@ -31,20 +32,20 @@ type TocData = {
     language: string
 
 }
-export class TocFile extends XMLFile<TocData> {
 
-    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<OpfFile>) {
-
+export class TocFile extends XmlFile<TocData> {
+    constructor(readPath: string, format = XmlFormat.XHTML5) { super(readPath, format) }
+    async parse(factorio: Factorio): Promise<void> {
         const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
-        const json = this.readJson<any>(metadataFile)
-        const title = json.title as string
-        const revised = json.revised as string
-        const slug = json.slug as string
-        const licenseUrl = json.license.url as string
-        const language = json.language as string
+        const doc = dom(await this.readXml())
+        const metadata = await this.readJson<any>(metadataFile)
+        const title = metadata.title as string
+        const revised = metadata.revised as string
+        const slug = metadata.slug as string
+        const licenseUrl = metadata.license.url as string
+        const language = metadata.language as string
 
-        const doc = dom(await this.readXml(this.readPath))
-        const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el))
+        const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -52,22 +53,22 @@ export class TocFile extends XMLFile<TocData> {
         // keep looking through XHTML file links and add those to the set of allPages
         async function recPages(page: PageFile) {
             if (allPages.has(page)) return
-            await page.parse(pageFactory, resourceFactory, tocFactory)
+            await page.parse(factorio)
             allPages.add(page)
             const p = page.data
-            for (const r of p.resources) { await r.parse(pageFactory, resourceFactory, tocFactory); allResources.add(r) }
+            for (const r of p.resources) { await r.parse(factorio); allResources.add(r) }
             for (const c of p.pageLinks) {
                 await recPages(c)
             }
         }
         const tocPages: PageFile[] = []
-        doc.forEach('//h:nav/h:ol/h:li', el => this.buildChildren(pageFactory, el, tocPages))
+        doc.forEach('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
         }
 
-        return {
+        this.data = {
             toc, 
             allPages, 
             allResources,
@@ -84,7 +85,7 @@ export class TocFile extends XMLFile<TocData> {
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
-                title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+                title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
         } else if (li.has('h:a[not(starts-with(@href, "#"))]')) {
@@ -93,7 +94,7 @@ export class TocFile extends XMLFile<TocData> {
             acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
-                title: this.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+                title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 page
             }
         } else {
@@ -109,11 +110,13 @@ export class TocFile extends XMLFile<TocData> {
         return acc
     }
 
-    private selectText(sel: string, node: Dom) {
+    private static selectText(sel: string, node: Dom) {
         return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
 
-    protected transform(doc: Dom): Dom {
+    protected async convert(): Promise<Node> {
+        const doc = dom(await this.readXml())
+        
         const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
         doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())
@@ -149,7 +152,7 @@ export class TocFile extends XMLFile<TocData> {
         // Add the epub:type="nav" attribute
         doc.findOne('//h:nav').attr('epub:type', 'toc')
 
-        return doc
+        return doc.node
     }
 }
 
@@ -164,7 +167,7 @@ export class OpfFile extends TocFile {
         this.ncxFile = new NcxFile(readPath)
     }
 
-    protected override transform(_: Dom) {
+    protected override async convert(): Promise<Node> {
         const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>')
         const doc = dom(d)
         const pkg = doc.findOne('opf:package')
@@ -223,7 +226,7 @@ export class OpfFile extends TocFile {
             ...bookItems
         ])]
 
-        return doc
+        return doc.node
     }
 }
 
@@ -239,7 +242,7 @@ export class NcxFile extends TocFile {
             }))
     }
 
-    protected override transform(_: Dom): Dom {
+    protected override async convert(): Promise<Node> {
         const d = parseXml('<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>')
         const doc = dom(d)
         const pkg = doc.findOne('ncx:package')
@@ -263,6 +266,6 @@ export class NcxFile extends TocFile {
         doc.create('ncx:navMap',{},[]) 
         ]
 
-        return doc
+        return doc.node
     }
 }

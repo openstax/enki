@@ -15,24 +15,24 @@ async function fn() {
 
     const booksXmlPath = `${dataDirPath}/IO_FETCHED/META-INF/books.xml`
     const c = new ContainerFile(resolve(booksXmlPath))
-    await c.parse(factorio.pages, factorio.resources, factorio.opfs)
+    await c.parse(factorio)
     c.rename(`${join(__dirname, '../testing')}/container.xml`, undefined)
 
     // Load up the models
     const tocFiles = []
     const ncxFiles = []
     for (const opfFile of factorio.opfs.all) {
-        await opfFile.parse(factorio.pages, factorio.resources, factorio.opfs)
-        await opfFile.tocFile.parse(factorio.pages, factorio.resources, factorio.opfs)
-        await opfFile.ncxFile.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await opfFile.parse(factorio)
+        await opfFile.tocFile.parse(factorio)
+        await opfFile.ncxFile.parse(factorio)
         tocFiles.push(opfFile.tocFile)
         ncxFiles.push(opfFile.ncxFile)
     }
     for (const page of factorio.pages.all) {
-        await page.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await page.parse(factorio)
     }
     for (const resource of factorio.resources.all) {
-        await resource.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await resource.parse(factorio)
     }
     const allFiles = [c, ...factorio.opfs.all, ...factorio.pages.all, ...factorio.resources.all, ...tocFiles, ...ncxFiles]
 
@@ -53,7 +53,7 @@ async function fn() {
     })
 
 
-    // Move all the files to a test directory
+    // Specify that we will want to write all the files to a testing directory
     for (const f of allFiles) {
         f.rename(`${join(__dirname, '../testing')}/${basename(f.newPath)}`, undefined)
     }

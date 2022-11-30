@@ -1,7 +1,8 @@
 import { Dom, dom } from '../minidom'
-import { assertValue } from '../utils'
+import { assertValue, XmlFormat } from '../utils'
+import type { Factorio } from './factorio'
 import type { Factory } from './factory'
-import { ResourceFile, XMLFile } from './file'
+import { ResourceFile, XmlFile } from './file'
 
 const RESOURCE_SELECTORS: Array<[string, string]> = [
     ['//h:img', 'src'],
@@ -16,15 +17,17 @@ export type PageData = {
     pageLinks: PageFile[]
     resources: ResourceFile[]
 }
-export class PageFile extends XMLFile<PageData> {
-    protected async innerParse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>) {
+
+export class PageFile extends XmlFile<PageData> {
+    constructor(readPath: string, format = XmlFormat.XHTML5) { super(readPath, format) }
+    async parse(factorio: Factorio): Promise<void> {
         const doc = dom(await this.readXml(this.readPath))
         const pageLinks = doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
-            return pageFactory.getOrAdd(u.pathname, this.readPath)
+            return factorio.pages.getOrAdd(u.pathname, this.readPath)
         })
-        const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(resourceFactory, doc, sel, attrName)).flat()
-        return {
+        const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(factorio.resources, doc, sel, attrName)).flat()
+        this.data = {
             hasMathML: doc.has('//m:math'),
             hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
             pageLinks,
@@ -43,7 +46,8 @@ export class PageFile extends XMLFile<PageData> {
             node.attr(attrName, this.relativeToMe(resource.newPath))
         }
     }
-    protected transform(doc: Dom) {
+    protected async convert(): Promise<Node> {
+        const doc = dom(await this.readXml())
         // Rename the resources
         RESOURCE_SELECTORS.forEach(([sel, attrName]) => this.resourceRenamer(doc, sel, attrName))
 
@@ -74,6 +78,6 @@ export class PageFile extends XMLFile<PageData> {
         attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
 
         doc.forEach('//h:script|//h:style', n => n.remove())
-        return doc
+        return doc.node
     }
 }

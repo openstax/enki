@@ -38,7 +38,7 @@ type Attrs = { [key: string]: string }
  */
 export class Dom {
     constructor(public readonly node: ParentNode) { }
-    private get doc() {
+    public get doc() {
         const { ownerDocument } = this.node
         return ownerDocument !== null ? ownerDocument : this.node as unknown as Document
     }

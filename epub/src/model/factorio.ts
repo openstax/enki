@@ -1,8 +1,10 @@
 import { resolve } from "path"
 import { Factory } from "./factory"
-import { Builder, ResourceFile } from "./file"
+import { ResourceFile } from "./file"
 import { PageFile } from "./page"
 import { OpfFile } from "./toc"
+
+type Builder<T> = (absPath: string) => T
 
 export class Factorio {
     public readonly pages: Factory<PageFile>

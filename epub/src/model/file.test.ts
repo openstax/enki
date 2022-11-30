@@ -21,7 +21,7 @@ describe('ResourceFile', () => {
         const s = jest.spyOn(r, 'readJson')
         s.mockReturnValue(metadataJSON)
 
-        await r.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await r.parse(factorio)
         expect(r.data.mimeType).toBe('image/jpeg')
         expect(r.data.originalExtension).toBe('jpg')
     })
@@ -39,7 +39,7 @@ describe('ResourceFile', () => {
 
     it('copies the resource to the destination directory', async () => {
         const r = new ResourceFile(resourceHref)
-        await r.parse(factorio.pages, factorio.resources, factorio.opfs)
+        await r.parse(factorio)
         r.rename(destPath, undefined)
         await r.write()
         expect(readFileSync(destPath, 'utf8')).toBe(resourceContents)

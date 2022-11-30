@@ -1,22 +1,23 @@
-import { assertValue } from "../utils"
-import { dom, Dom } from "../minidom"
-import type { Factory } from "./factory"
-import { ResourceFile, XMLFile } from "./file"
-import type { PageFile } from "./page"
+import { assertValue, XmlFormat } from "../utils"
+import { dom } from "../minidom"
+import { XmlFile } from "./file"
 import type { OpfFile } from "./toc"
 import { dirname, relative } from "path"
+import type { Factorio } from "./factorio"
 
 type ContainerData = OpfFile[]
 
-export class ContainerFile extends XMLFile<ContainerData> {
-    protected async innerParse(_1: Factory<PageFile>, _2: Factory<ResourceFile>, tocFactory: Factory<OpfFile>): Promise<ContainerData> {
+export class ContainerFile extends XmlFile<ContainerData> {
+    constructor(readPath: string) { super(readPath, XmlFormat.XML)}
+    public async parse(factorio: Factorio): Promise<void> {
         const doc = dom(await this.readXml(this.readPath))
-        return doc.map('//books:book', b => {
+        this.data = doc.map('//books:book', b => {
             const slug = assertValue(b.attr('slug'))
-            return tocFactory.getOrAdd(`../../IO_DISASSEMBLE_LINKED/${slug}.toc.xhtml`, this.readPath)
+            return factorio.opfs.getOrAdd(`../../IO_DISASSEMBLE_LINKED/${slug}.toc.xhtml`, this.readPath)
         })
     }
-    protected transform(doc: Dom) {
+    protected async convert(): Promise<Node> {
+        const doc = dom(await this.readXml(this.readPath))
         const books = this.data.map(t => {
             const p = relative(dirname(this.newPath), t.newPath)
             return doc.create('cont:rootfile', {'media-type': "application/oebps-package+xml", 'full-path': p})
@@ -24,7 +25,6 @@ export class ContainerFile extends XMLFile<ContainerData> {
         const newRoot = doc.create('cont:container', { version: "1.0" }, [
             doc.create('cont:rootfiles', {}, books)
         ])
-        return newRoot
+        return newRoot.node
     }
-
 }

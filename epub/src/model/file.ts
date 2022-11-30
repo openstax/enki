@@ -1,68 +1,73 @@
 import { constants, copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
-import type { Dom } from '../minidom';
-import { dom } from '../minidom';
 import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
-import type { Factory, Opt } from './factory';
-import type { PageFile } from './page';
-import type { OpfFile } from './toc';
+import type { Factorio } from './factorio';
+import type { Opt } from './factory';
 
-export type Builder<T> = (absPath: string) => T
-
-export abstract class File<T> {
+/**
+ * Files Read:
+ * - books.xml
+ * - book.toc.xhtml
+ *   - book.toc-metadata.json
+ * - image-resource.json
+ * - book-style.css
+ * 
+ * Files Written:
+ * - container.xml  (from books.xml)
+ * - book.opf       
+ * - book.toc.xhtml (from book.toc.xhtml)
+ * - book.ncx       
+ * - image-resource (from image-resource.json)
+ * - book-style.css (from book-style.css)
+ */
+export abstract class File {
     private _newPath: Opt<string>
-    private _data: Opt<T>
-    constructor(public readonly readPath: string) { }
-    rename(relPath: string, relTo: Opt<string>) {
+    constructor(private readonly _readPath: string) { }
+    public rename(relPath: string, relTo?: string) {
         this._newPath = relTo === undefined ? relPath : join(dirname(relTo), relPath)
+    }
+    public get readPath() {
+        return assertValue(this._readPath, 'BUG: This appears to be a new File since a readPath was not provided when it was constructed')
     }
     public get newPath() {
         return this._newPath || this.readPath
     }
-    public readJson<T>(file: string) { return JSON.parse(readFileSync(file, 'utf-8')) as T }
-
-    public get data() {
-        return assertValue(this._data, `BUG: File has not been parsed yet: '${this.readPath}'`)
-    }
-
-    abstract write(): Promise<void>
-    protected abstract innerParse(pageFactory: Factory<PageFile>, resourceFactory?: Factory<ResourceFile>, tocFactory?: Factory<OpfFile>): Promise<T>
-    public async parse(pageFactory: Factory<PageFile>, resourceFactory: Factory<ResourceFile>, tocFactory: Factory<OpfFile>) {
-        if (this._data !== undefined) {
-            console.warn(`BUG? Attempting to parse a file a second time: '${this.readPath}'`)
-            return
-        }
-        const d = await this.innerParse(pageFactory, resourceFactory, tocFactory)
-        this._data = d
-        // return d
-    }
+    readJson<T>(file: string) { return JSON.parse(readFileSync(file, 'utf-8')) as T }
+    public abstract write(): Promise<void>
 }
 
-export abstract class XMLFile<T> extends File<T> {
-    protected relativeToMe(absPath: string) {
-        return relative(dirname(this.newPath), absPath)
-    }
-    protected toAbsolute(relPath: string) {
-        return resolve(dirname(this.readPath), relPath)
-    }
-    protected abstract transform(doc: Dom): Dom
-    
-    public async readXml(file: string): Promise<Document> { return readXmlWithSourcemap(file) }
-    public async writeXml(file: string, root: Node, format: XmlFormat) { writeXmlWithSourcemap(file, root, format) }
 
-    public async write() {
-        const doc = dom(await this.readXml(this.readPath))
-        const root = this.transform(doc)
-        this.writeXml(this.newPath, root.node, XmlFormat.XHTML5)
-    }
+export interface Readable<T> {
+    get data(): T
+    parse(factorio: Factorio): Promise<void>
 }
 
+export abstract class XmlFile<T> extends File implements Readable<T> {
+    private _data: Opt<T> = undefined
+    constructor(readPath: string, private readonly format: XmlFormat) { super(readPath) }
+    public get data() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
+    protected set data(v: T) { this._data = v }
+    abstract parse(factorio: Factorio): Promise<void>
+    protected abstract convert(): Promise<Node>
+    public async write(): Promise<void> {
+        const doc = await this.convert()
+        await this.writeXml(doc)
+    }
+    public async readXml(file = this.readPath): Promise<Document> { return readXmlWithSourcemap(file) }
+    private async writeXml(root: Node, file = this.newPath, format = this.format) { writeXmlWithSourcemap(file, root, format) }
+
+    protected relativeToMe(absPath: string) { return relative(dirname(this.newPath), absPath) }
+    protected toAbsolute(relPath: string) { return resolve(dirname(this.readPath), relPath) }
+}
 
 export type ResourceData = {
     mimeType: string
     originalExtension: string
 }
-export class ResourceFile extends File<ResourceData> {
+
+export class ResourceFile extends File implements Readable<ResourceData> {
+    private _data: Opt<ResourceData> = undefined
+
     static mimetypeExtensions: { [k: string]: string } = {
         'image/jpeg': 'jpeg',
         'image/png': 'png',
@@ -82,10 +87,13 @@ export class ResourceFile extends File<ResourceData> {
     private realReadPath() {
         return this.readPath.replace('/resources/', '/IO_RESOURCES/')
     }
-    protected async innerParse() {
+
+    public get data() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
+
+    async parse(_: Factorio): Promise<void> {
         const metadataFile = `${this.realReadPath()}.json`
-        const json = this.readJson<any>(metadataFile)
-        return {
+        const json = await this.readJson<any>(metadataFile)
+        this._data = {
             mimeType: json.mime_type as string,
             originalExtension: json.original_name.split('.').reverse()[0] as string
         }
