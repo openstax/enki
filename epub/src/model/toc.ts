@@ -246,16 +246,10 @@ export class OpfFile extends TocFile {
 }
 
 export class NcxFile extends TocFile {
-  _generatedIds = new Set();
+  _idCounter = 1
 
-  private generateWithCollisionCheck(): string {
-    while (true) {
-      let id = (((Math.random() * Math.pow(36, 6)) | 0).toString(10)).slice(-4);
-      if (!this._generatedIds.has(id)) {
-        this._generatedIds.add(id);
-        return id;
-      }
-    }
+  private generateWithCollisionCheck(): number {
+   return this._idCounter++;
   }
 
   private fillNavMap(doc: Dom, toc: TocTree): Dom {
