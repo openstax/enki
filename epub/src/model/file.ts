@@ -38,15 +38,14 @@ export abstract class File {
 
 
 export interface Readable<T> {
-    get data(): T
+    get parsed(): T
     parse(factorio: Factorio): Promise<void>
 }
 
 export abstract class XmlFile<T> extends File implements Readable<T> {
-    private _data: Opt<T> = undefined
+    protected _parsed: Opt<T> = undefined
     constructor(readPath: string) { super(readPath) }
-    public get data() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
-    protected set data(v: T) { this._data = v }
+    public get parsed() { return assertValue(this._parsed, 'BUG: Forgot to call parse()')}
     abstract parse(factorio: Factorio): Promise<void>
     protected abstract convert(): Promise<Node>
     public async write(): Promise<void> {
@@ -88,7 +87,7 @@ export class ResourceFile extends File implements Readable<ResourceData> {
         return this.readPath.replace('/resources/', '/IO_RESOURCES/')
     }
 
-    public get data() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
+    public get parsed() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
 
     async parse(_: Factorio): Promise<void> {
         const metadataFile = `${this.realReadPath()}.json`

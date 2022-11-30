@@ -22,8 +22,8 @@ describe('ResourceFile', () => {
         s.mockReturnValue(metadataJSON)
 
         await r.parse(factorio)
-        expect(r.data.mimeType).toBe('image/jpeg')
-        expect(r.data.originalExtension).toBe('jpg')
+        expect(r.parsed.mimeType).toBe('image/jpeg')
+        expect(r.parsed.originalExtension).toBe('jpg')
     })
 
     beforeEach(() => {

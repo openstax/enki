@@ -67,7 +67,7 @@ program // .command('epub')
 
     // Rename Resource files by adding a file extension to them
     factorio.resources.all.forEach(r => {
-        const { mimeType, originalExtension } = r.data
+        const { mimeType, originalExtension } = r.parsed
         let newExtension = (ResourceFile.mimetypeExtensions)[mimeType] || originalExtension
         r.rename(`${r.newPath}.${newExtension}`, undefined)
     })

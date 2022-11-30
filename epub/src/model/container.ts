@@ -9,15 +9,16 @@ type ContainerData = OpfFile[]
 
 export class ContainerFile extends XmlFile<ContainerData> {
     public async parse(factorio: Factorio): Promise<void> {
+        if (this._parsed !== undefined) return // Only parse once
         const doc = dom(await this.readXml(this.readPath))
-        this.data = doc.map('//books:book', b => {
+        this._parsed = doc.map('//books:book', b => {
             const slug = assertValue(b.attr('slug'))
             return factorio.opfs.getOrAdd(`../../IO_DISASSEMBLE_LINKED/${slug}.toc.xhtml`, this.readPath)
         })
     }
     protected async convert(): Promise<Node> {
         const doc = dom(await this.readXml(this.readPath))
-        const books = this.data.map(t => {
+        const books = this.parsed.map(t => {
             const p = relative(dirname(this.newPath), t.newPath)
             return doc.create('cont:rootfile', {'media-type': "application/oebps-package+xml", 'full-path': p})
         })

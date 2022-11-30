@@ -1,5 +1,7 @@
+import { existsSync } from 'fs'
+import { dirname, resolve } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertValue } from '../utils'
+import { assertValue, getPos } from '../utils'
 import type { Factorio } from './factorio'
 import type { Factory } from './factory'
 import { ResourceFile, XmlFile } from './file'
@@ -18,15 +20,31 @@ export type PageData = {
     resources: ResourceFile[]
 }
 
+function filterNulls<T>(l: Array<T | null>): Array<T> {
+    const ret: T[] = []
+    for (const i of l) {
+        if (i !== null) ret.push(i)
+    }
+    return ret
+}
+
 export class PageFile extends XmlFile<PageData> {
     async parse(factorio: Factorio): Promise<void> {
+        if (this._parsed !== undefined) return // Only parse once
         const doc = dom(await this.readXml(this.readPath))
-        const pageLinks = doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
+        const pageLinks = filterNulls(doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
-            return factorio.pages.getOrAdd(u.pathname, this.readPath)
-        })
+            const pagePathRel = u.pathname.slice(1) // remove leading slash
+            const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
+            if (!existsSync(pagePathAbs)) {
+                const pos = getPos(a.node)
+                console.warn(`WARN: Invalid link '${a.attr('href')}' Source: ${pos.source.filename}:${pos.lineNumber}:${pos.columnNumber}`)
+                return null
+            }
+            return factorio.pages.getOrAdd(pagePathRel, this.readPath)
+        }))
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(factorio.resources, doc, sel, attrName)).flat()
-        this.data = {
+        this._parsed = {
             hasMathML: doc.has('//m:math|//h:math'),
             hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
             pageLinks,
@@ -37,7 +55,7 @@ export class PageFile extends XmlFile<PageData> {
         return node.map(sel, img => resourceFactory.getOrAdd(assertValue(img.attr(attrName)), this.readPath))
     }
     private resourceRenamer(node: Dom, sel: string, attrName: string) {
-        const allResources = new Map(this.data.resources.map(r => ([r.readPath, r])))
+        const allResources = new Map(this.parsed.resources.map(r => ([r.readPath, r])))
         const resources = node.find(sel)
         for (const node of resources) {
             const resPath = this.toAbsolute(assertValue(node.attr(attrName)))
@@ -61,7 +79,7 @@ export class PageFile extends XmlFile<PageData> {
 
         // Re-namespace the MathML elements
         doc.forEach('//h:math|//h:math//*', el => {
-            el.replaceWith(doc.create(`m:${el.tagName}`, el.attrs, el.children))
+            el.replaceWith(doc.create(`m:${el.tagName}`, el.attrs, el.children, getPos(el.node)))
         })
 
         // Remove annotation-xml elements because the validator requires an optional "name" attribute

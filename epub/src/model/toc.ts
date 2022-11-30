@@ -1,6 +1,6 @@
 import { relative, dirname, basename } from 'path'
 import { dom, Dom } from '../minidom'
-import { assertValue, parseXml } from '../utils'
+import { assertValue, getPos, parseXml, Pos } from '../utils'
 import type { Factorio } from './factorio';
 import type { Factory } from './factory';
 import { ResourceFile, XmlFile } from './file';
@@ -13,11 +13,14 @@ export enum TocTreeType {
 export type TocTree = {
     type: TocTreeType.INNER
     title: string
+    titlePos: Pos
     children: TocTree[]
 } | {
     type: TocTreeType.LEAF
     title: string
+    titlePos: Pos
     page: PageFile
+    pagePos: Pos
 }
 type TocData = {
     toc: TocTree[]
@@ -35,6 +38,7 @@ type TocData = {
 
 export class TocFile extends XmlFile<TocData> {
     async parse(factorio: Factorio): Promise<void> {
+        if (this._parsed !== undefined) return // Only parse once
         const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
         const doc = dom(await this.readXml())
         const metadata = await this.readJson<any>(metadataFile)
@@ -44,7 +48,8 @@ export class TocFile extends XmlFile<TocData> {
         const licenseUrl = metadata.license.url as string
         const language = metadata.language as string
 
-        const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el))
+        const tocPages: PageFile[] = []
+        const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el, tocPages))
 
         const allPages = new Set<PageFile>()
         const allResources = new Set<ResourceFile>()
@@ -54,20 +59,18 @@ export class TocFile extends XmlFile<TocData> {
             if (allPages.has(page)) return
             await page.parse(factorio)
             allPages.add(page)
-            const p = page.data
+            const p = page.parsed
             for (const r of p.resources) { await r.parse(factorio); allResources.add(r) }
             for (const c of p.pageLinks) {
                 await recPages(c)
             }
         }
-        const tocPages: PageFile[] = []
-        doc.forEach('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el, tocPages))
 
         for (const page of tocPages) {
             await recPages(page)
         }
 
-        this.data = {
+        this._parsed = {
             toc, 
             allPages, 
             allResources,
@@ -85,6 +88,7 @@ export class TocFile extends XmlFile<TocData> {
             return {
                 type: TocTreeType.INNER,
                 title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+                titlePos: getPos(li.findOne('h:a').node),
                 children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
         } else if (li.has('h:a[not(starts-with(@href, "#"))]')) {
@@ -94,7 +98,9 @@ export class TocFile extends XmlFile<TocData> {
             return {
                 type: TocTreeType.LEAF,
                 title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-                page
+                titlePos: getPos(li.findOne('h:a').node),
+                page,
+                pagePos: getPos(li.node),
             }
         } else {
             throw new Error('BUG: non-page leaves are not supported yet')
@@ -116,20 +122,20 @@ export class TocFile extends XmlFile<TocData> {
     protected async convert(): Promise<Node> {
         const doc = dom(await this.readXml())
         
-        const allPages = new Map(Array.from(this.data.allPages).map(r => ([r.readPath, r])))
+        const allPages = new Map(Array.from(this.parsed.allPages).map(r => ([r.readPath, r])))
         // Remove ToC entries that have non-Page leaves
         doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())
 
         // Unwrap chapter links and combine titles into a single span
         doc.forEach('h:a[starts-with(@href, "#")]', el => {
             const children = el.find('h:span/node()')
-            el.replaceWith(doc.create('h:span', {}, children))
+            el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
         })
 
         doc.forEach('h:a[not(starts-with(@href, "#")) and h:span]', el => {
             const children = doc.find('h:span/node()')
             el.children = [
-                doc.create('h:span', {}, children)
+                doc.create('h:span', {}, children, getPos(el.node))
             ]
         })
 
@@ -172,11 +178,11 @@ export class OpfFile extends TocFile {
         const pkg = doc.findOne('opf:package')
         pkg.attrs = { version: '3.0', 'unique-identifier': 'uid' }
 
-        const { allPages, allResources } = this.data
+        const { allPages, allResources } = this.parsed
 
         const bookItems: Dom[] = []
         for (const page of allPages) {
-            const p = page.data
+            const p = page.parsed
             const props: string[] = []
             if (p.hasMathML) props.push('mathml')
             if (p.hasRemoteResources) props.push('remote-resources')
@@ -195,7 +201,7 @@ export class OpfFile extends TocFile {
 
         let i = 0
         for (const resource of allResources) {
-            const { mimeType } = resource.data
+            const { mimeType } = resource.parsed
 
             bookItems.push(doc.create('opf:item', {
                 'media-type': mimeType,
@@ -206,7 +212,7 @@ export class OpfFile extends TocFile {
         }
 
 
-        const bookMetadata = this.data
+        const bookMetadata = this.parsed
         // Remove the timezone from the revised_date
         const revised = bookMetadata.revised.replace('+00:00', 'Z')
 
@@ -247,8 +253,8 @@ export class NcxFile extends TocFile {
         const pkg = doc.findOne('ncx:package')
         pkg.attrs = { version: '2005-1'}
 
-        const { toc, allPages } = this.data
-        const bookMetadata = this.data
+        const { toc, allPages } = this.parsed
+        const bookMetadata = this.parsed
         //Find the depth of the table of content
         const depth = Math.max(...toc.map(t=>this.findDepth(t)))
 

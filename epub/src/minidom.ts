@@ -1,5 +1,5 @@
 import { useNamespaces } from 'xpath-ts'
-import { assertTrue, assertValue } from "./utils"
+import { assertTrue, assertValue, Pos, setPos } from "./utils"
 
 type Attrs = { [key: string]: string | undefined }
 
@@ -79,12 +79,13 @@ export class Dom {
     }
 
     /** Creates a new element but does not attach it to the DOM */
-    create(tagName: string, attrs?: Attrs, children?: Array<Dom | Element | string>) {
+    create(tagName: string, attrs?: Attrs, children?: Array<Dom | Element | string>, source?: Pos) {
         const [tag, ns] = tagName.split(':').reverse()
         const el = (ns !== undefined) ? this.doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : this.doc.createElement(tag)
         const $el = dom(el)
         if (attrs !== undefined) $el.attrs = attrs
         if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.node.appendChild(c.node) : typeof c === 'string' ? $el.node.appendChild(this.doc.createTextNode(c)) : $el.node.appendChild(c))
+        if (source !== undefined) setPos(el, source)
         return $el
     }
 

@@ -30,10 +30,10 @@ export function assertValue<T>(v: T | null | undefined, message: string = 'Expec
 }
 
 // xmldom parser includes the line/column information on the Node (but it's not exposed in the public API)
-function getPos(node: Node): Pos {
+export function getPos(node: Node): Pos {
     return node as unknown as Pos
 }
-function setPos(node: Node, p: Pos) {
+export function setPos(node: Node, p: Pos) {
     const n = node as unknown as Pos
     n.columnNumber = p.columnNumber
     n.lineNumber = p.lineNumber
