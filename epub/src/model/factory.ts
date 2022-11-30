@@ -29,5 +29,5 @@ export class Factory<T> {
     return item
   }
   public get size() { return this._map.size }
-  public get all() { return this._map.values() }
+  public get all() { return Array.from(this._map.values()) }
 }
