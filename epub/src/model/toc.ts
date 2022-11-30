@@ -106,6 +106,16 @@ export class TocFile extends XmlFile<TocData> {
             throw new Error('BUG: non-page leaves are not supported yet')
         }
     }
+    public findDepth(toc: TocTree):number{
+
+        if(toc.type== TocTreeType.LEAF)
+        return 1
+        else 
+            return 1+ Math.max(...toc.children.map(d=>{
+                return this.findDepth(d);
+            }))
+    }
+
     public getPagesFromToc(toc: TocTree, acc: PageFile[] = []) {
         if (toc.type === TocTreeType.LEAF) {
             acc?.push(toc.page)
@@ -236,41 +246,71 @@ export class OpfFile extends TocFile {
 }
 
 export class NcxFile extends TocFile {
+  _idCounter = 1
 
-    public findDepth(toc: TocTree):number{
+  private generateWithCollisionCheck(): number {
+   return this._idCounter++;
+  }
 
-        if(toc.type== TocTreeType.LEAF)
-        return 1
-        else 
-            return 1+ Math.max(...toc.children.map(d=>{
-                return this.findDepth(d);
-            }))
-    }
-
-    protected override async convert(): Promise<Node> {
-        const d = parseXml('<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>')
-        const doc = dom(d)
-        const pkg = doc.findOne('ncx:package')
-        pkg.attrs = { version: '2005-1'}
-
-        const { toc, allPages } = this.parsed
-        const bookMetadata = this.parsed
-        //Find the depth of the table of content
-        const depth = Math.max(...toc.map(t=>this.findDepth(t)))
-
-        pkg.children = [doc.create('ncx:head',{},[
-            doc.create('ncx:meta', {name: 'dtb:uid', content: `dummy-openstax.org-id.${bookMetadata.slug}`}),
-            doc.create('ncx:meta', {name: 'dtb:depth', content: `${depth}`}),
-            doc.create('ncx:meta', {name: 'dtb:generator', content: `OpenStax EPUB Maker 2022-08`}),
-            // Is the Max Page Number eq to the Total Page Count? 
-            doc.create('ncx:meta', {name: 'dtb:totalPageCount', content: `${allPages.size}`}),
-            doc.create('ncx:meta', {name: 'dtb:maxPageNumber', content: `${allPages.size}`}),
-        ]), 
-        doc.create('ncx:docTitle', {},[bookMetadata.title]),
-        //TODO fill the navMap element
-        doc.create('ncx:navMap',{},[]) 
+  private fillNavMap(doc: Dom, toc: TocTree): Dom {
+    if (toc.type == TocTreeType.LEAF) {
+      return doc.create(
+        "ncx:navPoint",
+        { id: `idm${this.generateWithCollisionCheck()}` },
+        [
+          doc.create("ncx:NavLabel", {}, [toc.title]),
+          doc.create("ncx:content", {
+            src: `./${relative(dirname(this.newPath), toc.page.newPath)}`,
+          }),
         ]
-
-        return doc.node
+      );
+    } else {
+      return doc.create("ncx:navPoint", {}, [
+        ...toc.children.map((d) => {
+          return this.fillNavMap(doc, d);
+        }),
+      ]);
     }
+  }
+
+  protected override async convert(): Promise<Node> {
+    const d = parseXml(
+      '<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>'
+    );
+    const doc = dom(d);
+    const pkg = doc.findOne("ncx:package");
+    pkg.attrs = { version: "2005-1" };
+
+    const { toc, allPages, title, slug } = this.parsed;
+    //Find the depth of the table of content
+    const depth = Math.max(...toc.map((t) => this.findDepth(t)));
+
+    pkg.children = [
+      doc.create("ncx:head", {}, [
+        doc.create("ncx:meta", {
+          name: "dtb:uid",
+          content: `dummy-openstax.org-id.${slug}`,
+        }),
+        doc.create("ncx:meta", { name: "dtb:depth", content: `${depth}` }),
+        doc.create("ncx:meta", {
+          name: "dtb:generator",
+          content: `OpenStax EPUB Maker 2022-08`,
+        }),
+        doc.create("ncx:meta", {
+          name: "dtb:totalPageCount",
+          content: `${allPages.size}`,
+        }),
+        doc.create("ncx:meta", {
+          name: "dtb:maxPageNumber",
+          content: `${allPages.size}`,
+        }),
+      ]),
+      doc.create("ncx:docTitle", {}, [title]),
+      doc.create("ncx:navMap", {}, [
+        ...toc.map((t) => this.fillNavMap(doc, t)),
+      ]),
+    ];
+
+    return doc.node;
+  }
 }
