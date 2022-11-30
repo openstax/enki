@@ -1,4 +1,4 @@
-import { assertValue, XmlFormat } from "../utils"
+import { assertValue } from "../utils"
 import { dom } from "../minidom"
 import { XmlFile } from "./file"
 import type { OpfFile } from "./toc"
@@ -8,7 +8,6 @@ import type { Factorio } from "./factorio"
 type ContainerData = OpfFile[]
 
 export class ContainerFile extends XmlFile<ContainerData> {
-    constructor(readPath: string) { super(readPath, XmlFormat.XML)}
     public async parse(factorio: Factorio): Promise<void> {
         const doc = dom(await this.readXml(this.readPath))
         this.data = doc.map('//books:book', b => {

@@ -94,7 +94,7 @@ function escapeText(v: string) {
 
 class XMLSerializer {
     private w: SourceMapWriter
-    constructor(private outputFile: string, private root: Node, private format: XmlFormat) {
+    constructor(private outputFile: string, private root: Node) {
         this.outputFile = resolve(this.outputFile)
         this.w = new SourceMapWriter(outputFile)
     }
@@ -136,7 +136,7 @@ class XMLSerializer {
             for (const attr of Array.from(el.attributes)) {
                 this.recWrite(attr, newDefaultNamespace)
             }
-            if (isSelfClosing(this.format, localTag, el.namespaceURI)) {
+            if (isSelfClosing(localTag, el.namespaceURI)) {
                 assertTrue(el.childNodes.length === 0)
                 this.w.writeText(n, '/>')
             } else if (el.childNodes.length === 0) {
@@ -154,19 +154,13 @@ class XMLSerializer {
     }
 }
 
-
-export enum XmlFormat {
-    XML,
-    XHTML5,
-}
-
 const Xhtml5EmptyTagNames = new Set([
     "area", "base", "br", "col", /*"command",*/ "embed", "hr", "img", "input", "keygen", "link", "meta", "param",
     "source", "track", "wbr"
 ])
 
-function isSelfClosing(format: XmlFormat, tagName: string, ns: string | null) {
-    return format === XmlFormat.XHTML5 && ns === 'http://www.w3.org/1999/xhtml' && Xhtml5EmptyTagNames.has(tagName)
+function isSelfClosing(tagName: string, ns: string | null) {
+    return ns === 'http://www.w3.org/1999/xhtml' && Xhtml5EmptyTagNames.has(tagName)
 }
 
 class SourceMapWriter {
@@ -291,7 +285,7 @@ export async function readXmlWithSourcemap(filename: string) {
     return doc
 }
 
-export function writeXmlWithSourcemap(filename: string, root: Node, xmlFormat: XmlFormat) {
-    const w = new XMLSerializer(filename, root, xmlFormat)
+export function writeXmlWithSourcemap(filename: string, root: Node) {
+    const w = new XMLSerializer(filename, root)
     w.writeFiles()
 }

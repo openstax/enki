@@ -1,5 +1,5 @@
 import { Dom, dom } from '../minidom'
-import { assertValue, XmlFormat } from '../utils'
+import { assertValue } from '../utils'
 import type { Factorio } from './factorio'
 import type { Factory } from './factory'
 import { ResourceFile, XmlFile } from './file'
@@ -19,7 +19,6 @@ export type PageData = {
 }
 
 export class PageFile extends XmlFile<PageData> {
-    constructor(readPath: string, format = XmlFormat.XHTML5) { super(readPath, format) }
     async parse(factorio: Factorio): Promise<void> {
         const doc = dom(await this.readXml(this.readPath))
         const pageLinks = doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {

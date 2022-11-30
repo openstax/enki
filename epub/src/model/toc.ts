@@ -1,6 +1,6 @@
 import { relative, dirname, basename } from 'path'
 import { dom, Dom } from '../minidom'
-import { assertValue, parseXml, XmlFormat } from '../utils'
+import { assertValue, parseXml } from '../utils'
 import type { Factorio } from './factorio';
 import type { Factory } from './factory';
 import { ResourceFile, XmlFile } from './file';
@@ -34,7 +34,6 @@ type TocData = {
 }
 
 export class TocFile extends XmlFile<TocData> {
-    constructor(readPath: string, format = XmlFormat.XHTML5) { super(readPath, format) }
     async parse(factorio: Factorio): Promise<void> {
         const metadataFile = this.readPath.replace('.toc.xhtml', '.toc-metadata.json')
         const doc = dom(await this.readXml())

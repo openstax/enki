@@ -1,6 +1,6 @@
 import { constants, copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
-import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap, XmlFormat } from '../utils'
+import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap } from '../utils'
 import type { Factorio } from './factorio';
 import type { Opt } from './factory';
 
@@ -44,7 +44,7 @@ export interface Readable<T> {
 
 export abstract class XmlFile<T> extends File implements Readable<T> {
     private _data: Opt<T> = undefined
-    constructor(readPath: string, private readonly format: XmlFormat) { super(readPath) }
+    constructor(readPath: string) { super(readPath) }
     public get data() { return assertValue(this._data, 'BUG: Forgot to call parse()')}
     protected set data(v: T) { this._data = v }
     abstract parse(factorio: Factorio): Promise<void>
@@ -54,7 +54,7 @@ export abstract class XmlFile<T> extends File implements Readable<T> {
         await this.writeXml(doc)
     }
     public async readXml(file = this.readPath): Promise<Document> { return readXmlWithSourcemap(file) }
-    private async writeXml(root: Node, file = this.newPath, format = this.format) { writeXmlWithSourcemap(file, root, format) }
+    private async writeXml(root: Node, file = this.newPath) { writeXmlWithSourcemap(file, root) }
 
     protected relativeToMe(absPath: string) { return relative(dirname(this.newPath), absPath) }
     protected toAbsolute(relPath: string) { return resolve(dirname(this.readPath), relPath) }
