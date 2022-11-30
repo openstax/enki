@@ -91,6 +91,7 @@ function escapeText(v: string) {
     return v.replace(/[<&>]/g,_xmlEncoder)
 }
 
+const XHTML_NS = 'http://www.w3.org/1999/xhtml'
 
 class XMLSerializer {
     private w: SourceMapWriter
@@ -100,14 +101,14 @@ class XMLSerializer {
     }
     public writeFiles() {
         const sourcemapFile = `${this.outputFile}.map`
-        this.recWrite(this.root, null)
+        this.recWrite(this.root, null, 0)
         this.w.finish(sourcemapFile)
     }
 
-    private recWrite(n: Node, currentDefaultNamespace: string | null) {
+    private recWrite(n: Node, currentDefaultNamespace: string | null, depth: number) {
         if (n.nodeType === n.DOCUMENT_NODE) {
             const doc = n as Document
-            this.recWrite(doc.documentElement, currentDefaultNamespace)
+            this.recWrite(doc.documentElement, currentDefaultNamespace, depth)
     
         } else if (n.nodeType === n.TEXT_NODE) {
             const textNode = n as Text
@@ -129,12 +130,16 @@ class XMLSerializer {
             const prefixedTag = el.tagName
             const localTag = el.tagName
             const newDefaultNamespace = el.prefix ? currentDefaultNamespace : el.namespaceURI
-            this.w.writeText(n, `<${prefixedTag}`)
+
+            const padding = currentDefaultNamespace === XHTML_NS ? '' : '  '.repeat(depth)
+            const startElPadding = currentDefaultNamespace === XHTML_NS ? '' : `${depth === 0 ? '' : '\n'}${padding}`
+            const endElPadding = currentDefaultNamespace === XHTML_NS ? '' : `\n${padding}`
+            this.w.writeText(n, `${startElPadding}<${prefixedTag}`)
             if (newDefaultNamespace !== currentDefaultNamespace && !el.getAttribute('xmlns')) {
                 this.w.writeText(n, ` xmlns="${escapeAttribute(assertValue(newDefaultNamespace))}"`)
             }
             for (const attr of Array.from(el.attributes)) {
-                this.recWrite(attr, newDefaultNamespace)
+                this.recWrite(attr, newDefaultNamespace, depth)
             }
             if (isSelfClosing(localTag, el.namespaceURI)) {
                 assertTrue(el.childNodes.length === 0)
@@ -144,9 +149,9 @@ class XMLSerializer {
             } else {
                 this.w.writeText(n, '>')
                 for (const child of Array.from(el.childNodes)) {
-                    this.recWrite(child, newDefaultNamespace)
+                    this.recWrite(child, newDefaultNamespace, depth + 1)
                 }
-                this.w.writeText(n, `</${prefixedTag}>`)
+                this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
             }
         } else {
             assertTrue(false, 'BUG: Unsupported node type for now. Just add another case here')
@@ -160,7 +165,7 @@ const Xhtml5EmptyTagNames = new Set([
 ])
 
 function isSelfClosing(tagName: string, ns: string | null) {
-    return ns === 'http://www.w3.org/1999/xhtml' && Xhtml5EmptyTagNames.has(tagName)
+    return ns === XHTML_NS && Xhtml5EmptyTagNames.has(tagName)
 }
 
 class SourceMapWriter {
