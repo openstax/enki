@@ -137,16 +137,14 @@ export class TocFile extends XmlFile<TocData> {
         doc.forEach('//h:nav//h:li[not(.//h:a)]', e => e.remove())
 
         // Unwrap chapter links and combine titles into a single span
-        doc.forEach('h:a[starts-with(@href, "#")]', el => {
-            const children = el.find('h:span/node()')
+        doc.forEach('//h:a[starts-with(@href, "#")]', el => {
+            const children = el.find('h:span//text()')
             el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
         })
 
-        doc.forEach('h:a[not(starts-with(@href, "#")) and h:span]', el => {
-            const children = doc.find('h:span/node()')
-            el.children = [
-                doc.create('h:span', {}, children, getPos(el.node))
-            ]
+        doc.forEach('//h:a[not(starts-with(@href, "#")) and h:span]', el => {
+            const children = el.find('h:span//text()')
+            el.children = children
         })
 
         // Rename the hrefs to XHTML files to their new name
@@ -236,7 +234,7 @@ export class OpfFile extends TocFile {
             doc.create('dc:identifier', { id: 'uid' }, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
             doc.create('dc:creator', {}, ['Is it OpenStax???']),
         ]), doc.create('opf:manifest', {}, [
-            doc.create('opf:item', { id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css" }),
+            doc.create('opf:item', { id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css", properties: 'remote-resources' }),
             doc.create('opf:item', { id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(this.newPath), this.tocFile.newPath) }),
             ...bookItems
         ])]

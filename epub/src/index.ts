@@ -63,6 +63,7 @@ program // .command('epub')
 
     // Rename Page files
     factorio.pages.all.forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
+    factorio.pages.all.forEach(p => p.rename(p.newPath.replace('@', '-at-'), undefined))
 
     // Rename Resource files by adding a file extension to them
     factorio.resources.all.forEach(r => {

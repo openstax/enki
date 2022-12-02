@@ -28,11 +28,13 @@ function filterNulls<T>(l: Array<T | null>): Array<T> {
     return ret
 }
 
+const pageLinkXpath = '//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]'
+
 export class PageFile extends XmlFile<PageData> {
     async parse(factorio: Factorio): Promise<void> {
         if (this._parsed !== undefined) return // Only parse once
         const doc = dom(await this.readXml(this.readPath))
-        const pageLinks = filterNulls(doc.map('//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]', a => {
+        const pageLinks = filterNulls(doc.map(pageLinkXpath, a => {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
             const pagePathRel = u.pathname.slice(1) // remove leading slash
             const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
@@ -56,12 +58,11 @@ export class PageFile extends XmlFile<PageData> {
     }
     private resourceRenamer(node: Dom, sel: string, attrName: string) {
         const allResources = new Map(this.parsed.resources.map(r => ([r.readPath, r])))
-        const resources = node.find(sel)
-        for (const node of resources) {
+        node.forEach(sel, node => {
             const resPath = this.toAbsolute(assertValue(node.attr(attrName)))
             const resource = assertValue(allResources.get(resPath), `BUG: Could not find resource in the set of resources that were parsed: '${resPath}'`)
             node.attr(attrName, this.relativeToMe(resource.newPath))
-        }
+        })
     }
     protected async convert(): Promise<Node> {
         const doc = dom(await this.readXml())
@@ -95,6 +96,23 @@ export class PageFile extends XmlFile<PageData> {
         attrsToRemove.forEach(attrName => doc.forEach(`//*[@${attrName}]`, el => el.attr(attrName, null)))
 
         doc.forEach('//h:script|//h:style', n => n.remove())
+
+        // Fix links to other Pages
+        const allPages = new Map(this.parsed.pageLinks.map(r => ([r.readPath, r])))
+        doc.forEach(pageLinkXpath, a => {
+            const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
+            const pagePathRel = u.pathname.slice(1) // remove leading slash
+            const hash = u.hash.slice(1) // skip the first character because it is '#'
+
+            const targetPath = this.toAbsolute(pagePathRel)
+            const targetPage = assertValue(allPages.get(targetPath), `BUG: Could not find the target page in the set of pages that were parsed: '${targetPath}'`)
+            
+            const newTargetPath = this.relativeToMe(targetPage.newPath)
+            const newHref = hash ? `${newTargetPath}#${hash}` : newTargetPath
+            a.attr('href', newHref)
+        })
+
+
         return doc.node
     }
 }
