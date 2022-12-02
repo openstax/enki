@@ -2,7 +2,7 @@
 // Use the ../bin/epub script to run this
 // ***************************************
 
-import { copyFileSync, existsSync, mkdirSync } from 'fs';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { basename, resolve } from 'path';
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support';
@@ -36,7 +36,6 @@ program // .command('epub')
     const booksXmlPath = `${sourceDir}/IO_FETCHED/META-INF/books.xml`
     const c = new ContainerFile(booksXmlPath)
     await c.parse(factorio)
-    c.rename(`${destinationDir}/container.xml`, undefined)
 
     // Load up the models
     const tocFiles = []
@@ -77,9 +76,12 @@ program // .command('epub')
     for (const f of allFiles) {
         f.rename(`${destinationDir}/${basename(f.newPath)}`, undefined)
     }
+    c.rename(`${destinationDir}/META-INF/container.xml`, undefined)
 
     // Copy the CSS file to the destination
     copyFileSync(`${sourceDir}/IO_BAKED/the-style-pdf.css`, `${destinationDir}/the-style-epub.css`)
+
+    writeFileSync(`${destinationDir}/mimetype`, 'application/epub+zip')
     
     for (const f of allFiles) {
         await f.write()

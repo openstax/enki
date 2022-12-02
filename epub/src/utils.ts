@@ -1,5 +1,5 @@
 // From https://github.com/philschatz/stylish/blob/3eb109d86d74ad910ca9fa6f393579c3087aefbe/src/enki-replacement/utils.ts
-import { readFileSync, writeFileSync, WriteStream, createWriteStream } from 'fs'
+import { readFileSync, writeFileSync, WriteStream, createWriteStream, mkdirSync, existsSync } from 'fs'
 import { dirname, relative, resolve } from 'path'
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map'
 import { DOMParser } from 'xmldom'
@@ -291,6 +291,8 @@ export async function readXmlWithSourcemap(filename: string) {
 }
 
 export function writeXmlWithSourcemap(filename: string, root: Node) {
+    const dir = dirname(filename)
+    if (!existsSync(dir)) mkdirSync(dir, {recursive: true})
     const w = new XMLSerializer(filename, root)
     w.writeFiles()
 }

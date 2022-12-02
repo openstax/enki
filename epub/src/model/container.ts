@@ -2,7 +2,7 @@ import { assertValue } from "../utils"
 import { dom } from "../minidom"
 import { XmlFile } from "./file"
 import type { OpfFile } from "./toc"
-import { dirname, relative } from "path"
+import { dirname, join, relative } from "path"
 import type { Factorio } from "./factorio"
 
 type ContainerData = OpfFile[]
@@ -19,7 +19,9 @@ export class ContainerFile extends XmlFile<ContainerData> {
     protected async convert(): Promise<Node> {
         const doc = dom(await this.readXml(this.readPath))
         const books = this.parsed.map(t => {
-            const p = relative(dirname(this.newPath), t.newPath)
+            // full-path entries are not relative. They're from the root of the EPUB.
+            const epubRoot = join(dirname(this.newPath), '..')
+            const p = relative(epubRoot, t.newPath)
             return doc.create('cont:rootfile', {'media-type': "application/oebps-package+xml", 'full-path': p})
         })
         const newRoot = doc.create('cont:container', { version: "1.0" }, [
