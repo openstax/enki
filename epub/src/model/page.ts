@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertValue, getPos } from '../utils'
+import { assertTrue, assertValue, getPos } from '../utils'
 import type { Factorio } from './factorio'
 import type { Factory } from './factory'
 import { ResourceFile, XmlFile } from './file'
@@ -14,6 +14,7 @@ const RESOURCE_SELECTORS: Array<[string, string]> = [
 ]
 
 export type PageData = {
+    title: string
     hasMathML: boolean
     hasRemoteResources: boolean
     pageLinks: PageFile[]
@@ -46,7 +47,17 @@ export class PageFile extends XmlFile<PageData> {
             return factorio.pages.getOrAdd(pagePathRel, this.readPath)
         }))
         const resources = RESOURCE_SELECTORS.map(([sel, attrName]) => this.resourceFinder(factorio.resources, doc, sel, attrName)).flat()
+
+        const selectors = [
+            '//h:h1[@data-type="document-title"]',
+            '//h:h2[@data-type="document-title"]',
+            '//h:html/h:body/h:div[@data-type="composite-page"]/h:h3[@data-type="title"]',
+        ]
+        const titles = doc.find(selectors[0]) || doc.find(selectors[1]) || doc.find(selectors[2])
+        assertTrue(titles.length <= 1, `Expected to find one document title but found ${titles.length} at '${this.readPath}'`)
+        const title = titles.length === 0 ? 'untitled' : titles[0].text()
         this._parsed = {
+            title,
             hasMathML: doc.has('//m:math|//h:math'),
             hasRemoteResources: doc.has('//h:iframe|//h:object/h:embed'),
             pageLinks,
@@ -71,6 +82,7 @@ export class PageFile extends XmlFile<PageData> {
 
         // Add a CSS file
         doc.findOne('//h:head').children = [
+            doc.create('h:title', {}, [ this.parsed.title ]),
             doc.create('h:link', {
                 rel: 'stylesheet',
                 type: 'text/css',

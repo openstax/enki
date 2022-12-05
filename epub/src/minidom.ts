@@ -110,6 +110,9 @@ export class Dom {
     findNodes<T>(xpath: string) {
         return xpathSelect(xpath, this.node) as T[]
     }
+    text() {
+        return this.findNodes<Text>('.//text()').map(n => n.textContent).join('')
+    }
 }
 
 /** Wrap an existing Document, Element, or other Node */
