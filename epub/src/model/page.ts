@@ -41,7 +41,7 @@ export class PageFile extends XmlFile<PageData> {
             const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
             if (!existsSync(pagePathAbs)) {
                 const pos = getPos(a.node)
-                console.warn(`WARN: Invalid link '${a.attr('href')}' Source: ${pos.source.filename}:${pos.lineNumber}:${pos.columnNumber}`)
+                console.warn(`WARN: Invalid link '${a.attr('href')}' Source: ${pos.source.fileName}:${pos.lineNumber}:${pos.columnNumber}`)
                 return null
             }
             return factorio.pages.getOrAdd(pagePathRel, this.readPath)

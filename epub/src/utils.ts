@@ -13,7 +13,7 @@ export type Pos = {
 }
 
 export type FileInfo = {
-    filename: string
+    fileName: string
     content: string | null
 }
 
@@ -191,10 +191,10 @@ class SourceMapWriter {
         // Add the source file if it has not been added yet
         const pos = getPos(sourceNode)
         if (pos.source) {
-            if (!this.absToRelativeSources.has(pos.source.filename)) {
-                this.absToRelativeSources.set(pos.source.filename, relative(dirname(this.outputFile), pos.source.filename))
+            if (!this.absToRelativeSources.has(pos.source.fileName)) {
+                this.absToRelativeSources.set(pos.source.fileName, relative(dirname(this.outputFile), pos.source.fileName))
             }
-            const filename = assertValue(this.absToRelativeSources.get(pos.source.filename))
+            const filename = assertValue(this.absToRelativeSources.get(pos.source.fileName))
             if (!this.sources.has(filename)) {
                 this.sources.set(filename, pos.source.content)
             }
@@ -247,7 +247,7 @@ export async function readXmlWithSourcemap(filename: string) {
 
     // Add the source file info to every node
     visit(doc.documentElement, n => {
-        (n as unknown as Pos).source = { filename, content: fileContent }
+        (n as unknown as Pos).source = { fileName: filename, content: fileContent }
     })
 
     // If there is a sourcemap reference at the bottom of the XML file then load the sourcemap and rewrite the references on the nodes
@@ -264,7 +264,7 @@ export async function readXmlWithSourcemap(filename: string) {
                 c.sources.forEach(s => {
                     const abs = resolve(dirname(filename), s)
                     sourcesMap.set(abs, {
-                        filename: abs,
+                        fileName: abs,
                         content: c.sourceContentFor(s)
                     })
                 })

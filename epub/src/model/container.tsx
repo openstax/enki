@@ -22,11 +22,14 @@ export class ContainerFile extends XmlFile<ContainerData> {
             // full-path entries are not relative. They're from the root of the EPUB.
             const epubRoot = join(dirname(this.newPath), '..')
             const p = relative(epubRoot, t.newPath)
-            return doc.create('cont:rootfile', {'media-type': "application/oebps-package+xml", 'full-path': p})
+            return <cont:rootfile media-type="application/oebps-package+xml" full-path={p}/>
         })
-        const newRoot = doc.create('cont:container', { version: "1.0" }, [
-            doc.create('cont:rootfiles', {}, books)
-        ])
-        return newRoot.node
+        const newRoot =
+            <cont:container version="1.0">
+                <cont:rootfiles>{books}</cont:rootfiles>
+            </cont:container>
+        
+        console.log('thisisthejsxnode', newRoot)
+        return doc.fromJSX(newRoot).node
     }
 }

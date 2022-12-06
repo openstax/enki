@@ -13,6 +13,16 @@ type Attrs = { [key: string]: string | undefined }
  * Create an element:
  *
  * ```$el = $doc.create('h:h1', {class: ['foo', 'bar']}, [child1, child2])```
+ * 
+ * Create elements using JSX Notation:
+ * 
+ * ```
+ * $el = $doc.fromJSX(
+ *      <div class="alert" disabled={isDisabled}>
+ *          <ul>{items}</ul>
+ *      </div>
+ * )
+ * ```
  *
  * Get/Set attributes/children:
  *
@@ -113,6 +123,17 @@ export class Dom {
     text() {
         return this.findNodes<Text>('.//text()').map(n => n.textContent).join('')
     }
+    /** Convert a JSX declaration to "real" DOM Nodes */
+    fromJSX(j: JSXNode ) {
+        const source = {
+            source: { fileName: j.source.fileName, content: null},
+            lineNumber: j.source.lineNumber,
+            columnNumber: j.source.columnNumber,
+        }
+        const {children, ...attrs} = j.config
+        const kids: Dom[] = children === undefined ? [] : Array.isArray(children) ? children.map(c => this.fromJSX(c)) : [this.fromJSX(children)]
+        return this.create(j.tagName, attrs, kids, source)
+    }
 }
 
 /** Wrap an existing Document, Element, or other Node */
@@ -134,3 +155,31 @@ export const NAMESPACES = {
 }
 
 const xpathSelect = useNamespaces(NAMESPACES)
+
+// Custom element attributes go here.
+// If this becomes annoying then just set IntrinsicElements = any
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            'cont:container': { version: '1.0' }
+            'cont:rootfiles': {}
+            'cont:rootfile': { 'media-type': 'application/oebps-package+xml', 'full-path': string }
+        }
+    }
+}
+
+export type JSXNode = {
+    tagName: string
+    config: AttrsOrChildren
+    source: SourceInfo
+}
+type AttrsOrChildren = { [key: string]: string | undefined } & { children?: JSXNode | Array<JSXNode>}
+type SourceInfo = {
+    fileName: string
+    lineNumber: 0
+    columnNumber: 0
+}
+// See https://www.typescriptlang.org/tsconfig#jsx for more info
+export function jsxDEV(tagName: string, config: AttrsOrChildren, _1: undefined, _2: boolean, source: SourceInfo): JSXNode {
+    return { tagName, config, source }
+}

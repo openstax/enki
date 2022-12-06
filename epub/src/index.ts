@@ -2,6 +2,9 @@
 // Use the ../bin/epub script to run this
 // ***************************************
 
+import modulealias from 'module-alias' // From https://github.com/Microsoft/TypeScript/issues/10866#issuecomment-246929461
+modulealias.addAlias('myjsx/jsx-dev-runtime', __dirname + '/minidom')
+
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { basename, resolve } from 'path';
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
@@ -9,8 +12,10 @@ import * as sourceMapSupport from 'source-map-support';
 import { ContainerFile } from './model/container';
 import { factorio } from './model/factorio';
 import { ResourceFile } from './model/file';
-
 sourceMapSupport.install()
+
+
+
 const program = new Command()
 
 program // .command('epub')
