@@ -30,9 +30,7 @@ program // .command('epub')
     return sourceDir
 })
 .argument('<destination>', 'Destination Directory to write the EPUB files to. Example: ./testing/', (destinationDir: string) => {
-    destinationDir = resolve(destinationDir)
-    if (existsSync(destinationDir)) throw new InvalidArgumentError('expected destination directory to not exist yet')
-    return destinationDir
+    return resolve(destinationDir)
 })
 .action(async (sourceDir: string, destinationDir: string) => {
 

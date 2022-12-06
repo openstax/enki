@@ -151,6 +151,24 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
 
 COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 
+# ---------------------------
+# Install js-utils-stuff
+# ---------------------------
+
+FROM base as build-js-utils-stuff-stage
+
+# TODO: Install dependencies first and then copy the source files and then run the build script
+# COPY ./js-utils-stuff/package.json ./js-utils-stuff/package-lock.json ./js-utils-stuff/package-lock.json $PROJECT_ROOT/js-utils-stuff/
+COPY ./js-utils-stuff/ ./js-utils-stuff/package-lock.json $PROJECT_ROOT/js-utils-stuff/
+
+COPY            ./dockerfiles/build/build-stage-js-utils-stuff.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-js-utils-stuff.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-js-utils-stuff.sh
+
+# COPY ./js-utils-stuff/src
+
+
+
 # ===========================
 # Install Python Packages
 # ===========================
@@ -317,6 +335,7 @@ COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
 COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar
+COPY --from=build-js-utils-stuff-stage $PROJECT_ROOT/js-utils-stuff/ $PROJECT_ROOT/js-utils-stuff/
 COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ $PROJECT_ROOT/mathify/
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc

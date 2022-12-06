@@ -12,6 +12,9 @@ const config: Config.InitialOptions = {
   },
   // testRegex: '/__tests__/.*.test.ts$',
   verbose: true,
+  moduleNameMapper: {
+    'myjsx/jsx-dev-runtime': '<rootDir>/src/minidom'
+  }
 };
 
 export default config;
