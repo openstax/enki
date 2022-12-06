@@ -1,5 +1,5 @@
 import { useNamespaces } from 'xpath-ts'
-import { assertTrue, assertValue, Pos, setPos } from "./utils"
+import { assertTrue, assertValue, parseXml, Pos, setPos } from "./utils"
 
 type Attrs = { [key: string]: string | undefined }
 
@@ -124,14 +124,15 @@ export class Dom {
         return this.findNodes<Text>('.//text()').map(n => n.textContent).join('')
     }
     /** Convert a JSX declaration to "real" DOM Nodes */
-    fromJSX(j: JSXNode ) {
+    fromJSX(j: JSXNode | string ) {
+        if (typeof j === 'string') return j as unknown as Dom
         const source = {
             source: { fileName: j.source.fileName, content: null},
             lineNumber: j.source.lineNumber,
             columnNumber: j.source.columnNumber,
         }
         const {children, ...attrs} = j.config
-        const kids: Dom[] = children === undefined ? [] : Array.isArray(children) ? children.map(c => this.fromJSX(c)) : [this.fromJSX(children)]
+        const kids: Array<Dom | string> = children === undefined ? [] : Array.isArray(children) ? children.map(c => this.fromJSX(c)) : [this.fromJSX(children)]
         return this.create(j.tagName, attrs, kids, source)
     }
 }
@@ -164,6 +165,25 @@ declare global {
             'cont:container': { version: '1.0' }
             'cont:rootfiles': {}
             'cont:rootfile': { 'media-type': 'application/oebps-package+xml', 'full-path': string }
+
+            'opf:package': { version: '3.0', 'unique-identifier': string }
+            'opf:metadata': {}
+            'opf:meta': { property: 'dcterms:modified' | 'dcterms:license' | 'dcterms:alternative' }
+            'opf:manifest': {}
+            'opf:item': { id: string, 'media-type': string, href: string, properties?: string}
+            'dc:title': {}
+            'dc:language': {}
+            'dc:identifier': { id: string }
+            'dc:creator': {}
+
+            'ncx:package': { version: '2005-1' }
+            'ncx:head': {}
+            'ncx:meta': { name: string, content: string | number }
+            'ncx:docTitle': {}
+            'ncx:navMap': {}
+            'ncx:navPoint': {id?: string}
+            'ncx:NavLabel': {}
+            'ncx:content': { src: string }
         }
     }
 }
@@ -182,4 +202,19 @@ type SourceInfo = {
 // See https://www.typescriptlang.org/tsconfig#jsx for more info
 export function jsxDEV(tagName: string, config: AttrsOrChildren, _1: undefined, _2: boolean, source: SourceInfo): JSXNode {
     return { tagName, config, source }
+}
+
+export function fromJSX(j: JSXNode) {
+    const [tagName, prefix] = j.tagName.split(':').reverse()
+    const { children, ...attrs } = j.config
+    const source = { ...j.source, source: { fileName: j.source.fileName, content: null } }
+
+    const doc = parseXml(`<${tagName} xmlns="${assertValue((NAMESPACES as any)[prefix], `Unknown namespace prefix '${prefix}'`)}"/>`)
+    setPos(doc.documentElement, source)
+
+    const $doc = dom(doc)
+    const $root = dom($doc.doc.documentElement)
+    $root.attrs = attrs
+    $root.children = children === undefined ? [] : Array.isArray(children) ? children.map(c => $doc.fromJSX(c)) : [$doc.fromJSX(children)]
+    return $root
 }

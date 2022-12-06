@@ -1,5 +1,5 @@
 import { assertValue } from "../utils"
-import { dom } from "../minidom"
+import { dom, fromJSX } from "../minidom"
 import { XmlFile } from "./file"
 import type { OpfFile } from "./toc"
 import { dirname, join, relative } from "path"
@@ -17,19 +17,17 @@ export class ContainerFile extends XmlFile<ContainerData> {
         })
     }
     protected async convert(): Promise<Node> {
-        const doc = dom(await this.readXml(this.readPath))
         const books = this.parsed.map(t => {
             // full-path entries are not relative. They're from the root of the EPUB.
             const epubRoot = join(dirname(this.newPath), '..')
             const p = relative(epubRoot, t.newPath)
             return <cont:rootfile media-type="application/oebps-package+xml" full-path={p}/>
         })
-        const newRoot =
+
+        return fromJSX(
             <cont:container version="1.0">
                 <cont:rootfiles>{books}</cont:rootfiles>
             </cont:container>
-        
-        console.log('thisisthejsxnode', newRoot)
-        return doc.fromJSX(newRoot).node
+        ).node
     }
 }

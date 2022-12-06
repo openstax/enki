@@ -1,6 +1,6 @@
 import { relative, dirname, basename } from 'path'
-import { dom, Dom } from '../minidom'
-import { assertValue, getPos, parseXml, Pos } from '../utils'
+import { dom, Dom, fromJSX, JSXNode } from '../minidom'
+import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from './factorio';
 import type { Factory } from './factory';
 import { ResourceFile, XmlFile } from './file';
@@ -181,26 +181,20 @@ export class OpfFile extends TocFile {
     }
 
     protected override async convert(): Promise<Node> {
-        const d = parseXml('<package xmlns="http://www.idpf.org/2007/opf"/>')
-        const doc = dom(d)
-        const pkg = doc.findOne('opf:package')
-        pkg.attrs = { version: '3.0', 'unique-identifier': 'uid' }
-
         const { allPages, allResources } = this.parsed
 
-        const bookItems: Dom[] = []
+        const bookItems: JSXNode[] = []
         for (const page of allPages) {
             const p = page.parsed
             const props: string[] = []
             if (p.hasMathML) props.push('mathml')
             if (p.hasRemoteResources) props.push('remote-resources')
 
-            bookItems.push(doc.create('opf:item', {
-                'media-type': 'application/xhtml+xml',
-                id: `idxhtml_${basename(page.newPath)}`,
-                properties: props.length === 0 ? undefined : props.join(' '),
-                href: relative(dirname(this.newPath), page.newPath)
-            }),)
+            bookItems.push(<opf:item
+                media-type='application/xhtml+xml'
+                id={`idxhtml_${basename(page.newPath)}`}
+                properties={props.length === 0 ? undefined : props.join(' ')}
+                href={relative(dirname(this.newPath), page.newPath)} />)
 
             for (const r of p.resources) {
                 allResources.add(r)
@@ -211,11 +205,7 @@ export class OpfFile extends TocFile {
         for (const resource of allResources) {
             const { mimeType } = resource.parsed
 
-            bookItems.push(doc.create('opf:item', {
-                'media-type': mimeType,
-                id: `idresource_${i}`,
-                href: relative(dirname(this.newPath), resource.newPath)
-            }),)
+            bookItems.push(<opf:item media-type={mimeType} id={`idresource_${i}`} href={relative(dirname(this.newPath), resource.newPath)} />)
             i++
         }
 
@@ -224,22 +214,23 @@ export class OpfFile extends TocFile {
         // Remove the timezone from the revised_date
         const revised = bookMetadata.revised.replace('+00:00', 'Z')
 
-
-        pkg.children = [doc.create('opf:metadata', {}, [
-            doc.create('dc:title', {}, [bookMetadata.title]),
-            doc.create('dc:language', {}, [bookMetadata.language]),
-            doc.create('opf:meta', { property: 'dcterms:modified' }, [revised]),
-            doc.create('opf:meta', { property: 'dcterms:license' }, [bookMetadata.licenseUrl]),
-            // doc.create('opf:meta', {property: 'dcterms:alternative'}, [ 'col11992']),
-            doc.create('dc:identifier', { id: 'uid' }, [`dummy-openstax.org-id.${bookMetadata.slug}`]),
-            doc.create('dc:creator', {}, ['Is it OpenStax???']),
-        ]), doc.create('opf:manifest', {}, [
-            doc.create('opf:item', { id: 'just-the-book-style', href: 'the-style-epub.css', 'media-type': "text/css", properties: 'remote-resources' }),
-            doc.create('opf:item', { id: 'nav', properties: 'nav', 'media-type': 'application/xhtml+xml', href: relative(dirname(this.newPath), this.tocFile.newPath) }),
-            ...bookItems
-        ])]
-
-        return doc.node
+        return fromJSX(
+            <opf:package version='3.0' unique-identifier='uid'>
+                <opf:metadata>
+                    <dc:title>{bookMetadata.title}</dc:title>
+                    <dc:language>{bookMetadata.language}</dc:language>
+                    <opf:meta property='dcterms:modified'>{revised}</opf:meta>
+                    <opf:meta property='dcterms:license'>{bookMetadata.licenseUrl}</opf:meta>
+                    <dc:identifier id='uid'>dummy-openstax.org-id.{bookMetadata.slug}</dc:identifier>
+                    <dc:creator>Is it OpenStax???</dc:creator>
+                </opf:metadata>
+                <opf:manifest>
+                    <opf:item id='just-the-book-style' media-type='text/css' properties='remote-resources' href='the-style-epub.css' />
+                    <opf:item id='nav' properties='nav' media-type='application/xhtml+xml' href={relative(dirname(this.newPath), this.tocFile.newPath)} />
+                    {...bookItems}
+                </opf:manifest>
+            </opf:package>
+        ).node
     }
 }
 
@@ -250,65 +241,36 @@ export class NcxFile extends TocFile {
    return this._idCounter++;
   }
 
-  private fillNavMap(doc: Dom, toc: TocTree): Dom {
+  private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
-      return doc.create(
-        "ncx:navPoint",
-        { id: `idm${this.generateWithCollisionCheck()}` },
-        [
-          doc.create("ncx:NavLabel", {}, [toc.title]),
-          doc.create("ncx:content", {
-            src: `./${relative(dirname(this.newPath), toc.page.newPath)}`,
-          }),
-        ]
-      );
+        return (
+            <ncx:navPoint id={`idm${this.generateWithCollisionCheck()}`}>
+                <ncx:NavLabel>{toc.title}</ncx:NavLabel>
+                <ncx:content src={`./${relative(dirname(this.newPath), toc.page.newPath)}`} />
+            </ncx:navPoint>
+        )
     } else {
-      return doc.create("ncx:navPoint", {}, [
-        ...toc.children.map((d) => {
-          return this.fillNavMap(doc, d);
-        }),
-      ]);
+        return <ncx:navPoint>{...toc.children.map(d => this.fillNavMap(d))}</ncx:navPoint>
     }
   }
 
   protected override async convert(): Promise<Node> {
-    const d = parseXml(
-      '<package xmlns="http://www.daisy.org/z3986/2005/ncx/"/>'
-    );
-    const doc = dom(d);
-    const pkg = doc.findOne("ncx:package");
-    pkg.attrs = { version: "2005-1" };
-
     const { toc, allPages, title, slug } = this.parsed;
     //Find the depth of the table of content
     const depth = Math.max(...toc.map((t) => this.findDepth(t)));
 
-    pkg.children = [
-      doc.create("ncx:head", {}, [
-        doc.create("ncx:meta", {
-          name: "dtb:uid",
-          content: `dummy-openstax.org-id.${slug}`,
-        }),
-        doc.create("ncx:meta", { name: "dtb:depth", content: `${depth}` }),
-        doc.create("ncx:meta", {
-          name: "dtb:generator",
-          content: `OpenStax EPUB Maker 2022-08`,
-        }),
-        doc.create("ncx:meta", {
-          name: "dtb:totalPageCount",
-          content: `${allPages.size}`,
-        }),
-        doc.create("ncx:meta", {
-          name: "dtb:maxPageNumber",
-          content: `${allPages.size}`,
-        }),
-      ]),
-      doc.create("ncx:docTitle", {}, [title]),
-      doc.create("ncx:navMap", {}, [
-        ...toc.map((t) => this.fillNavMap(doc, t)),
-      ]),
-    ];
-
-    return doc.node;
+    return fromJSX(
+        <ncx:package version="2005-1">
+            <ncx:head>
+                <ncx:meta name='dtb:uid' content={`dummy-openstax.org-id.${slug}`}/>
+                <ncx:meta name='dtb:depth' content={depth}/>
+                <ncx:meta name='dtb:generator' content='OpenStax EPUB Maker 2022-08'/>
+                <ncx:meta name='dtb:pagecount' content={allPages.size}/>
+                <ncx:meta name='dtb:maxPageNumber' content={allPages.size}/>
+            </ncx:head>
+            <ncx:docTitle>{title}</ncx:docTitle>
+            <ncx:navMap>{toc.map((t) => this.fillNavMap(t))}</ncx:navMap>
+        </ncx:package>
+    ).node
   }
 }
