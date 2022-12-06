@@ -126,6 +126,7 @@ export class Dom {
     /** Convert a JSX declaration to "real" DOM Nodes */
     fromJSX(j: JSXNode | string ) {
         if (typeof j === 'string') return j as unknown as Dom
+        assertTrue(!Array.isArray(j), 'BUG: Providing an array of JSX nodes is not supported... yet!')
         const source = {
             source: { fileName: j.source.fileName, content: null},
             lineNumber: j.source.lineNumber,
@@ -175,14 +176,18 @@ declare global {
             'dc:language': {}
             'dc:identifier': { id: string }
             'dc:creator': {}
+            'opf:spine': any
+            'opf:itemref': any
 
-            'ncx:package': { version: '2005-1' }
+            // Schema: https://github.com/w3c/epubcheck/blob/main/src/main/resources/com/adobe/epubcheck/schema/20/rng/ncx.rng
+            'ncx:ncx': { version: '2005-1' }
             'ncx:head': {}
             'ncx:meta': { name: string, content: string | number }
             'ncx:docTitle': {}
+            'ncx:text': {}
             'ncx:navMap': {}
-            'ncx:navPoint': {id?: string}
-            'ncx:NavLabel': {}
+            'ncx:navPoint': {id: string}
+            'ncx:navLabel': {}
             'ncx:content': { src: string }
         }
     }

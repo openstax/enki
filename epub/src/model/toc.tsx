@@ -1,8 +1,8 @@
-import { relative, dirname, basename } from 'path'
+import { basename } from 'path'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from './factorio';
-import type { Factory } from './factory';
+import type { Factory, Opt } from './factory';
 import { ResourceFile, XmlFile } from './file';
 import type { PageFile } from './page';
 
@@ -183,29 +183,35 @@ export class OpfFile extends TocFile {
     protected override async convert(): Promise<Node> {
         const { allPages, allResources } = this.parsed
 
-        const bookItems: JSXNode[] = []
+        const manifestItems: JSXNode[] = []
         for (const page of allPages) {
             const p = page.parsed
             const props: string[] = []
             if (p.hasMathML) props.push('mathml')
             if (p.hasRemoteResources) props.push('remote-resources')
 
-            bookItems.push(<opf:item
+            const id = `idxhtml_${basename(page.newPath)}`
+            manifestItems.push(<opf:item
                 media-type='application/xhtml+xml'
-                id={`idxhtml_${basename(page.newPath)}`}
+                id={id}
                 properties={props.length === 0 ? undefined : props.join(' ')}
-                href={relative(dirname(this.newPath), page.newPath)} />)
-
+                href={this.relativeToMe(page.newPath)} />)
+            
             for (const r of p.resources) {
                 allResources.add(r)
             }
         }
 
+        const spineItems: JSXNode[] = []
+        const pagesInOrder: PageFile[] = []
+        this.parsed.toc.forEach(t => this.getPagesFromToc(t, pagesInOrder))
+        pagesInOrder.forEach(page => spineItems.push(<opf:itemref linear="yes" idref={`idxhtml_${basename(page.newPath)}`} />))
+
         let i = 0
         for (const resource of allResources) {
             const { mimeType } = resource.parsed
 
-            bookItems.push(<opf:item media-type={mimeType} id={`idresource_${i}`} href={relative(dirname(this.newPath), resource.newPath)} />)
+            manifestItems.push(<opf:item media-type={mimeType} id={`idresource_${i}`} href={this.relativeToMe(resource.newPath)} />)
             i++
         }
 
@@ -226,9 +232,14 @@ export class OpfFile extends TocFile {
                 </opf:metadata>
                 <opf:manifest>
                     <opf:item id='just-the-book-style' media-type='text/css' properties='remote-resources' href='the-style-epub.css' />
-                    <opf:item id='nav' properties='nav' media-type='application/xhtml+xml' href={relative(dirname(this.newPath), this.tocFile.newPath)} />
-                    {...bookItems}
+                    <opf:item id='nav' properties='nav' media-type='application/xhtml+xml' href={this.relativeToMe(this.tocFile.newPath)} />
+                    <opf:item id="the-ncx-file" href={this.relativeToMe(this.ncxFile.newPath)}  media-type="application/x-dtbncx+xml"/>
+                    {...manifestItems}
                 </opf:manifest>
+                <opf:spine toc="the-ncx-file">
+                    <opf:itemref linear="yes" idref="nav"/>
+                    {...spineItems}
+                </opf:spine>
             </opf:package>
         ).node
     }
@@ -237,20 +248,37 @@ export class OpfFile extends TocFile {
 export class NcxFile extends TocFile {
   _idCounter = 1
 
-  private generateWithCollisionCheck(): number {
+  private nextId(): number {
    return this._idCounter++;
   }
 
   private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
         return (
-            <ncx:navPoint id={`idm${this.generateWithCollisionCheck()}`}>
-                <ncx:NavLabel>{toc.title}</ncx:NavLabel>
-                <ncx:content src={`./${relative(dirname(this.newPath), toc.page.newPath)}`} />
+            <ncx:navPoint id={`idm${this.nextId()}`}>
+                <ncx:navLabel><ncx:text>{toc.title}</ncx:text></ncx:navLabel>
+                <ncx:content src={`./${this.relativeToMe(toc.page.newPath)}`} />
             </ncx:navPoint>
         )
     } else {
-        return <ncx:navPoint>{...toc.children.map(d => this.fillNavMap(d))}</ncx:navPoint>
+        function findFirstLeafPage(toc: TocTree): Opt<PageFile> {
+            if (toc.type === TocTreeType.LEAF) return toc.page
+            for (const c of toc.children) {
+                const ret = findFirstLeafPage(c)
+                if (ret !== undefined) return ret
+            }
+            return undefined
+        }
+        const firstPage = assertValue(findFirstLeafPage(toc), 'BUG: Could not find an intro page')
+        return (
+            <ncx:navPoint id={`idm${this.nextId()}`}>
+                <ncx:navLabel>
+                    <ncx:text>{toc.title}</ncx:text>
+                </ncx:navLabel>
+                <ncx:content src={this.relativeToMe(firstPage.newPath)} />
+                {...toc.children.map(d => this.fillNavMap(d))}
+            </ncx:navPoint>
+        )
     }
   }
 
@@ -260,7 +288,7 @@ export class NcxFile extends TocFile {
     const depth = Math.max(...toc.map((t) => this.findDepth(t)));
 
     return fromJSX(
-        <ncx:package version="2005-1">
+        <ncx:ncx version="2005-1">
             <ncx:head>
                 <ncx:meta name='dtb:uid' content={`dummy-openstax.org-id.${slug}`}/>
                 <ncx:meta name='dtb:depth' content={depth}/>
@@ -268,9 +296,9 @@ export class NcxFile extends TocFile {
                 <ncx:meta name='dtb:pagecount' content={allPages.size}/>
                 <ncx:meta name='dtb:maxPageNumber' content={allPages.size}/>
             </ncx:head>
-            <ncx:docTitle>{title}</ncx:docTitle>
+            <ncx:docTitle><ncx:text>{title}</ncx:text></ncx:docTitle>
             <ncx:navMap>{toc.map((t) => this.fillNavMap(t))}</ncx:navMap>
-        </ncx:package>
+        </ncx:ncx>
     ).node
   }
 }

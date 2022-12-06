@@ -6,9 +6,10 @@ import type { Opt } from './factory';
 
 /**
  * Files Read:
- * - books.xml
+ * - META-INF/books.xml
  * - book.toc.xhtml
  *   - book.toc-metadata.json
+ * - page.xhtml
  * - image-resource.json
  * - book-style.css
  * 
