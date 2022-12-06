@@ -1,5 +1,6 @@
 import { constants, copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
+import { DIRNAMES } from '../env';
 import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap } from '../utils'
 import type { Factorio } from './factorio';
 import type { Opt } from './factory';
@@ -85,7 +86,7 @@ export class ResourceFile extends File implements Readable<ResourceData> {
         // 'application/octet-stream':
     }
     private realReadPath() {
-        return this.readPath.replace('/resources/', '/IO_RESOURCES/')
+        return this.readPath.replace('/resources/', `/${DIRNAMES.IO_RESOURCES}/`)
     }
 
     public get parsed() { return assertValue(this._data, 'BUG: Forgot to call parse()')}

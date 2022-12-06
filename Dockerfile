@@ -178,15 +178,17 @@ COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 
 FROM base as build-js-utils-stuff-stage
 
-# TODO: Install dependencies first and then copy the source files and then run the build script
-# COPY ./js-utils-stuff/package.json ./js-utils-stuff/package-lock.json ./js-utils-stuff/package-lock.json $PROJECT_ROOT/js-utils-stuff/
-COPY ./js-utils-stuff/ ./js-utils-stuff/package-lock.json $PROJECT_ROOT/js-utils-stuff/
+# Install dependencies first
+COPY ./js-utils-stuff/package.json ./js-utils-stuff/package-lock.json $PROJECT_ROOT/js-utils-stuff/
 
 COPY            ./dockerfiles/build/build-stage-js-utils-stuff.sh \
     $PROJECT_ROOT/dockerfiles/build/build-stage-js-utils-stuff.sh
 RUN $PROJECT_ROOT/dockerfiles/build/build-stage-js-utils-stuff.sh
 
-# COPY ./js-utils-stuff/src
+COPY ./js-utils-stuff/bin/ $PROJECT_ROOT/js-utils-stuff/bin/
+COPY ./js-utils-stuff/src/ $PROJECT_ROOT/js-utils-stuff/src/
+COPY ./js-utils-stuff/tsconfig.*.json $PROJECT_ROOT/js-utils-stuff/
+RUN cd $PROJECT_ROOT/js-utils-stuff && npm run build
 
 
 

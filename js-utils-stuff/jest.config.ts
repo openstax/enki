@@ -1,14 +1,13 @@
 // Source: https://github.com/apollographql/typescript-repo-template
-import type { Config } from '@jest/types';
+import type { JestConfigWithTsJest } from 'ts-jest';
 
-const config: Config.InitialOptions = {
+const config: JestConfigWithTsJest = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['src'],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.test.json',
-    },
+  // coverageDirectory: '../coverage',
+  transform: {
+    '^.+\\.tsx?$': [ 'ts-jest', { tsconfig: 'tsconfig.test.json' } ]
   },
   // testRegex: '/__tests__/.*.test.ts$',
   verbose: true,

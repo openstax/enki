@@ -4,6 +4,7 @@ import { XmlFile } from "./file"
 import type { OpfFile } from "./toc"
 import { dirname, join, relative } from "path"
 import type { Factorio } from "./factorio"
+import { DIRNAMES } from "../env"
 
 type ContainerData = OpfFile[]
 
@@ -13,7 +14,7 @@ export class ContainerFile extends XmlFile<ContainerData> {
         const doc = dom(await this.readXml(this.readPath))
         this._parsed = doc.map('//books:book', b => {
             const slug = assertValue(b.attr('slug'))
-            return factorio.opfs.getOrAdd(`../../IO_DISASSEMBLE_LINKED/${slug}.toc.xhtml`, this.readPath)
+            return factorio.opfs.getOrAdd(`../../${DIRNAMES.IO_DISASSEMBLE_LINKED}/${slug}.toc.xhtml`, this.readPath)
         })
     }
     protected async convert(): Promise<Node> {

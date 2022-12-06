@@ -12,6 +12,7 @@ import * as sourceMapSupport from 'source-map-support';
 import { ContainerFile } from './model/container';
 import { factorio } from './model/factorio';
 import { ResourceFile } from './model/file';
+import { DIRNAMES } from './env';
 sourceMapSupport.install()
 
 
@@ -22,11 +23,11 @@ program // .command('epub')
 .description('Build a directory which can be zipped to create an EPUB file')
 .argument('<source>', 'Source Directory. It must contain a few subdirectories like ./IO_RESOURCES/ Example: ../data/astronomy/_attic', (sourceDir: string) => {
     sourceDir = resolve(sourceDir)
-    if (!existsSync(`${sourceDir}/IO_RESOURCES`)) throw new InvalidArgumentError(`expected ${sourceDir}/IO_RESOURCES to exist`)
-    if (!existsSync(`${sourceDir}/IO_FETCHED`)) throw new InvalidArgumentError(`expected ${sourceDir}/IO_FETCHED to exist`)
-    if (!existsSync(`${sourceDir}/IO_BAKED`)) throw new InvalidArgumentError(`expected ${sourceDir}/IO_BAKED to exist`)
-    if (!existsSync(`${sourceDir}/IO_DISASSEMBLE_LINKED`)) throw new InvalidArgumentError(`expected ${sourceDir}/IO_DISASSEMBLE_LINKED to exist`)
-    if (!existsSync(`${sourceDir}/IO_FETCHED/META-INF/books.xml`)) throw new InvalidArgumentError(`expected file to exist ${sourceDir}/IO_FETCHED/META-INF/books.xml`)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_RESOURCES}`)) throw new InvalidArgumentError(`expected ${sourceDir}/${DIRNAMES.IO_RESOURCES} to exist`)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}`)) throw new InvalidArgumentError(`expected ${sourceDir}/${DIRNAMES.IO_FETCHED} to exist`)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_BAKED}`)) throw new InvalidArgumentError(`expected ${sourceDir}/${DIRNAMES.IO_BAKED} to exist`)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED}`)) throw new InvalidArgumentError(`expected ${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED} to exist`)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`)) throw new InvalidArgumentError(`expected file to exist ${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`)
     return sourceDir
 })
 .argument('<destination>', 'Destination Directory to write the EPUB files to. Example: ./testing/', (destinationDir: string) => {
@@ -36,7 +37,7 @@ program // .command('epub')
 
     mkdirSync(destinationDir, { recursive: true })
 
-    const booksXmlPath = `${sourceDir}/IO_FETCHED/META-INF/books.xml`
+    const booksXmlPath = `${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`
     const c = new ContainerFile(booksXmlPath)
     await c.parse(factorio)
 
@@ -83,7 +84,7 @@ program // .command('epub')
     c.rename(`${destinationDir}/META-INF/container.xml`, undefined)
 
     // Copy the CSS file to the destination
-    copyFileSync(`${sourceDir}/IO_BAKED/the-style-pdf.css`, `${destinationDir}/the-style-epub.css`)
+    copyFileSync(`${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`, `${destinationDir}/the-style-epub.css`)
 
     writeFileSync(`${destinationDir}/mimetype`, 'application/epub+zip')
     
