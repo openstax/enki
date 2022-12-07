@@ -3,7 +3,7 @@ parse_book_dir
 set -Eeuxo pipefail
 
 # Ensure $IO_EPUB is empty
-[[ -d $IO_EPUB ]] && rm -rf $IO_EPUB/*
+[[ -d $IO_EPUB ]] && rm -rf ${IO_EPUB:?}/*
 
 try node --unhandled-rejections=strict $JS_UTILS_STUFF_ROOT/bin/epub ./ $IO_EPUB/
 
