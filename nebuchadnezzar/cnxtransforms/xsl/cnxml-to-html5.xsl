@@ -1747,6 +1747,9 @@
   <xsl:copy/>
 </xsl:template>
 
+<!-- Discarded attributes -->
+<xsl:template match="c:table/@pgwide"/>
+
 <xsl:template match="c:table[count(c:tgroup) = 1]">
   <table>
     <xsl:apply-templates select="@*|c:label"/>
