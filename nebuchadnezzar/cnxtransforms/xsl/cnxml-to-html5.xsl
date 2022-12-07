@@ -1817,11 +1817,11 @@
     <xsl:apply-templates mode="footnote-dumpsite" select="."/>
   </td>
 </xsl:template>
+<!-- Discarded c:entry attributes -->
+<xsl:template match="c:entry/@*"/>
 <xsl:template match="c:entry/@id|c:entry/@class">
   <xsl:copy/>
 </xsl:template>
-<!-- Discarded c:entry attributes -->
-<xsl:template match="c:entry/@*"/>
 <xsl:template match="c:entry/@align|c:entry/@valign">
   <xsl:call-template name="data-prefix"/>
 </xsl:template>
