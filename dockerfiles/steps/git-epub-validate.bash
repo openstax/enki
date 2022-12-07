@@ -10,17 +10,20 @@ exit_status=$?
 
 if [[ $exit_status != 0 ]]; then
     # LCOV_EXCL_START
-    errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' \
-        | grep -v 'ERROR(RSC-012)' \
-        | grep -v 'ERROR(MED-002)' \
-        | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
-        | grep -v 'Error while parsing file: element "mn" not allowed here;' \
-        | grep -v 'Error while parsing file: element "minus" not allowed here;' \
-        | grep -v 'Error while parsing file: element "or" not allowed here;' \
-        | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
-        | grep -v 'of type "text/plain"' \
-        | grep -v 'ERROR(RSC-010)' \
+    # errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' \
+    #     | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
+    #     | grep -v 'Error while parsing file: element "mn" not allowed here;' \
+    #     | grep -v 'Error while parsing file: element "minus" not allowed here;' \
+    #     | grep -v 'Error while parsing file: element "or" not allowed here;' \
+    #     | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
+    #     | grep -v 'of type "text/plain"' \
+    #     | grep -v 'ERROR(RSC-010)' \
+    #     | grep -v 'ERROR(RSC-012)' \
+    #     | grep -v 'ERROR(MED-002)' \
+    # )
+    errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' | grep -v 'ERROR(RSC-006): ./artifacts-single/book.epub/the-style-epub.css'
     )
+
     if [[ $errors ]]; then
         echo "$errors"
         die "Failed to validate: $(echo "$errors" | wc -l) errors that we have not chosen to ignore"
