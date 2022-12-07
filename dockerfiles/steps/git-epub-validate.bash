@@ -1,3 +1,5 @@
+set -Eeuo pipefail
+
 src_dir=$IO_EPUB
 epub_file=$IO_ARTIFACTS/book.epub
 validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epubcheck.jar
