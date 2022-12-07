@@ -82,12 +82,8 @@ export class PageFile extends XmlFile<PageData> {
 
         // Add a CSS file
         doc.findOne('//h:head').children = [
-            doc.create('h:title', {}, [ this.parsed.title ]),
-            doc.create('h:link', {
-                rel: 'stylesheet',
-                type: 'text/css',
-                href: 'the-style-epub.css'
-            })
+            <h:title>{this.parsed.title}</h:title>,
+            <h:link rel='stylesheet' type='text/css' href='the-style-epub.css'/>,
         ]
 
         // Re-namespace the MathML elements

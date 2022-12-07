@@ -77,9 +77,9 @@ export class Dom {
     addClass(cls: string) { this.el.classList.add(cls) }
     removeClass(cls: string) { this.el.classList.remove(cls) }
     get classes() { return new Set(Array.from(this.el.classList)) }
-    set children(children: Array<Dom | string>) {
+    set children(children: Array<Dom | string | JSXNode>) {
         Array.from(this.node.childNodes).forEach(c => c.parentNode?.removeChild(c))
-        children.forEach(c => typeof c === 'string' ? this.node.appendChild(this.doc.createTextNode(c)) : this.node.appendChild(c.node))
+        children.forEach(c => typeof c === 'string' ? this.node.appendChild(this.doc.createTextNode(c)) : this.node.appendChild((c instanceof Dom ? c : this.fromJSX(c)).node))
     }
     get children(): Array<Dom | string> {
         const a = Array.from(this.node.childNodes)
@@ -88,8 +88,11 @@ export class Dom {
         return c
     }
 
-    /** Creates a new element but does not attach it to the DOM */
-    create(tagName: string, attrs?: Attrs, children?: Array<Dom | Element | string>, source?: Pos) {
+    /** Creates a new element but does not attach it to the DOM.
+     * Consider using fromJSX instead so that sourcemaps will
+     * point to the code where the element was created
+     */
+    create(tagName: string, attrs: Attrs, children: Array<Dom | Element | string>, source: Pos) {
         const [tag, ns] = tagName.split(':').reverse()
         const el = (ns !== undefined) ? this.doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : this.doc.createElement(tag)
         const $el = dom(el)
@@ -189,6 +192,9 @@ declare global {
             'ncx:navPoint': {id: string}
             'ncx:navLabel': {}
             'ncx:content': { src: string }
+
+            'h:title': {}
+            'h:link': { rel: 'stylesheet', type: 'text/css', href: string }
         }
     }
 }
