@@ -55,7 +55,7 @@
         <sup><footnote id="linktome-tts">should remain in the table caption but below the title span</footnote></sup>
       </title>
       <caption>
-        <footnote id="linktome-tc">should remain in the caption</footnote>
+        <footnote id="linktome-tc">should move below the table</footnote>
       </caption>
       <tgroup>
         <thead>

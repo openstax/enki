@@ -949,7 +949,7 @@
     | c:commentary
     | c:entry
     | c:item
-    | c:caption
+    | c:figure/c:caption
     | c:table/c:title
 "/>
 
@@ -1759,7 +1759,6 @@
         <xsl:apply-templates mode="footnote-dumpsite" select="c:title"/>
         <!-- NOTE: caption loses the optional id -->
         <xsl:apply-templates select="c:caption/node()"/>
-        <xsl:apply-templates mode="footnote-dumpsite" select="c:caption"/>
       </caption>
     </xsl:if>
     <xsl:apply-templates select="c:tgroup"/>
