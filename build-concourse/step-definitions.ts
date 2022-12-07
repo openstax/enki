@@ -52,7 +52,7 @@ set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], out
 // GIT_EPUB_STEPS
 set({name: 'git-assemble-epub', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {}})
 set({name: 'git-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: {}})
-set({name: 'git-epub-validate', inputs: [IO.EPUB], outputs: [], env: {}})
+set({name: 'git-epub-validate', inputs: [IO.EPUB, IO.ARTIFACTS], outputs: [], env: {}})
 
 // GIT_GDOC_STEPS
 set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED], env: {}})

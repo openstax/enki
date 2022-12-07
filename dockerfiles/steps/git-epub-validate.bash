@@ -1,25 +1,16 @@
 src_dir=$IO_EPUB
-epub_file=/tmp/test.epub
+epub_file=$IO_ARTIFACTS/book.epub
 validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epubcheck.jar
 
-[[ -f $epub_file ]] && rm $epub_file
-
-pushd $IO_EPUB/
-zip $epub_file -DX0 mimetype
-zip $epub_file -DX9 *
-zip $epub_file -DX9 META-INF/container.xml
-popd
-
-
 set +e
-java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
+java -jar $validator_jar --error $epub_file 2> $IO_ARTIFACTS/validation.log
 exit_status=$?
 
-[[ ! -f $IO_EPUB/validation.log ]] && die "$IO_EPUB/validation.log does not exist"
+[[ ! -f $IO_ARTIFACTS/validation.log ]] && die "$IO_ARTIFACTS/validation.log does not exist"
 
 if [[ $exit_status != 0 ]]; then
     # LCOV_EXCL_START
-    errors=$(cat $IO_EPUB/validation.log | grep 'ERROR' \
+    errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' \
         | grep -v 'ERROR(RSC-012)' \
         | grep -v 'ERROR(MED-002)' \
         | grep -v 'Error while parsing file: element "mrow" not allowed here;' \

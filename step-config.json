@@ -229,7 +229,7 @@
         },
         "git-epub-validate": {
             "inputDirs": [
-                "IO_EPUB"
+                "IO_ARTIFACTS"
             ],
             "outputDirs": [],
             "requiredEnv": []
