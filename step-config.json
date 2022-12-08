@@ -229,6 +229,7 @@
         },
         "git-epub-validate": {
             "inputDirs": [
+                "IO_EPUB",
                 "IO_ARTIFACTS"
             ],
             "outputDirs": [],
@@ -334,7 +335,6 @@
             "git-link",
             "git-disassemble",
             "git-patch-disassembled-links",
-            "git-jsonify",
             "git-epub"
         ],
         "all-git-gdoc": [

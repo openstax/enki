@@ -11,6 +11,6 @@ try node --unhandled-rejections=strict $JS_UTILS_STUFF_ROOT/bin/epub ./ $IO_EPUB
 [[ -f $IO_ARTIFACTS/book.epub ]] && rm $IO_ARTIFACTS/book.epub
 pushd $IO_EPUB/
 zip $IO_ARTIFACTS/book.epub -DX0 mimetype
-zip $IO_ARTIFACTS/book.epub -DX9 *
 zip $IO_ARTIFACTS/book.epub -DX9 META-INF/container.xml
+zip $IO_ARTIFACTS/book.epub -DX9 *
 popd

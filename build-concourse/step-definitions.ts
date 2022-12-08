@@ -115,7 +115,7 @@ export const CLI_GIT_EPUB_STEPS = [
     get('git-link'),
     get('git-disassemble'),
     get('git-patch-disassembled-links'),
-    get('git-jsonify'),
+    // get('git-jsonify'),
     // get('git-validate-xhtml-jsonify'),
     get('git-epub'),
     // get('git-epub-validate'),
