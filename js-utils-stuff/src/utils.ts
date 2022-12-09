@@ -198,12 +198,15 @@ class SourceMapWriter {
             if (!this.sources.has(filename)) {
                 this.sources.set(filename, pos.source.content)
             }
-    
-            this.g.addMapping({
-                source: filename,
-                original: { line: pos.lineNumber, column: pos.columnNumber },
-                generated: { line: this.currentLine, column: this.currentCol }
-            })
+            if (pos.lineNumber >=0 && pos.columnNumber >= 0) {
+                this.g.addMapping({
+                    source: filename,
+                    original: { line: pos.lineNumber, column: pos.columnNumber },
+                    generated: { line: this.currentLine, column: this.currentCol }
+                })
+            } else {
+                console.warn(`WARN: Source line/column is negative: '${filename}':${pos.lineNumber}:${pos.columnNumber}. Generated: ${this.currentLine}:${this.currentCol}`)
+            }
         } else {
             this.g.addMapping({
                 source: '(frominsidethecode)',
@@ -244,10 +247,12 @@ export async function readXmlWithSourcemap(filename: string) {
     filename = resolve(filename) // make absolute for sourcemaps
     const fileContent = readFileSync(filename, 'utf-8')
     const doc = parseXml(fileContent)
+    const fileSource = { fileName: filename, content: fileContent }
 
     // Add the source file info to every node
     visit(doc.documentElement, n => {
-        (n as unknown as Pos).source = { fileName: filename, content: fileContent }
+        const pos = (n as unknown as Pos)
+        pos.source = fileSource
     })
 
     // If there is a sourcemap reference at the bottom of the XML file then load the sourcemap and rewrite the references on the nodes
