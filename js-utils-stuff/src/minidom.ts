@@ -54,11 +54,19 @@ export class Dom {
     }
     private get el() {
         if (this.node.nodeType === this.node.ELEMENT_NODE) return this.node as Element
+        /* istanbul ignore next */
         throw new Error('BUG: Expected node to be an element but it was not')
     }
-    remove() { this.node.parentNode?.removeChild(this.node) }
-    replaceWith(newNode: Node | Dom) { assertValue(this.node.parentNode).replaceChild(newNode instanceof Dom ? newNode.node : newNode, this.node) }
+    private get parent() { return assertValue(this.node.parentNode, 'ERROR: This node did not have a parent') }
+    remove() { this.parent.removeChild(this.node) }
+    replaceWith(newNode: Dom | JSXNode) {
+        const ret = newNode instanceof Dom ? newNode.node : this.fromJSX(newNode).node
+        this.parent.replaceChild(ret, this.node)
+        return dom(ret)
+    }
+    /** Unset any existing attributes and set the ones provided */
     set attrs(attrs: Attrs) {
+        Object.keys(this.attrs).filter(v => !Object.keys(attrs).includes(v)).forEach(name => this.el.removeAttribute(name))
         Object.entries(attrs).forEach(([name, value]) => this.attr(name, value as string))
     }
     get attrs(): Attrs {
@@ -68,7 +76,7 @@ export class Dom {
     attr(name: string, newValue?: string | null) {
         const [localName, prefix] = name.split(':').reverse()
         const ns = (NAMESPACES as { [k: string]: string })[prefix]
-        const old = this.el.getAttributeNS(ns, localName)
+        const old = this.el.hasAttributeNS(ns, localName) ? this.el.getAttributeNS(ns, localName) : null
         if (newValue === null) this.el.removeAttributeNS(ns, localName)
         else if (newValue !== undefined) this.el.setAttributeNS(ns, name, newValue)
         return old
