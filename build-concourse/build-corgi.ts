@@ -91,6 +91,8 @@ function makePipeline(env: KeyValue) {
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
             })
+        }, {
+            max_in_flight: 3
         })
     }
 
@@ -114,6 +116,8 @@ function makePipeline(env: KeyValue) {
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
             })
+        }, {
+            max_in_flight: 3
         })
 
     }
@@ -147,6 +151,8 @@ function makePipeline(env: KeyValue) {
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
             })
+        }, {
+            max_in_flight: 3
         })
     }
 
