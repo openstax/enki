@@ -49,8 +49,7 @@ type Attrs = { [key: string]: string | undefined }
 export class Dom {
     constructor(public readonly node: ParentNode) { }
     public get doc() {
-        const { ownerDocument } = this.node
-        return ownerDocument !== null ? ownerDocument : this.node as unknown as Document
+        return assertValue(this.node.ownerDocument)
     }
     private get el() {
         if (this.node.nodeType === this.node.ELEMENT_NODE) return this.node as Element
@@ -83,9 +82,7 @@ export class Dom {
     }
     get tagName() { return this.el.tagName }
     set children(children: Array<Dom | string | JSXNode>) {
-        Array.from(this.node.childNodes).forEach(c => {
-            assertValue(c.parentNode).removeChild(c)
-        })
+        Array.from(this.node.childNodes).forEach(c => assertValue(c.parentNode).removeChild(c) )
         children.forEach(c => typeof c === 'string' ? this.node.appendChild(this.doc.createTextNode(c)) : this.node.appendChild((c instanceof Dom ? c : this.fromJSX(c)).node))
     }
     get children(): Array<Dom> {
@@ -99,12 +96,13 @@ export class Dom {
      * Consider using fromJSX instead so that sourcemaps will
      * point to the code where the element was created
      */
-    create(tagName: string, attrs: Attrs, children: Array<Dom | Element | string>, source: Pos) {
-        const [tag, ns] = tagName.split(':').reverse()
-        const el = (ns !== undefined) ? this.doc.createElementNS(assertValue((NAMESPACES as any)[ns], `BUG: Unsupported namespace prefix '${ns}'`), tag) : this.doc.createElement(tag)
+    create(tagName: string, attrs: Attrs, children: Array<Dom | string>, source: Pos) {
+        const [tag, prefix] = tagName.split(':').reverse()
+        const ns = prefix === undefined ? undefined : assertValue((NAMESPACES as any)[prefix], `BUG: Unsupported namespace prefix '${prefix}'`)
+        const el = this.doc.createElementNS(ns, tag)
         const $el = dom(el)
         if (attrs !== undefined) $el.attrs = attrs
-        if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.node.appendChild(c.node) : typeof c === 'string' ? $el.node.appendChild(this.doc.createTextNode(c)) : $el.node.appendChild(c))
+        if (children !== undefined) children.forEach(c => c instanceof Dom ? $el.node.appendChild(c.node) : $el.node.appendChild(this.doc.createTextNode(c)))
         if (source !== undefined) setPos(el, source)
         return $el
     }
