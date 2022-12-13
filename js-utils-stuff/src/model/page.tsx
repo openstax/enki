@@ -39,7 +39,7 @@ export class PageFile extends XmlFile<PageData> {
             const u = new URL(assertValue(a.attr('href')), 'https://example-i-am-not-really-used.com')
             const pagePathRel = u.pathname.slice(1) // remove leading slash
             const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
-            if (!existsSync(pagePathAbs)) {
+            if (pagePathRel.length === 0 || !existsSync(pagePathAbs)) {
                 const pos = getPos(a.node)
                 console.warn(`WARN: Invalid link '${a.attr('href')}' Source: ${pos.source.fileName}:${pos.lineNumber}:${pos.columnNumber}`)
                 return null

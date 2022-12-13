@@ -82,17 +82,16 @@ export class Dom {
         return old
     }
     get tagName() { return this.el.tagName }
-    addClass(cls: string) { this.el.classList.add(cls) }
-    removeClass(cls: string) { this.el.classList.remove(cls) }
-    get classes() { return new Set(Array.from(this.el.classList)) }
     set children(children: Array<Dom | string | JSXNode>) {
-        Array.from(this.node.childNodes).forEach(c => c.parentNode?.removeChild(c))
+        Array.from(this.node.childNodes).forEach(c => {
+            assertValue(c.parentNode).removeChild(c)
+        })
         children.forEach(c => typeof c === 'string' ? this.node.appendChild(this.doc.createTextNode(c)) : this.node.appendChild((c instanceof Dom ? c : this.fromJSX(c)).node))
     }
-    get children(): Array<Dom | string> {
+    get children(): Array<Dom> {
         const a = Array.from(this.node.childNodes)
         const b = a.filter(c => c.nodeType === c.ELEMENT_NODE || c.nodeType === c.TEXT_NODE)
-        const c = b.map(c => c.nodeType === c.TEXT_NODE ? assertValue(c.textContent) : dom(c as Element))
+        const c = b.map(c => dom(c as Element))
         return c
     }
 

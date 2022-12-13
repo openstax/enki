@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync, WriteStream, createWriteStream, mkdirSync, existsSync } from 'fs'
 import { dirname, relative, resolve } from 'path'
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map'
-import { DOMParser } from 'xmldom'
+import { DOMParser } from '@xmldom/xmldom'
 
 class ParseError extends Error { }
 

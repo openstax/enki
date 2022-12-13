@@ -1,11 +1,18 @@
-import {describe, expect, it} from '@jest/globals'
-import { dom } from './minidom'
+import {describe, expect, it, beforeEach} from '@jest/globals'
+import { Dom, dom } from './minidom'
 import { parseXml } from './utils'
 
 describe('minidom', () => {
-    const doc = parseXml('<root><child id="kid1">hello</child><child>world</child></root>')
-    const $doc = dom(doc)
-    const $root = dom(doc.documentElement)
+    let doc = undefined as unknown as Document
+    let $doc = undefined as unknown as Dom
+    let $root = undefined as unknown as Dom
+
+    beforeEach(() => {
+        doc = parseXml('<root><child id="kid1">hello</child><child>world</child></root>')
+        $doc = dom(doc)
+        $root = dom(doc.documentElement)
+    })
+
     it('returns the tag name of an element', () => {
         expect($root.tagName).toBe('root')
     })
@@ -45,5 +52,25 @@ describe('minidom', () => {
         $root.attr('id', null)
         $root.attr('somethingthatneverexisted', null)
         expect($root.attrs).toEqual({})
+    })
+    it('combines text from multiple nodes', () => {
+        expect($root.text()).toBe('helloworld')
+    })
+    it('works with has, map, and forEach', () => {
+        expect($root.has('child')).toBe(true)
+        expect($root.map('*', n => n.tagName)).toEqual(['child', 'child'])
+        const ret: string[] = []
+        $root.forEach('*', n => ret.push(n.tagName))
+        expect(ret).toEqual(['child', 'child'])
+    })
+    it('supports getting/replacing children', () => {
+        const $child = $root.find('*')[0]
+        expect($root.children.length).toBe(2)
+        expect($child.node === $root.children[0].node).toBe(true)
+        expect($root.children.map(c => (c as unknown as Element).tagName)).toEqual(['child', 'child'])
+        $root.children = []
+        expect($root.children).toEqual([])
+        $root.children = [$child]
+        expect($root.children.length).toBe(1)
     })
 })
