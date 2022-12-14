@@ -1,4 +1,4 @@
-import { constants, copyFileSync, existsSync, mkdirSync, readFileSync } from 'fs';
+import { constants, copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from 'fs';
 import { resolve, relative, join, dirname } from 'path'
 import { DIRNAMES } from '../env';
 import { assertTrue, assertValue, readXmlWithSourcemap, writeXmlWithSourcemap } from '../utils'
@@ -55,7 +55,7 @@ export abstract class XmlFile<T> extends File implements Readable<T> {
         await this.writeXml(doc)
     }
     public async readXml(file = this.readPath): Promise<Document> { return readXmlWithSourcemap(file) }
-    private async writeXml(root: Node, file = this.newPath) { writeXmlWithSourcemap(file, root) }
+    private async writeXml(root: Node, file = this.newPath) { await writeXmlWithSourcemap(file, root) }
 
     protected relativeToMe(absPath: string) { return relative(dirname(this.newPath), absPath) }
     protected toAbsolute(relPath: string) { return resolve(dirname(this.readPath), relPath) }
