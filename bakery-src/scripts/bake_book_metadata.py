@@ -1,8 +1,8 @@
 import json
 import sys
 
+from utils.html_parser import DocumentMetadataParser
 from cnxepub.collation import reconstitute
-from cnxepub.html_parsers import DocumentMetadataParser
 from lxml import etree
 
 from . import utils
@@ -41,6 +41,7 @@ def main():
         "revised": utils.ensure_isoformat(metadata.revised),
         "tree": tree,
         "slug": book_slug,
+        "type": metadata.type,
         "id": book_metadata.get("id") or binder.id,
         "version": book_metadata.get("version") or metadata.version,
         "license": book_metadata.get("license") or {
