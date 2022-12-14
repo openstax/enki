@@ -87,7 +87,7 @@ export class TocFile extends XmlFile<TocData> {
         if (children.length > 0) {
             return {
                 type: TocTreeType.INNER,
-                title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+                title: li.findOne('h:a').text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 titlePos: getPos(li.findOne('h:a').node),
                 children: children.map(c => this.buildChildren(pageFactory, c, acc))
             }
@@ -97,7 +97,7 @@ export class TocFile extends XmlFile<TocData> {
             acc?.push(page)
             return {
                 type: TocTreeType.LEAF,
-                title: TocFile.selectText('h:a/h:span/text()', li), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+                title: li.findOne('h:a').text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
                 titlePos: getPos(li.findOne('h:a').node),
                 page,
                 pagePos: getPos(li.node),
@@ -123,10 +123,6 @@ export class TocFile extends XmlFile<TocData> {
             toc.children.forEach(c => this.getPagesFromToc(c, acc))
         }
         return acc
-    }
-
-    private static selectText(sel: string, node: Dom) {
-        return node.findNodes<Text>(sel).map(t => t.textContent).join('')
     }
 
     protected async convert(): Promise<Node> {

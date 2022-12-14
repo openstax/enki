@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TocFile and Friends with a small book parses an ToC with one page 1`] = `
+"<html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc">
+                    <ol>
+                        <li>
+                            <span>ChapterTitle</span>
+                            <ol>
+                                <li>
+                                    <a href="../foo/iamthepage.xhtml">PageTitle</a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </nav>
+            </body>
+        
+</html>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;
+
+exports[`TocFile and Friends with an empty book parses an empty ToC file 1`] = `
+"<html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc"/>
+            </body>
+        
+</html>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;

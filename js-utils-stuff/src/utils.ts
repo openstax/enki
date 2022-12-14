@@ -99,10 +99,10 @@ class XMLSerializer {
         this.outputFile = resolve(this.outputFile)
         this.w = new SourceMapWriter(outputFile)
     }
-    public writeFiles() {
+    public async writeFiles() {
         const sourcemapFile = `${this.outputFile}.map`
         this.recWrite(this.root, null, 0)
-        this.w.finish(sourcemapFile)
+        await this.w.finish(sourcemapFile)
     }
 
     private recWrite(n: Node, currentDefaultNamespace: string | null, depth: number) {
@@ -225,12 +225,15 @@ class SourceMapWriter {
             this.currentLine++
             this.currentCol = line.length
         }
+        // Wait for the write to complete
+        // return new Promise((resolve, reject) => this.fileWriter.write(text, (err) => { if (err) { reject(err) } else { resolve(true) }}))
         this.fileWriter.write(text)
     }
 
-    finish(sourcemapFile: string | null) {
+    async finish(sourcemapFile: string | null) {
         const s = assertValue(sourcemapFile, 'inline sourcemaps are not supported yet but they are very easy to add. Just use a dataURI & base64 encodethe file')
         this.fileWriter.write(`\n<!-- # sourceMappingURL=${relative(dirname(this.outputFile), s)} -->`)
+        this.fileWriter.end()
         this.fileWriter.close()
 
         for (const [sourceFile, sourceContent] of Array.from(this.sources.entries())) {
@@ -239,6 +242,8 @@ class SourceMapWriter {
             }
         }
         writeFileSync(s, this.g.toString())
+
+        return new Promise((resolve) => this.fileWriter.on('close', resolve))
     }
 }
 
@@ -295,9 +300,9 @@ export async function readXmlWithSourcemap(filename: string) {
     return doc
 }
 
-export function writeXmlWithSourcemap(filename: string, root: Node) {
+export async function writeXmlWithSourcemap(filename: string, root: Node) {
     const dir = dirname(filename)
     if (!existsSync(dir)) mkdirSync(dir, {recursive: true})
     const w = new XMLSerializer(filename, root)
-    w.writeFiles()
+    await w.writeFiles()
 }
