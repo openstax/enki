@@ -7,16 +7,17 @@ shopt -s globstar nullglob
 for epub_file in "$IO_ARTIFACTS/"*.epub; do
 
     echo "Validating $epub_file"
+    epub_filename=$(basename "$epub_file")
 
     set +e
-    java -jar $validator_jar --error $epub_file 2> $IO_ARTIFACTS/validation.log
+    java -jar $validator_jar --error $epub_file 2> $IO_ARTIFACTS/$epub_filename.validation.log
     exit_status=$?
 
-    [[ ! -f $IO_ARTIFACTS/validation.log ]] && die "$IO_ARTIFACTS/validation.log does not exist"
+    [[ ! -f $IO_ARTIFACTS/$epub_filename.validation.log ]] && die "$IO_ARTIFACTS/$epub_filename.validation.log does not exist"
 
     if [[ $exit_status != 0 ]]; then
         # LCOV_EXCL_START
-        # errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' \
+        # errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' \
         #     | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
         #     | grep -v 'Error while parsing file: element "mn" not allowed here;' \
         #     | grep -v 'Error while parsing file: element "minus" not allowed here;' \
@@ -27,7 +28,7 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
         #     | grep -v 'ERROR(RSC-012)' \
         #     | grep -v 'ERROR(MED-002)' \
         # )
-        errors=$(cat $IO_ARTIFACTS/validation.log | grep 'ERROR' | grep -v 'ERROR(RSC-006): ./artifacts-single/book.epub/the-style-epub.css'
+        errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' | grep -v 'ERROR(RSC-006): ./artifacts-single/book.epub/the-style-epub.css'
         )
 
         if [[ $errors ]]; then
