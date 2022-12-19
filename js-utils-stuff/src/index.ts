@@ -42,53 +42,62 @@ program // .command('epub')
     await c.parse(factorio)
 
     // Load up the models
-    const tocFiles = []
-    const ncxFiles = []
     for (const opfFile of factorio.opfs.all) {
         await opfFile.parse(factorio)
-        await opfFile.tocFile.parse(factorio)
-        await opfFile.ncxFile.parse(factorio)
-        tocFiles.push(opfFile.tocFile)
-        ncxFiles.push(opfFile.ncxFile)
-    }
-    for (const page of factorio.pages.all) {
-        await page.parse(factorio)
-    }
-    for (const resource of factorio.resources.all) {
-        await resource.parse(factorio)
-    }
-    const allFiles = [c, ...factorio.opfs.all, ...factorio.pages.all, ...factorio.resources.all, ...tocFiles, ...ncxFiles]
+        const { tocFile, ncxFile } = opfFile
+        await tocFile.parse(factorio)
+        await ncxFile.parse(factorio)
 
-    // Rename OPF Files (they were XHTML)
-    factorio.opfs.all.forEach(p => p.rename(p.newPath.replace('.xhtml', '.opf'), undefined))
-    // Rename ToC files
-    // Rename NCX files
-    ncxFiles.forEach(p => p.rename(p.newPath.replace('.xhtml', '.ncx'), undefined))
+        for (const page of factorio.pages.all) {
+            await page.parse(factorio)
+        }
+        for (const resource of factorio.resources.all) {
+            await resource.parse(factorio)
+        }
+        const allFiles = [c, opfFile, ...factorio.pages.all, ...factorio.resources.all, tocFile, ncxFile]
 
-    // Rename Page files
-    factorio.pages.all.forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
-    factorio.pages.all.forEach(p => p.rename(p.newPath.replace('@', '-at-'), undefined))
+        // Rename OPF Files (they were XHTML)
+        opfFile.rename(opfFile.newPath.replace('.xhtml', '.opf'), undefined)
+        // Rename ToC files
+        // Rename NCX files
+        ncxFile.rename(ncxFile.newPath.replace('.xhtml', '.ncx'), undefined)
 
-    // Rename Resource files by adding a file extension to them
-    factorio.resources.all.forEach(r => {
-        const { mimeType, originalExtension } = r.parsed
-        let newExtension = (ResourceFile.mimetypeExtensions)[mimeType] || originalExtension
-        r.rename(`${r.newPath}.${newExtension}`, undefined)
-    })
+        // Rename Page files
+        factorio.pages.all.forEach(p => p.rename(p.newPath.replace(':', '-colon-'), undefined))
+        factorio.pages.all.forEach(p => p.rename(p.newPath.replace('@', '-at-'), undefined))
+
+        // Rename Resource files by adding a file extension to them
+        factorio.resources.all.forEach(r => {
+            const { mimeType, originalExtension } = r.parsed
+            let newExtension = (ResourceFile.mimetypeExtensions)[mimeType] || originalExtension
+            r.rename(`${r.newPath}.${newExtension}`, undefined)
+        })
 
 
-    // Specify that we will want to write all the files to a testing directory
-    for (const f of allFiles) {
-        f.rename(`${destinationDir}/${basename(f.newPath)}`, undefined)
-    }
-    c.rename(`${destinationDir}/META-INF/container.xml`, undefined)
+        // Specify that we will want to write all the files to a testing directory
+        for (const f of allFiles) {
+            f.rename(`${destinationDir}/${opfFile.parsed.slug}/${basename(f.newPath)}`, undefined)
+        }
+        c.rename(`${destinationDir}/${opfFile.parsed.slug}/META-INF/container.xml`, undefined)
 
-    // Copy the CSS file to the destination
-    copyFileSync(`${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`, `${destinationDir}/the-style-epub.css`)
-
-    writeFileSync(`${destinationDir}/mimetype`, 'application/epub+zip')
+        const dir = `${destinationDir}/${opfFile.parsed.slug}`
+        if (!existsSync(dir)) mkdirSync(dir, {recursive: true})
     
-    for (const f of allFiles) {
-        await f.write()
+        // Copy the CSS file to the destination
+        copyFileSync(`${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`, `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`)
+
+        writeFileSync(`${destinationDir}/${opfFile.parsed.slug}/mimetype`, 'application/epub+zip')
+        
+        // Only include the current book in the META-INF/container.xml
+        // Kinda hacky way to do it
+        c.parsed.splice(0, c.parsed.length)
+        c.parsed.push(opfFile)
+
+        for (const f of allFiles) {
+            await f.write()
+        }
+
+        factorio.pages.clear()
+        factorio.resources.clear()
     }
 }).parse()

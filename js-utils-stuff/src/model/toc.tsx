@@ -216,15 +216,14 @@ export class OpfFile extends TocFile {
         }
 
 
-        const bookMetadata = this.parsed
         // Remove the timezone from the revised_date
-        const revised = bookMetadata.revised.replace('+00:00', 'Z')
+        const revised = this.parsed.revised.replace('+00:00', 'Z')
 
         return fromJSX(
             <opf:package version='3.0' unique-identifier='uid'>
                 <opf:metadata>
-                    <dc:title>{bookMetadata.title}</dc:title>
-                    <dc:language>{bookMetadata.language}</dc:language>
+                    <dc:title>{this.parsed.title}</dc:title>
+                    <dc:language>{this.parsed.language}</dc:language>
                     <opf:meta property='dcterms:modified'>{revised}</opf:meta>
                     <opf:meta property='dcterms:license'>{bookMetadata.licenseUrl}</opf:meta>
                     <dc:identifier id='uid'>dummy-openstax.org-id.{bookMetadata.slug}</dc:identifier>
