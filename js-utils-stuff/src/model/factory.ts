@@ -22,6 +22,7 @@ export class Factory<T> {
     }
   }
 
+  public clear() { this._map.clear() }
   public remove(absPath: string) {
     absPath = this.canonicalizer(absPath)
     const item = this._map.get(absPath)
