@@ -2,9 +2,15 @@ import pytest
 from copy import copy
 
 from lxml import etree
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
+from cnxepub.html_parsers import (
+    HTML_DOCUMENT_NAMESPACES,
+    parse_metadata,
+)
 
 from nebu.models.document import Document
+from nebu.models.utils import (
+    id_from_metadata,
+)
 
 
 REFERENCE_MARKER = '#!--testing--'
@@ -72,6 +78,36 @@ def mock_reference_resolver(reference, resource):
     """Used for testing reference resolution during model tests"""
     if resource:
         reference.bind(resource, '{}/{{}}'.format(REFERENCE_MARKER))
+
+
+def from_filepath(filepath):
+    """\
+    Given a html document as ``filepath``. This provides the same
+    interface as :class:`cnxepub.models.Document`, but can be created
+    from file.
+
+    :param filepath: location of the ``index.cnxml``
+    :type filepath: :class:`pathlib.Path`
+    :return: Document object
+    :rtype: :class:`Document`
+
+    """
+    with filepath.open('rb') as fb:
+        html = etree.parse(fb)
+
+    resources = []
+    metadata = parse_metadata(html)
+    id = id_from_metadata(metadata)
+
+    # Clean and sanatize the content
+    content = Document._sanatize_content(html)
+
+    # This method will not process resources because it can not assume
+    # to know where the resources are. If loading of resources is needed,
+    # please load the resources from the references after instantiation.
+
+    # Create the object
+    return Document(id, content, metadata=metadata, resources=resources)
 
 
 class TestDocument(object):
@@ -182,45 +218,11 @@ class TestDocument(object):
             namespaces=HTML_DOCUMENT_NAMESPACES,
         )) == 1
 
-    def test_from_filepath(self, neb_assembled_data):
-        filepath = neb_assembled_data / 'm46882.xhtml'
-
-        # Hit the target
-        doc = Document.from_filepath(filepath)
-
-        # Verify the metadata
-        assert doc.id == 'm46882'
-        expected_metadata = copy(M46882_METADATA)
-        # cnx-epub metadata is mutable, so sequences are lists rather than
-        # tuples.
-        expected_metadata['keywords'] = list(expected_metadata['keywords'])
-        expected_metadata['subjects'] = list(expected_metadata['subjects'])
-        assert doc.metadata == expected_metadata
-
-        # Verify the content is content'ish
-        assert doc._xml.xpath(
-            "/xhtml:body/*[@data-type='metadata']",
-            namespaces=HTML_DOCUMENT_NAMESPACES,
-        ) == []
-        assert len(doc._xml.xpath(
-            "//*[@id='fs-idm20141232']",
-            namespaces=HTML_DOCUMENT_NAMESPACES,
-        )) == 1
-
-        # Verify the resources are attached to the object
-        expected_filenames = []
-        filenames = [r.filename for r in doc.resources]
-        assert sorted(filenames) == expected_filenames
-
-        # Verify the references have been rewritten
-        ref = '{}/CNX_Stats_C01_M10_003.jpg'.format(REFERENCE_MARKER).encode()
-        assert ref in doc.content
-
     def test_from_git_filepath(self, git_assembled_data):
         filepath = git_assembled_data / 'm46882.xhtml'
 
         # Hit the target
-        doc = Document.from_filepath(filepath)
+        doc = from_filepath(filepath)
 
         # Verify the metadata
         assert doc.id == 'm46882'
@@ -230,7 +232,7 @@ class TestDocument(object):
         expected_metadata['keywords'] = list(expected_metadata['keywords'])
         expected_metadata['subjects'] = list(expected_metadata['subjects'])
         # Document.from_index_cnxml uses cnxml to parse metadata and then does
-        # some conversions while Document.from_filepath uses cnx-epub. These
+        # some conversions while from_filepath uses cnx-epub. These
         # generate slightly different values
         del expected_metadata['uuid']
         expected_metadata.update({

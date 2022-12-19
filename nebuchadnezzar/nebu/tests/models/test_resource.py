@@ -20,7 +20,7 @@ def test(request, neb_collection_data):
     with filepath.open('rb') as fb:
         content = fb.read()
 
-    with res.open() as open_file:
+    with res._filepath.open('rb') as open_file:
         assert content == open_file.read()
 
     digest = hashlib.new(RESOURCE_HASH_TYPE, content).hexdigest()

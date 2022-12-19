@@ -1,6 +1,5 @@
 from functools import wraps
 from urllib.parse import urlparse, urlunparse
-import hashlib
 
 import click
 
@@ -120,9 +119,3 @@ def set_verbosity(verbose):
         level = 'INFO'
     config['loggers']['nebuchadnezzar']['level'] = level
     configure_logging(config)
-
-
-def calculate_sha1(fpath):
-    sha1 = hashlib.sha1()
-    sha1.update(fpath.open('rb').read())
-    return sha1.hexdigest()

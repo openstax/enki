@@ -223,8 +223,9 @@ class Binder(BaseBinder):
             metadata = parse_cnxml_metadata(etree.parse(filepath.open()))
             uuid = metadata.get('uuid')
             version = metadata.get('version')
-            if uuid:
-                cnx_archive_uri = '{}@{}'.format(uuid, version) if version \
-                    else '{}@'.format(uuid)
-                model.metadata['cnx-archive-uri'] = cnx_archive_uri
-                model.ident_hash = cnx_archive_uri
+
+            assert uuid is not None, 'Expected to find a UUID'
+            cnx_archive_uri = '{}@{}'.format(uuid, version) if version \
+                else '{}@'.format(uuid)
+            model.metadata['cnx-archive-uri'] = cnx_archive_uri
+            model.ident_hash = cnx_archive_uri

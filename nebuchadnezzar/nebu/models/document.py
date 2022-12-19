@@ -1,10 +1,7 @@
 from pathlib import Path
 
 from lxml import etree
-from cnxepub.html_parsers import (
-    HTML_DOCUMENT_NAMESPACES,
-    parse_metadata,
-)
+from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
 from cnxepub.models import (
     Document as BaseDocument,
 )
@@ -72,36 +69,6 @@ class Document(BaseDocument):
         # Create the object
         return cls(id, content, metadata=metadata, resources=resources,
                    reference_resolver=reference_resolver)
-
-    @classmethod
-    def from_filepath(cls, filepath):
-        """\
-        Given a html document as ``filepath``. This provides the same
-        interface as :class:`cnxepub.models.Document`, but can be created
-        from file.
-
-        :param filepath: location of the ``index.cnxml``
-        :type filepath: :class:`pathlib.Path`
-        :return: Document object
-        :rtype: :class:`Document`
-
-        """
-        with filepath.open('rb') as fb:
-            html = etree.parse(fb)
-
-        resources = []
-        metadata = parse_metadata(html)
-        id = id_from_metadata(metadata)
-
-        # Clean and sanatize the content
-        content = cls._sanatize_content(html)
-
-        # This method will not process resources because it can not assume
-        # to know where the resources are. If loading of resources is needed,
-        # please load the resources from the references after instantiation.
-
-        # Create the object
-        return cls(id, content, metadata=metadata, resources=resources)
 
     @staticmethod
     def _sanatize_content(html):

@@ -1,5 +1,4 @@
 import hashlib
-from contextlib import contextmanager
 
 from cnxepub.models import RESOURCE_HASH_TYPE
 
@@ -38,8 +37,3 @@ class FileSystemResource(object):
                     fb.read()
                 ).hexdigest()
         return self._hash
-
-    @contextmanager
-    def open(self):
-        with self._filepath.open('rb') as fb:
-            yield fb
