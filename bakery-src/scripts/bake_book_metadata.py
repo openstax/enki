@@ -41,8 +41,6 @@ def main():
         "revised": utils.ensure_isoformat(metadata.revised),
         "tree": tree,
         "slug": book_slug,
-        "authors": metadata.authors,
-        "type": metadata.type,
         "id": book_metadata.get("id") or binder.id,
         "version": book_metadata.get("version") or metadata.version,
         "license": book_metadata.get("license") or {
