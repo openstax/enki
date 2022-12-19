@@ -225,9 +225,9 @@ export class OpfFile extends TocFile {
                     <dc:title>{this.parsed.title}</dc:title>
                     <dc:language>{this.parsed.language}</dc:language>
                     <opf:meta property='dcterms:modified'>{revised}</opf:meta>
-                    <opf:meta property='dcterms:license'>{bookMetadata.licenseUrl}</opf:meta>
-                    <dc:identifier id='uid'>dummy-openstax.org-id.{bookMetadata.slug}</dc:identifier>
-                    <dc:creator>{bookMetadata.authors}</dc:creator>
+                    <opf:meta property='dcterms:license'>{this.parsed.licenseUrl}</opf:meta>
+                    <dc:identifier id='uid'>dummy-openstax.org-id.{this.parsed.slug}</dc:identifier>
+                    <dc:creator>{this.parsed.authors}</dc:creator>
                 </opf:metadata>
                 <opf:manifest>
                     <opf:item id='just-the-book-style' media-type='text/css' properties='remote-resources' href='the-style-epub.css' />
