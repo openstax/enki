@@ -1,10 +1,11 @@
-import { basename } from 'path'
+import { basename,resolve,dirname ,sep} from 'path'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from './factorio';
 import type { Factory, Opt } from './factory';
 import { ResourceFile, XmlFile } from './file';
 import type { PageFile } from './page';
+import { DIRNAMES } from '../env';
 
 export enum TocTreeType {
     INNER = 'INNER',
@@ -33,7 +34,7 @@ type TocData = {
     slug: string
     licenseUrl: string
     language: string
-
+    authors: string
 }
 
 export class TocFile extends XmlFile<TocData> {
@@ -47,6 +48,9 @@ export class TocFile extends XmlFile<TocData> {
         const slug = metadata.slug as string
         const licenseUrl = metadata.license.url as string
         const language = metadata.language as string
+
+        const collectionXml = dom(await this.readXml([DIRNAMES.IO_FETCHED,'collections',`${slug}.collection.xml`].join(sep)))
+        const authors = collectionXml.has("//col:collection/@authors") ? collectionXml.findOne("//col:collection").attr("authors") as string: "Is it OpenStax?" 
 
         const tocPages: PageFile[] = []
         const toc = doc.map('//h:nav/h:ol/h:li', el => this.buildChildren(factorio.pages, el, tocPages))
@@ -78,7 +82,8 @@ export class TocFile extends XmlFile<TocData> {
             revised,
             slug,
             licenseUrl,
-            language
+            language,
+            authors
         }
     }
     private buildChildren(pageFactory: Factory<PageFile>, li: Dom, acc?: PageFile[]): TocTree {
@@ -223,7 +228,7 @@ export class OpfFile extends TocFile {
                     <opf:meta property='dcterms:modified'>{revised}</opf:meta>
                     <opf:meta property='dcterms:license'>{this.parsed.licenseUrl}</opf:meta>
                     <dc:identifier id='uid'>dummy-openstax.org-id.{this.parsed.slug}</dc:identifier>
-                    <dc:creator>Is it OpenStax???</dc:creator>
+                    <dc:creator>{this.parsed.authors}</dc:creator>
                 </opf:metadata>
                 <opf:manifest>
                     <opf:item id='just-the-book-style' media-type='text/css' properties='remote-resources' href='the-style-epub.css' />

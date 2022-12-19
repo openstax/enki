@@ -153,6 +153,7 @@ export function dom(docOrEl: ParentNode) {
 
 export const NAMESPACES = {
     c: 'http://cnx.rice.edu/cnxml',
+    col: 'http://cnx.rice.edu/collxml',
     md: 'http://cnx.rice.edu/mdml',
     h: 'http://www.w3.org/1999/xhtml',
     m: 'http://www.w3.org/1998/Math/MathML',
