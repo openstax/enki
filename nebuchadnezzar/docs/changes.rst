@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.18.0
+
+- Cleanup XHTML so that it is valid
+
 9.17.0
 
 - Revert title change
