@@ -5,6 +5,7 @@ import type { Factorio } from './factorio';
 import type { Factory, Opt } from './factory';
 import { ResourceFile, XmlFile } from './file';
 import type { PageFile } from './page';
+import { DIRNAMES } from '../env';
 
 export enum TocTreeType {
     INNER = 'INNER',
@@ -48,7 +49,7 @@ export class TocFile extends XmlFile<TocData> {
         const licenseUrl = metadata.license.url as string
         const language = metadata.language as string
 
-        const collectionXml = dom(await this.readXml([resolve(dirname(this.readPath),'..'),'_attic','IO_FETCHED','collections',`${slug}.collection.xml`].join(sep)))
+        const collectionXml = dom(await this.readXml([DIRNAMES.IO_FETCHED,'collections',`${slug}.collection.xml`].join(sep)))
         const authors = collectionXml.has("//col:collection/@authors") ? collectionXml.findOne("//col:collection").attr("authors") as string: "Is it OpenStax?" 
 
         const tocPages: PageFile[] = []
