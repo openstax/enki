@@ -36,7 +36,7 @@ set({name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.AS
 set({name: 'git-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})
 set({name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {}})
 set({name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
-set({name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META], outputs: [IO.LINKED], env: {}})
+set({name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META, IO.FETCHED], outputs: [IO.LINKED], env: {}})
 set({name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {}})
 set({name: 'git-link-rex', inputs: [IO.BOOK, IO.MATHIFIED, IO.FETCHED, IO.FETCH_META], outputs: [IO.REX_LINKED], env: {}})
 set({name: 'git-pdfify', inputs: [IO.BOOK, IO.REX_LINKED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})

@@ -92,7 +92,8 @@
             "inputDirs": [
                 "IO_BOOK",
                 "IO_BAKED",
-                "IO_BAKE_META"
+                "IO_BAKE_META",
+                "IO_FETCHED"
             ],
             "outputDirs": [
                 "IO_LINKED"
