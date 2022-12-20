@@ -1,4 +1,4 @@
-import { basename, resolve, dirname, sep } from 'path'
+import { basename, resolve, dirname, sep, join } from 'path'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from './factorio'
@@ -56,7 +56,15 @@ export class TocFile extends XmlFile<TocData> {
 
     const collectionXml = dom(
       await this.readXml(
-        [DIRNAMES.IO_FETCHED, 'collections', `${slug}.collection.xml`].join(sep)
+        resolve(
+          dirname(this.readPath),
+          join(
+            '..',
+            DIRNAMES.IO_FETCHED,
+            'collections',
+            `${slug}.collection.xml`
+          )
+        )
       )
     )
     const authors = collectionXml.has('//col:collection/@authors')
