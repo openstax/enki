@@ -244,6 +244,18 @@ export class OpfFile extends TocFile {
     const spineItems: JSXNode[] = []
     const pagesInOrder: PageFile[] = []
     this.parsed.toc.forEach((t) => this.getPagesFromToc(t, pagesInOrder))
+    // Also add all Pages that are linked to by other pages (transitively reachable from the ToC)
+    // Keep looping as long as we keep encountering more new Pages that are added to the list
+    let foundPageCount = -1
+    while (foundPageCount != (foundPageCount = pagesInOrder.length)) {
+      pagesInOrder.forEach(page => {
+        page.parsed.pageLinks.forEach(targetPage => {
+          if (!pagesInOrder.includes(targetPage))
+            pagesInOrder.push(targetPage)
+        })
+      })  
+    }
+
     pagesInOrder.forEach((page) =>
       spineItems.push(
         <opf:itemref linear="yes" idref={`idxhtml_${basename(page.newPath)}`} />
