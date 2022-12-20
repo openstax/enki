@@ -327,7 +327,7 @@
         "all-git-epub": [
             "git-fetch",
             "git-fetch-metadata",
-            "git-assemble-epub",
+            "git-assemble",
             "git-assemble-meta",
             "git-validate-references",
             "git-bake",

@@ -107,7 +107,7 @@ export const CLI_GIT_EPUB_STEPS = [
     get('git-fetch'),
     get('git-fetch-metadata'),
     // get('git-validate-cnxml'),
-    get('git-assemble-epub'),
+    get('git-assemble'),
     get('git-assemble-meta'),
     get('git-validate-references'),
     get('git-bake'),
