@@ -28,7 +28,7 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
         #     | grep -v 'ERROR(RSC-012)' \
         #     | grep -v 'ERROR(MED-002)' \
         # )
-        errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' | grep -v '.epub/the-style-epub.css'
+        errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' | grep -v '.epub/the-style-epub.css' | grep -v 'Error while parsing file: element "aside" not allowed here'
         )
 
         if [[ $errors ]]; then
