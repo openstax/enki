@@ -63,6 +63,7 @@ program // .command('epub')
 
     // Load up the models
     for (const opfFile of factorio.opfs.all) {
+      console.log(`Reading Book ${opfFile.readPath}`)
       await opfFile.parse(factorio)
       const { tocFile, ncxFile } = opfFile
       await tocFile.parse(factorio)
@@ -137,6 +138,7 @@ program // .command('epub')
       c.parsed.push(opfFile)
 
       for (const f of allFiles) {
+        console.log(`Writing out ${f.newPath}`)
         await f.write()
       }
 
