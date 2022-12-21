@@ -22,6 +22,7 @@ describe('TocFile and Friends', () => {
   const tocPath = '/foo/thebook.toc.xhtml'
   const destPath = '/output/thebooktoc.xhtml'
   const metadataPath = '/foo/thebook.toc-metadata.json'
+  const collxmlPath = '/IO_FETCHED/collections/bookslug.collection.xml'
 
   const metadataJSON = {
     title: 'booktitle',
@@ -30,6 +31,8 @@ describe('TocFile and Friends', () => {
     license: { url: 'http://licenseurl' },
     language: 'language',
   }
+
+  const collxmlContent = '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
 
   describe('with an empty book', () => {
     const emptyToc = `<html xmlns="http://www.w3.org/1999/xhtml">
@@ -42,6 +45,7 @@ describe('TocFile and Friends', () => {
       const fs: any = {}
       fs[tocPath] = emptyToc
       fs[metadataPath] = JSON.stringify(metadataJSON)
+      fs[collxmlPath] = collxmlContent
       mockfs(fs)
     })
     afterEach(() => {
@@ -88,13 +92,14 @@ describe('TocFile and Friends', () => {
       fs[tocPath] = smallToc
       fs[`/foo/${pageName}`] = pageContent
       fs[metadataPath] = JSON.stringify(metadataJSON)
+      fs[collxmlPath] = collxmlContent
       mockfs(fs)
     })
     afterEach(() => {
       mockfs.restore()
     })
 
-    it('parses an ToC with one page', async () => {
+    it('parses a ToC with one page', async () => {
       const f = new TocFile(tocPath)
       await f.parse(factorio)
       expect(f.parsed.title).toBe(metadataJSON.title)
