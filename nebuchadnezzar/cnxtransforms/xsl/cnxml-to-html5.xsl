@@ -1777,7 +1777,9 @@
       <xsl:call-template name="column-maker"/>
     </colgroup>
   </xsl:if>
-  <xsl:apply-templates select="c:thead|c:tbody|c:tfoot"/>
+  <xsl:apply-templates select="c:thead"/>
+  <xsl:apply-templates select="c:tbody"/>
+  <xsl:apply-templates select="c:tfoot"/>
 </xsl:template>
 
 <xsl:template match="c:thead|c:tbody|c:tfoot">
