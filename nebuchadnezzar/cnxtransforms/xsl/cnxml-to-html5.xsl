@@ -642,6 +642,9 @@
   <xsl:call-template name="data-prefix"/>
 </xsl:template>
 
+<!-- Discard the start-value attribute for inline lists -->
+<xsl:template match="c:list[@display='inline']/@start-value"/>
+
 <xsl:template match="c:list/@start-value">
   <xsl:attribute name="start"><xsl:value-of select="."/></xsl:attribute>
 </xsl:template>
@@ -690,7 +693,10 @@
   <xsl:apply-templates select="@id"/>
 </xsl:template>
 
-<xsl:template match="c:list/@number-style">
+<!-- Discard the number-style attribute for inline lists -->
+<xsl:template match="c:list[@display='inline']/@number-style"/>
+
+<xsl:template match="c:list[not(@display='inline')]/@number-style">
   <xsl:variable name="typeCharacter">
     <xsl:choose>
       <xsl:when test=". = 'arabic'">1</xsl:when>
