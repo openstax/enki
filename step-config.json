@@ -336,7 +336,8 @@
             "git-link",
             "git-disassemble",
             "git-patch-disassembled-links",
-            "git-epub"
+            "git-epub",
+            "git-epub-validate"
         ],
         "all-git-gdoc": [
             "git-fetch",
