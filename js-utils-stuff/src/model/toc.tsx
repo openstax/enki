@@ -118,9 +118,12 @@ export class TocFile extends XmlFile<TocData> {
     // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
     const children = li.find('h:ol/h:li')
     if (children.length > 0) {
+      const title = li.has('h:a')
+        ? li.findOne('h:a').text()
+        : li.findOne('h:span').text()
       return {
         type: TocTreeType.INNER,
-        title: li.findOne('h:a').text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+        title, //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
         titlePos: getPos(li.findOne('h:a').node),
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
       }
@@ -248,12 +251,11 @@ export class OpfFile extends TocFile {
     // Keep looping as long as we keep encountering more new Pages that are added to the list
     let foundPageCount = -1
     while (foundPageCount != (foundPageCount = pagesInOrder.length)) {
-      pagesInOrder.forEach(page => {
-        page.parsed.pageLinks.forEach(targetPage => {
-          if (!pagesInOrder.includes(targetPage))
-            pagesInOrder.push(targetPage)
+      pagesInOrder.forEach((page) => {
+        page.parsed.pageLinks.forEach((targetPage) => {
+          if (!pagesInOrder.includes(targetPage)) pagesInOrder.push(targetPage)
         })
-      })  
+      })
     }
 
     pagesInOrder.forEach((page) =>

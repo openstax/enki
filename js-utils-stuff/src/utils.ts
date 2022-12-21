@@ -113,18 +113,24 @@ class XMLSerializer {
   }
   public async writeFiles() {
     const sourcemapFile = `${this.outputFile}.map`
-    this.recWrite(this.root, null, 0)
+    this.recWrite(this.root, null, [], 0)
     await this.w.finish(sourcemapFile)
   }
 
   private recWrite(
     n: Node,
     currentDefaultNamespace: string | null,
+    namespaceDeclarationsEncounteredOnCurrentElement: string[],
     depth: number
   ) {
     if (n.nodeType === n.DOCUMENT_NODE) {
       const doc = n as Document
-      this.recWrite(doc.documentElement, currentDefaultNamespace, depth)
+      this.recWrite(
+        doc.documentElement,
+        currentDefaultNamespace,
+        namespaceDeclarationsEncounteredOnCurrentElement,
+        depth
+      )
     } else if (n.nodeType === n.TEXT_NODE) {
       const textNode = n as Text
       this.w.writeText(n, escapeText(textNode.data))
@@ -133,25 +139,50 @@ class XMLSerializer {
       this.w.writeText(n, `<!--${escapeText(comment.data)}-->`)
     } else if (n.nodeType === n.ATTRIBUTE_NODE) {
       const attr = n as Attr
-      if (attr.prefix && attr.prefix !== 'xmlns') {
-        this.w.writeText(
-          n,
-          ` xmlns:${attr.prefix}="${escapeAttribute(
-            assertValue(attr.namespaceURI)
-          )}"`
+      // console.log(`Encountering attribute. prefix=${attr.prefix} name=${attr.name} arry=${JSON.stringify(namespaceDeclarationsEncounteredOnCurrentElement)}`)
+      // Skip if we already defined this namespace prefix on the element
+      if (
+        attr.prefix === 'xmlns' &&
+        namespaceDeclarationsEncounteredOnCurrentElement.includes(
+          attr.localName
         )
+      ) {
+        return
+      }
+
+      if (attr.prefix && attr.prefix !== 'xmlns') {
+        // Skip if we already defined this namespace prefix on the element
+        if (
+          !namespaceDeclarationsEncounteredOnCurrentElement.includes(
+            attr.prefix
+          )
+        ) {
+          this.w.writeText(
+            n,
+            ` xmlns:${attr.prefix}="${escapeAttribute(
+              assertValue(
+                attr.namespaceURI,
+                'BUG: attribute does not seem to have a namespaceURI set'
+              )
+            )}"`
+          )
+        }
+        namespaceDeclarationsEncounteredOnCurrentElement.push(attr.value)
       }
       this.w.writeText(
         n,
         ` ${n.nodeName}="${escapeAttribute(n.nodeValue || '')}"`
       )
+      if (attr.prefix === 'xmlns') {
+        namespaceDeclarationsEncounteredOnCurrentElement.push(attr.localName)
+      }
     } else if (n.nodeType === n.ELEMENT_NODE) {
       const el = n as Element
       const prefixedTag = el.tagName
       const localTag = el.tagName
       const newDefaultNamespace = el.prefix
         ? currentDefaultNamespace
-        : el.namespaceURI
+        : el.namespaceURI || null
 
       const padding =
         currentDefaultNamespace === XHTML_NS ? '' : '  '.repeat(depth)
@@ -166,13 +197,16 @@ class XMLSerializer {
         newDefaultNamespace !== currentDefaultNamespace &&
         !el.getAttribute('xmlns')
       ) {
-        this.w.writeText(
-          n,
-          ` xmlns="${escapeAttribute(assertValue(newDefaultNamespace))}"`
-        )
+        if (newDefaultNamespace !== null) {
+          this.w.writeText(
+            n,
+            ` xmlns="${escapeAttribute(newDefaultNamespace)}"`
+          )
+        }
       }
+      const nsDeclaredPrefixes: string[] = []
       for (const attr of Array.from(el.attributes)) {
-        this.recWrite(attr, newDefaultNamespace, depth)
+        this.recWrite(attr, newDefaultNamespace, nsDeclaredPrefixes, depth)
       }
       if (isSelfClosing(localTag, el.namespaceURI)) {
         assertTrue(el.childNodes.length === 0)
@@ -182,7 +216,7 @@ class XMLSerializer {
       } else {
         this.w.writeText(n, '>')
         for (const child of Array.from(el.childNodes)) {
-          this.recWrite(child, newDefaultNamespace, depth + 1)
+          this.recWrite(child, newDefaultNamespace, [], depth + 1)
         }
         this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
       }

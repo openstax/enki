@@ -32,7 +32,8 @@ describe('TocFile and Friends', () => {
     language: 'language',
   }
 
-  const collxmlContent = '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
+  const collxmlContent =
+    '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
 
   describe('with an empty book', () => {
     const emptyToc = `<html xmlns="http://www.w3.org/1999/xhtml">
