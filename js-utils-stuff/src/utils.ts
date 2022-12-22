@@ -139,7 +139,6 @@ class XMLSerializer {
       this.w.writeText(n, `<!--${escapeText(comment.data)}-->`)
     } else if (n.nodeType === n.ATTRIBUTE_NODE) {
       const attr = n as Attr
-      // console.log(`Encountering attribute. prefix=${attr.prefix} name=${attr.name} arry=${JSON.stringify(namespaceDeclarationsEncounteredOnCurrentElement)}`)
       // Skip if we already defined this namespace prefix on the element
       if (
         attr.prefix === 'xmlns' &&
@@ -157,17 +156,13 @@ class XMLSerializer {
             attr.prefix
           )
         ) {
-          this.w.writeText(
-            n,
-            ` xmlns:${attr.prefix}="${escapeAttribute(
-              assertValue(
-                attr.namespaceURI,
-                'BUG: attribute does not seem to have a namespaceURI set'
-              )
-            )}"`
+          const ns = assertValue(
+            attr.namespaceURI,
+            'BUG: attribute does not seem to have a namespaceURI set'
           )
+          this.w.writeText(n, ` xmlns:${attr.prefix}="${escapeAttribute(ns)}"`)
+          namespaceDeclarationsEncounteredOnCurrentElement.push(attr.prefix)
         }
-        namespaceDeclarationsEncounteredOnCurrentElement.push(attr.value)
       }
       this.w.writeText(
         n,

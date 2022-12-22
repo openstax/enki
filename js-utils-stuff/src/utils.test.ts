@@ -23,4 +23,12 @@ describe('xml serializing', () => {
         </root>`)
     await writeAndCheckSnapshot(doc)
   })
+
+  it('writes namespace declarations only once when a prefix is defined on an attribute even when there are multiple attributes', async () => {
+    const doc =
+      parseXml(`<root xmlns:ns2="http://katalysteducation.org/cxlxt/1.0">
+      <span ns2:index="name" ns2:name="Wearing, Clive" ns2:born="1938" />
+  </root>`)
+    await writeAndCheckSnapshot(doc)
+  })
 })
