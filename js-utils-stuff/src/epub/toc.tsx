@@ -54,7 +54,6 @@ export class TocFile extends BaseTocFile<
       '.toc.xhtml',
       '.toc-metadata.json'
     )
-    const doc = dom(await this.readXml())
     const metadata = await this.readJson<any>(metadataFile)
     const title = metadata.title as string
     const revised = metadata.revised as string
