@@ -73,13 +73,9 @@ export class PageFile extends XmlFile<
       '//h:h2[@data-type="document-title"]',
       '//h:html/h:body/h:div[@data-type="composite-page"]/h:h3[@data-type="title"]',
     ]
-    const titles =
-      doc.find(selectors[0]) || doc.find(selectors[1]) || doc.find(selectors[2])
-    assertTrue(
-      titles.length <= 1,
-      `Expected to find one document title but found ${titles.length} at '${this.readPath}'`
-    )
-    const title = titles.length === 0 ? 'untitled' : titles[0].text()
+    const titleNode =
+      doc.find(selectors[0])[0] || doc.find(selectors[1])[0] || doc.find(selectors[2])[0]
+    const title = titleNode === undefined ? 'untitled' : titleNode.text()
     this._parsed = {
       title,
       hasMathML: doc.has('//m:math|//h:math'),
