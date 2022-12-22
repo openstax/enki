@@ -1,5 +1,5 @@
 // ***************************************
-// Use the ../bin/epub script to run this
+// Use the ../bin/bakery-helper script to run this
 // ***************************************
 
 import modulealias from 'module-alias' // From https://github.com/Microsoft/TypeScript/issues/10866#issuecomment-246929461
@@ -9,51 +9,60 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
 import { basename, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support'
-import { ContainerFile } from './model/container'
-import { factorio } from './model/factorio'
+import { ContainerFile } from './epub/container'
+import { factorio } from './epub/singletons'
 import { ResourceFile } from './model/file'
 import { DIRNAMES } from './env'
 sourceMapSupport.install()
 
 const program = new Command()
 
-program // .command('epub')
-  .description('Build a directory which can be zipped to create an EPUB file')
-  .argument(
-    '<source>',
-    'Source Directory. It must contain a few subdirectories like ./IO_RESOURCES/ Example: ../data/astronomy/_attic',
-    (sourceDir: string) => {
-      sourceDir = resolve(sourceDir)
-      if (!existsSync(`${sourceDir}/${DIRNAMES.IO_RESOURCES}`))
-        throw new InvalidArgumentError(
-          `expected ${sourceDir}/${DIRNAMES.IO_RESOURCES} to exist`
-        )
-      if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}`))
-        throw new InvalidArgumentError(
-          `expected ${sourceDir}/${DIRNAMES.IO_FETCHED} to exist`
-        )
-      if (!existsSync(`${sourceDir}/${DIRNAMES.IO_BAKED}`))
-        throw new InvalidArgumentError(
-          `expected ${sourceDir}/${DIRNAMES.IO_BAKED} to exist`
-        )
-      if (!existsSync(`${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED}`))
-        throw new InvalidArgumentError(
-          `expected ${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED} to exist`
-        )
-      if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`))
-        throw new InvalidArgumentError(
-          `expected file to exist ${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`
-        )
-      return sourceDir
-    }
+const sourceDirArg = program
+  .createArgument(
+    '<source_dir>',
+    'Source Directory. It must contain a few subdirectories like ./IO_RESOURCES/ Example: ../data/astronomy/_attic'
   )
-  .argument(
-    '<destination>',
-    'Destination Directory to write the EPUB files to. Example: ./testing/',
-    (destinationDir: string) => {
-      return resolve(destinationDir)
-    }
+  .argParser((sourceDir: string) => {
+    sourceDir = resolve(sourceDir)
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_RESOURCES}`))
+      throw new InvalidArgumentError(
+        `expected ${sourceDir}/${DIRNAMES.IO_RESOURCES} to exist`
+      )
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}`))
+      throw new InvalidArgumentError(
+        `expected ${sourceDir}/${DIRNAMES.IO_FETCHED} to exist`
+      )
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_BAKED}`))
+      throw new InvalidArgumentError(
+        `expected ${sourceDir}/${DIRNAMES.IO_BAKED} to exist`
+      )
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED}`))
+      throw new InvalidArgumentError(
+        `expected ${sourceDir}/${DIRNAMES.IO_DISASSEMBLE_LINKED} to exist`
+      )
+    if (!existsSync(`${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`))
+      throw new InvalidArgumentError(
+        `expected file to exist ${sourceDir}/${DIRNAMES.IO_FETCHED}/META-INF/books.xml`
+      )
+    return sourceDir
+  })
+
+const destinationDirArg = program
+  .createArgument(
+    '<destination_dir>',
+    'Destination Directory to write the EPUB files to. Example: ./testing/'
   )
+  .argParser((destinationDir: string) => {
+    return resolve(destinationDir)
+  })
+
+const epubCommand = program.command('epub')
+epubCommand.description(
+  'Build a directory which can be zipped to create an EPUB file'
+)
+epubCommand
+  .addArgument(sourceDirArg)
+  .addArgument(destinationDirArg)
   .action(async (sourceDir: string, destinationDir: string) => {
     mkdirSync(destinationDir, { recursive: true })
 
@@ -62,7 +71,7 @@ program // .command('epub')
     await c.parse(factorio)
 
     // Load up the models
-    for (const opfFile of factorio.opfs.all) {
+    for (const opfFile of factorio.books.all) {
       console.log(`Reading Book ${opfFile.readPath}`)
       await opfFile.parse(factorio)
       const { tocFile, ncxFile } = opfFile
@@ -146,4 +155,10 @@ program // .command('epub')
       factorio.resources.clear()
     }
   })
-  .parse()
+
+program
+  .command('fetch-images')
+  .addArgument(sourceDirArg)
+  .addArgument(destinationDirArg)
+  .action(async (sourceDir: string, destinationDir: string) => {})
+program.parse()

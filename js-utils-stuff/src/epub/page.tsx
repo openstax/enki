@@ -2,9 +2,10 @@ import { existsSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { Dom, dom } from '../minidom'
 import { assertTrue, assertValue, getPos } from '../utils'
-import type { Factorio } from './factorio'
-import type { Factory } from './factory'
-import { ResourceFile, XmlFile } from './file'
+import type { Factorio } from '../model/factorio'
+import type { Factory } from '../model/factory'
+import { ResourceFile, XmlFile } from '../model/file'
+import { OpfFile } from './toc'
 
 const RESOURCE_SELECTORS: Array<[string, string]> = [
   ['//h:img', 'src'],
@@ -32,8 +33,15 @@ function filterNulls<T>(l: Array<T | null>): Array<T> {
 const pageLinkXpath =
   '//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]'
 
-export class PageFile extends XmlFile<PageData> {
-  async parse(factorio: Factorio): Promise<void> {
+export class PageFile extends XmlFile<
+  PageData,
+  OpfFile,
+  PageFile,
+  ResourceFile
+> {
+  async parse(
+    factorio: Factorio<OpfFile, PageFile, ResourceFile>
+  ): Promise<void> {
     if (this._parsed !== undefined) return // Only parse once
     const doc = dom(await this.readXml(this.readPath))
     const pageLinks = filterNulls(
@@ -137,7 +145,10 @@ export class PageFile extends XmlFile<PageData> {
     doc.forEach('//h:script|//h:style', (n) => n.remove())
 
     // Delete all iframes that have remote URLs and use the REX link instead
-    doc.forEach('//h:*[contains(@class, "os-has-iframe") and contains(@class, "os-has-link")]/h:iframe[contains(@class, "os-is-iframe")][starts-with(@src, "http://") or starts-with(@src, "https://")]', n => n.remove())
+    doc.forEach(
+      '//h:*[contains(@class, "os-has-iframe") and contains(@class, "os-has-link")]/h:iframe[contains(@class, "os-is-iframe")][starts-with(@src, "http://") or starts-with(@src, "https://")]',
+      (n) => n.remove()
+    )
 
     // Fix links to other Pages
     const allPages = new Map(this.parsed.pageLinks.map((r) => [r.readPath, r]))

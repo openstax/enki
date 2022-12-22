@@ -8,11 +8,14 @@ import {
 } from '@jest/globals'
 import { readFileSync } from 'fs'
 import mockfs from 'mock-fs'
-import { factorio } from './factorio'
-import { XmlFile } from './file'
+import { factorio } from './singletons'
+import { XmlFile } from '../model/file'
 import { TocFile } from './toc'
 
-async function writeAndCheckSnapshot<T>(n: XmlFile<T>, destPath: string) {
+async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
+  n: XmlFile<T, TBook, TPage, TResource>,
+  destPath: string
+) {
   n.rename(destPath, undefined)
   await n.write()
   expect(readFileSync(destPath, 'utf8')).toMatchSnapshot()

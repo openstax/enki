@@ -1,11 +1,12 @@
 import { basename, resolve, dirname, sep, join } from 'path'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
-import type { Factorio } from './factorio'
-import type { Factory, Opt } from './factory'
-import { ResourceFile, XmlFile } from './file'
+import type { Factorio } from '../model/factorio'
+import type { Factory, Opt } from '../model/factory'
+import { ResourceFile, XmlFile } from '../model/file'
 import type { PageFile } from './page'
 import { DIRNAMES } from '../env'
+import { BaseTocFile } from '../model/base-toc'
 
 export enum TocTreeType {
   INNER = 'INNER',
@@ -39,8 +40,15 @@ type TocData = {
   authors: string
 }
 
-export class TocFile extends XmlFile<TocData> {
-  async parse(factorio: Factorio): Promise<void> {
+export class TocFile extends BaseTocFile<
+  TocData,
+  OpfFile,
+  PageFile,
+  ResourceFile
+> {
+  async parse(
+    factorio: Factorio<OpfFile, PageFile, ResourceFile>
+  ): Promise<void> {
     if (this._parsed !== undefined) return // Only parse once
     const metadataFile = this.readPath.replace(
       '.toc.xhtml',
@@ -72,11 +80,7 @@ export class TocFile extends XmlFile<TocData> {
       : 'Is it OpenStax?'
 
     const tocPages: PageFile[] = []
-    const toc = doc.map('//h:nav/h:ol/h:li', (el) =>
-      this.buildChildren(factorio.pages, el, tocPages)
-    )
-
-    const allPages = new Set<PageFile>()
+    const { toc, allPages } = await super.baseParse(factorio)
     const allResources = new Set<ResourceFile>()
 
     // keep looking through XHTML file links and add those to the set of allPages
@@ -110,62 +114,6 @@ export class TocFile extends XmlFile<TocData> {
       authors,
     }
   }
-  private buildChildren(
-    pageFactory: Factory<PageFile>,
-    li: Dom,
-    acc?: PageFile[]
-  ): TocTree {
-    // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
-    const children = li.find('h:ol/h:li')
-    if (children.length > 0) {
-      const title = li.has('h:a')
-        ? li.findOne('h:a').text()
-        : li.findOne('h:span').text()
-      return {
-        type: TocTreeType.INNER,
-        title, //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-        titlePos: getPos(li.findOne('h:a').node),
-        children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
-      }
-    } else if (li.has('h:a[not(starts-with(@href, "#"))]')) {
-      const href = assertValue(
-        li.findOne('h:a[not(starts-with(@href, "#"))]').attr('href')
-      )
-      const page = pageFactory.getOrAdd(href, this.readPath)
-      acc?.push(page)
-      return {
-        type: TocTreeType.LEAF,
-        title: li.findOne('h:a').text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-        titlePos: getPos(li.findOne('h:a').node),
-        page,
-        pagePos: getPos(li.node),
-      }
-    } else {
-      throw new Error('BUG: non-page leaves are not supported yet')
-    }
-  }
-  public findDepth(toc: TocTree): number {
-    if (toc.type == TocTreeType.LEAF) return 1
-    else
-      return (
-        1 +
-        Math.max(
-          ...toc.children.map((d) => {
-            return this.findDepth(d)
-          })
-        )
-      )
-  }
-
-  public getPagesFromToc(toc: TocTree, acc: PageFile[] = []) {
-    if (toc.type === TocTreeType.LEAF) {
-      acc?.push(toc.page)
-    } else {
-      toc.children.forEach((c) => this.getPagesFromToc(c, acc))
-    }
-    return acc
-  }
-
   protected async convert(): Promise<Node> {
     const doc = dom(await this.readXml())
 

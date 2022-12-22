@@ -8,7 +8,7 @@ import {
 } from '@jest/globals'
 import { readFileSync } from 'fs'
 import mockfs from 'mock-fs'
-import { factorio } from './factorio'
+import { factorio } from '../epub/singletons'
 import { ResourceFile } from './file'
 
 describe('ResourceFile', () => {

@@ -14,8 +14,8 @@ import {
   readXmlWithSourcemap,
   writeXmlWithSourcemap,
 } from '../utils'
-import type { Factorio } from './factorio'
-import type { Opt } from './factory'
+import type { Factorio } from '../model/factorio'
+import type { Opt } from '../model/factory'
 
 /**
  * Files Read:
@@ -56,12 +56,15 @@ export abstract class File {
   public abstract write(): Promise<void>
 }
 
-export interface Readable<T> {
+export interface Readable<T, TBook, TPage, TResource> {
   get parsed(): T
-  parse(factorio: Factorio): Promise<void>
+  parse(factorio: Factorio<TBook, TPage, TResource>): Promise<void>
 }
 
-export abstract class XmlFile<T> extends File implements Readable<T> {
+export abstract class XmlFile<T, TBook, TPage, TResource>
+  extends File
+  implements Readable<T, TBook, TPage, TResource>
+{
   protected _parsed: Opt<T> = undefined
   constructor(readPath: string) {
     super(readPath)
@@ -69,7 +72,7 @@ export abstract class XmlFile<T> extends File implements Readable<T> {
   public get parsed() {
     return assertValue(this._parsed, 'BUG: Forgot to call parse()')
   }
-  abstract parse(factorio: Factorio): Promise<void>
+  abstract parse(factorio: Factorio<TBook, TPage, TResource>): Promise<void>
   protected abstract convert(): Promise<Node>
   public async write(): Promise<void> {
     const doc = await this.convert()
@@ -95,7 +98,10 @@ export type ResourceData = {
   originalExtension: string
 }
 
-export class ResourceFile extends File implements Readable<ResourceData> {
+export class ResourceFile
+  extends File
+  implements Readable<ResourceData, any, any, any>
+{
   private _data: Opt<ResourceData> = undefined
 
   static mimetypeExtensions: { [k: string]: string } = {
@@ -122,7 +128,7 @@ export class ResourceFile extends File implements Readable<ResourceData> {
     return assertValue(this._data, 'BUG: Forgot to call parse()')
   }
 
-  async parse(_: Factorio): Promise<void> {
+  async parse(_: Factorio<any, any, any>): Promise<void> {
     const metadataFile = `${this.realReadPath()}.json`
     const json = await this.readJson<any>(metadataFile)
     this._data = {

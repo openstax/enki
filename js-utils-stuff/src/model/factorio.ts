@@ -1,29 +1,23 @@
 import { resolve } from 'path'
 import { Factory } from './factory'
-import { ResourceFile } from './file'
-import { PageFile } from './page'
-import { OpfFile } from './toc'
+import { ResourceFile } from '../model/file'
+import { PageFile } from '../epub/page'
+import { OpfFile } from '../epub/toc'
 
 type Builder<T> = (absPath: string) => T
 
-export class Factorio {
-  public readonly pages: Factory<PageFile>
-  public readonly opfs: Factory<OpfFile>
-  public readonly resources: Factory<ResourceFile>
+export class Factorio<TBook, TPage, TResource> {
+  public readonly books: Factory<TBook>
+  public readonly pages: Factory<TPage>
+  public readonly resources: Factory<TResource>
 
   constructor(
-    pageBuilder: Builder<PageFile>,
-    tocBuilder: Builder<OpfFile>,
-    resourceBuilder: Builder<ResourceFile>
+    bookBuilder: Builder<TBook>,
+    pageBuilder: Builder<TPage>,
+    resourceBuilder: Builder<TResource>
   ) {
+    this.books = new Factory(bookBuilder, resolve)
     this.pages = new Factory(pageBuilder, resolve)
-    this.opfs = new Factory(tocBuilder, resolve)
     this.resources = new Factory(resourceBuilder, resolve)
   }
 }
-
-export const factorio: Factorio = new Factorio(
-  (absPath) => new PageFile(absPath),
-  (absPath) => new OpfFile(absPath),
-  (absPath) => new ResourceFile(absPath)
-)
