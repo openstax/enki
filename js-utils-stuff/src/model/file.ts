@@ -140,8 +140,14 @@ export class ResourceFile
   public async write() {
     assertTrue(this.readPath !== this.newPath)
     const readPath = this.realReadPath()
-    if (!existsSync(this.newPath))
-      mkdirSync(dirname(this.newPath), { recursive: true })
-    copyFileSync(readPath, this.newPath, constants.COPYFILE_EXCL)
+    try {
+      if (!existsSync(this.newPath))
+        mkdirSync(dirname(this.newPath), { recursive: true })
+      copyFileSync(readPath, this.newPath, constants.COPYFILE_EXCL)
+    } catch (error: any) {
+      if (error.code == 'EEXIST') {
+        console.warn(`File already exists! ${this.newPath}`)
+      }
+    }
   }
 }
