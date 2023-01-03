@@ -145,9 +145,9 @@ export class ResourceFile
         mkdirSync(dirname(this.newPath), { recursive: true })
       copyFileSync(readPath, this.newPath, constants.COPYFILE_EXCL)
     } catch (error: any) {
-      if (error.code == 'EEXIST') {
+      if (error.code == 'EEXIST')
         console.warn(`File already exists! ${this.newPath}`)
-      } else throw error
+      else throw error
     }
   }
 }
