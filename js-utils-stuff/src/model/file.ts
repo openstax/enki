@@ -147,7 +147,7 @@ export class ResourceFile
     } catch (error: any) {
       if (error.code == 'EEXIST') {
         console.warn(`File already exists! ${this.newPath}`)
-      }
+      } else throw error
     }
   }
 }
