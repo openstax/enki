@@ -119,6 +119,10 @@ export const CLI_GIT_EPUB_STEPS = [
     get('git-epub-validate'),
 ]
 
+export const GIT_EPUB_STEPS = [
+    ...CLI_GIT_EPUB_STEPS,
+]
+
 export const CLI_GIT_GDOC_STEPS = [
     ...CLI_GIT_WEB_STEPS,
     get('git-gdocify'),

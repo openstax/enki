@@ -12,7 +12,8 @@ export enum JobType {
     DIST_PREVIEW = 2,
     GIT_PDF = 3,
     GIT_DIST_PREVIEW = 4,
-    GIT_DOCX = 5
+    GIT_DOCX = 5,
+    GIT_EPUB = 6
 }
 export enum Status {
     QUEUED = 1,
@@ -74,7 +75,8 @@ export enum RESOURCES {
     TICKER = 'ticker',
     CORGI_GIT_PDF = 'corgi-git-pdf',
     CORGI_GIT_WEB = 'corgi-git-dist-preview',
-    CORGI_GIT_DOCX = 'corgi-git-docx'
+    CORGI_GIT_DOCX = 'corgi-git-docx',
+    CORGI_GIT_EPUB = 'corgi-git-epub'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file
