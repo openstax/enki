@@ -2,6 +2,10 @@
 Change Log
 ==========
 
+9.19.0
+
+- Remove attributes from inline lists so they are valid XHTML
+
 9.18.0
 
 - Cleanup XHTML so that it is valid
