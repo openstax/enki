@@ -278,6 +278,14 @@ export class NcxFile extends TocFile {
     return this._idCounter++
   }
 
+  private findFirstLeafPage(toc: TocTree): Opt<PageFile> {
+    if (toc.type === TocTreeType.LEAF) return toc.page
+    for (const c of toc.children) {
+      const ret = this.findFirstLeafPage(c)
+      if (ret !== undefined) return ret
+    }
+    return undefined
+  }
   private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
       return (
@@ -289,16 +297,8 @@ export class NcxFile extends TocFile {
         </ncx:navPoint>
       )
     } else {
-      function findFirstLeafPage(toc: TocTree): Opt<PageFile> {
-        if (toc.type === TocTreeType.LEAF) return toc.page
-        for (const c of toc.children) {
-          const ret = findFirstLeafPage(c)
-          if (ret !== undefined) return ret
-        }
-        return undefined
-      }
       const firstPage = assertValue(
-        findFirstLeafPage(toc),
+        this.findFirstLeafPage(toc),
         'BUG: Could not find an intro page'
       )
       return (
