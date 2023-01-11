@@ -78,9 +78,15 @@ epubCommand
       await tocFile.parse(factorio)
       await ncxFile.parse(factorio)
 
-      for (const page of factorio.pages.all) {
-        await page.parse(factorio)
+      // Also add all Pages that are linked to by other pages (transitively reachable from the ToC)
+      // Keep looping as long as we keep encountering more new Pages that are added to the list
+      let foundPageCount = -1
+      while (foundPageCount != (foundPageCount = factorio.pages.all.length)) {
+        for (const page of factorio.pages.all) {
+          await page.parse(factorio)
+        }
       }
+
       for (const resource of factorio.resources.all) {
         await resource.parse(factorio)
       }

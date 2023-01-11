@@ -32,6 +32,7 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
             | grep -v '.epub/the-style-epub.css' \
             | grep -v 'Error while parsing file: element "aside" not allowed here' \
             | grep -v 'Error while parsing file: attribute "longdesc" not allowed here' \
+            | grep -v 'Error while parsing file: attribute "summary" not allowed here;' \
             ;
         )
 

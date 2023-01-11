@@ -167,10 +167,23 @@ export class OpfFile extends TocFile {
   }
 
   protected override async convert(): Promise<Node> {
-    const { allPages, allResources } = this.parsed
+    const { allResources } = this.parsed
 
     const manifestItems: JSXNode[] = []
-    for (const page of allPages) {
+    const pagesInOrder: PageFile[] = []
+    this.parsed.toc.forEach((t) => this.getPagesFromToc(t, pagesInOrder))
+    // Also add all Pages that are linked to by other pages (transitively reachable from the ToC)
+    // Keep looping as long as we keep encountering more new Pages that are added to the list
+    let foundPageCount = -1
+    while (foundPageCount != (foundPageCount = pagesInOrder.length)) {
+      pagesInOrder.forEach((page) => {
+        page.parsed.pageLinks.forEach((targetPage) => {
+          if (!pagesInOrder.includes(targetPage)) pagesInOrder.push(targetPage)
+        })
+      })
+    }
+
+    for (const page of pagesInOrder) {
       const p = page.parsed
       const props: string[] = []
       if (p.hasMathML) props.push('mathml')
@@ -192,19 +205,6 @@ export class OpfFile extends TocFile {
     }
 
     const spineItems: JSXNode[] = []
-    const pagesInOrder: PageFile[] = []
-    this.parsed.toc.forEach((t) => this.getPagesFromToc(t, pagesInOrder))
-    // Also add all Pages that are linked to by other pages (transitively reachable from the ToC)
-    // Keep looping as long as we keep encountering more new Pages that are added to the list
-    let foundPageCount = -1
-    while (foundPageCount != (foundPageCount = pagesInOrder.length)) {
-      pagesInOrder.forEach((page) => {
-        page.parsed.pageLinks.forEach((targetPage) => {
-          if (!pagesInOrder.includes(targetPage)) pagesInOrder.push(targetPage)
-        })
-      })
-    }
-
     pagesInOrder.forEach((page) =>
       spineItems.push(
         <opf:itemref linear="yes" idref={`idxhtml_${basename(page.newPath)}`} />

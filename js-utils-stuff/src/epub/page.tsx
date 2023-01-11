@@ -159,7 +159,7 @@ export class PageFile extends XmlFile<
       const targetPath = this.toAbsolute(pagePathRel)
       const targetPage = assertValue(
         allPages.get(targetPath),
-        `BUG: Could not find the target page in the set of pages that were parsed: '${targetPath}'`
+        `BUG: Could not find the target page in the set of pages that were parsed: source='${this.readPath}' target='${targetPath}'`
       )
 
       const newTargetPath = this.relativeToMe(targetPage.newPath)
