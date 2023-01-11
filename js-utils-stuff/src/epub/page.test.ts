@@ -75,6 +75,8 @@ describe('Pages', () => {
           <iframe class="os-is-iframe" src="https://example"/>
         </div>
         <a href="./${otherPageFilename}"/>
+        <a href="./${otherPageFilename}#target-id"/>
+        <img src="./notarealimage.jpg"/>
       </body>
     </html>`
 
@@ -132,6 +134,7 @@ describe('Pages', () => {
       const p = new PageFile('somepath')
       p.readXml = (_) => Promise.resolve(parseXml(pageWithABunchOfSerielizerOptions))
       await p.parse(factorio)
+      await p.parse(factorio) // Parse a second time for code coverage reasons (to check at we don't actually parse twice)
       await p.write()
       expect(readFileSync(p.newPath, 'utf8')).toMatchSnapshot()
     })

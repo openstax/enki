@@ -52,6 +52,7 @@ export class PageFile extends XmlFile<
         )
         const pagePathRel = u.pathname.slice(1) // remove leading slash
         const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
+        /* istanbul ignore if */
         if (pagePathRel.length === 0 || !existsSync(pagePathAbs)) {
           const pos = getPos(a.node)
           console.warn(

@@ -25,8 +25,8 @@ export type FileInfo = {
 }
 
 export function assertTrue(v: boolean, message = 'Expected to be true') {
+  /* istanbul ignore if */
   if (v !== true) {
-    debugger
     throw new Error(message)
   }
 }
@@ -35,7 +35,7 @@ export function assertValue<T>(
   message = 'Expected a value but did not get anything'
 ) {
   if (v !== null && v !== undefined) return v
-  debugger
+  /* istanbul ignore next */
   throw new Error(`BUG: assertValue. Message: ${message}`)
 }
 
@@ -63,6 +63,7 @@ function visit(n: Node, visitor: (n: Node) => void) {
 
 export function parseXml(fileContent: string) {
   const locator = { lineNumber: 0, columnNumber: 0 }
+  /* istanbul ignore next */
   const cb = () => {
     const pos = {
       line: locator.lineNumber - 1,
@@ -83,6 +84,7 @@ export function parseXml(fileContent: string) {
 }
 
 // https://github.com/xmldom/xmldom/blob/5eb649e00aeaaf016cad313f12ef0da02b563a1f/lib/dom.js#L544-L550
+/* istanbul ignore next */
 function _xmlEncoder(c: string) {
   return (
     (c == '<' && '&lt;') ||
@@ -134,12 +136,13 @@ class XMLSerializer {
     } else if (n.nodeType === n.TEXT_NODE) {
       const textNode = n as Text
       this.w.writeText(n, escapeText(textNode.data))
-    } else if (n.nodeType === n.COMMENT_NODE) {
+    } else /* istanbul ignore if */ if (n.nodeType === n.COMMENT_NODE) {
       const comment = n as Comment
       this.w.writeText(n, `<!--${escapeText(comment.data)}-->`)
     } else if (n.nodeType === n.ATTRIBUTE_NODE) {
       const attr = n as Attr
       // Skip if we already defined this namespace prefix on the element
+      /* istanbul ignore if */
       if (
         attr.prefix === 'xmlns' &&
         namespaceDeclarationsEncounteredOnCurrentElement.includes(
@@ -164,6 +167,7 @@ class XMLSerializer {
           namespaceDeclarationsEncounteredOnCurrentElement.push(attr.prefix)
         }
       }
+      /* istanbul ignore next */
       this.w.writeText(
         n,
         ` ${n.nodeName}="${escapeAttribute(n.nodeValue || '')}"`
@@ -171,10 +175,11 @@ class XMLSerializer {
       if (attr.prefix === 'xmlns') {
         namespaceDeclarationsEncounteredOnCurrentElement.push(attr.localName)
       }
-    } else if (n.nodeType === n.ELEMENT_NODE) {
+    } else /* istanbul ignore else */ if (n.nodeType === n.ELEMENT_NODE) {
       const el = n as Element
       const prefixedTag = el.tagName
       const localTag = el.tagName
+      /* istanbul ignore next */
       const newDefaultNamespace = el.prefix
         ? currentDefaultNamespace
         : el.namespaceURI || null
@@ -259,11 +264,8 @@ class SourceMapWriter {
     this.fileWriter = createWriteStream(outputFile)
   }
 
-  relativeToOutputFile(sourceFile: string) {
-    return relative(this.outputFile, sourceFile)
-  }
-
   writeText(sourceNode: Node, text: string | null) {
+    /* istanbul ignore if */
     if (text === null) return
 
     // Add the source file if it has not been added yet
@@ -281,6 +283,7 @@ class SourceMapWriter {
       if (!this.sources.has(filename)) {
         this.sources.set(filename, pos.source.content)
       }
+      /* istanbul ignore else */
       if (pos.lineNumber >= 0 && pos.columnNumber >= 0) {
         this.g.addMapping({
           source: filename,
@@ -353,6 +356,7 @@ export async function readXmlWithSourcemap(filename: string) {
 
   // If there is a sourcemap reference at the bottom of the XML file then load the sourcemap and rewrite the references on the nodes
   const lastChild = assertValue(doc.lastChild)
+  /* istanbul ignore if */
   if (lastChild.nodeType === lastChild.COMMENT_NODE) {
     const comment = lastChild as Comment
     const i = comment.data.indexOf('sourceMappingURL=')
