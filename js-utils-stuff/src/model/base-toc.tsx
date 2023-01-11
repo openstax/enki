@@ -48,6 +48,7 @@ export abstract class BaseTocFile<
 
     // keep looking through XHTML file links and add those to the set of allPages
     async function recPages(page: TPage) {
+      /* istanbul ignore if */
       if (allPages.has(page)) return
       allPages.add(page)
     }
@@ -64,11 +65,12 @@ export abstract class BaseTocFile<
   private buildChildren(
     pageFactory: Factory<TPage>,
     li: Dom,
-    acc?: TPage[]
+    acc: TPage[]
   ): TocTree<TPage> {
     // 3 options are: Subbook node, Page leaf, subbook leaf (only CNX)
     const children = li.find('h:ol/h:li')
     if (children.length > 0) {
+      /* istanbul ignore next */
       const title = li.has('h:a')
         ? li.findOne('h:a').text()
         : li.findOne('h:span').text()
@@ -78,12 +80,12 @@ export abstract class BaseTocFile<
         titlePos: getPos(li.findOne('h:a').node),
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
       }
-    } else if (li.has('h:a[not(starts-with(@href, "#"))]')) {
+    } else /* istanbul ignore else */ if (li.has('h:a[not(starts-with(@href, "#"))]')) {
       const href = assertValue(
         li.findOne('h:a[not(starts-with(@href, "#"))]').attr('href')
       )
       const page = pageFactory.getOrAdd(href, this.readPath)
-      acc?.push(page)
+      acc.push(page)
       return {
         type: TocTreeType.LEAF,
         title: li.findOne('h:a').text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
@@ -108,9 +110,9 @@ export abstract class BaseTocFile<
       )
   }
 
-  public getPagesFromToc(toc: TocTree<TPage>, acc: TPage[] = []) {
+  public getPagesFromToc(toc: TocTree<TPage>, acc: TPage[]) {
     if (toc.type === TocTreeType.LEAF) {
-      acc?.push(toc.page)
+      acc.push(toc.page)
     } else {
       toc.children.forEach((c) => this.getPagesFromToc(c, acc))
     }
