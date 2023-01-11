@@ -121,6 +121,7 @@ graph TB
     git-bake -- baked --> git-bake-meta
     git-bake -- baked --> git-link
     git-bake-meta -- bake-meta --> git-link
+    git-fetch -- fetched --> git-link
     git-link -- linked --> git-mathify
     git-bake -- baked --> git-mathify
     git-mathify -- mathified --> git-validate-xhtml-mathified

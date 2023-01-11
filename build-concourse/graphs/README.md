@@ -23,6 +23,7 @@ graph TB
     git-bake -- baked --> git-bake-meta
     git-bake -- baked --> git-link
     git-bake-meta -- bake-meta --> git-link
+    git-fetch -- fetched --> git-link
     git-link -- linked --> git-mathify
     git-bake -- baked --> git-mathify
     git-mathify -- mathified --> git-validate-xhtml-mathified
@@ -50,6 +51,7 @@ graph TB
     git-bake -- baked --> git-bake-meta
     git-bake -- baked --> git-link
     git-bake-meta -- bake-meta --> git-link
+    git-fetch -- fetched --> git-link
     git-link -- linked --> git-disassemble
     git-bake-meta -- bake-meta --> git-disassemble
     git-disassemble -- disassembled --> git-patch-disassembled-links
@@ -66,26 +68,26 @@ graph TB
 ```mermaid
 graph TB
     git-fetch -- fetched --> git-fetch-metadata
-    git-fetch-metadata -- fetch-meta --> git-assemble-epub
-    git-assemble-epub -- assembled --> git-assemble-meta
-    git-assemble-epub -- assembled --> git-validate-references
+    git-fetch-metadata -- fetch-meta --> git-assemble
+    git-assemble -- assembled --> git-assemble-meta
+    git-assemble -- assembled --> git-validate-references
     git-fetch-metadata -- resources --> git-validate-references
     git-fetch -- fetched --> git-bake
-    git-assemble-epub -- assembled --> git-bake
+    git-assemble -- assembled --> git-bake
     git-assemble-meta -- assemble-meta --> git-bake-meta
     git-bake -- baked --> git-bake-meta
     git-bake -- baked --> git-link
     git-bake-meta -- bake-meta --> git-link
+    git-fetch -- fetched --> git-link
     git-link -- linked --> git-disassemble
     git-bake-meta -- bake-meta --> git-disassemble
     git-disassemble -- disassembled --> git-patch-disassembled-links
-    git-fetch -- fetched --> git-jsonify
-    git-fetch-metadata -- resources --> git-jsonify
-    git-patch-disassembled-links -- disassemble-linked --> git-jsonify
     git-fetch -- fetched --> git-epub
     git-fetch-metadata -- resources --> git-epub
     git-patch-disassembled-links -- disassemble-linked --> git-epub
     git-bake -- baked --> git-epub
+    git-epub -- epub --> git-epub-validate
+    git-epub -- artifacts --> git-epub-validate
 ```
 
 ## all-git-gdoc
@@ -103,6 +105,7 @@ graph TB
     git-bake -- baked --> git-bake-meta
     git-bake -- baked --> git-link
     git-bake-meta -- bake-meta --> git-link
+    git-fetch -- fetched --> git-link
     git-link -- linked --> git-disassemble
     git-bake-meta -- bake-meta --> git-disassemble
     git-disassemble -- disassembled --> git-patch-disassembled-links
