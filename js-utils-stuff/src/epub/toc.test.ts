@@ -4,13 +4,12 @@ import {
   it,
   afterEach,
   beforeEach,
-  jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
 import mockfs from 'mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
-import { TocFile } from './toc'
+import { TocFile, OpfFile, NcxFile } from './toc'
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,
@@ -57,7 +56,22 @@ describe('TocFile and Friends', () => {
     })
 
     it('parses an empty ToC file', async () => {
-      const r = new TocFile(tocPath)
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      await f.parse(factorio) // just for code coverage reasons to verify we only parse once
+      expect(f.parsed.title).toBe(metadataJSON.title)
+      await writeAndCheckSnapshot(f, destPath)
+    })
+
+    it('generates an OPF file from an empty ToC file', async () => {
+      const r = new OpfFile(tocPath)
+      await r.parse(factorio)
+      expect(r.parsed.title).toBe(metadataJSON.title)
+      await writeAndCheckSnapshot(r, destPath)
+    })
+
+    it('generates an NCX file from an empty ToC file', async () => {
+      const r = new NcxFile(tocPath)
       await r.parse(factorio)
       expect(r.parsed.title).toBe(metadataJSON.title)
       await writeAndCheckSnapshot(r, destPath)
@@ -68,11 +82,13 @@ describe('TocFile and Friends', () => {
     const chapterTitle = 'ChapterTitle'
     const pageTitle = 'PageTitle'
     const pageName = 'iamthepage.xhtml'
+    const imageName = 'some-image-name.jpeg'
+    const pageNotInTocName = 'anorphanpage.xhtml'
     const smallToc = `<html xmlns="http://www.w3.org/1999/xhtml">
             <body>
                 <nav>
                     <ol>
-                        <li>
+                        <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
                             <a href="#chapunused"><span>${chapterTitle}</span></a>
                             <ol>
                                 <li>
@@ -87,14 +103,31 @@ describe('TocFile and Friends', () => {
 
     const pageContent = `<html xmlns="http://www.w3.org/1999/xhtml">
         <body>
+            <img src="${imageName}" />
+            <!-- Has MathML and remote resources -->
+            <math xmlns="http://www.w3.org/1998/Math/MathML" />
+            <iframe />
             
+            <a href="${pageNotInTocName}" />
         </body>
     </html>`
+
+    const pageNotInTocContent = `<html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        </body>
+    </html>`
+
+    const imageMetadata = {
+      original_name: 'anything.jpg',
+      mime_type: 'image/jpeg',
+    }
 
     beforeEach(() => {
       const fs: any = {}
       fs[tocPath] = smallToc
       fs[`/foo/${pageName}`] = pageContent
+      fs[`/foo/${pageNotInTocName}`] = pageNotInTocContent
+      fs[`/foo/${imageName}.json`] = JSON.stringify(imageMetadata)
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
       mockfs(fs)
@@ -107,9 +140,38 @@ describe('TocFile and Friends', () => {
       const f = new TocFile(tocPath)
       await f.parse(factorio)
       expect(f.parsed.title).toBe(metadataJSON.title)
-      expect(f.parsed.allPages.size).toBe(1)
+      expect(f.parsed.allPages.size).toBe(2)
       expect(f.parsed.toc.length).toBe(1)
       await writeAndCheckSnapshot(f, destPath)
     })
+
+    it('generates an OPF file', async () => {
+      const f = new OpfFile(tocPath)
+      await f.parse(factorio)
+      // Parse all the pages and resources
+      for (const page of f.parsed.allPages) {
+        await page.parse(factorio)
+        for (const f of [...page.parsed.pageLinks, ...page.parsed.resources]) {
+          await f.parse(factorio)
+        }
+      }
+      
+      await writeAndCheckSnapshot(f, destPath)
+    })
+
+    it('generates an NCX file', async () => {
+      const f = new NcxFile(tocPath)
+      await f.parse(factorio)
+      // Parse all the pages and resources
+      for (const page of f.parsed.allPages) {
+        await page.parse(factorio)
+        for (const f of [...page.parsed.pageLinks, ...page.parsed.resources]) {
+          await f.parse(factorio)
+        }
+      }
+
+      await writeAndCheckSnapshot(f, destPath)
+    })
+
   })
 })

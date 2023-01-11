@@ -4,7 +4,7 @@ import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory, Opt } from '../model/factory'
 import { ResourceFile, XmlFile } from '../model/file'
-import type { PageFile } from './page'
+import { PageFile } from './page'
 import { DIRNAMES } from '../env'
 import { BaseTocFile } from '../model/base-toc'
 
@@ -74,18 +74,20 @@ export class TocFile extends BaseTocFile<
         )
       )
     )
+    /* istanbul ignore next */
     const authors = collectionXml.has('//col:collection/@authors')
       ? (collectionXml.findOne('//col:collection').attr('authors') as string)
       : 'Is it OpenStax?'
 
-    const tocPages: PageFile[] = []
     const { toc, allPages } = await super.baseParse(factorio)
+    const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
 
     // keep looking through XHTML file links and add those to the set of allPages
     async function recPages(page: PageFile) {
-      if (allPages.has(page)) return
+      if (parsedPages.has(page)) return
       await page.parse(factorio)
+      parsedPages.add(page)
       allPages.add(page)
       const p = page.parsed
       for (const r of p.resources) {
@@ -97,7 +99,7 @@ export class TocFile extends BaseTocFile<
       }
     }
 
-    for (const page of tocPages) {
+    for (const page of allPages) {
       await recPages(page)
     }
 
@@ -120,7 +122,7 @@ export class TocFile extends BaseTocFile<
       Array.from(this.parsed.allPages).map((r) => [r.readPath, r])
     )
     // Remove ToC entries that have non-Page leaves
-    doc.forEach('//h:nav//h:li[not(.//h:a)]', (e) => e.remove())
+    doc.forEach('//h:nav//h:li[not(.//h:a)]', /* istanbul ignore next */ (e) => e.remove())
 
     // Unwrap chapter links and combine titles into a single span
     doc.forEach('//h:a[starts-with(@href, "#")]', (el) => {
@@ -194,7 +196,7 @@ export class OpfFile extends TocFile {
         <opf:item
           media-type="application/xhtml+xml"
           id={id}
-          properties={props.length === 0 ? undefined : props.join(' ')}
+          properties={/* istanbul ignore next */ props.length === 0 ? undefined : props.join(' ')}
           href={this.relativeToMe(page.newPath)}
         />
       )
@@ -284,6 +286,7 @@ export class NcxFile extends TocFile {
       const ret = this.findFirstLeafPage(c)
       if (ret !== undefined) return ret
     }
+    /* istanbul ignore next */
     return undefined
   }
   private fillNavMap(toc: TocTree): JSXNode {

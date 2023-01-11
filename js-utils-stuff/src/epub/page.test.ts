@@ -60,7 +60,7 @@ describe('Pages', () => {
       </body>
     </html>`
 
-  const pageWithABunchOfSerielizerOptions = `
+  const pageWithABunchOfSerializerOptions = `
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head/>
       <body>
@@ -132,11 +132,19 @@ describe('Pages', () => {
 
     it('converts a page that exercises a bunch of serializer options', async () => {
       const p = new PageFile('somepath')
-      p.readXml = (_) => Promise.resolve(parseXml(pageWithABunchOfSerielizerOptions))
+      p.readXml = (_) => Promise.resolve(parseXml(pageWithABunchOfSerializerOptions))
       await p.parse(factorio)
       await p.parse(factorio) // Parse a second time for code coverage reasons (to check at we don't actually parse twice)
       await p.write()
       expect(readFileSync(p.newPath, 'utf8')).toMatchSnapshot()
+    })
+
+    it('renames relative to a file', async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(pageWithABunchOfSerializerOptions))
+      await p.parse(factorio)
+      p.rename('../newname', '/dir1/dir2/dir3/filename')
+      expect(p.newPath).toBe('/dir1/dir2/newname')
     })
   })
 })

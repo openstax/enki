@@ -1,5 +1,71 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
+"<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:uid" content="dummy-openstax.org-id.bookslug"/>
+    <meta name="dtb:depth" content="2"/>
+    <meta name="dtb:generator" content="OpenStax EPUB Maker 2022-08"/>
+    <meta name="dtb:pagecount" content="2"/>
+    <meta name="dtb:maxPageNumber" content="2"/>
+  </head>
+  <docTitle>
+    <text>booktitle
+    </text>
+  </docTitle>
+  <navMap>
+    <navPoint id="idm1">
+      <navLabel>
+        <text>ChapterTitle
+        </text>
+      </navLabel>
+      <content src="../foo/iamthepage.xhtml"/>
+      <navPoint id="idm2">
+        <navLabel>
+          <text>PageTitle
+          </text>
+        </navLabel>
+        <content src="./../foo/iamthepage.xhtml"/>
+      </navPoint>
+    </navPoint>
+  </navMap>
+</ncx>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;
+
+exports[`TocFile and Friends with a small book generates an OPF file 1`] = `
+"<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata>
+    <title xmlns="http://purl.org/dc/elements/1.1/">booktitle
+    </title>
+    <language xmlns="http://purl.org/dc/elements/1.1/">language
+    </language>
+    <meta property="dcterms:modified">2022-12-13
+    </meta>
+    <meta property="dcterms:license">http://licenseurl
+    </meta>
+    <identifier xmlns="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
+    </identifier>
+    <creator xmlns="http://purl.org/dc/elements/1.1/">howdy
+    </creator>
+  </metadata>
+  <manifest>
+    <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
+    <item id="nav" properties="nav" media-type="application/xhtml+xml" href="../foo/thebook.toc.xhtml"/>
+    <item id="the-ncx-file" href="../foo/thebook.toc.xhtml" media-type="application/x-dtbncx+xml"/>
+    <item media-type="application/xhtml+xml" id="idxhtml_iamthepage.xhtml" properties="mathml remote-resources" href="../foo/iamthepage.xhtml"/>
+    <item media-type="application/xhtml+xml" id="idxhtml_anorphanpage.xhtml" href="../foo/anorphanpage.xhtml"/>
+    <item media-type="image/jpeg" id="idresource_0" href="../foo/some-image-name.jpeg"/>
+  </manifest>
+  <spine toc="the-ncx-file">
+    <itemref linear="yes" idref="nav"/>
+    <itemref linear="yes" idref="idxhtml_iamthepage.xhtml"/>
+    <itemref linear="yes" idref="idxhtml_anorphanpage.xhtml"/>
+  </spine>
+</package>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;
+
 exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = `
 "<html xmlns="http://www.w3.org/1999/xhtml">
             <body>
@@ -18,6 +84,52 @@ exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = 
             </body>
         
 </html>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;
+
+exports[`TocFile and Friends with an empty book generates an NCX file from an empty ToC file 1`] = `
+"<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:uid" content="dummy-openstax.org-id.bookslug"/>
+    <meta name="dtb:depth" content="-Infinity"/>
+    <meta name="dtb:generator" content="OpenStax EPUB Maker 2022-08"/>
+    <meta name="dtb:pagecount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>booktitle
+    </text>
+  </docTitle>
+  <navMap/>
+</ncx>
+<!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
+`;
+
+exports[`TocFile and Friends with an empty book generates an OPF file from an empty ToC file 1`] = `
+"<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+  <metadata>
+    <title xmlns="http://purl.org/dc/elements/1.1/">booktitle
+    </title>
+    <language xmlns="http://purl.org/dc/elements/1.1/">language
+    </language>
+    <meta property="dcterms:modified">2022-12-13
+    </meta>
+    <meta property="dcterms:license">http://licenseurl
+    </meta>
+    <identifier xmlns="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
+    </identifier>
+    <creator xmlns="http://purl.org/dc/elements/1.1/">howdy
+    </creator>
+  </metadata>
+  <manifest>
+    <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
+    <item id="nav" properties="nav" media-type="application/xhtml+xml" href="../foo/thebook.toc.xhtml"/>
+    <item id="the-ncx-file" href="../foo/thebook.toc.xhtml" media-type="application/x-dtbncx+xml"/>
+  </manifest>
+  <spine toc="the-ncx-file">
+    <itemref linear="yes" idref="nav"/>
+  </spine>
+</package>
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
 `;
 

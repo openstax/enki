@@ -45,7 +45,6 @@ export abstract class BaseTocFile<
     )
 
     const allPages = new Set<TPage>()
-    const allResources = new Set<TResource>()
 
     // keep looking through XHTML file links and add those to the set of allPages
     async function recPages(page: TPage) {
