@@ -1753,6 +1753,13 @@
   <xsl:copy/>
 </xsl:template>
 
+<!-- Convert screenreader-table-description attribute into aria-label -->
+<xsl:template match="c:table/@screenreader-table-description">
+  <xsl:attribute name="aria-label">
+    <xsl:value-of select="."/>
+  </xsl:attribute>
+</xsl:template>
+
 <!-- Discarded attributes -->
 <xsl:template match="c:table/@pgwide"/>
 
