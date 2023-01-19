@@ -19,7 +19,6 @@
 # Run ./build-dockerfile.sh instead.
 # ====================================================
 # vvvvvvvvvvvvvvv Dockerfile.common vvvvvvvvvvvvvvv
-FROM sudobmitch/base:scratch as base-scratch
 FROM buildpack-deps:focal as base
 
 
@@ -32,6 +31,8 @@ FROM buildpack-deps:focal as base
 RUN set -x \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
+    # ... for docker-entrypoint
+    gosu \
     # ... for princexml:
     gdebi fonts-stix libcurl4 \
     # ... for bakery-scripts
@@ -317,8 +318,6 @@ RUN set -x \
 RUN mv /root/.nvm $PROJECT_ROOT/nvm
 ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
 
-COPY --from=base-scratch / /
-
 ENV EPUB_VALIDATOR_VERSION=4.2.6
 RUN mkdir $PROJECT_ROOT/epub-validator \
     && cd $PROJECT_ROOT/epub-validator \
@@ -348,6 +347,7 @@ COPY ./ce-styles/styles/output/ $PROJECT_ROOT/ce-styles/styles/output/
 
 
 ENV PATH=$PATH:/dockerfiles/
+COPY ./dockerfiles/fix-perms /usr/bin/
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
 COPY ./dockerfiles/steps /dockerfiles/steps
 COPY ./dockerfiles/build /dockerfiles/build
