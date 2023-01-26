@@ -24,5 +24,5 @@ while read -r line; do
   repo=${line%%' '*}
   slug=${line##*' '}
   echo "running ./enki --data-dir ./data/$slug --command $arg_command --repo openstax/$repo --book-slug $slug --style default --ref main"
-  # ./enki --data-dir ./data/$slug --command $command --repo openstax/$repo --book-slug $slug --style default --ref main
+  ./enki --data-dir ./data/$slug --command $command --repo openstax/$repo --book-slug $slug --style default --ref main
 done <$all_books
