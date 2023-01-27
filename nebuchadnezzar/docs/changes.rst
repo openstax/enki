@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+9.20.0
+
+- Make table summary optional
+- Add optional table attribute aria-label
+
 9.19.0
 
 - Remove attributes from inline lists so they are valid XHTML
