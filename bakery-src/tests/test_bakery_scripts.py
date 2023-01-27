@@ -2897,7 +2897,7 @@ def test_link_single(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml)]
+        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
     )
     link_single.main()
 
@@ -2905,7 +2905,7 @@ def test_link_single(tmp_path, mocker):
         [
             ("id", "l1"),
             ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml"),
+             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml"),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
             ("data-page-slug", "book2-page1"),
@@ -2913,7 +2913,7 @@ def test_link_single(tmp_path, mocker):
         [
             ("id", "l2"),
             ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f:"
+             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:"
              "2e51553f-fde8-43a3-8191-fd8b493a6cfa.xhtml#foobar"),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
@@ -3035,7 +3035,7 @@ def test_link_single_with_flag(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml),
+        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion"),
          "--mock-otherbook"]
     )
     link_single.main()
@@ -3087,7 +3087,7 @@ def test_link_single_with_flag(tmp_path, mocker):
     ):
         mocker.patch(
             "sys.argv",
-            ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml)]
+            ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
         )
         link_single.main()
 
