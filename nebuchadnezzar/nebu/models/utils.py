@@ -99,11 +99,7 @@ def scan_for_id_mapping(start_dir):
     """
     mapping = {}
     for filepath in start_dir.glob('**/index.cnxml'):
-        with filepath.open('rb') as fb:
-            xml = etree.parse(fb)
-        md = convert_to_model_compat_metadata(parse_cnxml_metadata(xml))
-        id = id_from_metadata(md)
-        id = id.split('@')[0]
+        id = filepath.parent.name
         mapping[id] = filepath
     return mapping
 

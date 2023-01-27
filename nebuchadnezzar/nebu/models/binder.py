@@ -1,3 +1,4 @@
+import os
 import re
 
 from lxml import etree
@@ -114,7 +115,8 @@ class Binder(BaseBinder):
                 id = elm.attrib['document']
                 version = elm.attrib.get(VERSION_ATTRIB_NAME, '0.0')
                 current_node = document_factory(id, version)
-                parent_node.append(current_node)
+                if current_node is not None:
+                    parent_node.append(current_node)
 
         def recurse(node):
             handler('start', node)
@@ -180,7 +182,12 @@ class Binder(BaseBinder):
             try:
                 filepath = id_to_path_map[id]
             except KeyError:
-                return DocumentPointer('@'.join([id, version]))
+                if os.environ.get('HACK_CNX_LOOSENESS', False) is not False:
+                    print('Missing CNXML module "{}"'.format(id))
+                    return None
+                else:
+                    return DocumentPointer('@'.join([id, version]))
+
             else:
                 reference_resolver = Binder._make_reference_resolver(
                     id,
