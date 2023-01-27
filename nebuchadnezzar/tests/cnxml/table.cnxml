@@ -3,7 +3,7 @@
  <title>Test Tables</title>
   <content>
     <section id="section-1">
-      <table id="report_card" pgwide="1" screenreader-table-description="" summary="The first column             lists each course. Each row in the second column             delineates a semester. The corresponding row in            the third column shows that semester's grade.              The footer tallies the student's average.">
+      <table id="report_card" pgwide="1" aria-label="" summary="The first column             lists each course. Each row in the second column             delineates a semester. The corresponding row in            the third column shows that semester's grade.              The footer tallies the student's average.">
         <title>Report card</title>
         <tgroup cols="3">
           <colspec colname="c1" colnum="1"/>

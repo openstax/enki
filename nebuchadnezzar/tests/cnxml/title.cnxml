@@ -44,7 +44,7 @@
 
     <section id="tabled-section">
 
-      <table id="tabled-section-table" summary="Table 1" screenreader-table-description="Board Member Community Types">
+      <table id="tabled-section-table" summary="Table 1" aria-label="Board Member Community Types">
         <title>
           <emphasis effect="italics">Board Member Community Types</emphasis>
         </title>
