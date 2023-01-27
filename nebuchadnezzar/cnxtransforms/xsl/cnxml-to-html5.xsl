@@ -1753,6 +1753,11 @@
   <xsl:copy/>
 </xsl:template>
 
+<!-- Copy the aria-label attribute -->
+<xsl:template match="c:table/@aria-label">
+  <xsl:copy/>
+</xsl:template>
+
 <!-- Discarded attributes -->
 <xsl:template match="c:table/@pgwide"/>
 
