@@ -7,10 +7,6 @@ set -Eeuxo pipefail
 
 try node --unhandled-rejections=strict $JS_UTILS_STUFF_ROOT/bin/bakery-helper epub ./ $IO_EPUB/
 
-# Generate the epub files
-[[ -f $IO_ARTIFACTS/*.epub ]] && rm $IO_ARTIFACTS/*.epub
-
-
 shopt -s globstar nullglob
 for book_dir in "$IO_EPUB/"*; do
 
