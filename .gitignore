@@ -20,7 +20,7 @@ test/cov.xml
 test/.coverage
 test/cov.html/
 
-/js-utils-stuff/coverage
-/js-utils-stuff/node_modules
-/js-utils-stuff/dist
-/js-utils-stuff/testing
+/bakery-js/coverage
+/bakery-js/node_modules
+/bakery-js/dist
+/bakery-js/testing

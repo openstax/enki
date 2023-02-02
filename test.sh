@@ -7,7 +7,7 @@ if [ -n "$CI_TEST" ]; then
     git diff-index --quiet HEAD
 fi
 
-cd ./js-utils-stuff
+cd ./bakery-js
 npm install
 npm test
 cd ..
