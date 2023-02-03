@@ -77,7 +77,7 @@ export class TocFile extends BaseTocFile<
     /* istanbul ignore next */
     const authors = collectionXml.has('//col:collection/@authors')
       ? (collectionXml.findOne('//col:collection').attr('authors') as string)
-      : 'Is it OpenStax?'
+      : 'OpenStax Authors'
 
     const { toc, allPages } = await super.baseParse(factorio)
     const parsedPages = new Set<PageFile>()
