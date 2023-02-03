@@ -16,3 +16,7 @@ npm --prefix ../build-concourse/ run coverage
 
 # Make the LCOV file absolute so codecov understands it
 sed -i.bak "s@SF:@SF:$(cd ../build-concourse;pwd)/@" ../coverage/lcov.info
+
+
+npm --prefix ../bakery-js/ install
+npm --prefix ../bakery-js/ test

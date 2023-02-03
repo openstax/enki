@@ -29,5 +29,5 @@ echo "DONE: Open $COVERAGE_DIR/index.html in a browser to see the code coverage.
 # Upload to codecov only if running inside CI
 if [[ $CI || $CODECOV_TOKEN ]]; then
     cd ..
-    bash <(curl -s https://codecov.io/bash) -s ./coverage
+    bash <(curl -s https://codecov.io/bash) -s ./coverage -s ./bakery-js/coverage
 fi
