@@ -80,7 +80,8 @@ export abstract class BaseTocFile<
         titlePos: getPos(li.findOne('h:a').node),
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
       }
-    } else /* istanbul ignore else */ if (li.has('h:a[not(starts-with(@href, "#"))]')) {
+    }
+    if (li.has('h:a[not(starts-with(@href, "#"))]')) {
       const href = assertValue(
         li.findOne('h:a[not(starts-with(@href, "#"))]').attr('href')
       )
@@ -93,9 +94,9 @@ export abstract class BaseTocFile<
         page,
         pagePos: getPos(li.node),
       }
-    } else {
-      throw new Error('BUG: non-page leaves are not supported yet')
     }
+    /* istanbul ignore next */
+    throw new Error('BUG: non-page leaves are not supported yet')
   }
   public findDepth(toc: TocTree<TPage>): number {
     if (toc.type == TocTreeType.LEAF) return 1

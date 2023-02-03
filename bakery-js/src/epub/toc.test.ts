@@ -1,10 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-  afterEach,
-  beforeEach,
-} from '@jest/globals'
+import { describe, expect, it, afterEach, beforeEach } from '@jest/globals'
 import { readFileSync } from 'fs'
 import mockfs from 'mock-fs'
 import { factorio } from './singletons'
@@ -155,7 +149,7 @@ describe('TocFile and Friends', () => {
           await f.parse(factorio)
         }
       }
-      
+
       await writeAndCheckSnapshot(f, destPath)
     })
 
@@ -172,6 +166,5 @@ describe('TocFile and Friends', () => {
 
       await writeAndCheckSnapshot(f, destPath)
     })
-
   })
 })

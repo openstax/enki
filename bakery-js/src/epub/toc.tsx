@@ -122,7 +122,10 @@ export class TocFile extends BaseTocFile<
       Array.from(this.parsed.allPages).map((r) => [r.readPath, r])
     )
     // Remove ToC entries that have non-Page leaves
-    doc.forEach('//h:nav//h:li[not(.//h:a)]', /* istanbul ignore next */ (e) => e.remove())
+    doc.forEach(
+      '//h:nav//h:li[not(.//h:a)]',
+      /* istanbul ignore next */ (e) => e.remove()
+    )
 
     // Unwrap chapter links and combine titles into a single span
     doc.forEach('//h:a[starts-with(@href, "#")]', (el) => {
@@ -196,7 +199,11 @@ export class OpfFile extends TocFile {
         <opf:item
           media-type="application/xhtml+xml"
           id={id}
-          properties={/* istanbul ignore next */ props.length === 0 ? undefined : props.join(' ')}
+          properties={
+            /* istanbul ignore next */ props.length === 0
+              ? undefined
+              : props.join(' ')
+          }
           href={this.relativeToMe(page.newPath)}
         />
       )
