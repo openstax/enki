@@ -1,6 +1,5 @@
 """Map resource files used in CNXML to provided path"""
 
-import json
 import re
 import shutil
 import sys
@@ -17,20 +16,6 @@ from . import utils
 RESOURCES_DIR_NAME = 'resources'
 
 
-def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
-    """ Create json with MIME type and other metadata of resource file """
-    data = {}
-    data['original_name'] = original_name
-    data['mime_type'] = mime_type
-    data['s3_md5'] = s3_md5
-    data['sha1'] = sha1
-    data['width'] = width
-    data['height'] = height
-    json_file = output_dir / f'{sha1}.json'
-    with json_file.open(mode='w') as outfile:
-        json.dump(data, outfile)
-
-
 def all_data_to_json(resources_dir, filename_to_data):
     """ Convert python dictionary of metadata into json files """
     for resource_original_name in filename_to_data:
@@ -40,7 +25,7 @@ def all_data_to_json(resources_dir, filename_to_data):
         checksum_resource_file = resources_dir / sha1
 
         shutil.move(str(resource_original_filepath), str(checksum_resource_file))
-        create_json_metadata(
+        utils.create_json_metadata(
             resources_dir, sha1, mime_type, s3_md5, resource_original_name, width, height)
 
 

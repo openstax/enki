@@ -49,6 +49,7 @@ setup(
     package_dir={"bakery_scripts": "."},
     entry_points={
         'console_scripts': [
+            'download-exercise-images = bakery_scripts.download_exercise_images:main',
             'assemble-meta = bakery_scripts.assemble_book_metadata:main',
             'link-extras = bakery_scripts.link_extras:main',
             'link-single = bakery_scripts.link_single:main',
