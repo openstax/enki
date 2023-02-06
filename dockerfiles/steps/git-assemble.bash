@@ -23,7 +23,7 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
     try neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
-    try cp -r "$IO_INITIAL_RESOURCES" "$IO_RESOURCES"
+    try cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 
     ## download exercise images and replace internet links with local resource links
     try download-exercise-images "$IO_RESOURCES" "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
