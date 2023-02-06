@@ -28,9 +28,9 @@ function set(step: Step) {
 
 // GIT_PDF_STEPS
 set({name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
-set({name: 'git-fetch-metadata', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.RESOURCES, IO.UNUSED_RESOURCES], env: {}})
+set({name: 'git-fetch-metadata', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.UNUSED_RESOURCES], env: {}})
 set({name: 'git-validate-cnxml', inputs: [IO.FETCHED], outputs: [], env: {}})
-set({name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {}})
+set({name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_META, IO.INITIAL_RESOURCES], outputs: [IO.ASSEMBLED, IO.RESOURCES], env: {}})
 set({name: 'git-validate-references', inputs: [IO.BOOK, IO.ASSEMBLED, IO.RESOURCES], outputs: [], env: {}})
 set({name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {}})
 set({name: 'git-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})

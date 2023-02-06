@@ -17,7 +17,7 @@
             ],
             "outputDirs": [
                 "IO_FETCH_META",
-                "IO_RESOURCES",
+                "IO_INITIAL_RESOURCES",
                 "IO_UNUSED_RESOURCES"
             ],
             "requiredEnv": []
@@ -32,10 +32,12 @@
         "git-assemble": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCH_META"
+                "IO_FETCH_META",
+                "IO_INITIAL_RESOURCES"
             ],
             "outputDirs": [
-                "IO_ASSEMBLED"
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
             ],
             "requiredEnv": []
         },

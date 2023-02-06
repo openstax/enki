@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from lxml import etree
 from tempfile import TemporaryDirectory
-import utils
+from . import utils
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 
@@ -52,7 +52,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
             utils.create_json_metadata(
                 resources_dir, sha1, mime_type, s3_md5, image_url, width, height)
 
-            new_local_src = os.path.relpath(str(local_resource), os.getcwd())
+            new_local_src = '../resources/' + sha1
             print('to local: ' + new_local_src)
             node.set('src', new_local_src)
     doc.write(output_xml, encoding="utf8")
