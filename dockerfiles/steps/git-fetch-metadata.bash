@@ -30,7 +30,7 @@ fi
 
 
 # Copy web styles to the resources directory created by fetch-map-resources
-style_resource_root="resources/styles"
+style_resource_root="initial-resources/styles"
 generic_style="webview-generic.css"
 [[ ! -e "$style_resource_root" ]] && mkdir -p "$style_resource_root"
 while read -r slug_name; do

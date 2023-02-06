@@ -13,7 +13,7 @@ from . import utils
 # relative links must work both locally, on PDF, and on REX, and images are
 # uploaded with the prefix 'resources/' in S3 for REX
 # so the output directory name MUST be resources
-RESOURCES_DIR_NAME = 'resources'
+RESOURCES_DIR_NAME = 'initial-resources'
 
 
 def all_data_to_json(resources_dir, filename_to_data):
