@@ -16,6 +16,7 @@ from . import utils
 RESOURCES_DIR_NAME = 'initial-resources'
 DOM_RESOURCES_DIR_NAME = 'resources'
 
+
 def all_data_to_json(resources_dir, filename_to_data):
     """ Convert python dictionary of metadata into json files """
     for resource_original_name in filename_to_data:

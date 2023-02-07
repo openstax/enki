@@ -8,13 +8,13 @@ import sys
 import requests
 import uuid
 import shutil
-import os
 from pathlib import Path
 from lxml import etree
 from tempfile import TemporaryDirectory
 from . import utils
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
+
 
 def _download_file(url, output_filename):
     """Download URL content into a file as stream (large file support, low memory)"""
@@ -27,16 +27,18 @@ def _download_file(url, output_filename):
                 out_file.write(chunk)
         return output_filename
 
+
 def _download_as_uuid(download_dir, image_url):
     unique_filename = str(uuid.uuid4())
     output_filename = Path(download_dir) / Path(unique_filename)
     _download_file(image_url, str(output_filename))
     return output_filename
 
+
 def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_xml):
     doc = etree.parse(str(input_xml))
     with TemporaryDirectory() as temp_dir:
-        for node in doc.xpath (
+        for node in doc.xpath(
                 '//x:img[starts-with(@src, "{}")]'.format(EXERCISE_IMAGE_URL_PREFIX),
                 namespaces={"x": "http://www.w3.org/1999/xhtml"}
         ):
