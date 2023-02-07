@@ -206,7 +206,7 @@ def patch_math(doc):
     # Pandoc is also confused by msubsup with elements fewer than 3.
     for node in doc.xpath(
             '//x:msubsup[count(*) < 3]',
-            
+            namespaces={"x": "http://www.w3.org/1999/xhtml"}
     ):
         node.tag = "msub"
 
