@@ -14,7 +14,7 @@ from . import utils
 # uploaded with the prefix 'resources/' in S3 for REX
 # so the output directory name MUST be resources
 RESOURCES_DIR_NAME = 'initial-resources'
-
+DOM_RESOURCES_DIR_NAME = 'resources'
 
 def all_data_to_json(resources_dir, filename_to_data):
     """ Convert python dictionary of metadata into json files """
@@ -44,7 +44,7 @@ def rename(filename_to_data, resource_original_filepath, is_image):
         opt_width, opt_height = utils.get_size(str(resource_original_filepath))
     filename_to_data[resource_original_filepath.name] = \
         (sha1, s3_md5, mime_type, resource_original_filepath, opt_width, opt_height)
-    return f"../{RESOURCES_DIR_NAME}/{sha1}"
+    return f"../{DOM_RESOURCES_DIR_NAME}/{sha1}"
 
 
 def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_name, context_dir, is_image):
@@ -125,7 +125,7 @@ def main():
             foopath = (cnxml_file.parent / "../../media").resolve()
             new_resource_child_path = resource_original_filepath.relative_to(foopath)
 
-            new_resource_src = f"../{RESOURCES_DIR_NAME}/{new_resource_child_path}"
+            new_resource_src = f"../{DOM_RESOURCES_DIR_NAME}/{new_resource_child_path}"
 
             print(f"rewriting iframe source from {resource_original_src} to {new_resource_src}")
             node.attrib["src"] = new_resource_src
