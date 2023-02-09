@@ -2348,7 +2348,7 @@ def test_fetch_map_resources(tmp_path, mocker):
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
     original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
     resources_parent_dir = tmp_path / "book_slug"
-    resources_dir = resources_parent_dir / "resources"
+    initial_resources_dir = resources_parent_dir / "initial-resources"
     unused_resources_dir = tmp_path / "unused-resources"
 
     book_dir.mkdir(parents=True)
@@ -2427,7 +2427,7 @@ def test_fetch_map_resources(tmp_path, mocker):
     )
     fetch_map_resources.main()
 
-    assert json.load((resources_dir / image_src1_meta).open()) == {
+    assert json.load((initial_resources_dir / image_src1_meta).open()) == {
         'height': 30,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src1.svg',
@@ -2437,7 +2437,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         'sha1': image_src1_sha1_expected,
         'width': 120
     }
-    assert json.load((resources_dir / image_src2_meta).open()) == {
+    assert json.load((initial_resources_dir / image_src2_meta).open()) == {
         'height': 50,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src2.svg',
@@ -2447,7 +2447,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         'sha1': image_src2_sha1_expected,
         'width': 210
     }
-    assert set(file.name for file in resources_dir.glob('**/*')) == set([
+    assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
         image_src2_sha1_expected,
         image_src2_meta,
         image_src1_sha1_expected,
@@ -2472,7 +2472,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         "image_unused.svg",
     ])
 
-    assert(resources_dir.is_dir())
+    assert(initial_resources_dir.is_dir())
 
 
 def test_fetch_update_metadata(tmp_path, mocker):
