@@ -13,6 +13,7 @@ import pytest
 import re
 import http.server
 import threading
+from urllib.parse import urlparse
 from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
 from googleapiclient.discovery import build
@@ -83,10 +84,24 @@ class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):  # pylint: disable=invalid-name
         """Handle GET requests"""
-        self.send_response(200)
-        self.send_header("Content-Type", "image/jpeg")
-        self.end_headers()
-        self.wfile.write(bytes(SMALL_JPEG))
+        # serve depending on path (not very secure but it's a test anyway)
+        path = urlparse(self.path).path
+        if path.startswith("/test_jpeg_colorspace/"):
+            current_dir = os.path.abspath(os.path.dirname(__file__))
+            filename = os.path.join(current_dir, path[1:])
+            if os.path.exists(filename):
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.end_headers()
+                with open(filename, 'rb') as file:
+                    self.wfile.write(file.read())
+            else:
+                self.send_response(404)
+        else: # otherwise just serve the small Jpeg
+            self.send_response(200)
+            self.send_header("Content-Type", "image/jpeg")
+            self.end_headers()
+            self.wfile.write(bytes(SMALL_JPEG))
 
     def log_request(self, code=None, size=None):
         """Don't log anything"""
@@ -2556,35 +2571,153 @@ def test_download_exercise_images(tmp_path, mocker):
         try:
             download_exercise_images.fetch_and_replace_external_exercise_images(
                 resources_dir, str(assembled1), str(output1))
-            # check the image is downloaded and file name and content is correct
-            downloaded_image = resources_dir / SHA1_SMALL_JPEG
-            assert Path.is_file(downloaded_image)
-            assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
-            # check image metadata generated is correct
-            json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
-            assert Path.is_file(json_metadata_image)
-            image_data = json.loads(json_metadata_image.read_text())
-            assert image_data.get("original_name") == "http://127.0.0.1:9999/test.jpg"
-            assert image_data.get("mime_type") == "image/jpeg"
-            assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
-            assert image_data.get("sha1") == SHA1_SMALL_JPEG
-            assert image_data.get("width") == 1
-            assert image_data.get("height") == 1
-            # check the final xhtml file points in the DOM to ../resources
-            doc = etree.parse(str(output1))
-            count = -1
-            for node in doc.xpath(
-                "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
-            ):
-                count = count + 1
-                if count == 0:
-                    assert node.get("src") == "../resources/testx"
-                elif count == 1:
-                    assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
-                else:
-                    assert node.get("src") == "../resources/testy"
         finally:
             server.shutdown()
+    # check the image is downloaded and file name and content is correct
+    downloaded_image = resources_dir / SHA1_SMALL_JPEG
+    assert Path.is_file(downloaded_image)
+    assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
+    # check image metadata generated is correct
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9999/test.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
+    assert image_data.get("sha1") == SHA1_SMALL_JPEG
+    assert image_data.get("width") == 1
+    assert image_data.get("height") == 1
+    # check the final xhtml file points in the DOM to ../resources
+    doc = etree.parse(str(output1))
+    count = -1
+    for node in doc.xpath(
+        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        count = count + 1
+        if count == 0:
+            assert node.get("src") == "../resources/testx"
+        elif count == 1:
+            assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
+        else:
+            assert node.get("src") == "../resources/testy"
+
+    # some more tests with more images
+
+    assembled2 = assembled_dir / "assembled2.xhtml"
+    injected_exercise_content = (
+        '<!DOCTYPE html>'
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+        '<body>'
+        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        '<img src="../resources/testx" />'
+        '<img src="http://127.0.0.1:9998/test.jpg" />'
+        '<img src="../resources/testy" />'
+        '<div><div>'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg" />'
+        '</div>'
+        '<img src="../resources/testz" />'
+        '</div>'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png" />'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg" />'
+        '</body>'
+        '</html>'
+    )
+    assembled2.write_text(injected_exercise_content)
+
+    output2 = output_dir / "output2.xhtml"
+    server = http.server.ThreadingHTTPServer(
+            ("127.0.0.1", 9998), MockJpegHTTPRequestHandler
+        )
+    with server:
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        try:
+            download_exercise_images.fetch_and_replace_external_exercise_images(
+                resources_dir, str(assembled2), str(output2))
+        finally:
+            server.shutdown()
+
+    SHA1_CMYK = "7a3aeeef73945e2319d7274e3e736e1cdc621b7b"
+    SHA1_ORIGINAL = "229ecf98eb35249ad761e4038bccc67862901812"
+    SHA1_RGB = "3177dfe606cfacaa664257b65778dd0cc7f09215"
+
+    downloaded_image = resources_dir / SHA1_SMALL_JPEG
+    assert Path.is_file(downloaded_image)
+    assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
+
+    downloaded_image = resources_dir / SHA1_CMYK
+    assert Path.is_file(downloaded_image)
+
+    downloaded_image = resources_dir / SHA1_ORIGINAL
+    assert Path.is_file(downloaded_image)
+
+    downloaded_image = resources_dir / SHA1_RGB
+    assert Path.is_file(downloaded_image)
+
+    # check image metadata generated is correct
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
+    assert image_data.get("sha1") == SHA1_SMALL_JPEG
+    assert image_data.get("width") == 1
+    assert image_data.get("height") == 1
+
+    json_metadata_image = resources_dir / (SHA1_CMYK + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"227616b605949ee33ede48ca329563bd"'
+    assert image_data.get("sha1") == SHA1_CMYK
+    assert image_data.get("width") == 1680
+    assert image_data.get("height") == 1050
+
+    json_metadata_image = resources_dir / (SHA1_ORIGINAL + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
+    assert image_data.get("mime_type") == "image/png"
+    assert image_data.get("s3_md5") == '"aaeb2fd09a2d6762835964291e0448b2"'
+    assert image_data.get("sha1") == SHA1_ORIGINAL
+    assert image_data.get("width") == 1728
+    assert image_data.get("height") == 1080
+
+    json_metadata_image = resources_dir / (SHA1_RGB + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"7a60945c5bebe815c25d91baf35dc79f"'
+    assert image_data.get("sha1") == SHA1_RGB
+    assert image_data.get("width") == 1728
+    assert image_data.get("height") == 1080
+
+    # check the final xhtml file points in the DOM to ../resources
+    doc = etree.parse(str(output1))
+    count = -1
+    for node in doc.xpath(
+        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        count = count + 1
+        if count == 0:
+            assert node.get("src") == "../resources/testx"
+        elif count == 1:
+            assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
+        elif count == 2:
+            assert node.get("src") == "../resources/testy"
+        elif count == 3:
+            assert node.get("src") == "../resources/" + SHA1_CMYK
+        elif count == 4:
+            assert node.get("src") == "../resources/testz"
+        elif count == 5:
+            assert node.get("src") == "../resources/" + SHA1_ORIGINAL
+        else:
+            assert node.get("src") == "../resources/" + SHA1_RGB
+
 
 
 def test_fetch_update_metadata(tmp_path, mocker):
