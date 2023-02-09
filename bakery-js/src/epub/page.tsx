@@ -75,7 +75,9 @@ export class PageFile extends XmlFile<
       '//h:html/h:body/h:div[@data-type="composite-page"]/h:h3[@data-type="title"]',
     ]
     const titleNode =
-      doc.find(selectors[0])[0] || doc.find(selectors[1])[0] || doc.find(selectors[2])[0]
+      doc.find(selectors[0])[0] ||
+      doc.find(selectors[1])[0] ||
+      doc.find(selectors[2])[0]
     const title = titleNode === undefined ? 'untitled' : titleNode.text()
     this._parsed = {
       title,

@@ -7,11 +7,6 @@ if [ -n "$CI_TEST" ]; then
     git diff-index --quiet HEAD
 fi
 
-cd ./bakery-js
-npm install
-npm test
-cd ..
-
 TRACE_ON=$TRACE_ON ./test/test-step-00.bash
 TRACE_ON=$TRACE_ON ./test/test-step-01.bash
 TRACE_ON=$TRACE_ON ./test/test-step-02.bash

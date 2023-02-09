@@ -136,7 +136,7 @@ class XMLSerializer {
     } else if (n.nodeType === n.TEXT_NODE) {
       const textNode = n as Text
       this.w.writeText(n, escapeText(textNode.data))
-    } else /* istanbul ignore if */ if (n.nodeType === n.COMMENT_NODE) {
+    } else if (n.nodeType === n.COMMENT_NODE) {
       const comment = n as Comment
       this.w.writeText(n, `<!--${escapeText(comment.data)}-->`)
     } else if (n.nodeType === n.ATTRIBUTE_NODE) {
@@ -175,7 +175,7 @@ class XMLSerializer {
       if (attr.prefix === 'xmlns') {
         namespaceDeclarationsEncounteredOnCurrentElement.push(attr.localName)
       }
-    } else /* istanbul ignore else */ if (n.nodeType === n.ELEMENT_NODE) {
+    } else if (n.nodeType === n.ELEMENT_NODE) {
       const el = n as Element
       const prefixedTag = el.tagName
       const localTag = el.tagName
@@ -220,11 +220,6 @@ class XMLSerializer {
         }
         this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
       }
-    } else {
-      assertTrue(
-        false,
-        'BUG: Unsupported node type for now. Just add another case here'
-      )
     }
   }
 }

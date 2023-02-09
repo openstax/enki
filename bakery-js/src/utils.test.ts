@@ -31,4 +31,9 @@ describe('xml serializing', () => {
   </root>`)
     await writeAndCheckSnapshot(doc)
   })
+
+  it('writes comments', async () => {
+    const doc = parseXml(`<root><!-- I am a comment --></root>`)
+    await writeAndCheckSnapshot(doc)
+  })
 })

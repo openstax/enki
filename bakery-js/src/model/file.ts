@@ -70,7 +70,10 @@ export abstract class XmlFile<T, TBook, TPage, TResource>
     super(readPath)
   }
   public get parsed() {
-    return assertValue(this._parsed, `BUG: Forgot to call parse() on ${this.readPath}`)
+    return assertValue(
+      this._parsed,
+      `BUG: Forgot to call parse() on ${this.readPath}`
+    )
   }
   abstract parse(factorio: Factorio<TBook, TPage, TResource>): Promise<void>
   protected abstract convert(): Promise<Node>
@@ -125,7 +128,10 @@ export class ResourceFile
   }
 
   public get parsed() {
-    return assertValue(this._data, `BUG: Forgot to call parse() on ${this.readPath}`)
+    return assertValue(
+      this._data,
+      `BUG: Forgot to call parse() on ${this.readPath}`
+    )
   }
 
   async parse(_: Factorio<any, any, any>): Promise<void> {

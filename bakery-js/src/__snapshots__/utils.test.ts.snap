@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`xml serializing writes comments 1`] = `
+"<root><!-- I am a comment -->
+</root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
 exports[`xml serializing writes namespace declarations only once when a prefix is defined on an attribute 1`] = `
 "<root>
             

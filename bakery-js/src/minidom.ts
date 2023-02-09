@@ -82,9 +82,8 @@ export class Dom {
     )
   }
   get attrs(): Attrs {
-    return Array.from(this.el.attributes).reduce(
-      (o, attr) => Object.assign(o, { [attr.name]: attr.value }),
-      {}
+    return Object.fromEntries(
+      Array.from(this.el.attributes).map((attr) => [attr.name, attr.value])
     )
   }
   /** Get/Set/Remove a single attribute. To remove the attribute pass in `null` for the `newValue` */
