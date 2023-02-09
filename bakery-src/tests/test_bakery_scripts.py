@@ -11,6 +11,8 @@ import requests_mock
 import requests
 import pytest
 import re
+import http.server
+import threading
 from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
 from googleapiclient.discovery import build
@@ -29,6 +31,7 @@ from bakery_scripts import (
     assemble_book_metadata,
     bake_book_metadata,
     check_feed,
+    download_exercise_images,
     gdocify_book,
     mathmltable2png,
     copy_resources_s3,
@@ -45,7 +48,48 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 TEST_DATA_DIR = os.path.join(HERE, "data")
 TEST_JPEG_DIR = os.path.join(HERE, "test_jpeg_colorspace")
 SCRIPT_DIR = os.path.join(HERE, "../scripts")
+# small JPEG: https://stackoverflow.com/a/2349470/756056
+SMALL_JPEG = bytearray([
+    0xff, 0xd8,  # SOI
+    0xff, 0xe0,  # APP0
+    0x00, 0x10,
+    0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00,
+    0xff, 0xdb,  # DQT
+    0x00, 0x43,
+    0x00,
+    0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02,
+    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06,
+    0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06,
+    0x05, 0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08,
+    0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b,
+    0x0e, 0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e,
+    0x0f, 0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12,
+    0x13, 0x12, 0x10, 0x13, 0x0f, 0x10, 0x10, 0x10,
+    0xff, 0xc9,  # SOF
+    0x00, 0x0b,
+    0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00,
+    0xff, 0xcc,  # DAC
+    0x00, 0x06, 0x00, 0x10, 0x10, 0x05,
+    0xff, 0xda,  # SOS
+    0x00, 0x08,
+    0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20,
+    0xff, 0xd9,  # EOI
+])
+SHA1_SMALL_JPEG = "3f926a37ebed68c971312726a287610cf06135e7"
 
+class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
+    """HTTPServer mock request handler"""
+    """extremely simple http server for download exercises test"""
+
+    def do_GET(self):  # pylint: disable=invalid-name
+        """Handle GET requests"""
+        self.send_response(200)
+        self.send_header("Content-Type", "image/jpeg")
+        self.end_headers()
+        self.wfile.write(bytes(SMALL_JPEG))
+
+    def log_request(self, code=None, size=None):
+        """Don't log anything"""
 
 def test_link_rex_git(tmp_path, mocker):
     xhtml_file = "collection.mathified.xhtml"
@@ -2473,6 +2517,59 @@ def test_fetch_map_resources(tmp_path, mocker):
     ])
 
     assert(initial_resources_dir.is_dir())
+
+
+def test_download_exercise_images(tmp_path, mocker):
+    """Test download exercise images script"""
+    assembled_dir = tmp_path / "assembled"
+    output_dir = tmp_path / "downloaded_exercise"
+    resources_dir = tmp_path / "resources"
+
+    assembled_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True)
+    resources_dir.mkdir(parents=True)
+
+    assembled1 = assembled_dir / "assembled1.xhtml"
+    injected_exercise_content = (
+        '<!DOCTYPE html>'
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+        '<body>'
+        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        '<img src="http://127.0.0.1:9999/test.jpg" />'
+        '</body>'
+        '</html>'
+    )
+    assembled1.write_text(injected_exercise_content)
+
+    output1 = output_dir / "output1.xhtml"
+
+    # start a local simple http server which emulates serving a JPEG file
+    server = http.server.ThreadingHTTPServer(
+            ("127.0.0.1", 9999), MockJpegHTTPRequestHandler
+        )
+    with server:
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        try:
+            download_exercise_images.fetch_and_replace_external_exercise_images(
+                resources_dir, str(assembled1), str(output1))
+            # check the image is downloaded and file name and content is correct
+            downloaded_image = resources_dir / SHA1_SMALL_JPEG
+            assert Path.is_file(downloaded_image)
+            assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
+            # check image metadata generated is correct
+            json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+            assert Path.is_file(json_metadata_image)
+            image_data = json.loads(json_metadata_image.read_text())
+            assert image_data.get("original_name") == "http://127.0.0.1:9999/test.jpg"
+            assert image_data.get("mime_type") == "image/jpeg"
+            assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
+            assert image_data.get("sha1") == SHA1_SMALL_JPEG
+            assert image_data.get("width") == 1
+            assert image_data.get("height") == 1
+        finally:
+            server.shutdown()
 
 
 def test_fetch_update_metadata(tmp_path, mocker):
