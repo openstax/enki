@@ -60,7 +60,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
     doc.write(output_xml, encoding="utf8")
 
 
-def main():
+def main():  # pragma: no cover
     resources_dir = Path(sys.argv[1]).resolve(strict=True)
     input_xml = Path(sys.argv[2]).resolve(strict=True)
     output_xml = sys.argv[3]
