@@ -154,6 +154,7 @@ const ioToEnvVars = (inputs: string[], outputs: string[]) => {
     return ret
 }
 function toDockerTag(codeVersion: string) {
+    /* istanbul ignore next */
     return codeVersion.startsWith(RANDOM_DEV_CODEVERSION_PREFIX) ? 'main' : codeVersion
 }
 export function toDockerSourceSection(env: KeyValue) {
