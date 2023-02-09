@@ -2523,7 +2523,7 @@ def test_download_exercise_images(tmp_path, mocker):
     """Test download exercise images script"""
     assembled_dir = tmp_path / "assembled"
     output_dir = tmp_path / "downloaded_exercise"
-    resources_dir = tmp_path / "resources"
+    resources_dir = tmp_path / "resources_xyz"
 
     assembled_dir.mkdir(parents=True)
     output_dir.mkdir(parents=True)
@@ -2535,7 +2535,9 @@ def test_download_exercise_images(tmp_path, mocker):
         '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
         '<body>'
         '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        '<img src="../resources/testx" />'
         '<img src="http://127.0.0.1:9999/test.jpg" />'
+        '<img src="../resources/testy" />'
         '</body>'
         '</html>'
     )
@@ -2568,6 +2570,19 @@ def test_download_exercise_images(tmp_path, mocker):
             assert image_data.get("sha1") == SHA1_SMALL_JPEG
             assert image_data.get("width") == 1
             assert image_data.get("height") == 1
+            # check the final xhtml file points in the DOM to ../resources
+            doc = etree.parse(str(output1))
+            count = -1
+            for node in doc.xpath(
+                "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+            ):
+                count = count + 1
+                if count == 0:
+                    assert node.get("src") == "../resources/testx"
+                elif count == 1:
+                    assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
+                else:
+                    assert node.get("src") == "../resources/testy"
         finally:
             server.shutdown()
 
