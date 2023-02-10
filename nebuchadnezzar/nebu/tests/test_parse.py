@@ -1,7 +1,7 @@
 import pytest
 from lxml import etree
 
-from cnxml.parse import NSMAP, parse_metadata
+from nebu.parse import NSMAP, parse_metadata
 
 
 @pytest.fixture
