@@ -7,9 +7,7 @@ def get_collection_id(job):
     book_slug = job["books"][0]["slug"]
     owner = repo["owner"]
     repo_name = repo["name"]
-    if owner != "openstax":  # pragma: no cover
-        return f"{owner}/{repo_name}/{book_slug}"
-    return f"{repo_name}/{book_slug}"
+    return f"{owner}/{repo_name}/{book_slug}"
 
 
 def get_style(job):
