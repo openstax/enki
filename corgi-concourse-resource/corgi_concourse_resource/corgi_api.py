@@ -1,5 +1,5 @@
 import json
-from urllib.parse import quote
+from urllib.parse import urlencode
 
 import requests
 from .utils import msg
@@ -7,14 +7,10 @@ from .utils import msg
 
 def build_url(api_root, *args, **kwargs):
     parts = [api_root]
-    query = []
     parts.extend(args)
-    parts = [str(p) for p in parts]
-    url = "/".join(parts)
-    for item in kwargs.items():
-        query.append("=".join(map(quote, map(str, item))))
-    if query:
-        return "?".join((url, "&".join(query)))
+    url = "/".join(str(p) for p in parts)
+    if kwargs:
+        return "?".join((url, urlencode(kwargs)))
     return url
 
 
