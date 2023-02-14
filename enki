@@ -18,7 +18,8 @@ if [[ -L $0 ]]; then
 else
     actual_file=$0
 fi
-readonly root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
+root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
+readonly root_dir
 
 
 current_dir=$(pwd)
@@ -253,9 +254,9 @@ $root_dir/build-dockerfile.sh
 }
 
 [[ $SKIP_DOCKER_BUILD ]] || {
-    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
+    DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
 }
-docker run $interactive $enable_tty \
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     $opt_sideload_book_arg \
     --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \

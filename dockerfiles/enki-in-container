@@ -19,7 +19,8 @@ if [[ -L $0 ]]; then
 else
     actual_file=$0
 fi
-readonly root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
+root_dir="$(cd "$(dirname "$actual_file")" && pwd)"
+readonly root_dir
 
 
 show_help() {
