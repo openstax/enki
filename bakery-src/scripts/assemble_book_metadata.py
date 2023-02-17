@@ -5,6 +5,7 @@ from pathlib import Path
 
 from . import utils
 from . import cnx_models
+from . import html_parser
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
     json_data = {}
 
     with open(input_assembled_file, "r") as in_file:
-        binder = cnx_models.reconstitute(in_file)
+        binder = html_parser.reconstitute(in_file)
 
     for doc in cnx_models.flatten_to_documents(binder):
         abstract = doc.metadata.get("summary")
