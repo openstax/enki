@@ -5,12 +5,9 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
-import io
-import hashlib
 import mimetypes
 from collections.abc import MutableSequence
 from urllib.parse import urlparse
-from contextlib import contextmanager
 
 from lxml import etree
 
