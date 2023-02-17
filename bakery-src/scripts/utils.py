@@ -37,7 +37,8 @@ def get_checksums(filename):
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         if len(md5s) < 1:
-            s3_md5 = '"{}"'.format(hashlib.md5().hexdigest())  # pragma: no cover
+            s3_md5 = '"{}"'.format(
+                hashlib.md5().hexdigest())  # pragma: no cover
         elif len(md5s) == 1:
             s3_md5 = '"{}"'.format(md5s[0].hexdigest())
         else:  # pragma: no cover
@@ -93,9 +94,9 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     title = title is not None and title or md.get('title')
     tree = {'id': id, 'title': title}
     if 'data-toc-type' in md:
-        tree['data-toc-type']=md['data-toc-type']
+        tree['data-toc-type'] = md['data-toc-type']
     if 'data-toc-target-type' in md:
-        tree['data-toc-target-type']=md['data-toc-target-type']
+        tree['data-toc-target-type'] = md['data-toc-target-type']
     if hasattr(model, '__iter__'):
         contents = tree['contents'] = []
         for node in model:

@@ -65,10 +65,11 @@ def parse_navigation_html_to_tree(html, id):
             }
     return tree
 
+
 def _append_toc_type(li, tree):
     data_toc_type = li.get('data-toc-type')
     data_toc_target_type = li.get('data-toc-target-type')
-    if data_toc_type is not None and  len(data_toc_type)> 0:
+    if data_toc_type is not None and len(data_toc_type) > 0:
         tree['data-toc-type'] = data_toc_type
     if data_toc_target_type is not None and len(data_toc_target_type) > 0:
         tree['data-toc-target-type'] = data_toc_target_type
@@ -85,25 +86,25 @@ def _nav_to_tree(root):
     for li in expath(root, 'xhtml:ol/xhtml:li'):
         is_subtree = bool([e for e in li.getchildren()
                            if e.tag[e.tag.find('}')+1:] == 'ol'])
-        
+
         if is_subtree:
             # It's a sub-tree and have a 'span' and 'ol'.
             itemid = li.get('cnx-archive-uri', 'subcol')
             shortid = li.get('cnx-archive-shortid')
             yield _append_toc_type(li, {'id': itemid,
-                   # Title is wrapped in a span, div or some other element...
-                   'title': squash_xml_to_text(expath(li, '*')[0],
-                                               remove_namespaces=True),
-                   'shortId': shortid,
-                   'contents': [x for x in _nav_to_tree(li)],
-                   })
+                                        # Title is wrapped in a span, div or some other element...
+                                        'title': squash_xml_to_text(expath(li, '*')[0],
+                                                                    remove_namespaces=True),
+                                        'shortId': shortid,
+                                        'contents': [x for x in _nav_to_tree(li)],
+                                        })
         else:
             # It's a node and should only have an li.
             a = li.xpath('xhtml:a', namespaces=HTML_DOCUMENT_NAMESPACES)[0]
             yield _append_toc_type(li, {'id': a.get('href'),
-                   'shortid': li.get('cnx-archive-shortid'),
-                   'title': squash_xml_to_text(a, remove_namespaces=True)}
-            )
+                                        'shortid': li.get('cnx-archive-shortid'),
+                                        'title': squash_xml_to_text(a, remove_namespaces=True)}
+                                   )
 
 
 def parse_metadata(html):
@@ -255,7 +256,6 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
         else:
             return shortid
 
-
     # Adapt each <div data-type="unit|chapter|page|composite-page"> into
     # translucent binders, documents and composite documents
     for child in elem.getchildren():
@@ -294,7 +294,6 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
 
             shortid = metadata.get('cnx-archive-shortid')
 
-            
             nav_tree_node = nav_tree['contents'].pop(0)
             if 'data-toc-type' in nav_tree_node:
                 metadata['data-toc-type'] = nav_tree_node['data-toc-type']

@@ -25,7 +25,7 @@ __all__ = (
     'Binder', 'TranslucentBinder',
     'Document', 'CompositeDocument', 'DocumentPointer',
     'content_to_etree', 'etree_to_content',
-    )
+)
 
 
 mimetypes.init()
@@ -40,7 +40,7 @@ ATTRIBUTED_ROLE_KEYS = (
     # MUST be alphabetical
     'authors', 'copyright_holders', 'editors', 'illustrators',
     'publishers', 'translators',
-    )
+)
 XML_WRAPPER = u"""\
 <div
   xmlns="http://www.w3.org/1999/xhtml"
@@ -289,25 +289,25 @@ class HTMLReferenceFinder(object):
 
     def _media(self):
         media_xpath = [
-                ['//img[@src]', 'src', None],
-                ['//img[@longdesc]', 'longdesc', None],
-                ['//audio[@src]', 'src', None],
-                ['//video[@src]', 'src', None],
-                ['//object[@data]', 'data', None],
-                ['//object/embed[@src]', 'src', None],
-                ['//source[@src]', 'src', None],
-                ['//span[@data-src]', 'data-src', None],
-                ['//span[@data-longdesc]', 'data-longdesc', None],
-                ['//x:img[@src]', 'src', XHTML_NS],
-                ['//x:img[@longdesc]', 'longdesc', XHTML_NS],
-                ['//x:audio[@src]', 'src', XHTML_NS],
-                ['//x:video[@src]', 'src', XHTML_NS],
-                ['//x:object[@data]', 'data', XHTML_NS],
-                ['//x:object/embed[@src]', 'src', XHTML_NS],
-                ['//x:source[@src]', 'src', XHTML_NS],
-                ['//x:span[@data-src]', 'data-src', XHTML_NS],
-                ['//x:span[@data-longdesc]', 'data-longdesc', XHTML_NS],
-                ]
+            ['//img[@src]', 'src', None],
+            ['//img[@longdesc]', 'longdesc', None],
+            ['//audio[@src]', 'src', None],
+            ['//video[@src]', 'src', None],
+            ['//object[@data]', 'data', None],
+            ['//object/embed[@src]', 'src', None],
+            ['//source[@src]', 'src', None],
+            ['//span[@data-src]', 'data-src', None],
+            ['//span[@data-longdesc]', 'data-longdesc', None],
+            ['//x:img[@src]', 'src', XHTML_NS],
+            ['//x:img[@longdesc]', 'longdesc', XHTML_NS],
+            ['//x:audio[@src]', 'src', XHTML_NS],
+            ['//x:video[@src]', 'src', XHTML_NS],
+            ['//x:object[@data]', 'data', XHTML_NS],
+            ['//x:object/embed[@src]', 'src', XHTML_NS],
+            ['//x:source[@src]', 'src', XHTML_NS],
+            ['//x:span[@data-src]', 'data-src', XHTML_NS],
+            ['//x:span[@data-longdesc]', 'data-longdesc', XHTML_NS],
+        ]
         for xpath, attr, ns in media_xpath:
             for elm in self.apply_xpath(xpath, ns):
                 yield elm, attr
