@@ -2,10 +2,10 @@ import json
 import sys
 from pathlib import Path
 
-from cnxepub.collation import reconstitute
-from cnxepub.models import flatten_to_documents
 
 from . import utils
+from . import cnx_models
+from . import html_parser
 
 
 def main():
@@ -19,9 +19,9 @@ def main():
     json_data = {}
 
     with open(input_assembled_file, "r") as in_file:
-        binder = reconstitute(in_file)
+        binder = html_parser.reconstitute(in_file)
 
-    for doc in flatten_to_documents(binder):
+    for doc in cnx_models.flatten_to_documents(binder):
         abstract = doc.metadata.get("summary")
         # Use the map revised value if available, otherwise expect it from the
         # metadata parsed from the assembled XHTML

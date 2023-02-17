@@ -3,10 +3,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from cnxepub.collation import reconstitute
+from .html_parser import reconstitute, HTML_DOCUMENT_NAMESPACES
+from .cnx_models import flatten_to_documents, content_to_etree, etree_to_content
 from cnxepub.formatters import DocumentContentFormatter
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
-from cnxepub.models import flatten_to_documents, content_to_etree, etree_to_content
 from lxml import etree
 from lxml.builder import ElementMaker, E
 
