@@ -170,9 +170,9 @@ def test_disassemble_book(tmp_path, mocker):
     disassembled_output = input_dir / "disassembled"
     disassembled_output.mkdir()
 
-    mock_uuid = "00000000-0000-0000-0000-000000000000"
+    mock_uuid = "-0000-0000-0000-000000000000"
     mock_version = "0.0"
-    mock_ident_hash = f"{mock_uuid}@{mock_version}"
+    mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
     mocker.patch("sys.argv", ["",
                               str(input_baked_xhtml_file),
@@ -189,10 +189,10 @@ def test_disassemble_book(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in
     # this step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:m42119-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:m42092-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
@@ -207,13 +207,13 @@ def test_disassemble_book(tmp_path, mocker):
         "quantities-and-units"
     )
     assert m42119_data["abstract"] is None
-    assert m42119_data["revised"] == "2018/08/03 15:49:52 -0500"
     assert m42092_data.get("title") == "Physics: An Introduction"
     assert m42092_data.get("slug") == "1-1-physics-an-introduction"
     assert (
         m42092_data.get("abstract")
         == "Explain the difference between a model and a theory"
     )
+    assert m42119_data["revised"] == "2018/08/03 15:49:52 -0500"
     assert m42092_data["revised"] is not None
     # Verify the generated timestamp is ISO8601 and includes timezone info
     assert datetime.fromisoformat(m42092_data["revised"]).tzinfo is not None
@@ -232,13 +232,13 @@ def test_disassemble_book(tmp_path, mocker):
 
     # Ensure same-book-links have additional metadata
     m42119_tree = etree.parse(
-        open(disassembled_output / "00000000-0000-0000-0000-000000000000@0.0:m42119.xhtml")
+        open(disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
     )
     link = m42119_tree.xpath(
-        "//xhtml:a[@href='/contents/m42092#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
+        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
     )[0]
     link.attrib["data-page-slug"] = "1-1-physics-an-introduction"
-    link.attrib["data-page-uuid"] = "m42119"
+    link.attrib["data-page-uuid"] = f"11111111{mock_uuid}"
     assert link.attrib["data-page-fragment"] == "58161"
 
 
@@ -259,9 +259,9 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     disassembled_output = input_dir / "disassembled"
     disassembled_output.mkdir()
 
-    mock_uuid = "00000000-0000-0000-0000-000000000000"
+    mock_uuid = "-0000-0000-0000-000000000000"
     mock_version = "0.0"
-    mock_ident_hash = f"{mock_uuid}@{mock_version}"
+    mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
     mocker.patch("sys.argv", ["",
                               str(input_baked_xhtml_file),
@@ -273,17 +273,17 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in this
     # step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:m42119-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:m42092-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
     assert m42119_data["abstract"] is None
-    assert m42119_data["id"] == "m42119"
+    assert m42119_data["id"] == f"00000000{mock_uuid}"
     assert m42092_data["abstract"] is None
-    assert m42092_data["id"] == "m42092"
+    assert m42092_data["id"] == f"11111111{mock_uuid}"
 
 
 def test_canonical_list_order():
@@ -846,17 +846,17 @@ def test_assemble_book_metadata(tmp_path, mocker):
     assemble_book_metadata.main()
 
     assembled_metadata = json.loads(assembled_metadata_output.read_text())
-    assert assembled_metadata["m42119@1.6"]["abstract"] is None
+    assert assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["abstract"] is None
     assert (
         "Explain the difference between a model and a theory"
-        in assembled_metadata["m42092@1.10"]["abstract"]
+        in assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["abstract"]
     )
     assert (
-        assembled_metadata["m42092@1.10"]["revised"]
+        assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["revised"]
         == "2018-09-18T09:55:13.413000-05:00"
     )
     assert (
-        assembled_metadata["m42119@1.6"]["revised"]
+        assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["revised"]
         == "2018-08-03T15:49:52-05:00"
     )
 
@@ -881,11 +881,11 @@ def test_assemble_book_metadata_empty_revised_json(tmp_path, mocker):
 
     assembled_metadata = json.loads(assembled_metadata_output.read_text())
     assert (
-        assembled_metadata["m42092@1.10"]["revised"]
+        assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["revised"]
         == "2018-09-18T09:55:13.413000-05:00"
     )
     assert (
-        assembled_metadata["m42119@1.6"]["revised"]
+        assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["revised"]
         == "2018-08-03T15:49:52-05:00"
     )
 
