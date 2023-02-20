@@ -213,15 +213,17 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
             if ref_val in id_map:
                 target_page, target = id_map[ref_val]
                 if page == target_page:  # pragma: no cover
-                    i.attrib['href'] = f'#{target}'
+                    i.attrib['href'] = '#{}'.format(target)
                 else:
                     target_id = target_page.id.split('@')[0]
                     if not target:  # link to page
-                        i.attrib['href'] = f'/contents/{target_id}'  # pragma: no cover
+                        i.attrib['href'] = '/contents/{}'.format(
+                            target_id)  # pragma: no cover
                     else:
-                        i.attrib['href'] = f'/contents/{target_id}#{target}'
+                        i.attrib['href'] = '/contents/{}#{}'.format(
+                            target_id, target)
             else:
-                print(f'Bad href: {ref_val}')  # pragma: no cover
+                Logger.error(f'Bad href: {ref_val}')  # pragma: no cover
 
         page.content = cnx_models.etree_to_content(content)
 
