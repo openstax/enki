@@ -1,5 +1,5 @@
 import base64
-from logging import Logger
+import logging
 import re
 import uuid
 from lxml import etree, html
@@ -221,7 +221,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                     else:
                         i.attrib['href'] = f'/contents/{target_id}#{target}'
             else:
-                Logger.error(f'Bad href: {ref_val}')  # pragma: no cover
+                logging.error(f'Bad href: {ref_val}')  # pragma: no cover
 
         page.content = cnx_models.etree_to_content(content)
 
