@@ -15,19 +15,6 @@ from . import utils
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 
 
-def _download_file(url, output_filename):
-    """Download URL content into a file as stream (large file support, low memory)"""
-    # It's possible to optimise it more in future with async parallel downloads?
-    # async download example https://stackoverflow.com/a/73194807/756056
-    # or https://www.python-httpx.org/
-    with requests.get(url, stream=True) as response:
-        response.raise_for_status()
-        with open(output_filename, 'wb') as out_file:
-            for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
-                out_file.write(chunk)
-        return output_filename
-
-
 def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_xml):
     doc = etree.parse(str(input_xml))
     for node in doc.xpath(
@@ -37,10 +24,16 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
         image_url = node.get('src')
         print('Downloading: ' + image_url)
         with SpooledTemporaryFile() as tmp_file:
-            temp_resource = _download_file(image_url, tmp_file)
+            # It's possible to optimise it more in future with async parallel downloads?
+            # async download example https://stackoverflow.com/a/73194807/756056
+            # or https://www.python-httpx.org/
+            with requests.get(image_url, stream=True) as response:
+                response.raise_for_status()
+                for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+                    tmp_file.write(chunk)
             sha1, s3_md5 = utils.get_checksums(str(tmp_file))
             local_resource = Path(resources_dir) / Path(sha1)
-            shutil.copyfileobj(str(temp_resource), str(local_resource))
+            shutil.copyfileobj(tmp_file, str(local_resource))
 
         mime_type = utils.get_mime_type(str(local_resource))
         width, height = utils.get_size(str(local_resource))
