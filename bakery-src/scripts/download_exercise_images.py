@@ -36,7 +36,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
     ):
         image_url = node.get('src')
         print('Downloading: ' + image_url)
-        with SpooledTemporaryFile as tmp_file:
+        with SpooledTemporaryFile() as tmp_file:
             temp_resource = _download_file(image_url, tmp_file)
             sha1, s3_md5 = utils.get_checksums(str(tmp_file))
             local_resource = Path(resources_dir) / Path(sha1)
