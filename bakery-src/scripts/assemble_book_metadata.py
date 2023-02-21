@@ -3,9 +3,9 @@ import sys
 from pathlib import Path
 
 
-from . import utils
-from . import cnx_models
-from . import html_parser
+from .utils import ensure_isoformat
+from .cnx_models import flatten_to_documents
+from .html_parser import reconstitute
 
 
 def main():
@@ -19,16 +19,16 @@ def main():
     json_data = {}
 
     with open(input_assembled_file, "r") as in_file:
-        binder = html_parser.reconstitute(in_file)
+        binder = reconstitute(in_file)
 
-    for doc in cnx_models.flatten_to_documents(binder):
+    for doc in flatten_to_documents(binder):
         abstract = doc.metadata.get("summary")
         # Use the map revised value if available, otherwise expect it from the
         # metadata parsed from the assembled XHTML
         revised = uuid_to_revised_map.get(doc.id) or doc.metadata["revised"]
         json_data[doc.ident_hash] = {
             "abstract": abstract,
-            "revised": utils.ensure_isoformat(revised)
+            "revised": ensure_isoformat(revised)
         }
 
     with open(output_file_path, "w") as out_file:

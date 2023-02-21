@@ -27,8 +27,6 @@ except ImportError:
 import io
 
 
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
-from cnxepub.collation import reconstitute
 from bakery_scripts import (
     jsonify_book,
     disassemble_book,
@@ -231,7 +229,7 @@ def test_disassemble_book(tmp_path, mocker):
     assert toc_output.exists()
     toc_output_tree = etree.parse(open(toc_output))
     nav = toc_output_tree.xpath(
-        "//xhtml:nav", namespaces=HTML_DOCUMENT_NAMESPACES
+        "//xhtml:nav", namespaces=html_parser.HTML_DOCUMENT_NAMESPACES
     )
     assert len(nav) == 1
     toc_metadata_output = disassembled_output / "collection.toc-metadata.json"
@@ -244,7 +242,7 @@ def test_disassemble_book(tmp_path, mocker):
         open(disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
     )
     link = m42119_tree.xpath(
-        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
+        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=html_parser.HTML_DOCUMENT_NAMESPACES
     )[0]
     link.attrib["data-page-slug"] = "1-1-physics-an-introduction"
     link.attrib["data-page-uuid"] = f"11111111{mock_uuid}"
@@ -917,7 +915,7 @@ def test_bake_book_metadata(tmp_path, mocker):
     book_slugs_input.write_text(json.dumps(book_slugs))
 
     with open(input_baked_xhtml, "r") as baked_xhtml:
-        binder = reconstitute(baked_xhtml)
+        binder = html_parser.reconstitute(baked_xhtml)
         book_ident_hash = binder.ident_hash
 
     mocker.patch(
@@ -963,7 +961,7 @@ def test_bake_book_metadata_git(tmp_path, mocker):
     input_raw_metadata.write_text(json.dumps({}))
 
     with open(input_baked_xhtml, "r") as baked_xhtml:
-        binder = reconstitute(baked_xhtml)
+        binder = html_parser.reconstitute(baked_xhtml)
         book_ident_hash = binder.ident_hash
 
     mocker.patch(

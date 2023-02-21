@@ -9,7 +9,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from . import utils
+from .utils import get_checksums, get_mime_type, get_size
 
 # relative links must work both locally, on PDF, and on REX, and images are
 # uploaded with the prefix 'resources/' in S3 for REX
@@ -45,10 +45,10 @@ def all_data_to_json(resources_dir, filename_to_data):
 
 
 def rename(filename_to_data, resource_original_filepath, is_image):
-    sha1, s3_md5 = utils.get_checksums(
+    sha1, s3_md5 = get_checksums(
         str(resource_original_filepath)
     )
-    mime_type = utils.get_mime_type(str(resource_original_filepath))
+    mime_type = get_mime_type(str(resource_original_filepath))
 
     if sha1 is None:
         return None
@@ -56,7 +56,7 @@ def rename(filename_to_data, resource_original_filepath, is_image):
     opt_width = None
     opt_height = None
     if is_image:
-        opt_width, opt_height = utils.get_size(str(resource_original_filepath))
+        opt_width, opt_height = get_size(str(resource_original_filepath))
     filename_to_data[resource_original_filepath.name] = \
         (sha1, s3_md5, mime_type, resource_original_filepath, opt_width, opt_height)
     return f"../{RESOURCES_DIR_NAME}/{sha1}"

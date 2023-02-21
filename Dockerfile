@@ -359,7 +359,6 @@ COPY ./dockerfiles/entrypointd.sh \
 
 COPY ./step-config.json $PROJECT_ROOT
 
-# COPY ./formatters.py /workspace/enki/venv/lib/python3.8/site-packages/cnxepub/formatters.py
 # ^^^^^^^^^^^^^^^ Dockerfile.common ^^^^^^^^^^^^^^^
 # vvvvvvvvvvv Dockerfile.cli-endmatter vvvvvvvvvvvv
 WORKDIR /data/
