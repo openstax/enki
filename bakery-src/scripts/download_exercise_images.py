@@ -33,8 +33,9 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
                     response.raise_for_status()
                     for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
                         tmp_file.write(chunk)
-                tmp_file.seek(0)
+                tmp_file.seek(0)  # important to read whole file for sha1
                 sha1 = hashlib.sha1(tmp_file.read()).hexdigest()
+                tmp_file.seek(0)  # important for copyfileobj to run completely
                 local_resource = Path(resources_dir) / Path(sha1)
                 with open(local_resource, 'wb') as local_resource_file:
                     shutil.copyfileobj(tmp_file, local_resource_file)
