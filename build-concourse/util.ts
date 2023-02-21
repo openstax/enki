@@ -89,6 +89,7 @@ export enum IO {
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
     FETCH_META = 'fetch-meta',
+    INITIAL_RESOURCES = 'initial-resources',
     RESOURCES = 'resources',
     UNUSED_RESOURCES = 'unused-resources',
     ASSEMBLED = 'assembled', // 'assembled-book-group',
@@ -153,6 +154,7 @@ const ioToEnvVars = (inputs: string[], outputs: string[]) => {
     return ret
 }
 function toDockerTag(codeVersion: string) {
+    /* istanbul ignore next */
     return codeVersion.startsWith(RANDOM_DEV_CODEVERSION_PREFIX) ? 'main' : codeVersion
 }
 export function toDockerSourceSection(env: KeyValue) {

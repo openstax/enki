@@ -1,5 +1,5 @@
 import hashlib
-
+import json
 import magic
 from cnxcommon.urlslug import generate_slug
 from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
@@ -67,6 +67,20 @@ def get_size(filename):
         width, height = imagesize.get(filename)
     finally:
         return int(width), int(height)
+
+
+def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
+    """ Create json with MIME type and other metadata of resource file """
+    data = {}
+    data['original_name'] = original_name
+    data['mime_type'] = mime_type
+    data['s3_md5'] = s3_md5
+    data['sha1'] = sha1
+    data['width'] = width
+    data['height'] = height
+    json_file = output_dir / f'{sha1}.json'
+    with json_file.open(mode='w') as outfile:
+        json.dump(data, outfile)
 
 
 # Based upon amend_tree_with_slugs from cnx-publishing
