@@ -2401,13 +2401,14 @@ def test_upload_docx(tmp_path, mocker):
     ]
 
 
-def test_fetch_map_resources(tmp_path, mocker):
-    """Test fetch-map-resources script"""
+def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
+    """Test fetch-map-resources script without environment variable set"""
     book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
     original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
     resources_parent_dir = tmp_path / "book_slug"
-    initial_resources_dir = resources_parent_dir / "initial-resources"
+    initial_resources_dir = resources_parent_dir / "x-initial-resources"
+    dom_resources_dir = "resources"
     unused_resources_dir = tmp_path / "unused-resources"
 
     book_dir.mkdir(parents=True)
@@ -2518,11 +2519,11 @@ def test_fetch_map_resources(tmp_path, mocker):
     expected = (
         f'<document xmlns="http://cnx.rice.edu/cnxml">'
         f'<content>'
-        f'<image src="../resources/{image_src1_sha1_expected}"/>'
+        f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
         f'<image src="../../media/image_missing.jpg"/>'
-        f'<image src="../resources/{image_src1_sha1_expected}"/>'
-        f'<image src="../resources/{image_src2_sha1_expected}"/>'
-        f'<iframe src="../resources/interactive/index.xhtml"/>'
+        f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+        f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
+        f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
         f'</content>'
         f'</document>'
     )
@@ -2532,6 +2533,148 @@ def test_fetch_map_resources(tmp_path, mocker):
     ])
 
     assert(initial_resources_dir.is_dir())
+
+
+def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
+    """Test fetch-map-resources script with environment variable set"""
+    os.environ['IO_INITIAL_RESOURCES'] = '/whateverxyz/initial-resources'
+    os.environ['IO_RESOURCES'] = '/whateverxyz/myresources'
+    # function get_resource_dir_name_env should parse the last part of these environment variables out
+
+    try:
+        book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
+        original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
+        original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+        resources_parent_dir = tmp_path / "book_slug"
+        initial_resources_dir = resources_parent_dir / "initial-resources"
+        dom_resources_dir = "myresources"
+        unused_resources_dir = tmp_path / "unused-resources"
+
+        book_dir.mkdir(parents=True)
+        original_resources_dir.mkdir(parents=True)
+        original_interactive_dir.mkdir(parents=True)
+
+        interactive = original_interactive_dir / "index.xhtml"
+        interactive_content = (
+            '<!DOCTYPE html>'
+            '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+            '<body>'
+            '<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>'
+            '</body>'
+            '</html>'
+        )
+        interactive.write_text(interactive_content)
+
+        resources_parent_dir.mkdir(exist_ok=True)
+        unused_resources_dir.mkdir()
+
+        image_src1 = original_resources_dir / "image_src1.svg"
+        image_src2 = original_resources_dir / "image_src2.svg"
+        image_unused = original_resources_dir / "image_unused.svg"
+
+        # libmagic yields image/svg without the xml declaration
+        image_src1_content = ('<?xml version=1.0 ?>'
+                            '<svg height="30" width="120">'
+                            '<text x="0" y="15" fill="red">'
+                            'checksum me!'
+                            '</text>'
+                            '</svg>')
+        image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
+        image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
+        image_src1.write_text(image_src1_content)
+        image_src1_meta = f"{image_src1_sha1_expected}.json"
+
+        image_src2_content = ('<?xml version=1.0 ?>'
+                            '<svg height="50" width="210">'
+                            '<text x="0" y="40" fill="red">'
+                            'checksum me too!'
+                            '</text>'
+                            '</svg>')
+        image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
+        image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
+        image_src2.write_text(image_src2_content)
+        image_src2_meta = f"{image_src2_sha1_expected}.json"
+
+        # libmagic yields image/svg without the xml declaration
+        image_unused_content = ('<?xml version=1.0 ?>'
+                                '<svg height="30" width="120">'
+                                '<text x="0" y="15" fill="red">'
+                                'nope.'
+                                '</text>'
+                                '</svg>')
+        image_unused.write_text(image_unused_content)
+
+        module_0001_dir = book_dir / "m00001"
+        module_0001_dir.mkdir()
+        module_00001 = book_dir / "m00001/index.cnxml"
+        module_00001_content = (
+            '<document xmlns="http://cnx.rice.edu/cnxml">'
+            '<content>'
+            '<image src="../../media/image_src1.svg"/>'
+            '<image src="../../media/image_missing.jpg"/>'
+            '<image src="../../media/image_src1.svg"/>'
+            '<image src="../../media/image_src2.svg"/>'
+            '<iframe src="../../media/interactive/index.xhtml"/>'
+            '</content>'
+            '</document>'
+        )
+        module_00001.write_text(module_00001_content)
+
+        mocker.patch(
+            "sys.argv",
+            ["", book_dir, original_resources_dir, resources_parent_dir, unused_resources_dir]
+        )
+        fetch_map_resources.main()
+
+        assert json.load((initial_resources_dir / image_src1_meta).open()) == {
+            'height': 30,
+            'mime_type': 'image/svg+xml',
+            'original_name': 'image_src1.svg',
+            # AWS needs the MD5 quoted inside the string json value.
+            # Despite looking like a mistake, this is correct behavior.
+            's3_md5': f'"{image_src1_md5_expected}"',
+            'sha1': image_src1_sha1_expected,
+            'width': 120
+        }
+        assert json.load((initial_resources_dir / image_src2_meta).open()) == {
+            'height': 50,
+            'mime_type': 'image/svg+xml',
+            'original_name': 'image_src2.svg',
+            # AWS needs the MD5 quoted inside the string json value.
+            # Despite looking like a mistake, this is correct behavior.
+            's3_md5': f'"{image_src2_md5_expected}"',
+            'sha1': image_src2_sha1_expected,
+            'width': 210
+        }
+        assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
+            image_src2_sha1_expected,
+            image_src2_meta,
+            image_src1_sha1_expected,
+            image_src1_meta,
+            "interactive",
+            "index.xhtml"
+        ])
+        tree = etree.parse(str(module_00001))
+        expected = (
+            f'<document xmlns="http://cnx.rice.edu/cnxml">'
+            f'<content>'
+            f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+            f'<image src="../../media/image_missing.jpg"/>'
+            f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+            f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
+            f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
+            f'</content>'
+            f'</document>'
+        )
+        assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
+        assert set(file.name for file in unused_resources_dir.glob('**/*')) == set([
+            "image_unused.svg",
+        ])
+
+        assert(initial_resources_dir.is_dir())
+    finally:
+        del os.environ['IO_INITIAL_RESOURCES']
+        del os.environ['IO_RESOURCES']
 
 
 def test_download_exercise_images(tmp_path, mocker):
