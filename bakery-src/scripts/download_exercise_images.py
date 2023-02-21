@@ -39,7 +39,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
                 with open(local_resource, 'wb') as local_resource_file:
                     shutil.copyfileobj(tmp_file, local_resource_file)
 
-            sha1_local, s3_md5 = utils.get_checksums(str(local_resource_file))
+            sha1_local, s3_md5 = utils.get_checksums(str(local_resource))
             if sha1 != sha1_local:
                 raise ValueError(
                     f'SHA1 internal values do not match! That should never happen! {sha1} != {sha1_local}')
