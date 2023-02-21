@@ -6,7 +6,6 @@ Replace exercise http links to local resources links.
 
 import sys
 import requests
-import uuid
 import shutil
 from pathlib import Path
 from lxml import etree
