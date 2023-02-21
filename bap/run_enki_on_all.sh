@@ -20,9 +20,28 @@ done
 all_books="bap/book_data/AUTO_books.txt"
 test -f $all_books || ( echo "ERROR: Book list not found at ${all_books}" && exit 1 )
 
+mkdir bap/logs/
+
+# https://stackoverflow.com/a/20983251
+echo_green() { echo -e "$(tput setaf 2)$*$(tput sgr0)"; }
+echo_red() { echo -e "$(tput setaf 1)$*$(tput sgr0)"; }
+
+run_and_log_enki () {
+  echo "running command $1 on $2 $3"
+  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> bap/logs/$2-$3.txt
+  exit=$?
+  if [ $exit == 0 ]; then
+    echo_green "==> SUCCESS: $2 $3"
+  else
+    echo_red "==> FAILED with $exit: $2 $3"
+  fi
+  # TODO: collect failures & output report at the end
+  # TODO: report timing data
+}
+
 while read -r line; do
   repo=${line%%' '*}
   slug=${line##*' '}
-  echo "running ./enki --data-dir ./data/$slug --command $arg_command --repo openstax/$repo --book-slug $slug --style default --ref main"
-  ./enki --data-dir ./data/$slug --command $arg_command --repo openstax/$repo --book-slug $slug --style default --ref main
+  # https://stackoverflow.com/a/35208546
+  echo "" | run_and_log_enki $arg_command $repo $slug || true
 done <$all_books
