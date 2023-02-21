@@ -33,7 +33,8 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
                     tmp_file.write(chunk)
             sha1, s3_md5 = utils.get_checksums(str(tmp_file))
             local_resource = Path(resources_dir) / Path(sha1)
-            shutil.copyfileobj(tmp_file, str(local_resource))
+            with open(str(local_resource), 'wb') as local_resource_file:
+                shutil.copyfileobj(tmp_file, local_resource_file)
 
         mime_type = utils.get_mime_type(str(local_resource))
         width, height = utils.get_size(str(local_resource))
