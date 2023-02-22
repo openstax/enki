@@ -893,7 +893,7 @@
   </xsl:variable>
   <a href="{$href}" data-to-term="true">
     <xsl:if test="@window='new'">
-      <xsl:attribute name="target">_window</xsl:attribute>
+      <xsl:attribute name="target">_blank</xsl:attribute>
     </xsl:if>
     <xsl:call-template name="build-term"/>
   </a>
@@ -1082,7 +1082,7 @@
     <xsl:apply-templates select="@*[local-name() != 'id']"/>
     <xsl:apply-templates select="@id"/>
     <xsl:if test="@window='new'">
-      <xsl:attribute name="target">_window</xsl:attribute>
+      <xsl:attribute name="target">_blank</xsl:attribute>
     </xsl:if>
 
     <xsl:choose>
@@ -1176,7 +1176,7 @@
         <xsl:apply-templates select="@*[local-name() != 'id']"/>
         <xsl:apply-templates select="@id"/>
         <xsl:if test="@window='new'">
-          <xsl:attribute name="target">_window</xsl:attribute>
+          <xsl:attribute name="target">_blank</xsl:attribute>
         </xsl:if>
         <xsl:choose>
           <xsl:when test="count($contents) > 0">
