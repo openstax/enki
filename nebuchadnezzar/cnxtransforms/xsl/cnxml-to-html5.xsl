@@ -548,6 +548,7 @@
 
 <!-- ========================= -->
 
+<xsl:template match="c:quote/@display" />
 <xsl:template match="c:quote/@url">
   <xsl:attribute name="cite">
     <xsl:value-of select="."/>
@@ -566,6 +567,8 @@
 </xsl:template>
 
 <!-- ========================= -->
+
+<xsl:template match="c:note/@display" />
 
 <!-- Convert c:note/@type to @data-label so things like "Point of Interest" and "Tip" are visually labeled as such -->
 <xsl:template match="c:note/@type">
@@ -890,7 +893,7 @@
   </xsl:variable>
   <a href="{$href}" data-to-term="true">
     <xsl:if test="@window='new'">
-      <xsl:attribute name="target">_window</xsl:attribute>
+      <xsl:attribute name="target">_blank</xsl:attribute>
     </xsl:if>
     <xsl:call-template name="build-term"/>
   </a>
@@ -1079,7 +1082,7 @@
     <xsl:apply-templates select="@*[local-name() != 'id']"/>
     <xsl:apply-templates select="@id"/>
     <xsl:if test="@window='new'">
-      <xsl:attribute name="target">_window</xsl:attribute>
+      <xsl:attribute name="target">_blank</xsl:attribute>
     </xsl:if>
 
     <xsl:choose>
@@ -1173,7 +1176,7 @@
         <xsl:apply-templates select="@*[local-name() != 'id']"/>
         <xsl:apply-templates select="@id"/>
         <xsl:if test="@window='new'">
-          <xsl:attribute name="target">_window</xsl:attribute>
+          <xsl:attribute name="target">_blank</xsl:attribute>
         </xsl:if>
         <xsl:choose>
           <xsl:when test="count($contents) > 0">
@@ -1807,9 +1810,14 @@
     </xsl:if>
     <xsl:if test="(@namest and @nameend) or @spanname">
       <!-- Reference to colspec or spanspec for @colspan calculation. -->
-      <xsl:attribute name="colspan">
+      <xsl:variable name="colspanAmount">
         <xsl:call-template name="calculate-colspan"/>
-      </xsl:attribute>
+      </xsl:variable>
+      <xsl:if test="$colspanAmount > 0">
+        <xsl:attribute name="colspan">
+          <xsl:value-of select="$colspanAmount"/>
+        </xsl:attribute>
+      </xsl:if>
     </xsl:if>
     <xsl:apply-templates select="@*|node()"/>
     <xsl:apply-templates mode="footnote-dumpsite" select="."/>
@@ -1824,9 +1832,14 @@
     </xsl:if>
     <xsl:if test="(@namest and @nameend) or @spanname">
       <!-- Reference to colspec or spanspec for @colspan calculation. -->
-      <xsl:attribute name="colspan">
+      <xsl:variable name="colspanAmount">
         <xsl:call-template name="calculate-colspan"/>
-      </xsl:attribute>
+      </xsl:variable>
+      <xsl:if test="$colspanAmount > 0">
+        <xsl:attribute name="colspan">
+          <xsl:value-of select="$colspanAmount"/>
+        </xsl:attribute>
+      </xsl:if>
     </xsl:if>
     <xsl:apply-templates select="@*|node()"/>
     <xsl:apply-templates mode="footnote-dumpsite" select="."/>

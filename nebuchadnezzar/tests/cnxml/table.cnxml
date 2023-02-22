@@ -78,6 +78,24 @@
           </tbody>
         </tgroup>
       </table>
+      <table>
+        <tgroup cols="2">
+          <colspec colnum="1" colname="c1"/>
+          <colspec colnum="2" colname="c2"/>
+          <thead>
+            <row>
+              <entry/>
+              <entry namest="c2" nameend="c3">Should not get a colspan attribute</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry/>
+              <entry namest="c2" nameend="c3">Should not get a colspan attribute</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
     </section>
   </content>
 </document>
