@@ -22,6 +22,13 @@ from googleapiclient.http import RequestMockBuilder
 from PIL import Image
 from pathlib import Path
 from filecmp import cmp
+import unittest
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+import io
+
 
 from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
 from cnxepub.collation import reconstitute
@@ -42,7 +49,9 @@ from bakery_scripts import (
     link_single,
     patch_same_book_links,
     link_rex,
-    utils
+    utils,
+    html_parser,
+    cnx_models
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -229,9 +238,9 @@ def test_disassemble_book(tmp_path, mocker):
     disassembled_output = input_dir / "disassembled"
     disassembled_output.mkdir()
 
-    mock_uuid = "00000000-0000-0000-0000-000000000000"
+    mock_uuid = "-0000-0000-0000-000000000000"
     mock_version = "0.0"
-    mock_ident_hash = f"{mock_uuid}@{mock_version}"
+    mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
     mocker.patch("sys.argv", ["",
                               str(input_baked_xhtml_file),
@@ -248,10 +257,10 @@ def test_disassemble_book(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in
     # this step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:m42119-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:m42092-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
@@ -266,13 +275,13 @@ def test_disassemble_book(tmp_path, mocker):
         "quantities-and-units"
     )
     assert m42119_data["abstract"] is None
-    assert m42119_data["revised"] == "2018/08/03 15:49:52 -0500"
     assert m42092_data.get("title") == "Physics: An Introduction"
     assert m42092_data.get("slug") == "1-1-physics-an-introduction"
     assert (
         m42092_data.get("abstract")
         == "Explain the difference between a model and a theory"
     )
+    assert m42119_data["revised"] == "2018/08/03 15:49:52 -0500"
     assert m42092_data["revised"] is not None
     # Verify the generated timestamp is ISO8601 and includes timezone info
     assert datetime.fromisoformat(m42092_data["revised"]).tzinfo is not None
@@ -291,13 +300,13 @@ def test_disassemble_book(tmp_path, mocker):
 
     # Ensure same-book-links have additional metadata
     m42119_tree = etree.parse(
-        open(disassembled_output / "00000000-0000-0000-0000-000000000000@0.0:m42119.xhtml")
+        open(disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
     )
     link = m42119_tree.xpath(
-        "//xhtml:a[@href='/contents/m42092#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
+        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
     )[0]
     link.attrib["data-page-slug"] = "1-1-physics-an-introduction"
-    link.attrib["data-page-uuid"] = "m42119"
+    link.attrib["data-page-uuid"] = f"11111111{mock_uuid}"
     assert link.attrib["data-page-fragment"] == "58161"
 
 
@@ -318,9 +327,9 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     disassembled_output = input_dir / "disassembled"
     disassembled_output.mkdir()
 
-    mock_uuid = "00000000-0000-0000-0000-000000000000"
+    mock_uuid = "-0000-0000-0000-000000000000"
     mock_version = "0.0"
-    mock_ident_hash = f"{mock_uuid}@{mock_version}"
+    mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
     mocker.patch("sys.argv", ["",
                               str(input_baked_xhtml_file),
@@ -332,17 +341,17 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in this
     # step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:m42119-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:m42092-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
     assert m42119_data["abstract"] is None
-    assert m42119_data["id"] == "m42119"
+    assert m42119_data["id"] == f"00000000{mock_uuid}"
     assert m42092_data["abstract"] is None
-    assert m42092_data["id"] == "m42092"
+    assert m42092_data["id"] == f"11111111{mock_uuid}"
 
 
 def test_canonical_list_order():
@@ -905,17 +914,17 @@ def test_assemble_book_metadata(tmp_path, mocker):
     assemble_book_metadata.main()
 
     assembled_metadata = json.loads(assembled_metadata_output.read_text())
-    assert assembled_metadata["m42119@1.6"]["abstract"] is None
+    assert assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["abstract"] is None
     assert (
         "Explain the difference between a model and a theory"
-        in assembled_metadata["m42092@1.10"]["abstract"]
+        in assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["abstract"]
     )
     assert (
-        assembled_metadata["m42092@1.10"]["revised"]
+        assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["revised"]
         == "2018-09-18T09:55:13.413000-05:00"
     )
     assert (
-        assembled_metadata["m42119@1.6"]["revised"]
+        assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["revised"]
         == "2018-08-03T15:49:52-05:00"
     )
 
@@ -940,11 +949,11 @@ def test_assemble_book_metadata_empty_revised_json(tmp_path, mocker):
 
     assembled_metadata = json.loads(assembled_metadata_output.read_text())
     assert (
-        assembled_metadata["m42092@1.10"]["revised"]
+        assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["revised"]
         == "2018-09-18T09:55:13.413000-05:00"
     )
     assert (
-        assembled_metadata["m42119@1.6"]["revised"]
+        assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["revised"]
         == "2018-08-03T15:49:52-05:00"
     )
 
@@ -3499,3 +3508,427 @@ def test_ensure_isoformat():
         match="Could not convert non ISO8601 timestamp: unexpectedtimeformat"
     ):
         utils.ensure_isoformat("unexpectedtimeformat")
+
+
+#CNX EPUB Tests 
+
+class HTMLParsingTestCase(unittest.TestCase):
+    maxDiff = None
+
+    def test_metadata_parsing(self):
+        """Verify the parsing of metadata from an HTML document."""
+        html_doc_filepath = os.path.join(
+            TEST_DATA_DIR, 'cnx_test', 'book', 'content',
+            'e78d4f90-e078-49d2-beac-e95e8be70667@3.xhtml')
+        
+        with open(html_doc_filepath, 'r') as fb:
+            html = etree.parse(fb)
+            metadata = html_parser.parse_metadata(html)
+            
+        expected_metadata = {
+            'summary': None,
+            'authors': [
+                {'id': 'https://github.com/marknewlyn',
+                 'name': 'Mark Horner',
+                 'type': 'github-id'},
+                {'id': 'https://cnx.org/member_profile/sarblyth',
+                 'name': 'Sarah Blyth',
+                 'type': 'cnx-id'},
+                {'id': 'https://example.org/profiles/charrose',
+                 'name': 'Charmaine St. Rose',
+                 'type': 'openstax-id'}],
+            'copyright_holders': [
+                {'id': 'https://cnx.org/member_profile/ream',
+                 'name': 'Ream',
+                 'type': 'cnx-id'}],
+            'created': '2013/03/19 15:01:16 -0500',
+            'editors': [{'id': None, 'name': 'I. M. Picky', 'type': None}],
+            'illustrators': [{'id': None, 'name': 'Francis Hablar',
+                              'type': None}],
+            'keywords': ['South Africa'],
+            'license_text': 'CC-By 4.0',
+            'license_url': 'http://creativecommons.org/licenses/by/4.0/',
+            'publishers': [{'id': None, 'name': 'Ream', 'type': None}],
+            'revised': '2013/06/18 15:22:55 -0500',
+            'subjects': ['Science and Mathematics'],
+            'title': 'Document One of Infinity',
+            'translators': [{'id': None, 'name': 'Francis Hablar',
+                             'type': None}],
+            'cnx-archive-uri': 'e78d4f90-e078-49d2-beac-e95e8be70667@3',
+            'cnx-archive-shortid': '541PkOB4@3',
+            'derived_from_uri': 'http://example.org/contents/id@ver',
+            'derived_from_title': 'Wild Grains and Warted Feet',
+            'language': 'en',
+            'version': '3',
+            'canonical_book_uuid': 'ea4244ce-dd9c-4166-9c97-acae5faf0ba1',
+            'slug': None,
+            }
+        self.assertEqual(metadata, expected_metadata)
+
+
+class BaseModelTestCase(unittest.TestCase):
+
+    def make_binder(self, id=None, nodes=None, metadata=None):
+        """Make a ``Binder`` instance.
+        If ``id`` is not supplied, a ``TranslucentBinder`` is made.
+        """
+        if id is None:
+            binder = cnx_models.TranslucentBinder(nodes, metadata)
+        else:
+            binder = cnx_models.Binder(id, nodes, metadata)
+        return binder
+
+    def make_document(self, id, content=b'', metadata={}):
+        return cnx_models.Document(id, io.BytesIO(content), metadata=metadata)
+
+    def make_document_pointer(self, ident_hash, metadata={}):
+        return cnx_models.DocumentPointer(ident_hash, metadata=metadata)
+
+    def make_resource(self, *args, **kwargs):
+        return cnx_models.Resource(*args, **kwargs)
+
+
+class ModelAttributesTestCase(BaseModelTestCase):
+
+    def test_binder_attribs(self):
+        binder = self.make_binder('8d75ea29@3')
+
+        self.assertEqual(binder.id, '8d75ea29')
+        self.assertEqual(binder.ident_hash, '8d75ea29@3')
+        self.assertEqual(binder.metadata['version'], '3')
+
+        binder.ident_hash = '67e4ag@4.5'
+        self.assertEqual(binder.id, '67e4ag')
+        self.assertEqual(binder.ident_hash, '67e4ag@4.5')
+        self.assertEqual(binder.metadata['version'], '4.5')
+
+        with self.assertRaises(ValueError) as caughtexception:
+            binder.ident_hash = '67e4ag'
+            self.assertContains(caughtexception, 'requires version')
+
+        del binder.id
+        with self.assertRaises(AttributeError) as caughtexception:
+            _ = binder.id
+            self.assertContains(caughtexception, 'object has no attribute')
+
+        binder.id = '456@2'
+        self.assertEqual(binder.id, '456')
+        self.assertEqual(binder.ident_hash, '456@2')
+        self.assertEqual(binder.metadata['version'], '2')
+
+    def test_document_attribs(self):
+        document = self.make_document('8d75ea29@3')
+
+        self.assertEqual(document.id, '8d75ea29')
+        self.assertEqual(document.ident_hash, '8d75ea29@3')
+        self.assertEqual(document.metadata['version'], '3')
+
+        document.ident_hash = '67e4ag@4.5'
+        self.assertEqual(document.id, '67e4ag')
+        self.assertEqual(document.ident_hash, '67e4ag@4.5')
+        self.assertEqual(document.metadata['version'], '4.5')
+
+        with self.assertRaises(ValueError) as caughtexception:
+            document.ident_hash = '67e4ag'
+            self.assertContains(caughtexception, 'requires version')
+
+        del document.id
+        with self.assertRaises(AttributeError) as caughtexception:
+            _ = document.id
+            self.assertContains(caughtexception, 'object has no attribute')
+
+        document.id = '456@2'
+        self.assertEqual(document.id, '456')
+        self.assertEqual(document.ident_hash, '456@2')
+        self.assertEqual(document.metadata['version'], '2')
+
+
+class TreeUtilityTestCase(BaseModelTestCase):
+
+    def test_binder_to_tree(self):
+        binder = self.make_binder(
+            '8d75ea29',
+            metadata={'version': '3', 'title': "Book One"},
+            nodes=[
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part One"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter One"},
+                            nodes=[
+                                self.make_document(
+                                    id="e78d4f90",
+                                    metadata={'version': '3',
+                                              'title': "Document One"})]),
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Two"},
+                            nodes=[
+                                self.make_document(
+                                    id="3c448dc6",
+                                    metadata={'version': '1',
+                                              'title': "Document Two"})])]),
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part Two"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Three"},
+                            nodes=[
+                                self.make_document(
+                                    id="ad17c39c",
+                                    metadata={'version': '2',
+                                              'title': "Document Three"})])]),
+                self.make_binder(
+                    '4e5390a5@2',
+                    metadata={'title': "Part Three"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Four"},
+                            nodes=[
+                                self.make_document(
+                                    id="7c52af05",
+                                    metadata={'version': '1',
+                                              'title': "Document Four"})])])])
+
+        expected_tree = {
+            'id': '8d75ea29@3',
+            'shortId': None,
+            'contents': [
+                {'id': 'subcol',
+                 'shortId': None,
+                 'contents': [
+                     {'id': 'subcol',
+                      'shortId': None,
+                      'contents': [
+                          {'id': 'e78d4f90@3',
+                           'shortId': None,
+                           'title': 'Document One'}],
+                      'title': 'Chapter One'},
+                     {'id': 'subcol',
+                      'shortId': None,
+                      'contents': [
+                          {'id': '3c448dc6@1',
+                           'shortId': None,
+                           'title': 'Document Two'}],
+                      'title': 'Chapter Two'}],
+                 'title': 'Part One'},
+                {'id': 'subcol',
+                 'shortId': None,
+                 'contents': [
+                     {'id': 'subcol',
+                      'shortId': None,
+                      'contents': [
+                          {'id': 'ad17c39c@2',
+                           'shortId': None,
+                           'title': 'Document Three'}],
+                      'title': 'Chapter Three'}],
+                 'title': 'Part Two'},
+                {'id': '4e5390a5@2',
+                 'shortId': None,
+                 'contents': [
+                     {'id': 'subcol',
+                      'shortId': None,
+                      'contents': [
+                          {'id': '7c52af05@1',
+                           'shortId': None,
+                           'title': 'Document Four'}],
+                      'title': 'Chapter Four'}],
+                 'title': 'Part Three'}],
+            'title': 'Book One'}
+
+        tree = cnx_models.model_to_tree(binder)
+        self.assertEqual(tree, expected_tree)
+
+    def test_flatten_model(self):
+        binder = self.make_binder(
+            '8d75ea29',
+            metadata={'version': '3', 'title': "Book One"},
+            nodes=[
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part One"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter One"},
+                            nodes=[
+                                self.make_document(
+                                    id="e78d4f90",
+                                    metadata={'version': '3',
+                                              'title': "Document One"})]),
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Two"},
+                            nodes=[
+                                self.make_document(
+                                    id="3c448dc6",
+                                    metadata={'version': '1',
+                                              'title': "Document Two"})])]),
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part Two"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Three"},
+                            nodes=[
+                                self.make_document(
+                                    id="ad17c39c",
+                                    metadata={'version': '2',
+                                              'title': "Document Three"})])])])
+        expected_titles = [
+            'Book One',
+            'Part One',
+            'Chapter One', 'Document One',
+            'Chapter Two', 'Document Two',
+            'Part Two',
+            'Chapter Three', 'Document Three']
+
+        titles = [m.metadata['title'] for m in cnx_models.flatten_model(binder)]
+        self.assertEqual(titles, expected_titles)
+
+    def test_flatten_to_documents(self):
+        binder = self.make_binder(
+            '8d75ea29',
+            metadata={'version': '3', 'title': "Book One"},
+            nodes=[
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part One"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter One"},
+                            nodes=[
+                                self.make_document(
+                                    id="e78d4f90",
+                                    metadata={'version': '3',
+                                              'title': "Document One"})]),
+                        self.make_document_pointer(
+                            ident_hash='844a99e5@1',
+                            metadata={'title': "Pointing"}),
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Two"},
+                            nodes=[
+                                self.make_document(
+                                    id="3c448dc6",
+                                    metadata={'version': '1',
+                                              'title': "Document Two"})])]),
+                self.make_binder(
+                    None,
+                    metadata={'title': "Part Two"},
+                    nodes=[
+                        self.make_binder(
+                            None,
+                            metadata={'title': "Chapter Three"},
+                            nodes=[
+                                self.make_document(
+                                    id="ad17c39c",
+                                    metadata={'version': '2',
+                                              'title': "Document Three"})])])])
+
+        # Test for default, Document only results.
+        expected_titles = ['Document One', 'Document Two', 'Document Three']
+        titles = [d.metadata['title'] for d in cnx_models.flatten_to_documents(binder)]
+        self.assertEqual(titles, expected_titles)
+
+        # Test for included DocumentPointer results.
+        expected_titles = ['Document One', 'Pointing', 'Document Two',
+                           'Document Three']
+        titles = [d.metadata['title']
+                  for d in cnx_models.flatten_to_documents(binder, include_pointers=True)]
+        self.assertEqual(titles, expected_titles)
+
+
+class ModelBehaviorTestCase(unittest.TestCase):
+
+    def test_document_w_references(self):
+        """Documents are loaded then parsed to show their
+        references within the HTML content.
+        """
+        expected_uris = ["http://example.com/people/old-mcdonald",
+                         "http://cnx.org/contents/5f3acd92@3",
+                         "../resources/nyan-cat.gif"
+                         ]
+        content = """\
+<body>
+<h1> McDonald Bio </h1>
+<p>There is a farmer named <a href="{}">Old McDonald</a>. Plants grow on his farm and animals live there. He himself is vegan, and so he wrote a book about <a href="{}">Vegan Farming</a>.</p>
+<img src="{}"/>
+<span>Ei ei O.</span>
+</body>
+""".format(*expected_uris)
+
+        document = cnx_models.Document('mcdonald', content)
+
+        self.assertEqual(len(document.references), 3)
+        are_external = [r.remote_type == 'external'
+                        for r in document.references]
+        self.assertEqual([True, True, False], are_external)
+        self.assertEqual(expected_uris, [r.uri for r in document.references])
+
+        # reload the content
+        document.content = content
+        # update some references
+        document.references[0].uri = 'https://example.com/people/old-mcdonald'
+        self.assertTrue(b'<a href="https://example.com/people/old-mcdonald">'
+                        in document.content)
+
+    def test_document_w_bound_references(self):
+        starting_uris = ["../resources/openstax.png",
+                         "m23409.xhtml",
+                         ]
+        content = """\
+<body>
+<h1>Reference replacement test-case</h1>
+<p>Link to <a href="{}">a local legacy module</a>.</p>
+<img src="{}"/>
+<p>Fin.</p>
+</body>
+""".format(*starting_uris)
+
+        document = cnx_models.Document('document', content)
+
+        self.assertEqual(len(document.references), 2)
+        are_external = [r.remote_type == 'external'
+                        for r in document.references]
+        self.assertEqual([False, False], are_external)
+        self.assertEqual(starting_uris, [r.uri for r in document.references])
+
+        # Now bind the model to the reference.
+        resource_uri_tmplt = "/resources/{}"
+        resource_name = '36ad78c3'
+        resource = mock.Mock()
+        resource.id = resource_name
+        document.references[0].bind(resource, "/resources/{}")
+
+        expected_uris = [
+            resource_uri_tmplt.format(resource_name),
+            starting_uris[1],
+            ]
+        self.assertEqual(expected_uris, [r.uri for r in document.references])
+
+        # And change it the resource identifier
+        changed_resource_name = 'smoo.png'
+        resource.id = changed_resource_name
+        expected_uris = [
+            resource_uri_tmplt.format(changed_resource_name),
+            starting_uris[1],
+            ]
+        self.assertEqual(expected_uris, [r.uri for r in document.references])
+
+    def test_document_content(self):
+        with open(
+            os.path.join(TEST_DATA_DIR,'cnx_test',
+                         'fb74dc89-47d4-4e46-aac1-b8682f487bd5@1.json'),
+                'r') as f:
+            metadata = json.loads(f.read())
+        document = cnx_models.Document('document', metadata['content'])
+        self.assertTrue(b'To demonstrate the potential of online publishing'
+                        in document.content)

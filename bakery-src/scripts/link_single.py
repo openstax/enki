@@ -9,8 +9,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote
 
-from cnxepub.collation import reconstitute
-from cnxepub.models import flatten_to_documents
+from .html_parser import reconstitute
+from .cnx_models import flatten_to_documents
 from lxml import etree
 
 
