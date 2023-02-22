@@ -5,7 +5,7 @@
 import modulealias from 'module-alias' // From https://github.com/Microsoft/TypeScript/issues/10866#issuecomment-246929461
 modulealias.addAlias('myjsx/jsx-dev-runtime', __dirname + '/minidom')
 
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { basename, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support'
@@ -137,10 +137,9 @@ epubCommand
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
 
       // Copy the CSS file to the destination
-      copyFileSync(
-        `${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`,
-        `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`
-      )
+      // Comment out any @import URLs though
+      const cssContents = readFileSync(`${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`, 'utf-8')
+      writeFileSync(`${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`, cssContents.replace(/@import ([^\n]+)\n/g, "/* commented_for_epub @import $1 */\n"))
 
       writeFileSync(
         `${destinationDir}/${opfFile.parsed.slug}/mimetype`,
