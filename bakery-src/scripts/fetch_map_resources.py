@@ -39,7 +39,8 @@ def all_data_to_json(resources_dir, filename_to_data):
 
         checksum_resource_file = resources_dir / sha1
 
-        shutil.move(str(resource_original_filepath), str(checksum_resource_file))
+        shutil.move(str(resource_original_filepath),
+                    str(checksum_resource_file))
         utils.create_json_metadata(
             resources_dir, sha1, mime_type, s3_md5, resource_original_name, width, height)
 
@@ -68,8 +69,10 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
             namespaces={"c": "http://cnx.rice.edu/cnxml"}
     ):
         resource_original_src = node.attrib[attribute_name]
-        resource_original_filepath = (context_dir / resource_original_src).resolve()
-        new_path = rename(filename_to_data, resource_original_filepath, is_image)
+        resource_original_filepath = (
+            context_dir / resource_original_src).resolve()
+        new_path = rename(filename_to_data,
+                          resource_original_filepath, is_image)
         if new_path is None:
             print(
                 f"WARNING: Resource file '{resource_original_filepath}' not found",
@@ -139,11 +142,13 @@ def main():
                 (cnxml_file.parent / resource_original_src).resolve()
 
             foopath = (cnxml_file.parent / "../../media").resolve()
-            new_resource_child_path = resource_original_filepath.relative_to(foopath)
+            new_resource_child_path = resource_original_filepath.relative_to(
+                foopath)
 
             new_resource_src = f"../{dom_resources_dir_name}/{new_resource_child_path}"
 
-            print(f"rewriting iframe source from {resource_original_src} to {new_resource_src}")
+            print(
+                f"rewriting iframe source from {resource_original_src} to {new_resource_src}")
             node.attrib["src"] = new_resource_src
 
         with cnxml_file.open(mode="wb") as f:

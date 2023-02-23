@@ -31,7 +31,8 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
                 # or https://www.python-httpx.org/
                 with session.get(image_url, stream=True) as response:
                     response.raise_for_status()
-                    for chunk in response.iter_content(chunk_size=1024*1024):  # 1MB chunks
+                    # 1MB chunks
+                    for chunk in response.iter_content(chunk_size=1024*1024):
                         tmp_file.write(chunk)
                 tmp_file.seek(0)  # important to read whole file for sha1
                 sha1 = hashlib.sha1(tmp_file.read()).hexdigest()
@@ -59,7 +60,8 @@ def main():  # pragma: no cover
     resources_dir = Path(sys.argv[1]).resolve(strict=True)
     input_xml = Path(sys.argv[2]).resolve(strict=True)
     output_xml = sys.argv[3]
-    fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_xml)
+    fetch_and_replace_external_exercise_images(
+        resources_dir, input_xml, output_xml)
 
 
 if __name__ == "__main__":  # pragma: no cover
