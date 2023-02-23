@@ -40,7 +40,7 @@ function makePipeline(env: KeyValue) {
         },
         {
             name: RESOURCES.CORGI_GIT_EPUB,
-            type: 'output-producer',
+            type: 'corgi-resource',
             source: {
                 api_root: env.CORGI_API_URL,
                 job_type_id: JobType.GIT_EPUB,
