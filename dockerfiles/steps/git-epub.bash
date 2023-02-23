@@ -24,7 +24,8 @@ done
 
 
 # Prepare for upload
-zip_filename="$(cat "$IO_BOOK/repo")-$(cat "$IO_BOOK/version")-git-$(cat "$IO_BOOK/job_id")-epub.zip"
+repo_no_slashes="$(cat "$IO_BOOK/repo" | sed 's/\//-/g')"
+zip_filename="$repo_no_slashes-$(cat "$IO_BOOK/version")-git-$(cat "$IO_BOOK/job_id")-epub.zip"
 zip_filename="$(printf %s "$zip_filename" | jq -sRr @uri)"  # URI-encode because book or branch name could have '#'
 zip_url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$zip_filename"
 zip_path="$(realpath "$IO_ARTIFACTS/$zip_filename")"
