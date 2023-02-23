@@ -138,8 +138,17 @@ epubCommand
 
       // Copy the CSS file to the destination
       // Comment out any @import URLs though
-      const cssContents = readFileSync(`${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`, 'utf-8')
-      writeFileSync(`${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`, cssContents.replace(/@import ([^\n]+)\n/g, "/* commented_for_epub @import $1 */\n"))
+      const cssContents = readFileSync(
+        `${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`,
+        'utf-8'
+      )
+      writeFileSync(
+        `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`,
+        cssContents.replace(
+          /@import ([^\n]+)\n/g,
+          '/* commented_for_epub @import $1 */\n'
+        )
+      )
 
       writeFileSync(
         `${destinationDir}/${opfFile.parsed.slug}/mimetype`,
