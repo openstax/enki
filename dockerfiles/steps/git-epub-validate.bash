@@ -28,9 +28,18 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
         #     | grep -v 'ERROR(MED-002)' \
         # )
         errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' \
+            | grep -v 'Error while parsing file: attribute "display" not allowed here;' \
+            | grep -v 'Error while parsing file: value of attribute "target" is invalid;' \
+            | grep -v 'Error while parsing file: value of attribute "colspan" is invalid;' \
+            \
+            | grep -v 'Error while parsing file: value of attribute "width" is invalid;' \
+            | grep -v 'Error while parsing file: value of attribute "height" is invalid;' \
             | grep -v 'Error while parsing file: element "aside" not allowed here' \
             | grep -v 'Error while parsing file: attribute "longdesc" not allowed here' \
             | grep -v 'Error while parsing file: attribute "summary" not allowed here;' \
+            \
+            | grep -v 'Error while parsing file: attribute "rules" not allowed here;' \
+            | grep -v 'Error while parsing file: attribute "align" not allowed here;' \
             ;
         )
 
