@@ -297,7 +297,7 @@ def upload(in_dir, bucket, bucket_folder):
     print('FINISHED uploading resources.')
 
 
-def main():
+def main():  # pragma: no cover
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     bucket = sys.argv[2]
     bucket_folder = sys.argv[3]

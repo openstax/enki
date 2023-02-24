@@ -17,7 +17,7 @@
             ],
             "outputDirs": [
                 "IO_FETCH_META",
-                "IO_RESOURCES",
+                "IO_INITIAL_RESOURCES",
                 "IO_UNUSED_RESOURCES"
             ],
             "requiredEnv": []
@@ -32,10 +32,12 @@
         "git-assemble": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCH_META"
+                "IO_FETCH_META",
+                "IO_INITIAL_RESOURCES"
             ],
             "outputDirs": [
-                "IO_ASSEMBLED"
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
             ],
             "requiredEnv": []
         },
@@ -92,7 +94,8 @@
             "inputDirs": [
                 "IO_BOOK",
                 "IO_BAKED",
-                "IO_BAKE_META"
+                "IO_BAKE_META",
+                "IO_FETCHED"
             ],
             "outputDirs": [
                 "IO_LINKED"
@@ -229,7 +232,8 @@
         },
         "git-epub-validate": {
             "inputDirs": [
-                "IO_EPUB"
+                "IO_EPUB",
+                "IO_ARTIFACTS"
             ],
             "outputDirs": [],
             "requiredEnv": []
@@ -326,7 +330,7 @@
         "all-git-epub": [
             "git-fetch",
             "git-fetch-metadata",
-            "git-assemble-epub",
+            "git-assemble",
             "git-assemble-meta",
             "git-validate-references",
             "git-bake",
@@ -334,8 +338,8 @@
             "git-link",
             "git-disassemble",
             "git-patch-disassembled-links",
-            "git-jsonify",
-            "git-epub"
+            "git-epub",
+            "git-epub-validate"
         ],
         "all-git-gdoc": [
             "git-fetch",

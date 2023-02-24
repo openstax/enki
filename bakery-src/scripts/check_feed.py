@@ -70,7 +70,8 @@ def flatten_feed(feed_data, feed_filter, code_version):
             book_id = item[book_id_key]
             book = books_by_id[book_id]
             if code_version >= item["min_code_version"]:
-                flattened_feed += convert_function(book, item["content_version"])
+                flattened_feed += convert_function(book,
+                                                   item["content_version"])
 
     if feed_filter == "git":
         # item = {

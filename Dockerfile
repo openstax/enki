@@ -173,6 +173,26 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
 
 COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
 
+# ---------------------------
+# Install bakery-js
+# ---------------------------
+
+FROM base as build-bakery-js-stage
+
+# Install dependencies first
+COPY ./bakery-js/package.json ./bakery-js/package-lock.json $PROJECT_ROOT/bakery-js/
+
+COPY            ./dockerfiles/build/build-stage-bakery-js.sh \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-js.sh
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-js.sh
+
+COPY ./bakery-js/bin/ $PROJECT_ROOT/bakery-js/bin/
+COPY ./bakery-js/src/ $PROJECT_ROOT/bakery-js/src/
+COPY ./bakery-js/tsconfig.*.json $PROJECT_ROOT/bakery-js/
+RUN cd $PROJECT_ROOT/bakery-js && npm run build
+
+
+
 # ===========================
 # Install Python Packages
 # ===========================
@@ -337,6 +357,7 @@ COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
 COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar
+COPY --from=build-bakery-js-stage $PROJECT_ROOT/bakery-js/ $PROJECT_ROOT/bakery-js/
 COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ $PROJECT_ROOT/mathify/
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc

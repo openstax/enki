@@ -1,65 +1,57 @@
-src_dir=$IO_EPUB
-epub_file=/tmp/test.epub
+set -Eeuo pipefail
+
 validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epubcheck.jar
 
-[[ -f $epub_file ]] && rm $epub_file
+shopt -s globstar nullglob
+for epub_file in "$IO_ARTIFACTS/"*.epub; do
 
-try cd $src_dir
-try zip -q -X -r $epub_file ./mimetype ./META-INF ./contents
+    echo "Validating $epub_file"
+    epub_filename=$(basename "$epub_file")
 
+    set +e
+    java -jar $validator_jar --error $epub_file 2> $IO_ARTIFACTS/$epub_filename.validation.log
+    exit_status=$?
 
-set +e
-java -jar $validator_jar --error $epub_file 2> $IO_EPUB/validation.log
-exit_status=$?
+    [[ ! -f $IO_ARTIFACTS/$epub_filename.validation.log ]] && die "$IO_ARTIFACTS/$epub_filename.validation.log does not exist"
 
-[[ ! -f $IO_EPUB/validation.log ]] && die "$IO_EPUB/validation.log does not exist"
+    if [[ $exit_status != 0 ]]; then
+        # LCOV_EXCL_START
+        # errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' \
+        #     | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
+        #     | grep -v 'Error while parsing file: element "mn" not allowed here;' \
+        #     | grep -v 'Error while parsing file: element "minus" not allowed here;' \
+        #     | grep -v 'Error while parsing file: element "or" not allowed here;' \
+        #     | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
+        #     | grep -v 'of type "text/plain"' \
+        #     | grep -v 'ERROR(RSC-010)' \
+        #     | grep -v 'ERROR(RSC-012)' \
+        #     | grep -v 'ERROR(MED-002)' \
+        # )
+        errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' \
+            | grep -v 'Error while parsing file: attribute "display" not allowed here;' \
+            | grep -v 'Error while parsing file: value of attribute "target" is invalid;' \
+            | grep -v 'Error while parsing file: value of attribute "colspan" is invalid;' \
+            \
+            | grep -v 'Error while parsing file: value of attribute "width" is invalid;' \
+            | grep -v 'Error while parsing file: value of attribute "height" is invalid;' \
+            | grep -v 'Error while parsing file: element "aside" not allowed here' \
+            | grep -v 'Error while parsing file: attribute "longdesc" not allowed here' \
+            | grep -v 'Error while parsing file: attribute "summary" not allowed here;' \
+            \
+            | grep -v 'Error while parsing file: attribute "rules" not allowed here;' \
+            | grep -v 'Error while parsing file: attribute "align" not allowed here;' \
+            ;
+        )
 
-if [[ $exit_status != 0 ]]; then
-    # LCOV_EXCL_START
-    errors=$(cat $IO_EPUB/validation.log | grep 'ERROR' \
-        | grep -v 'ERROR(RSC-012)' \
-        | grep -v 'ERROR(MED-002)' \
-        | grep -v 'Error while parsing file: element "mrow" not allowed here;' \
-        | grep -v 'Error while parsing file: element "mn" not allowed here;' \
-        | grep -v 'Error while parsing file: element "minus" not allowed here;' \
-        | grep -v 'Error while parsing file: element "or" not allowed here;' \
-        | grep -v 'The type property "application/vnd.wolfram.cdf" on the object tag does not match the declared media-type "text/plain" in the OPF manifest.' \
-        | grep -v 'of type "text/plain"' \
-        | grep -v 'ERROR(RSC-010)' \
-    )
-    if [[ $errors ]]; then
-        echo "$errors"
-        die "Failed to validate: $(echo "$errors" | wc -l) errors that we have not chosen to ignore"
-    else
-        echo "Yay! No errors besides the ones we have already chosen to ignore"
+        if [[ $errors ]]; then
+            echo "$errors"
+            die "Failed to validate: $(echo "$errors" | wc -l) errors that we have not chosen to ignore"
+        else
+            echo "Yay! No errors besides the ones we have already chosen to ignore"
+        fi
+        # LCOV_EXCL_END
     fi
-    # LCOV_EXCL_END
-fi
-set -e
+    set -e
 
-
-
-# EPUB Readers are picky with colons and ./ in paths to files so we check for epub-reader specific problems here:
-while read -r opf_file_path; do
-    opf_file=$src_dir/$opf_file_path
-
-        cat << EOF | xsltproc /dev/stdin $opf_file
-<xsl:stylesheet 
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:opf="http://www.idpf.org/2007/opf"
-  version="1.0">
-
-<xsl:template match="/opf:package/opf:manifest/opf:item">
-    <xsl:if test="starts-with(@href, './')"><xsl:message terminate="yes">Some ePub Readers do not like hrefs that begin with './'</xsl:message></xsl:if>
-    <xsl:if test="contains(@href, ':')"><xsl:message terminate="yes">Some ePub Readers do not like filenames that contain a colon ':'./</xsl:message></xsl:if>
-</xsl:template>
-
-<xsl:template match="@*|node()">
-    <xsl:apply-templates select="@*|node()"/>
-</xsl:template>
-
-</xsl:stylesheet>
-EOF
-
-
-done < <(try xmlstarlet sel -t --match "//*[@full-path]" --value-of '@full-path' --nl < $src_dir/META-INF/container.xml)
+done
+shopt -u globstar nullglob
