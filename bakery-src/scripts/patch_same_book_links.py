@@ -32,7 +32,6 @@ def main():
     out_dir = Path(sys.argv[2]).resolve(strict=True)
     collection_prefix = sys.argv[3]
 
-    xhtml_files = in_dir.glob("*@*.xhtml")
     book_metadata = in_dir / f"{collection_prefix}.toc-metadata.json"
 
     # Get the UUID of the book being processed
@@ -40,6 +39,8 @@ def main():
         json_data = json.load(json_file)
         book_uuid = json_data["id"]
         book_version = json_data["version"]
+
+    xhtml_files = in_dir.glob(f"{book_uuid}@*.xhtml")
 
     for xhtml_file in xhtml_files:
         doc = etree.parse(str(xhtml_file))

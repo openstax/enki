@@ -1,5 +1,7 @@
 parse_book_dir
 
+try cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
+
 repo_root=$IO_FETCH_META
 col_sep='|'
 # https://stackoverflow.com/a/31838754
@@ -23,7 +25,9 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
     try neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
-    try cp "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
+    ## download exercise images and replace internet links with local resource links
+    try download-exercise-images "$IO_RESOURCES" "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
+
     try rm -rf temp-assembly
     try rm "$IO_FETCH_META/modules/collection.xml"
 

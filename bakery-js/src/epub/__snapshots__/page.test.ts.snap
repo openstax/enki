@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Pages conversions converts a page that exercises a bunch of serializer options 1`] = `
+"<html xmlns="http://www.w3.org/1999/xhtml">
+      <head><title>KinematicsInFourDimensions</title><link rel="stylesheet" type="text/css" href="the-style-epub.css"/></head>
+      <body>
+        
+        
+        <h2 data-type="document-title">KinematicsInFourDimensions</h2>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          
+        </math>
+        <div/>
+        <div class="os-has-iframe os-has-link">
+          
+        </div>
+        <a href="pageLink1"/>
+        <a href="pageLink1#target-id"/>
+        <img src="notarealimage.jpg"/>
+      </body>
+    
+</html>
+<!-- # sourceMappingURL=somepath.map -->"
+`;
+
+exports[`Pages conversions converts a simple file 1`] = `
+"<html xmlns="http://www.w3.org/1999/xhtml">
+      <head><title>KinematicsInFourDimensions</title><link rel="stylesheet" type="text/css" href="the-style-epub.css"/></head>
+      <body>
+        <h1 data-type="document-title">KinematicsInFourDimensions</h1>
+      </body>
+    
+</html>
+<!-- # sourceMappingURL=somepath.map -->"
+`;
+
+exports[`Pages parses a composite page title 1`] = `
+{
+  "hasMathML": false,
+  "hasRemoteResources": false,
+  "pageLinks": [],
+  "resources": [],
+  "title": "KinematicsInFourDimensions",
+}
+`;
+
+exports[`Pages parses all the fields with a simple page 1`] = `
+{
+  "hasMathML": true,
+  "hasRemoteResources": true,
+  "pageLinks": [
+    PageFile {
+      "_parsed": undefined,
+      "_readPath": "/pageLink1",
+    },
+  ],
+  "resources": [],
+  "title": "KinematicsInFourDimensions",
+}
+`;
+
+exports[`Pages parses an empty page 1`] = `
+{
+  "hasMathML": false,
+  "hasRemoteResources": false,
+  "pageLinks": [],
+  "resources": [],
+  "title": "KinematicsInFourDimensions",
+}
+`;

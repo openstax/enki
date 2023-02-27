@@ -235,7 +235,8 @@ class Reference(object):
 
     def _set_uri(self, value):
         if self.is_bound:
-            raise ValueError("URI is bound to an object. Unbind first.")  # pragma: no cover
+            raise ValueError(
+                "URI is bound to an object. Unbind first.")  # pragma: no cover
         self.elm.set(self._uri_attr, value)
 
     uri = property(_get_uri, _set_uri)
