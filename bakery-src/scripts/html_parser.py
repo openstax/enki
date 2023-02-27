@@ -3,7 +3,8 @@ import logging
 import re
 import uuid
 from lxml import etree, html
-from .cnx_models import (Binder,content_to_etree, etree_to_content, Document, CompositeDocument, flatten_to_documents)
+from .cnx_models import (Binder, content_to_etree, etree_to_content,
+                         Document, CompositeDocument, flatten_to_documents)
 
 TRANSLUCENT_BINDER_ID = 'subcol'
 
