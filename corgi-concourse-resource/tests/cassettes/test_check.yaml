@@ -9,24 +9,24 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.23.0
+      - python-requests/2.28.1
     method: GET
-    uri: http://localhost/api/jobs
+    uri: http://localhost/api/jobs/check?status_id=1
   response:
     body:
-      string: ''
+      string: '[{"id":"3","status_id":"1","job_type_id":"5"},{"id":"2","status_id":"1","job_type_id":"4"},{"id":"1","status_id":"1","job_type_id":"3"}]'
     headers:
       Content-Length:
-      - '0'
+      - '136'
+      Content-Type:
+      - application/json
       Date:
-      - Thu, 10 Sep 2020 18:35:28 GMT
-      Location:
-      - http://localhost/api/jobs/
+      - Wed, 16 Nov 2022 19:27:28 GMT
       Server:
       - uvicorn
     status:
-      code: 307
-      message: Temporary Redirect
+      code: 200
+      message: OK
 - request:
     body: null
     headers:
@@ -37,19 +37,271 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.23.0
+      - python-requests/2.28.1
     method: GET
-    uri: http://localhost/api/jobs/
+    uri: http://localhost/api/jobs/check?status_id=999
   response:
     body:
-      string: '[{"collection_id":"col12345","status_id":"5","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"2","id":"10","created_at":"2020-09-10T18:35:29.307872","updated_at":"2020-09-10T18:35:29.307882","status":{"name":"completed","id":"5"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"distribution-preview","id":"2"}},{"collection_id":"col12345","status_id":"5","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"1","id":"9","created_at":"2020-09-10T18:35:29.286686","updated_at":"2020-09-10T18:35:29.286695","status":{"name":"completed","id":"5"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"pdf","id":"1"}},{"collection_id":"col12345","status_id":"4","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"2","id":"8","created_at":"2020-09-10T18:35:29.265786","updated_at":"2020-09-10T18:35:29.265796","status":{"name":"failed","id":"4"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"distribution-preview","id":"2"}},{"collection_id":"col12345","status_id":"4","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"1","id":"7","created_at":"2020-09-10T18:35:29.245305","updated_at":"2020-09-10T18:35:29.245322","status":{"name":"failed","id":"4"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"pdf","id":"1"}},{"collection_id":"col12345","status_id":"3","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"2","id":"6","created_at":"2020-09-10T18:35:29.219508","updated_at":"2020-09-10T18:35:29.219518","status":{"name":"processing","id":"3"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"distribution-preview","id":"2"}},{"collection_id":"col12345","status_id":"3","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"1","id":"5","created_at":"2020-09-10T18:35:29.196583","updated_at":"2020-09-10T18:35:29.196592","status":{"name":"processing","id":"3"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"pdf","id":"1"}},{"collection_id":"col12345","status_id":"2","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"2","id":"4","created_at":"2020-09-10T18:35:29.175603","updated_at":"2020-09-10T18:35:29.175613","status":{"name":"assigned","id":"2"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"distribution-preview","id":"2"}},{"collection_id":"col12345","status_id":"2","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"1","id":"3","created_at":"2020-09-10T18:35:29.152286","updated_at":"2020-09-10T18:35:29.152298","status":{"name":"assigned","id":"2"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"pdf","id":"1"}},{"collection_id":"col12345","status_id":"1","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"2","id":"2","created_at":"2020-09-10T18:35:29.130467","updated_at":"2020-09-10T18:35:29.130485","status":{"name":"queued","id":"1"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"distribution-preview","id":"2"}},{"collection_id":"col12345","status_id":"1","pdf_url":null,"content_server_id":"1","version":null,"style":"book_style","job_type_id":"1","id":"1","created_at":"2020-09-10T18:35:29.106145","updated_at":"2020-09-10T18:35:29.106156","status":{"name":"queued","id":"1"},"content_server":{"hostname":"content01.cnx.org","host_url":"https://content01.cnx.org","name":"content01","id":"1"},"job_type":{"name":"pdf","id":"1"}}]'
+      string: '[]'
     headers:
       Content-Length:
-      - '4295'
+      - '2'
       Content-Type:
       - application/json
       Date:
-      - Thu, 10 Sep 2020 18:35:28 GMT
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=1
+  response:
+    body:
+      string: '[]'
+    headers:
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=2
+  response:
+    body:
+      string: '[]'
+    headers:
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=3
+  response:
+    body:
+      string: '[{"id":"1","status_id":"1","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=4
+  response:
+    body:
+      string: '[{"id":"2","status_id":"1","job_type_id":"4"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=1&job_type_id=5
+  response:
+    body:
+      string: '[{"id":"3","status_id":"1","job_type_id":"5"}]'
+    headers:
+      Content-Length:
+      - '46'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=2
+  response:
+    body:
+      string: '[{"id":"6","status_id":"2","job_type_id":"5"},{"id":"5","status_id":"2","job_type_id":"4"},{"id":"4","status_id":"2","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=3
+  response:
+    body:
+      string: '[{"id":"9","status_id":"3","job_type_id":"5"},{"id":"8","status_id":"3","job_type_id":"4"},{"id":"7","status_id":"3","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=4
+  response:
+    body:
+      string: '[{"id":"12","status_id":"4","job_type_id":"5"},{"id":"11","status_id":"4","job_type_id":"4"},{"id":"10","status_id":"4","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '139'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
+      Server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.28.1
+    method: GET
+    uri: http://localhost/api/jobs/check?status_id=5
+  response:
+    body:
+      string: '[{"id":"15","status_id":"5","job_type_id":"5"},{"id":"14","status_id":"5","job_type_id":"4"},{"id":"13","status_id":"5","job_type_id":"3"}]'
+    headers:
+      Content-Length:
+      - '139'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 16 Nov 2022 19:27:28 GMT
       Server:
       - uvicorn
     status:

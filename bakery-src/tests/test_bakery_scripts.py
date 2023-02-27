@@ -11,6 +11,9 @@ import requests_mock
 import requests
 import pytest
 import re
+import http.server
+import threading
+from urllib.parse import urlparse
 from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
 from googleapiclient.discovery import build
@@ -34,6 +37,7 @@ from bakery_scripts import (
     assemble_book_metadata,
     bake_book_metadata,
     check_feed,
+    download_exercise_images,
     gdocify_book,
     mathmltable2png,
     copy_resources_s3,
@@ -52,7 +56,62 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 TEST_DATA_DIR = os.path.join(HERE, "data")
 TEST_JPEG_DIR = os.path.join(HERE, "test_jpeg_colorspace")
 SCRIPT_DIR = os.path.join(HERE, "../scripts")
+# small JPEG: https://stackoverflow.com/a/2349470/756056
+SMALL_JPEG = bytearray([
+    0xff, 0xd8,  # SOI
+    0xff, 0xe0,  # APP0
+    0x00, 0x10,
+    0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00,
+    0xff, 0xdb,  # DQT
+    0x00, 0x43,
+    0x00,
+    0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02,
+    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06,
+    0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06,
+    0x05, 0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08,
+    0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b,
+    0x0e, 0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e,
+    0x0f, 0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12,
+    0x13, 0x12, 0x10, 0x13, 0x0f, 0x10, 0x10, 0x10,
+    0xff, 0xc9,  # SOF
+    0x00, 0x0b,
+    0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00,
+    0xff, 0xcc,  # DAC
+    0x00, 0x06, 0x00, 0x10, 0x10, 0x05,
+    0xff, 0xda,  # SOS
+    0x00, 0x08,
+    0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20,
+    0xff, 0xd9,  # EOI
+])
+SHA1_SMALL_JPEG = "3f926a37ebed68c971312726a287610cf06135e7"
 
+class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
+    """HTTPServer mock request handler"""
+    """extremely simple http server for download exercises test"""
+
+    def do_GET(self):  # pylint: disable=invalid-name
+        """Handle GET requests"""
+        # serve depending on path (not very secure but it's a test anyway)
+        path = urlparse(self.path).path
+        if path.startswith("/test_jpeg_colorspace/"):
+            current_dir = os.path.abspath(os.path.dirname(__file__))
+            filename = os.path.join(current_dir, path[1:])
+            if os.path.exists(filename):
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.end_headers()
+                with open(filename, 'rb') as file:
+                    self.wfile.write(file.read())
+            else:
+                self.send_response(404)
+        else: # otherwise just serve the small Jpeg
+            self.send_response(200)
+            self.send_header("Content-Type", "image/jpeg")
+            self.end_headers()
+            self.wfile.write(bytes(SMALL_JPEG))
+
+    def log_request(self, code=None, size=None):
+        """Don't log anything"""
 
 def test_link_rex_git(tmp_path, mocker):
     xhtml_file = "collection.mathified.xhtml"
@@ -2349,13 +2408,14 @@ def test_upload_docx(tmp_path, mocker):
     ]
 
 
-def test_fetch_map_resources(tmp_path, mocker):
-    """Test fetch-map-resources script"""
+def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
+    """Test fetch-map-resources script without environment variable set"""
     book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
     original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
     resources_parent_dir = tmp_path / "book_slug"
-    resources_dir = resources_parent_dir / "resources"
+    initial_resources_dir = resources_parent_dir / "x-initial-resources"
+    dom_resources_dir = "resources"
     unused_resources_dir = tmp_path / "unused-resources"
 
     book_dir.mkdir(parents=True)
@@ -2434,7 +2494,7 @@ def test_fetch_map_resources(tmp_path, mocker):
     )
     fetch_map_resources.main()
 
-    assert json.load((resources_dir / image_src1_meta).open()) == {
+    assert json.load((initial_resources_dir / image_src1_meta).open()) == {
         'height': 30,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src1.svg',
@@ -2444,7 +2504,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         'sha1': image_src1_sha1_expected,
         'width': 120
     }
-    assert json.load((resources_dir / image_src2_meta).open()) == {
+    assert json.load((initial_resources_dir / image_src2_meta).open()) == {
         'height': 50,
         'mime_type': 'image/svg+xml',
         'original_name': 'image_src2.svg',
@@ -2454,7 +2514,7 @@ def test_fetch_map_resources(tmp_path, mocker):
         'sha1': image_src2_sha1_expected,
         'width': 210
     }
-    assert set(file.name for file in resources_dir.glob('**/*')) == set([
+    assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
         image_src2_sha1_expected,
         image_src2_meta,
         image_src1_sha1_expected,
@@ -2466,11 +2526,11 @@ def test_fetch_map_resources(tmp_path, mocker):
     expected = (
         f'<document xmlns="http://cnx.rice.edu/cnxml">'
         f'<content>'
-        f'<image src="../resources/{image_src1_sha1_expected}"/>'
+        f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
         f'<image src="../../media/image_missing.jpg"/>'
-        f'<image src="../resources/{image_src1_sha1_expected}"/>'
-        f'<image src="../resources/{image_src2_sha1_expected}"/>'
-        f'<iframe src="../resources/interactive/index.xhtml"/>'
+        f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+        f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
+        f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
         f'</content>'
         f'</document>'
     )
@@ -2479,7 +2539,335 @@ def test_fetch_map_resources(tmp_path, mocker):
         "image_unused.svg",
     ])
 
-    assert(resources_dir.is_dir())
+    assert(initial_resources_dir.is_dir())
+
+
+def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
+    """Test fetch-map-resources script with environment variable set"""
+    os.environ['IO_INITIAL_RESOURCES'] = '/whateverxyz/initial-resources'
+    os.environ['IO_RESOURCES'] = '/whateverxyz/myresources'
+    # function get_resource_dir_name_env should parse the last part of these environment variables out
+
+    try:
+        book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
+        original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
+        original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+        resources_parent_dir = tmp_path / "book_slug"
+        initial_resources_dir = resources_parent_dir / "initial-resources"
+        dom_resources_dir = "myresources"
+        unused_resources_dir = tmp_path / "unused-resources"
+
+        book_dir.mkdir(parents=True)
+        original_resources_dir.mkdir(parents=True)
+        original_interactive_dir.mkdir(parents=True)
+
+        interactive = original_interactive_dir / "index.xhtml"
+        interactive_content = (
+            '<!DOCTYPE html>'
+            '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+            '<body>'
+            '<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>'
+            '</body>'
+            '</html>'
+        )
+        interactive.write_text(interactive_content)
+
+        resources_parent_dir.mkdir(exist_ok=True)
+        unused_resources_dir.mkdir()
+
+        image_src1 = original_resources_dir / "image_src1.svg"
+        image_src2 = original_resources_dir / "image_src2.svg"
+        image_unused = original_resources_dir / "image_unused.svg"
+
+        # libmagic yields image/svg without the xml declaration
+        image_src1_content = ('<?xml version=1.0 ?>'
+                            '<svg height="30" width="120">'
+                            '<text x="0" y="15" fill="red">'
+                            'checksum me!'
+                            '</text>'
+                            '</svg>')
+        image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
+        image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
+        image_src1.write_text(image_src1_content)
+        image_src1_meta = f"{image_src1_sha1_expected}.json"
+
+        image_src2_content = ('<?xml version=1.0 ?>'
+                            '<svg height="50" width="210">'
+                            '<text x="0" y="40" fill="red">'
+                            'checksum me too!'
+                            '</text>'
+                            '</svg>')
+        image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
+        image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
+        image_src2.write_text(image_src2_content)
+        image_src2_meta = f"{image_src2_sha1_expected}.json"
+
+        # libmagic yields image/svg without the xml declaration
+        image_unused_content = ('<?xml version=1.0 ?>'
+                                '<svg height="30" width="120">'
+                                '<text x="0" y="15" fill="red">'
+                                'nope.'
+                                '</text>'
+                                '</svg>')
+        image_unused.write_text(image_unused_content)
+
+        module_0001_dir = book_dir / "m00001"
+        module_0001_dir.mkdir()
+        module_00001 = book_dir / "m00001/index.cnxml"
+        module_00001_content = (
+            '<document xmlns="http://cnx.rice.edu/cnxml">'
+            '<content>'
+            '<image src="../../media/image_src1.svg"/>'
+            '<image src="../../media/image_missing.jpg"/>'
+            '<image src="../../media/image_src1.svg"/>'
+            '<image src="../../media/image_src2.svg"/>'
+            '<iframe src="../../media/interactive/index.xhtml"/>'
+            '</content>'
+            '</document>'
+        )
+        module_00001.write_text(module_00001_content)
+
+        mocker.patch(
+            "sys.argv",
+            ["", book_dir, original_resources_dir, resources_parent_dir, unused_resources_dir]
+        )
+        fetch_map_resources.main()
+
+        assert json.load((initial_resources_dir / image_src1_meta).open()) == {
+            'height': 30,
+            'mime_type': 'image/svg+xml',
+            'original_name': 'image_src1.svg',
+            # AWS needs the MD5 quoted inside the string json value.
+            # Despite looking like a mistake, this is correct behavior.
+            's3_md5': f'"{image_src1_md5_expected}"',
+            'sha1': image_src1_sha1_expected,
+            'width': 120
+        }
+        assert json.load((initial_resources_dir / image_src2_meta).open()) == {
+            'height': 50,
+            'mime_type': 'image/svg+xml',
+            'original_name': 'image_src2.svg',
+            # AWS needs the MD5 quoted inside the string json value.
+            # Despite looking like a mistake, this is correct behavior.
+            's3_md5': f'"{image_src2_md5_expected}"',
+            'sha1': image_src2_sha1_expected,
+            'width': 210
+        }
+        assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
+            image_src2_sha1_expected,
+            image_src2_meta,
+            image_src1_sha1_expected,
+            image_src1_meta,
+            "interactive",
+            "index.xhtml"
+        ])
+        tree = etree.parse(str(module_00001))
+        expected = (
+            f'<document xmlns="http://cnx.rice.edu/cnxml">'
+            f'<content>'
+            f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+            f'<image src="../../media/image_missing.jpg"/>'
+            f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
+            f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
+            f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
+            f'</content>'
+            f'</document>'
+        )
+        assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
+        assert set(file.name for file in unused_resources_dir.glob('**/*')) == set([
+            "image_unused.svg",
+        ])
+
+        assert(initial_resources_dir.is_dir())
+    finally:
+        del os.environ['IO_INITIAL_RESOURCES']
+        del os.environ['IO_RESOURCES']
+
+
+def test_download_exercise_images(tmp_path, mocker):
+    """Test download exercise images script"""
+    assembled_dir = tmp_path / "assembled"
+    output_dir = tmp_path / "downloaded_exercise"
+    resources_dir = tmp_path / "resources_xyz"
+
+    assembled_dir.mkdir(parents=True)
+    output_dir.mkdir(parents=True)
+    resources_dir.mkdir(parents=True)
+
+    assembled1 = assembled_dir / "assembled1.xhtml"
+    injected_exercise_content = (
+        '<!DOCTYPE html>'
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+        '<body>'
+        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        '<img src="../resources/testx" />'
+        '<img src="http://127.0.0.1:9999/test.jpg" />'
+        '<img src="../resources/testy" />'
+        '</body>'
+        '</html>'
+    )
+    assembled1.write_text(injected_exercise_content)
+
+    output1 = output_dir / "output1.xhtml"
+
+    # start a local simple http server which emulates serving a JPEG file
+    server = http.server.ThreadingHTTPServer(
+            ("127.0.0.1", 9999), MockJpegHTTPRequestHandler
+        )
+    with server:
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        try:
+            download_exercise_images.fetch_and_replace_external_exercise_images(
+                resources_dir, str(assembled1), str(output1))
+        finally:
+            server.shutdown()
+    # check the image is downloaded and file name and content is correct
+    downloaded_image = resources_dir / SHA1_SMALL_JPEG
+    assert Path.is_file(downloaded_image)
+    assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
+    # check image metadata generated is correct
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9999/test.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
+    assert image_data.get("sha1") == SHA1_SMALL_JPEG
+    assert image_data.get("width") == 1
+    assert image_data.get("height") == 1
+    # check the final xhtml file points in the DOM to ../resources
+    doc = etree.parse(str(output1))
+    count = -1
+    for node in doc.xpath(
+        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        count = count + 1
+        if count == 0:
+            assert node.get("src") == "../resources/testx"
+        elif count == 1:
+            assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
+        else:
+            assert node.get("src") == "../resources/testy"
+
+    # some more tests with more images
+
+    assembled2 = assembled_dir / "assembled2.xhtml"
+    injected_exercise_content = (
+        '<!DOCTYPE html>'
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
+        '<body>'
+        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        '<img src="../resources/testx" />'
+        '<img src="http://127.0.0.1:9998/test.jpg" />'
+        '<img src="../resources/testy" />'
+        '<div><div>'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg" />'
+        '</div>'
+        '<img src="../resources/testz" />'
+        '</div>'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png" />'
+        '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg" />'
+        '</body>'
+        '</html>'
+    )
+    assembled2.write_text(injected_exercise_content)
+
+    output2 = output_dir / "output2.xhtml"
+    server = http.server.ThreadingHTTPServer(
+            ("127.0.0.1", 9998), MockJpegHTTPRequestHandler
+        )
+    with server:
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        try:
+            download_exercise_images.fetch_and_replace_external_exercise_images(
+                resources_dir, str(assembled2), str(output2))
+        finally:
+            server.shutdown()
+
+    SHA1_CMYK = "7a3aeeef73945e2319d7274e3e736e1cdc621b7b"
+    SHA1_ORIGINAL = "229ecf98eb35249ad761e4038bccc67862901812"
+    SHA1_RGB = "3177dfe606cfacaa664257b65778dd0cc7f09215"
+
+    downloaded_image = resources_dir / SHA1_SMALL_JPEG
+    assert Path.is_file(downloaded_image)
+    assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
+
+    downloaded_image = resources_dir / SHA1_CMYK
+    assert Path.is_file(downloaded_image)
+
+    downloaded_image = resources_dir / SHA1_ORIGINAL
+    assert Path.is_file(downloaded_image)
+
+    downloaded_image = resources_dir / SHA1_RGB
+    assert Path.is_file(downloaded_image)
+
+    # check image metadata generated is correct
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"558fa6a761ed5046dfe759967c9422d2"'
+    assert image_data.get("sha1") == SHA1_SMALL_JPEG
+    assert image_data.get("width") == 1
+    assert image_data.get("height") == 1
+
+    json_metadata_image = resources_dir / (SHA1_CMYK + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"227616b605949ee33ede48ca329563bd"'
+    assert image_data.get("sha1") == SHA1_CMYK
+    assert image_data.get("width") == 1680
+    assert image_data.get("height") == 1050
+
+    json_metadata_image = resources_dir / (SHA1_ORIGINAL + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
+    assert image_data.get("mime_type") == "image/png"
+    assert image_data.get("s3_md5") == '"aaeb2fd09a2d6762835964291e0448b2"'
+    assert image_data.get("sha1") == SHA1_ORIGINAL
+    assert image_data.get("width") == 1728
+    assert image_data.get("height") == 1080
+
+    json_metadata_image = resources_dir / (SHA1_RGB + '.json')
+    assert Path.is_file(json_metadata_image)
+    image_data = json.loads(json_metadata_image.read_text())
+    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
+    assert image_data.get("mime_type") == "image/jpeg"
+    assert image_data.get("s3_md5") == '"7a60945c5bebe815c25d91baf35dc79f"'
+    assert image_data.get("sha1") == SHA1_RGB
+    assert image_data.get("width") == 1728
+    assert image_data.get("height") == 1080
+
+    # check the final xhtml file points in the DOM to ../resources
+    doc = etree.parse(str(output1))
+    count = -1
+    for node in doc.xpath(
+        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        count = count + 1
+        if count == 0:
+            assert node.get("src") == "../resources/testx"
+        elif count == 1:
+            assert node.get("src") == "../resources/" + SHA1_SMALL_JPEG
+        elif count == 2:
+            assert node.get("src") == "../resources/testy"
+        elif count == 3:
+            assert node.get("src") == "../resources/" + SHA1_CMYK
+        elif count == 4:
+            assert node.get("src") == "../resources/testz"
+        elif count == 5:
+            assert node.get("src") == "../resources/" + SHA1_ORIGINAL
+        else:
+            assert node.get("src") == "../resources/" + SHA1_RGB
+
 
 
 def test_fetch_update_metadata(tmp_path, mocker):
@@ -2904,7 +3292,7 @@ def test_link_single(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml)]
+        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
     )
     link_single.main()
 
@@ -2912,7 +3300,7 @@ def test_link_single(tmp_path, mocker):
         [
             ("id", "l1"),
             ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml"),
+             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml"),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
             ("data-page-slug", "book2-page1"),
@@ -2920,7 +3308,7 @@ def test_link_single(tmp_path, mocker):
         [
             ("id", "l2"),
             ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f:"
+             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:"
              "2e51553f-fde8-43a3-8191-fd8b493a6cfa.xhtml#foobar"),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
@@ -3042,7 +3430,7 @@ def test_link_single_with_flag(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml),
+        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion"),
          "--mock-otherbook"]
     )
     link_single.main()
@@ -3094,7 +3482,7 @@ def test_link_single_with_flag(tmp_path, mocker):
     ):
         mocker.patch(
             "sys.argv",
-            ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml)]
+            ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
         )
         link_single.main()
 

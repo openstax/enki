@@ -9,6 +9,9 @@
 /build-concourse/corgi-*.yml
 
 
+/bakery-src/scripts/build
+/bakery-src/scripts/cops_bakery_scripts.egg-info
+
 # Files generated inside the container and therefore need to be ignored when opened inside Gitpod
 /venv/
 
@@ -16,3 +19,8 @@
 test/cov.xml
 test/.coverage
 test/cov.html/
+
+/bakery-js/coverage
+/bakery-js/node_modules
+/bakery-js/dist
+/bakery-js/testing

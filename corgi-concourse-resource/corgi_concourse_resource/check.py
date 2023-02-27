@@ -15,14 +15,12 @@ def check(in_stream):
     if not status_id:
         return [version] if version else []
     else:
-        jobs = get_jobs(api_root)
+        query = {"status_id": status_id}
+        if job_type_id is not None:
+            query["job_type_id"] = job_type_id
+        jobs = get_jobs(api_root, **query)
         msg("jobs: {}", jobs)
         msg("Inputs: {}", input)
-
-        jobs = [job for job in jobs if int(job["status_id"]) == status_id]
-
-        if job_type_id is not None:
-            jobs = [job for job in jobs if int(job.get("job_type_id")) == job_type_id]
 
         if version:
             previous_id = version["id"]

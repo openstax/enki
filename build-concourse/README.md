@@ -128,12 +128,48 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
     headers:
       Content-Type: application/json
     body: >
-        {
-            "collection_id": "philschatz/tiny-book/book-slug1",
-            "version": null,
-            "style": "astronomy",
-            "content_server": null
-        }
+      {
+        "status_id": "1",
+        "job_type_id": "3",
+        "version": "18ca7dfc49392e2cb93352c528a140e7d02a030c",
+        "worker_version": "1",
+        "id": "3333",
+        "created_at": "2022-10-24T22:44:09.845510",
+        "updated_at": "2022-10-24T22:44:09.845515",
+        "status": {
+          "name": "assigned",
+          "id": "2"
+        },
+        "repository": {
+          "name": "osbooks-college-success",
+          "owner": "openstax"
+        },
+        "job_type": {
+          "name": "git-web-hosting-preview",
+          "display_name": "Web Preview (git)",
+          "id": "4"
+        },
+        "user": {
+          "name": "Staxly",
+          "avatar_url": "https://avatars.githubusercontent.com/u/10718832?v=4",
+          "id": "10718832"
+        },
+        "books": [
+          {
+            "slug": "college-success",
+            "commit_id": "1",
+            "edition": 0,
+            "style": "college-success",
+            "uuid": "e8668a14-9a7d-4d74-b58c-3681f8351224"
+          }
+        ],
+        "artifact_urls": [
+          {
+            "slug": "college-success",
+            "url": null
+          }
+        ]
+      }
 - request:
     method: GET
     path: /api/jobs/4444
@@ -141,12 +177,48 @@ Upload the following (tweak it to change which jobs are pulled) by visiting http
     headers:
       Content-Type: application/json
     body: >
-        {
-            "collection_id": "philschatz/tiny-book/book-slug1",
-            "version": null,
-            "style": "astronomy",
-            "content_server": null
-        }
+      {
+        "status_id": "1",
+        "job_type_id": "4",
+        "version": "18ca7dfc49392e2cb93352c528a140e7d02a030c",
+        "worker_version": "1",
+        "id": "4444",
+        "created_at": "2022-10-24T22:44:09.845510",
+        "updated_at": "2022-10-24T22:44:09.845515",
+        "status": {
+          "name": "assigned",
+          "id": "2"
+        },
+        "repository": {
+          "name": "osbooks-college-success",
+          "owner": "openstax"
+        },
+        "job_type": {
+          "name": "git-web-hosting-preview",
+          "display_name": "Web Preview (git)",
+          "id": "4"
+        },
+        "user": {
+          "name": "Staxly",
+          "avatar_url": "https://avatars.githubusercontent.com/u/10718832?v=4",
+          "id": "10718832"
+        },
+        "books": [
+          {
+            "slug": "college-success",
+            "commit_id": "1",
+            "edition": 0,
+            "style": "college-success",
+            "uuid": "e8668a14-9a7d-4d74-b58c-3681f8351224"
+          }
+        ],
+        "artifact_urls": [
+          {
+            "slug": "college-success",
+            "url": null
+          }
+        ]
+      }
 
 - request:
     method: PUT
