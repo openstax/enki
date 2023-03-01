@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Files
-out_file='bap/book_data/AUTO_books.txt'
-ubl='bap/book_data/USER_ubl.txt'
-mkdir -p 'bap/book_data'; touch $out_file; touch $ubl
+out_file='script/cross-lib/book_data/AUTO_books.txt'
+ubl='script/cross-lib/book_data/USER_ubl.txt'
+mkdir -p 'script/cross-lib/book_data'; touch $out_file; touch $ubl
 
 # Refresh ABL
 abl="$(curl -Ss 'https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json')"

@@ -17,10 +17,10 @@ done
 
 [[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'all-git-epub'" && exit 1 )
 
-all_books="bap/book_data/AUTO_books.txt"
+all_books="cross-lib/book_data/AUTO_books.txt"
 test -f $all_books || ( echo "ERROR: Book list not found at ${all_books}" && exit 1 )
 
-mkdir -p bap/logs/
+mkdir -p cross-lib/logs/
 
 # https://stackoverflow.com/a/20983251
 echo_green() { echo -e "$(tput setaf 2)$*$(tput sgr0)"; }
@@ -29,7 +29,7 @@ echo_red() { echo -e "$(tput setaf 1)$*$(tput sgr0)"; }
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> bap/logs/$2-$3.txt
+  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> cross-lib/logs/$2-$3.txt
   exit=$?
   stop_time=$(date +%s)
   elapsed_formatted="$(date -u -r $(($stop_time - $start_time)) +%T)"
@@ -47,3 +47,5 @@ while read -r line; do
   # https://stackoverflow.com/a/35208546
   echo "" | run_and_log_enki $arg_command $repo $slug || true
 done <$all_books
+
+# final time report (& failures?)

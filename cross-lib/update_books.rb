@@ -4,9 +4,9 @@ require 'json'
 require 'set'
 
 # Files
-out_file = 'bap/book_data/AUTO_books.txt'
-ubl = 'bap/book_data/USER_ubl.txt'
-`mkdir -p bap/book_data; touch #{out_file}; touch #{ubl}`
+out_file = 'cross-lib/book-data/AUTO_books.txt'
+ubl = 'cross-lib/book-data/USER_ubl.txt'
+`mkdir -p cross-lib/book-data; touch #{out_file}; touch #{ubl}`
 
 # Refresh ABL (bash)
 abl_hash = JSON.parse(
