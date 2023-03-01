@@ -4,10 +4,12 @@ from pathlib import Path
 
 
 from .utils import ensure_isoformat
+from .profiler import timed
 from .cnx_models import flatten_to_documents
 from .html_parser import reconstitute
 
 
+@timed
 def main():
     input_assembled_file = Path(sys.argv[1]).resolve(strict=True)
     uuid_to_revised_path = Path(sys.argv[2]).resolve(strict=True)

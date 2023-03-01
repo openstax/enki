@@ -2,6 +2,7 @@
 from lxml import etree
 import sys
 from .cnx_models import utf8
+from .profiler import timed
 
 IS_PY3 = sys.version_info.major == 3
 
@@ -28,6 +29,7 @@ class DocumentContentFormatter(object):
         return etree.tostring(et, pretty_print=True, encoding='utf-8')
 
 
+@timed
 def _fix_namespaces(html):
     # Get rid of unused namespaces and put them all in the root tag
     nsmap = {None: u"http://www.w3.org/1999/xhtml",

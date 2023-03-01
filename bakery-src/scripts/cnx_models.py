@@ -10,6 +10,7 @@ from collections.abc import MutableSequence
 from urllib.parse import urlparse
 
 from lxml import etree
+from .profiler import timed
 
 
 __all__ = (
@@ -60,6 +61,7 @@ XML_WRAPPER = u"""\
 XHTML_NS = {'x': 'http://www.w3.org/1999/xhtml'}
 
 
+@timed
 def utf8(item):
     if isinstance(item, list):
         return [utf8(i) for i in item]
@@ -72,6 +74,7 @@ def utf8(item):
         return item
 
 
+@timed
 def content_to_etree(content):
     if not content:  # Allow building empty models
         return etree.XML('<body xmlns="http://www.w3.org/1999/xhtml" />')
@@ -86,6 +89,7 @@ def content_to_etree(content):
         raise Exception('Content must have <body>')
 
 
+@timed
 def etree_to_content(etree_, strip_root_node=False):
     if strip_root_node:  # pragma: no cover
         return ''.join(utf8([
@@ -95,6 +99,7 @@ def etree_to_content(etree_, strip_root_node=False):
     return etree.tostring(etree_)
 
 
+@timed
 def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     """Given an model, build the tree::
 
@@ -117,6 +122,7 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     return tree
 
 
+@timed
 def flatten_tree_to_ident_hashes(item_or_tree,
                                  lucent_id=TRANSLUCENT_BINDER_ID):
     """Flatten a tree to id and version values (ident_hash)."""
@@ -133,6 +139,7 @@ def flatten_tree_to_ident_hashes(item_or_tree,
         yield item['id']
 
 
+@timed
 def flatten_model(model):
     """Flatten a model to a list of models.
     This is used to flatten a ``Binder``'ish model down to a list
@@ -146,6 +153,7 @@ def flatten_model(model):
                 yield x
 
 
+@timed
 def flatten_to_documents(model, include_pointers=False):
     """Flatten the model to a list of documents (aka ``Document`` objects).
     This is to flatten a ``Binder``'ish model down to a list of documents.
@@ -164,6 +172,7 @@ def flatten_to_documents(model, include_pointers=False):
     return flatten_to(model, _filter)
 
 
+@timed
 def flatten_to(model, flatten_filter):
     """Flatten the model to a list of models that meet criteria of
     the given `flatten_filter` callable.
@@ -178,6 +187,7 @@ def flatten_to(model, flatten_filter):
             yield m
 
 
+@timed
 def _discover_uri_type(uri):
     """Given a ``uri``, determine if it is internal or external."""
     parsed_uri = urlparse(uri)
@@ -191,6 +201,7 @@ def _discover_uri_type(uri):
     return type_
 
 
+@timed
 def _parse_references(xml):
     """Parse the references to ``Reference`` instances."""
     references = []

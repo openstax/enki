@@ -4,9 +4,11 @@ import sys
 from lxml import etree
 
 from .utils import model_to_tree, ensure_isoformat
+from .profiler import timed
 from .html_parser import DocumentMetadataParser, reconstitute
 
 
+@timed
 def main():
     raw_metadata_file, baked_xhtml_file, collection_uuid, book_slugs_file, baked_metadata_file = sys.argv[
         1:6]

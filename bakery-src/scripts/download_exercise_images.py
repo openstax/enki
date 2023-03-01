@@ -11,7 +11,7 @@ import hashlib
 from pathlib import Path
 from lxml import etree
 from tempfile import SpooledTemporaryFile
-from . import utils
+from .utils import get_checksums, get_size, create_json_metadata, get_mime_type
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 
@@ -41,13 +41,13 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
                 with open(local_resource, 'wb') as local_resource_file:
                     shutil.copyfileobj(tmp_file, local_resource_file)
 
-            sha1_local, s3_md5 = utils.get_checksums(str(local_resource))
+            sha1_local, s3_md5 = get_checksums(str(local_resource))
             if sha1 != sha1_local:  # pragma: no cover
                 raise ValueError(
                     f'SHA1 internal values do not match! That should never happen! {sha1} != {sha1_local}')
-            mime_type = utils.get_mime_type(str(local_resource))
-            width, height = utils.get_size(str(local_resource))
-            utils.create_json_metadata(
+            mime_type = get_mime_type(str(local_resource))
+            width, height = get_size(str(local_resource))
+            create_json_metadata(
                 resources_dir, sha1, mime_type, s3_md5, image_url, width, height)
 
             new_local_src = '../resources/' + sha1
