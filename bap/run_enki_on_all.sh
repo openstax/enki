@@ -15,28 +15,30 @@ while [ -n "$1" ]; do
   shift
 done
 
-[[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'rex-preview'" && exit 1 )
+[[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'all-git-epub'" && exit 1 )
 
 all_books="bap/book_data/AUTO_books.txt"
 test -f $all_books || ( echo "ERROR: Book list not found at ${all_books}" && exit 1 )
 
-mkdir bap/logs/
+mkdir -p bap/logs/
 
 # https://stackoverflow.com/a/20983251
 echo_green() { echo -e "$(tput setaf 2)$*$(tput sgr0)"; }
 echo_red() { echo -e "$(tput setaf 1)$*$(tput sgr0)"; }
 
 run_and_log_enki () {
-  echo "running command $1 on $2 $3"
+  echo "  running command $1 on $2 $3"
+  start_time=$(date +%s)
   ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> bap/logs/$2-$3.txt
   exit=$?
+  stop_time=$(date +%s)
+  elapsed_formatted="$(date -u -r $(($stop_time - $start_time)) +%T)"
+  echo "  time to build $elapsed_formatted"
   if [ $exit == 0 ]; then
     echo_green "==> SUCCESS: $2 $3"
   else
     echo_red "==> FAILED with $exit: $2 $3"
   fi
-  # TODO: collect failures & output report at the end
-  # TODO: report timing data
 }
 
 while read -r line; do
