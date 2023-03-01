@@ -8,8 +8,8 @@
 /build-concourse/webhosting-*.yml
 /build-concourse/corgi-*.yml
 
-/bap/book_data
-/bap/logs
+/script/cross-lib/book_data
+/script/cross-lib/logs
 
 # Files generated inside the container and therefore need to be ignored when opened inside Gitpod
 /venv/
