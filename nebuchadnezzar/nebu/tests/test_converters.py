@@ -8,7 +8,7 @@
 import os
 import sys
 
-from cnxtransforms.converters import (
+from nebu.converters import (
     cnxml_abstract_to_html,
     cnxml_to_full_html,
 )
