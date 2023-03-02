@@ -7,10 +7,8 @@ import re
 from collections import defaultdict
 
 from nebu import __version__
-from ..config import prepare
 
 from .assemble import assemble
-from .environment import list_environments
 
 
 __all__ = ('cli',)
@@ -137,14 +135,11 @@ class HelpSectionsGroup(click.Group):
 @click.option('--version', callback=_version_callback, is_flag=True,
               expose_value=False, is_eager=True,
               help='Show the version and exit')
-@click.pass_context
-def cli(ctx):
-    env = prepare()
-    ctx.obj = env
+def cli():
+    pass
 
 
 cli.add_command(assemble, help_section='Stock')
-cli.add_command(list_environments, help_section='Stock')
 
 for entry_point in pkg_resources.iter_entry_points('neb.extension'):
     entry_point.load()(cli)  # pragma: no cover

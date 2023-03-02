@@ -4,3 +4,4 @@ pytest-cov
 pytest-runner
 requests-mock
 aioresponses
+pytest-snapshot

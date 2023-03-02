@@ -3,8 +3,8 @@ import re
 
 from lxml import etree
 import json
-from cnxml.parse import parse_metadata as parse_cnxml_metadata
-from cnxepub.models import (
+from nebu.parse import parse_metadata as parse_cnxml_metadata
+from nebu.models.base_binder import (
     Binder as BaseBinder,
     DocumentPointer,
     TranslucentBinder,

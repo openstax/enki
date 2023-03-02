@@ -1,9 +1,9 @@
 from copy import copy
 
 import json
-from cnxepub.utils import squash_xml_to_text
-from cnxml.parse import parse_metadata as parse_cnxml_metadata
-from cnxtransforms import cnxml_abstract_to_html
+from nebu.xml_utils import squash_xml_to_text
+from nebu.parse import parse_metadata as parse_cnxml_metadata
+from nebu.converters import cnxml_abstract_to_html
 from lxml import etree
 
 
@@ -14,22 +14,6 @@ __all__ = (
     'build_id_to_uuid_mapping',
     'id_from_metadata',
 )
-
-
-ACTORS_MAPPING_KEYS = (
-    # (<litezip name>, <cnx-epub name>),
-    ('authors', 'authors'),
-    ('licensors', 'copyright_holders'),
-    ('maintainers', 'publishers'),
-)
-
-
-def _format_actors(actors):
-    """Format the actors list of usernames to a cnx-epub compatable format"""
-    formatted_actors = []
-    for a in actors:
-        formatted_actors.append({'id': a, 'type': 'cnx-id', 'name': a})
-    return formatted_actors
 
 
 def convert_to_model_compat_metadata(metadata):
@@ -54,19 +38,6 @@ def convert_to_model_compat_metadata(metadata):
     #       'Creative Commons Attribution License (ASSUMED)' for now.
     if md.get('license_text', None) is None:
         md['license_text'] = 'Creative Commons Attribution License (ASSUMED)'
-    md.setdefault('print_style', None)
-
-    md['derived_from_title'] = md['derived_from']['title']
-    md['derived_from_uri'] = md['derived_from']['uri']
-    md.pop('derived_from')
-
-    # Translate to a Person Info structure
-    for lz_key, epub_key in ACTORS_MAPPING_KEYS:
-        md[epub_key] = _format_actors(md.pop(lz_key))
-
-    md.setdefault('editors', [])
-    md.setdefault('illustrators', [])
-    md.setdefault('translators', [])
 
     md['summary'] = md.pop('abstract')
     md['summary'] = md['summary'] and md['summary'] or None

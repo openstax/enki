@@ -48,7 +48,7 @@
   <md:subjectlist>
     <md:subject>Mathematics and Statistics</md:subject>
   </md:subjectlist>
-  <md:abstract/>
+  <md:abstract>Hey, I'm abstracting here</md:abstract>
   <md:language>en</md:language>
   <!-- WARNING! The 'metadata' section is read only. Do not edit above.
        Changes to the metadata section in the source will not be saved. -->

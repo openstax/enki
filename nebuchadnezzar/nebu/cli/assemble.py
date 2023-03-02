@@ -1,12 +1,12 @@
 from pathlib import Path
 
 import click
-from cnxepub.formatters import (
+from nebu.formatters import (
     HTMLFormatter,
     SingleHTMLFormatter,
     exercise_callback_factory,
 )
-from cnxepub.models import flatten_to_documents
+from nebu.models.base_binder import flatten_to_documents
 
 from ._common import common_params, logger
 from ..models.binder import Binder
