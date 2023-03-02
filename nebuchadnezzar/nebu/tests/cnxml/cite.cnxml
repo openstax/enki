@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" cnxml-version="0.7" id="cite-tests" module-id="m12345">
+  <title>Test Module</title>
+  <content>
+    <para id="cite-example-1">
+      <cite>
+        <cite-title>A Tale of Two Cities</cite-title>
+        by Charles Dickens
+      </cite>
+      is a classic novel.
+    </para>
+    <para id="cite-example-2">This article was taken from
+      <cite window="new" url="http://www.cnn.com">CNN.com
+      </cite>.
+    </para>
+    <para id="cite-example-3">
+      <cite target-id="fs-1234">
+        <note display="inline" class="reference" id="fs-1234">My cool reference</note>
+      </cite>
+    </para>
+    <para id="cite-example-4">
+      An empty citation
+      <cite target-id="fs-1234" class="whatever"/>.
+    </para>
+  </content>
+</document>
