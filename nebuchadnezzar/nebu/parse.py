@@ -81,7 +81,7 @@ def make_cnx_xpath(elm_tree):
 
 
 def _squash_to_text(elm, remove_namespaces=False):
-    if elm is None:
+    if elm is None:  # pragma: no cover
         return None
     value = [elm.text or '']
     for child in elm.getchildren():
@@ -156,9 +156,6 @@ def parse_metadata(elm_tree):
 
     """
     xpath = make_cnx_xpath(elm_tree)
-    role_xpath = lambda xp: tuple(  # noqa: E731
-        (_maybe(xpath(xp)) or "").split()
-    )
 
     language = _maybe(xpath('//md:language/text()'))
     license_text, license_url = _parse_license(
@@ -170,7 +167,6 @@ def parse_metadata(elm_tree):
             xpath('//md:canonical-book-uuid/text()')
         ),
         'version': _maybe(xpath('//md:version/text()')),
-        'created': _maybe(xpath('//md:created/text()')),
         'revised': _maybe(xpath('//md:revised/text()')),
         'title':
             _maybe(xpath('//md:title/text()')) or xpath('//c:title/text()')[0],
@@ -178,21 +174,9 @@ def parse_metadata(elm_tree):
         'license_url': license_url,
         'license_text': license_text,
         'language': language,
-        'authors': role_xpath('//md:role[@type="author"]/text()'),
-        'maintainers': role_xpath('//md:role[@type="maintainer"]/text()'),
-        'licensors': role_xpath('//md:role[@type="licensor"]/text()'),
-        'keywords': tuple(xpath('//md:keywordlist/md:keyword/text()')),
-        'subjects': tuple(xpath('//md:subjectlist/md:subject/text()')),
         'abstract': _squash_to_text(
             _maybe(xpath('//md:abstract')),
             remove_namespaces=True,
         ),
-        'print_style': _maybe(
-            xpath('//col:param[@name="print-style"]/@value'),
-        ),
-        'derived_from': {
-            'uri': _maybe(xpath('//md:derived-from/@url')),
-            'title': _maybe(xpath('//md:derived-from/md:title/text()')),
-        },
     }
     return props

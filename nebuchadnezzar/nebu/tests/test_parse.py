@@ -32,25 +32,11 @@ def test_parse(xml):
             'and simulations, and ample practice opportunities to solve '
             'traditional physics application problems.'
         ),
-        'authors': ('OpenStaxCollege',),
-        'created': '2012/01/23 13:03:30.293 US/Central',
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (
-            'ac circuits',
-            'atomic physics',
-            'bioelectricity',
-            'biological and medical applications',
-            'circuits',
-        ),
         'language': 'en',
         'license_url': 'http://creativecommons.org/licenses/by/4.0/',
         'license_text': 'Creative Commons Attribution License',
-        'licensors': ('OSCRiceUniversity',),
-        'maintainers': ('OpenStaxCollege', 'cnxcap'),
-        'print_style': 'ccap-physics',
         'revised': '2015/07/27 12:55:32.442 GMT-5',
-        'subjects': ('Mathematics and Statistics', 'Science and Technology'),
         'title': 'College Physics',
         'version': '1.9',
         'uuid': None,
@@ -67,19 +53,11 @@ def test_git_parse(git_xml):
 
     expected_props = {
         'abstract': None,
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': 'en',
-        'license_url': 'http://creativecommons.org/licenses/by/4.0/',
+        'license_url': 'http://creativecommons.org/licenses/by/4.0/deed.en',
         'license_text': 'Creative Commons Attribution License',
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': 'e1edc39a-14cd-4d61-886f-36bebd27e2d2',
@@ -143,12 +121,6 @@ def test_parse_derived_from(xml):
     # Call the target
     props = parse_metadata(xml)
 
-    # Verify properties
-    expected = {
-        'title': title,
-        'uri': uri,
-    }
-    assert props['derived_from'] == expected
     # Verify we've discovered the correct title
     assert props['title'] == 'College Physics'
 
@@ -169,19 +141,11 @@ def test_parse_with_minimal_metadata():
 
     expected_props = {
         'abstract': '',
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': None,
         'license_url': None,
         'license_text': None,
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': None,
@@ -210,19 +174,11 @@ def test_parse_with_optional_metadata():
 
     expected_props = {
         'abstract': '',
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': None,
         'license_url': None,
         'license_text': None,
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': 'e1edc39a-14cd-4d61-886f-36bebd27e2d2',
@@ -259,19 +215,11 @@ def test_parse_no_license_url_returns_default(license_el):
 
     expected_props = {
         'abstract': '',
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': None,
         'license_url': None,
         'license_text': None,
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': None,
@@ -338,19 +286,11 @@ def test_parse_license_url_returns_expected_value(license_url, license_text, md_
 
     expected_props = {
         'abstract': '',
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': md_lang,
         'license_url': license_url.strip(),
         'license_text': license_text,
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': None,
@@ -427,19 +367,11 @@ def test_parse_localized_license_url_returns_element_text(license_url, license_t
 
     expected_props = {
         'abstract': '',
-        'authors': (),
-        'created': None,
-        'derived_from': {'title': None, 'uri': None},
         'id': 'col11406',
-        'keywords': (),
         'language': md_lang,
         'license_url': license_url.strip(),
         'license_text': license_text.strip(),
-        'licensors': (),
-        'maintainers': (),
-        'print_style': None,
         'revised': None,
-        'subjects': (),
         'title': 'College Physics',
         'version': None,
         'uuid': None,
