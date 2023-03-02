@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from lxml import etree
-from nebu.html_parsers import HTML_DOCUMENT_NAMESPACES
+from nebu.xml_utils import HTML_DOCUMENT_NAMESPACES
 from nebu.models.base_binder import (
     Document as BaseDocument,
 )
