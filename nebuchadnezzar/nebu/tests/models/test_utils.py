@@ -136,8 +136,7 @@ class TestScanForIdMapping(object):
 
     def test_book_tree_structure(self, datadir):
         loc = (
-            datadir / 'book_tree' /
-            'Intro to Computational Engineering∶ Elec 220 Labs'
+            datadir / 'book_tree' / 'Intro to Computational Engineering∶ Elec 220 Labs'
         )
 
         # Call the target
@@ -150,7 +149,7 @@ class TestScanForIdMapping(object):
                 'index.cnxml'),
             '01 MSP430 LaunchPad Test Circuit Breadboarding Instructions':
                 Path('10 Helpful General Information/'
-                     '01 MSP430 LaunchPad Test Circuit Breadboarding ' +
+                     '01 MSP430 LaunchPad Test Circuit Breadboarding '
                      'Instructions/'
                      'index.cnxml'),
             '02 A Student to Student Intro to IDE Programming and CCS4': Path(
@@ -168,7 +167,7 @@ class TestScanForIdMapping(object):
                 'index.cnxml'),
             '07 Lab 4-2 Putting It All Together': Path(
                 '07 Lab 4-2 Putting It All Together/index.cnxml'),
-            '09 Lab 5-2 Using C and the ADC for "Real World" Applications ' +
+            '09 Lab 5-2 Using C and the ADC for "Real World" Applications '
                 'with the MSP430': Path(
                 '09 Lab 5-2 Using C and the ADC for "Real World" '
                 'Applications with the MSP430/index.cnxml'),
@@ -219,8 +218,7 @@ class TestScanForUUIDMapping(object):
 
     def test_book_tree_structure(self, datadir):
         loc = (
-            datadir / 'book_tree' /
-            'Intro to Computational Engineering∶ Elec 220 Labs'
+            datadir / 'book_tree' / 'Intro to Computational Engineering∶ Elec 220 Labs'
         )
 
         # Call the target

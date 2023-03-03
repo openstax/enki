@@ -678,7 +678,7 @@ class HTMLFormatterTestCase(unittest.TestCase):
 
     def test_binder(self):
         from nebu.models.base_binder import (Binder, TranslucentBinder, Document,
-                              DocumentPointer)
+                                             DocumentPointer)
         from nebu.formatters import HTMLFormatter
 
         # Build test binder.
@@ -816,7 +816,7 @@ class SingleHTMLFormatterTestCase(unittest.TestCase):
 
     def setUp(self):
         from nebu.models.base_binder import (TranslucentBinder, Binder, Document,
-                              CompositeDocument)
+                                             CompositeDocument)
 
         metadata = self.base_metadata.copy()
         contents = io.BytesIO(u"""\

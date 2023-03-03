@@ -13,7 +13,7 @@ import sys
 if sys.version_info[0] >= 3 and sys.version_info[1] >= 4:
     import html
     parser = html
-else: # pragma: no cover because who uses python 2 now? (FIXME: remove)
+else:  # pragma: no cover because who uses python 2 now? (FIXME: remove)
     try:
         import html.parser as HTMLParser
     except Exception:

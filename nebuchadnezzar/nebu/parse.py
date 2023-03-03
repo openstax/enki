@@ -107,7 +107,7 @@ def _parse_license_url(url):
     typ, ver = type_and_version
     # Even if the license is localized, it should have a valid type and
     # version in the url
-    if(typ not in LICENSE_INFO_MAP or
+    if (typ not in LICENSE_INFO_MAP or
             ver not in LICENSE_INFO_MAP[typ]['versions']):
         raise Exception('Unknown license type or version: ' +
                         f'{{ url: "{url}", type: "{typ}", version: "{ver}" }}')
