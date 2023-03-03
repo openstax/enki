@@ -4,4 +4,4 @@ docker>=4.2.2
 pip
 requests>=2.24.0
 setuptools
-jinja2>=3.1.2
+jinja2
