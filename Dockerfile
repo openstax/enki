@@ -141,7 +141,7 @@ ENV PROJECT_ROOT=/workspace/enki
 # ---------------------------
 
 # Source: https://github.com/gitpod-io/workspace-images/blob/master/full/Dockerfile#L139
-ENV NODE_VERSION=14.16.1
+ENV NODE_VERSION=18.14.2
 
 COPY                ./dockerfiles/build/build-system-node.env \
         $PROJECT_ROOT/dockerfiles/build/build-system-node.env
@@ -294,7 +294,7 @@ RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo
 # Build concourse resource
 # ---------------------------
 
-FROM openstax/python3-poetry as concourse-resource-builder
+FROM openstax/python3-poetry:20220614.214642 as concourse-resource-builder
 
 WORKDIR /code
 COPY ./corgi-concourse-resource .
