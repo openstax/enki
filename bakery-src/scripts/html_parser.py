@@ -147,6 +147,7 @@ def adapt_single_html(html):
     id_ = metadata['cnx-archive-uri'] or 'book'
 
     binder = Binder(id_, metadata=metadata)
+    binder = Binder(id_, metadata=metadata)
     nav_tree = parse_navigation_html_to_tree(html_root, id_)
 
     body = html_root.xpath('//xhtml:body', namespaces=HTML_DOCUMENT_NAMESPACES)
@@ -169,6 +170,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
     def fix_generated_ids(page, id_map):
         """Fix element ids (remove auto marker) and populate id_map."""
 
+        content = content_to_etree(page.content)
         content = content_to_etree(page.content)
 
         new_ids = set()
@@ -209,10 +211,12 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
         id_map['#{}'.format(page.id.split('@')[0])] = (page, '')
 
         page.content = etree_to_content(content)
+        page.content = etree_to_content(content)
 
     def fix_links(page, id_map):
         """Remap all intra-book links, replace with value from id_map."""
 
+        content = content_to_etree(page.content)
         content = content_to_etree(page.content)
         for i in content.xpath('.//*[starts-with(@href, "#")]',
                                namespaces=HTML_DOCUMENT_NAMESPACES):
@@ -230,6 +234,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
             else:
                 logging.error(f'Bad href: {ref_val}')  # pragma: no cover
 
+        page.content = etree_to_content(content)
         page.content = etree_to_content(content)
 
     def _compute_id(p, elem, key):
@@ -318,6 +323,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                              'shortId': shortid,
                              'type': data_type})
             binder = Binder(id_, metadata=metadata)
+            binder = Binder(id_, metadata=metadata)
             # Recurse
             _adapt_single_html_tree(binder, child,
                                     nav_tree_node,
@@ -334,9 +340,12 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                 assert key not in ('itemtype', 'itemscope'), 'Seems true'
 
             document_body = content_to_etree('')
+            document_body = content_to_etree('')
             document_body.append(child)
             contents = etree.tostring(document_body)
             model = {
+                'page': Document,
+                'composite-page': CompositeDocument,
                 'page': Document,
                 'composite-page': CompositeDocument,
             }[child.attrib['data-type']]
@@ -359,6 +368,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
     # only fixup links after all pages
     # processed for whole book, to allow for foward links
     if depth == 0:
+        for page in flatten_to_documents(parent):
         for page in flatten_to_documents(parent):
             fix_links(page, id_map)
 

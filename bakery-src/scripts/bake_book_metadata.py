@@ -3,18 +3,20 @@ import sys
 
 from lxml import etree
 
-from . import utils
-from . import html_parser
+from .utils import model_to_tree, ensure_isoformat
+from .profiler import timed
+from .html_parser import DocumentMetadataParser, reconstitute
 
 
+@timed
 def main():
     raw_metadata_file, baked_xhtml_file, collection_uuid, book_slugs_file, baked_metadata_file = sys.argv[
         1:6]
 
     with open(baked_xhtml_file, "r") as baked_xhtml:
         html = etree.parse(baked_xhtml)
-        metadata = html_parser.DocumentMetadataParser(html)
-        binder = html_parser.reconstitute(baked_xhtml)
+        metadata = DocumentMetadataParser(html)
+        binder = reconstitute(baked_xhtml)
 
     with open(raw_metadata_file, "r") as raw_json:
         baked_metadata = json.load(raw_json)
@@ -30,7 +32,7 @@ def main():
     else:
         book_slug = metadata.slug
 
-    tree = utils.model_to_tree(binder)
+    tree = model_to_tree(binder)
 
     # Use any existing book metadata to determine whether to fallback to
     # values from the XHTML metadata
@@ -38,7 +40,7 @@ def main():
 
     baked_book_json = {
         "title": metadata.title,
-        "revised": utils.ensure_isoformat(metadata.revised),
+        "revised": ensure_isoformat(metadata.revised),
         "tree": tree,
         "slug": book_slug,
         "id": book_metadata.get("id") or binder.id,

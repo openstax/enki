@@ -1,15 +1,18 @@
 import hashlib
-import json
+
 import magic
 from cnxcommon.urlslug import generate_slug
 from .cnx_models import TRANSLUCENT_BINDER_ID, TranslucentBinder
+from .profiler import timed
 from dateutil import parser, tz
 import imagesize
+import json
 
 # same as boto3 default chunk size. Don't modify.
 BUF_SIZE = 8 * 1024 * 1024
 
 
+@timed
 def unformatted_rex_links(doc):
     external_link_elems = doc.xpath(
         '//x:a[@href and starts-with(@href, "./")]',
@@ -19,6 +22,7 @@ def unformatted_rex_links(doc):
 
 
 # https://stackoverflow.com/a/22058673/756056
+@timed
 def get_checksums(filename):
     """ generate SHA1 and S3 MD5 etag checksums from file """
     sha1 = hashlib.sha1()
@@ -50,6 +54,7 @@ def get_checksums(filename):
         return None, None
 
 
+@timed
 def get_mime_type(filename):
     """ get MIME type of file with libmagic """
     mime_type = ''
@@ -70,20 +75,6 @@ def get_size(filename):
         return int(width), int(height)
 
 
-def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
-    """ Create json with MIME type and other metadata of resource file """
-    data = {}
-    data['original_name'] = original_name
-    data['mime_type'] = mime_type
-    data['s3_md5'] = s3_md5
-    data['sha1'] = sha1
-    data['width'] = width
-    data['height'] = height
-    json_file = output_dir / f'{sha1}.json'
-    with json_file.open(mode='w') as outfile:
-        json.dump(data, outfile)
-
-
 # Based upon amend_tree_with_slugs from cnx-publishing
 # (https://github.com/openstax/cnx-publishing/blob/master/cnxpublishing/utils.py#L64)
 def amend_tree_with_slugs(tree, title_seq=[]):
@@ -97,6 +88,7 @@ def amend_tree_with_slugs(tree, title_seq=[]):
 
 # Based upon model_to_tree from cnx-epub
 # (https://github.com/openstax/cnx-epub/blob/master/cnxepub/models.py#L108)
+@timed
 def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     """Given an model, build the tree::
         {'id': <id>|'subcol', 'title': <title>, 'contents': [<tree>, ...]}
@@ -121,6 +113,7 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     return tree
 
 
+@timed
 def parse_uri(uri):  # pragma: no cover
     if not uri.startswith('col', 0, 3):
         return None
@@ -128,6 +121,7 @@ def parse_uri(uri):  # pragma: no cover
     return legacy_id, legacy_version
 
 
+@timed
 def ensure_isoformat(timestamp):
     """Given a timestsamp string either validate it is already ISO8601 and
     return or attempt to convert it.
@@ -164,3 +158,18 @@ def ensure_isoformat(timestamp):
         pass
 
     raise Exception(f"Could not convert non ISO8601 timestamp: {timestamp}")
+
+
+@timed
+def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
+    """ Create json with MIME type and other metadata of resource file """
+    data = {}
+    data['original_name'] = original_name
+    data['mime_type'] = mime_type
+    data['s3_md5'] = s3_md5
+    data['sha1'] = sha1
+    data['width'] = width
+    data['height'] = height
+    json_file = output_dir / f'{sha1}.json'
+    with json_file.open(mode='w') as outfile:
+        json.dump(data, outfile)
