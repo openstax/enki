@@ -369,7 +369,6 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
     # processed for whole book, to allow for foward links
     if depth == 0:
         for page in flatten_to_documents(parent):
-        for page in flatten_to_documents(parent):
             fix_links(page, id_map)
 
 
