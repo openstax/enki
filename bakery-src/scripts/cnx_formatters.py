@@ -12,8 +12,6 @@ import sys
 from .cnx_models import utf8
 
 from lxml import etree
-from copy import deepcopy
-
 
 logger = logging.getLogger('cnxepub')
 
