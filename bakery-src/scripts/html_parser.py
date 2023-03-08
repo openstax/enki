@@ -47,6 +47,7 @@ def squash_xml_to_text(elm, remove_namespaces=False):
     result = u''.join(result).strip()
     return result
 
+
 @timed
 def parse_navigation_html_to_tree(html, id):
     """Parse the given ``html`` (an etree object) to a tree.
@@ -108,6 +109,7 @@ def _nav_to_tree(root):
                                         'title': squash_xml_to_text(a, remove_namespaces=True)}
                                    )
 
+
 @timed
 def parse_metadata(html):
     """Parse metadata out of the given an etree object as ``html``."""
@@ -124,6 +126,7 @@ def parse_resources(html):
             'filename': resource.text.strip(),
         }
 
+
 @timed
 def reconstitute(html):
     """Given a file-like object as ``html``, reconstruct it into models."""
@@ -131,6 +134,7 @@ def reconstitute(html):
     htree = etree.parse(html)
     xhtml = etree.tostring(htree, encoding='utf-8')
     return adapt_single_html(xhtml)
+
 
 @timed
 def adapt_single_html(html):
@@ -149,6 +153,7 @@ def adapt_single_html(html):
     _adapt_single_html_tree(binder, body[0], nav_tree, top_metadata=metadata)
 
     return binder
+
 
 @timed
 def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,

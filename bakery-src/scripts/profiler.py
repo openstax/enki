@@ -13,7 +13,7 @@ def convert_ms(milliseconds: int = 0):
     return ', '.join(time_list)
 
 
-def timed(f): #pragma: no cover
+def timed(f):  # pragma: no cover
     """Decorator to time a function"""
     @wraps(f)
     def wrapper(*args, **kwds):
@@ -27,7 +27,7 @@ def timed(f): #pragma: no cover
     return wrapper
 
 
-def debug(): #pragma: no cover
+def debug():  # pragma: no cover
     """Debug function used to debug a enki python scripts using debugpy"""
     import debugpy
     import os

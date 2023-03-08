@@ -7,6 +7,7 @@ from lxml import etree
 from .utils import unformatted_rex_links
 from .profiler import timed
 
+
 def update_doc_links(doc, book_slugs_by_uuid=None):
     """Modify links in doc"""
 
@@ -30,6 +31,7 @@ def update_doc_links(doc, book_slugs_by_uuid=None):
             )
             print('AFTER!!:')
             print(node.attrib)
+
 
 @timed
 def main():

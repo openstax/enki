@@ -443,6 +443,7 @@ async def run_async():
                         queue.put_nowait(fix_jpeg_colorspace(img_filename))
                 doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
+
 @timed
 def main():  # pragma: no cover
     asyncio.run(run_async())
