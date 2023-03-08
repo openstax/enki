@@ -2415,7 +2415,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
     original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
     resources_parent_dir = tmp_path / "book_slug"
-    initial_resources_dir = resources_parent_dir / "x-initial-resources"
+    initial_resources_dir = resources_parent_dir / "resources"
     dom_resources_dir = "resources"
     unused_resources_dir = tmp_path / "unused-resources"
 
@@ -2554,8 +2554,8 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
         original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
         resources_parent_dir = tmp_path / "book_slug"
-        initial_resources_dir = resources_parent_dir / "initial-resources"
-        dom_resources_dir = "myresources"
+        initial_resources_dir = resources_parent_dir / "resources"
+        dom_resources_dir = "resources"
         unused_resources_dir = tmp_path / "unused-resources"
 
         book_dir.mkdir(parents=True)
