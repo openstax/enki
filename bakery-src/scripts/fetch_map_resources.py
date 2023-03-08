@@ -9,6 +9,7 @@ from pathlib import Path
 from lxml import etree
 
 from . import utils
+from .profiler import timed
 
 
 def get_resource_dir_name_env():
@@ -31,6 +32,7 @@ def get_resource_dir_name_env():
             dom_resources_dir_name = parsed_io_resources
 
 
+@timed
 def all_data_to_json(resources_dir, filename_to_data):
     """ Convert python dictionary of metadata into json files """
     for resource_original_name in filename_to_data:
@@ -93,6 +95,7 @@ def rename_file_to_resource(filename_to_data, doc, cnxml_file, xpath, attribute_
             node.attrib[attribute_name] = new_path
 
 
+@timed
 def main():
     get_resource_dir_name_env()
     in_dir = Path(sys.argv[1]).resolve(strict=True)

@@ -7,23 +7,30 @@ We build books in a pipeline of steps. These steps are written in different lang
 
 # Table of Contents
 
+- [About](#about)
+- [Table of Contents](#table-of-contents)
 - [Local Instructions](#local-instructions)
-  * [Private Repositories](#private-repositories)
-  * [Google Docs](#google-docs)
+  - [Clone \& Install Submodules](#clone--install-submodules)
+    - [REX preview](#rex-preview)
+    - [local preview of HTML files](#local-preview-of-html-files)
+  - [Private Repositories](#private-repositories)
+    - [Set a GitHub token](#set-a-github-token)
+    - [Sideload the book](#sideload-the-book)
+  - [Google Docs](#google-docs)
 - [Steps](#steps)
 - [Environment Variables](#environment-variables)
-  * [Common Environment Variables](#common-environment-variables)
-  * [Authentication Secrets](#authentication-secrets)
-  * [Artifact and Queue Buckets](#artifact-and-queue-buckets)
-  * [Pipeline-generation Environment Variables](#pipeline-generation-environment-variables)
-  * [Internal environment variables](#internal-environment-variables)
+  - [Artifact and Queue Buckets](#artifact-and-queue-buckets)
+  - [Pipeline-generation Environment Variables](#pipeline-generation-environment-variables)
 - [Features](#features)
-  * [Run Tests](#run-tests)
-  * [Run one step](#run-one-step)
-  * [Run steps beginning with a step](#run-steps-beginning-with-a-step)
+- [Development](#development)
+  - [Run Tests](#run-tests)
+  - [Run steps beginning with a step](#run-steps-beginning-with-a-step)
+- [Debugging](#debugging)
+  - [Python Debugging](#python-debugging)
 - [CI/Gitpod Integration](#cigitpod-integration)
 - [Create a Webhosting Pipeline](#create-a-webhosting-pipeline)
 - [TODO list](#todo-list)
+  - [Future TODO work](#future-todo-work)
 
 
 # Local Instructions
@@ -223,6 +230,20 @@ START_AT_STEP=git-bake ./enki ./data/tin-bk all-git-pdf
 ```
 
 **Note:** The arguments following all-git-pdf can be omitted since they are only used in the initial step
+
+
+# Debugging
+
+## Python Debugging
+
+In order to debug a python script from the `./bakery-src/scripts` folder, you can add the `--pdb` flag to the `./enki` command. This will open the `5678` port on the container and allow you to connect to it with a debugger.
+In addition, you should add the following script on top of the python script you want to debug and set breakpoints:
+
+```python
+from .profiler import debug
+debug()
+```
+
 
 
 # CI/Gitpod Integration

@@ -5,11 +5,11 @@ from pathlib import Path
 
 from .html_parser import reconstitute, HTML_DOCUMENT_NAMESPACES
 from .cnx_models import flatten_to_documents, content_to_etree, etree_to_content
-from cnxepub.formatters import DocumentContentFormatter
+from .cnx_formatters import DocumentContentFormatter
 from lxml import etree
 from lxml.builder import ElementMaker, E
 
-from . import utils
+from .utils import model_to_tree
 
 
 def extract_slugs_from_tree(tree, data):
@@ -30,7 +30,7 @@ def extract_slugs_from_binder(binder):
 
     # NOTE: The returned tree has 'id' values which are based upon ident_hash
     # fields in the provided model
-    tree = utils.model_to_tree(binder)
+    tree = model_to_tree(binder)
     slugs = {}
     extract_slugs_from_tree(tree, slugs)
     return slugs

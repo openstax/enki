@@ -107,6 +107,7 @@ show_help() {
 
         --sideload-book <path>      A local path to a cloned git repo instead of fetching from GitHub
         --sideload-cookbook <path>  Path to a locally cloned cookbook
+        --pdb                       Enable python debugging
 
     Status:
 
@@ -167,6 +168,7 @@ while [ -n "$1" ]; do
         --start-at) shift; clear_cache=''; export START_AT_STEP=$1 ;;
         --stop-at) shift; export STOP_AT_STEP=$1 ;;
         --sideload-cookbook) shift; COOKBOOK_ROOT=$1 ;;
+        --pdb) PYTHON_DEBUG=1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -279,6 +281,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
+    $( (( $PYTHON_DEBUG == 1 )) && printf %s '-p 5678:5678' )  \
     --rm $image_name "$arg_command" "$arg_repo_and_slug" "$arg_style" "$arg_ref"
 
 if [[ $arg_command == *pdf ]]

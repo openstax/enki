@@ -11,7 +11,8 @@ from tempfile import TemporaryDirectory
 from PIL import Image, UnidentifiedImageError
 from lxml import etree
 
-from . import utils
+from .utils import get_mime_type
+from .profiler import timed
 
 # folder where all resources are saved in checksum step
 RESOURCES_FOLDER = '../resources/'
@@ -299,7 +300,7 @@ async def fix_jpeg_colorspace(img_filename):
     """Searches for JPEG image resources which are encoded in colorspace
     other than RGB or Greyscale and convert them to RGB"""
     if img_filename.is_file():
-        mime_type = utils.get_mime_type(str(img_filename))
+        mime_type = get_mime_type(str(img_filename))
 
         # Only check colorspace of JPEGs (GIF, PNG etc. don't have breaking colorspaces)
         if mime_type == 'image/jpeg':
@@ -442,7 +443,7 @@ async def run_async():
                         queue.put_nowait(fix_jpeg_colorspace(img_filename))
                 doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
-
+@timed
 def main():  # pragma: no cover
     asyncio.run(run_async())
 
