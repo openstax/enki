@@ -108,9 +108,9 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     title = title is not None and title or md.get('title')
     tree = {'id': id, 'title': title}
     if 'data-toc-type' in md:  # pragma: no cover
-        tree['data-toc-type'] = md['data-toc-type']
+        tree['toc_type'] = md['data-toc-type']
     if 'data-toc-target-type' in md:  # pragma: no cover
-        tree['data-toc-target-type'] = md['data-toc-target-type']
+        tree['toc_target_type'] = md['data-toc-target-type']
     if hasattr(model, '__iter__'):
         contents = tree['contents'] = []
         for node in model:
