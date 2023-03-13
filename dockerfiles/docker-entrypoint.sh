@@ -172,11 +172,9 @@ function do_step() {
 
             collection_id=$2 # repo name or collection id
             version=$3 # repo branch/tag/commit or archive collection version
-            archive_server=${5:-cnx.org}
 
             ensure_arg collection_id 'Specify repo name (or archive collection id)'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
-            ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
             [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
 
@@ -185,7 +183,6 @@ function do_step() {
             # Write out the files
             echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
             echo "$version" > $INPUT_SOURCE_DIR/version
-            echo "$archive_server" > $INPUT_SOURCE_DIR/content_server
             # Dummy files
             echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
             echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
