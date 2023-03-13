@@ -121,11 +121,6 @@ function read_style() {
     slug_name=$1
     style_name=''
 
-    # This check is always true in CORGI and never true in webhosting pipeline.
-    if [[ -f $IO_BOOK/style ]]; then
-        style_name=$(cat $IO_BOOK/style)
-    fi
-
     if [[ ! $style_name || $style_name == 'default' ]]; then
         style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
     fi
@@ -139,11 +134,6 @@ function read_style() {
 
 function parse_book_dir() {
     check_input_dir IO_BOOK
-
-    # This is ONLY used for archive books. git books use read_style to get the style from the META-INF/books.xml
-    if [ -e $IO_BOOK/style ]; then
-        ARG_RECIPE_NAME=$(cat $IO_BOOK/style)
-    fi
 
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
@@ -159,7 +149,6 @@ function parse_book_dir() {
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
 # reset between each step
 function unset_book_vars() {
-    unset ARG_RECIPE_NAME
     unset ARG_TARGET_PDF_FILENAME
     unset ARG_COLLECTION_ID
     unset ARG_ARCHIVE_SERVER
@@ -182,12 +171,10 @@ function do_step() {
             # This step is normally done by the concourse resource but for local development it is done here
 
             collection_id=$2 # repo name or collection id
-            recipe=$3
-            version=$4 # repo branch/tag/commit or archive collection version
+            version=$3 # repo branch/tag/commit or archive collection version
             archive_server=${5:-cnx.org}
 
             ensure_arg collection_id 'Specify repo name (or archive collection id)'
-            ensure_arg recipe 'Specify recipe name'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
             ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
@@ -197,7 +184,6 @@ function do_step() {
 
             # Write out the files
             echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
-            echo "$recipe" > $INPUT_SOURCE_DIR/collection_style
             echo "$version" > $INPUT_SOURCE_DIR/version
             echo "$archive_server" > $INPUT_SOURCE_DIR/content_server
             # Dummy files
@@ -215,7 +201,6 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
             # Git book
             if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
