@@ -20,4 +20,4 @@
 	branch = main
 [submodule "cnxml"]
 	path = cnxml
-	url = ./cnxml
+	url = https://github.com/openstax/cnxml
