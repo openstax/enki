@@ -228,8 +228,8 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $data_dir ]] || mkdir -p "$data_dir"
 
-[[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by __CI_KCOV_MERGE_ALL__.
-[[ $arg_repo && $arg_book_slug ]] && arg_repo_and_slug="$arg_repo/$arg_book_slug"
+[[ $arg_repo && ! $arg_book_slug ]] && ( >&2 echo "ERROR: Missing --book-slug commandline argument when using --repo" && exit 111)
+repo_and_book_slug="--repo $arg_repo --book-slug $arg_book_slug"
 
 # specify a directory to sideload the book from instead of cloning from github
 [[ $SIDELOAD_PATH ]] && {
@@ -276,7 +276,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
-    --rm $image_name "$arg_command" "$arg_repo_and_slug" "$arg_ref"
+    --rm $image_name "$arg_command" $repo_and_book_slug --ref "$arg_ref"
 
 if [[ $arg_command == *pdf ]]
 then

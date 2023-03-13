@@ -162,6 +162,24 @@ function unset_book_vars() {
 function do_step() {
     step_name=$1
 
+    # Parse the commandline args (runs in concourse and locally though only some args are used locally)
+    shift 1
+
+    while [ -n "${1:-}" ]; do
+        case "$1" in
+            --ref) shift; arg_ref=$1 ;;
+            --repo) shift; arg_repo=$1 ;;
+            --book-slug) shift; arg_book_slug=$1 ;;
+            *) # LCOV_EXCL_START
+                echo -e "Invalid argument '$1'"
+                exit 2
+                # LCOV_EXCL_END
+            ;;
+        esac
+        shift
+    done
+
+
     case $step_name in
         shell | '/bin/bash' | '/bin/sh')
             bash # LCOV_EXCL_LINE
@@ -170,10 +188,10 @@ function do_step() {
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
-            collection_id=$2 # repo name or collection id
-            version=$3 # repo branch/tag/commit or archive collection version
+            repo_and_book_slug="$arg_repo/$arg_book_slug"
+            version=$arg_ref
 
-            ensure_arg collection_id 'Specify repo name (or archive collection id)'
+            ensure_arg repo_and_book_slug 'Specify repo name (or archive collection id)'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
 
             [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
@@ -181,7 +199,7 @@ function do_step() {
             check_output_dir INPUT_SOURCE_DIR
 
             # Write out the files
-            echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
+            echo "$repo_and_book_slug" > $INPUT_SOURCE_DIR/collection_id
             echo "$version" > $INPUT_SOURCE_DIR/version
             # Dummy files
             echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
