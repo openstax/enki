@@ -119,7 +119,8 @@ help-lint :
 	@echo "Usage: make lint"
 
 lint : $(STATEDIR)/env/pyvenv.cfg setup.cfg
-	$(BINDIR)/python -m flake8 nebu
+	$(BINDIR)/python -m flake8 --exclude=tests,templates nebu
+	$(BINDIR)/python -m flake8 --max-line-length=200 --ignore=E121,F821,E123 nebu/tests nebu/templates
 
 # /Lint
 

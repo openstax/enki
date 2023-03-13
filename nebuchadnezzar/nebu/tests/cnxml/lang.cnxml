@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" cnxml-version="0.7" module-id="m12345">
+  <title>Test Module</title>
+  <content>
+    <para xml:lang="io">
+      la mikra hundo kuras en la foresto. <term xml:lang="eo">Esperanto</term>
+    </para>
+  </content>
+</document>

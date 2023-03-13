@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<col:collection xmlns="http://cnx.rice.edu/collxml"
+                xmlns:cnx="http://cnx.rice.edu/cnxml"
+                xmlns:cnxorg="http://cnx.rice.edu/system-info"
+                xmlns:md="http://cnx.rice.edu/mdml"
+                xmlns:col="http://cnx.rice.edu/collxml"
+                xmlns:cnxml="http://cnx.rice.edu/cnxml"
+                xmlns:m="http://www.w3.org/1998/Math/MathML"
+                xmlns:q="http://cnx.rice.edu/qml/1.0"
+                xmlns:xhtml="http://www.w3.org/1999/xhtml"
+                xmlns:bib="http://bibtexml.sf.net/"
+                xmlns:cc="http://web.resource.org/cc/"
+                xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                xml:lang="en" type="Textbook">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml"
+            mdml-version="0.5">
+    <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+         Changes to the metadata section in the source will not be saved. -->
+
+    <md:repository>http://legacy.cnx.org/content</md:repository>
+    <md:content-url>http://legacy.cnx.org/content/col11406/1.9</md:content-url>
+    <md:content-id>col11406</md:content-id>
+    <md:title>College Physics</md:title>
+
+    <md:version>1.9</md:version>
+    <md:created>2012/01/23 13:03:30.293 US/Central</md:created>
+    <md:revised>2015/07/27 12:55:32.442 GMT-5</md:revised>
+
+    <md:actors>
+      <md:person userid="cnxcap">
+        <md:firstname>College</md:firstname>
+        <md:surname>Physics</md:surname>
+        <md:fullname>OpenStax College Physics</md:fullname>
+        <md:email>info@openstaxcollege.org</md:email>
+      </md:person>
+      <md:organization userid="OpenStaxCollege">
+        <md:shortname>OpenStax</md:shortname>
+        <md:fullname>OpenStax</md:fullname>
+        <md:email>info@openstax.org</md:email>
+      </md:organization>
+      <md:person userid="OSCRiceUniversity">
+        <md:firstname>Rice</md:firstname>
+        <md:surname>University</md:surname>
+        <md:fullname>Rice University</md:fullname>
+        <md:email>info@openstaxcollege.org</md:email>
+      </md:person>
+    </md:actors>
+    <md:roles>
+      <md:role type="author">OpenStaxCollege</md:role>
+      <md:role type="maintainer">OpenStaxCollege cnxcap</md:role>
+      <md:role type="licensor">OSCRiceUniversity</md:role>
+    </md:roles>
+
+    <md:license url="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution License 4.0</md:license>
+    <!-- For information on license requirements for use or modification, see license url in the
+         above <md:license> element.
+         For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+         where CONTENT_URL is the value provided above in the <md:content-url> element.
+    -->
+
+    <md:keywordlist>
+      <md:keyword>ac circuits</md:keyword>
+      <md:keyword>atomic physics</md:keyword>
+      <md:keyword>bioelectricity</md:keyword>
+      <md:keyword>biological and medical applications</md:keyword>
+      <md:keyword>circuits</md:keyword>
+    </md:keywordlist>
+
+    <md:subjectlist>
+      <md:subject>Mathematics and Statistics</md:subject>
+      <md:subject>Science and Technology</md:subject>
+    </md:subjectlist>
+
+    <md:abstract>This introductory, algebra-based, two-semester college physics book is grounded with real-world examples, illustrations, and explanations to help students grasp key, fundamental physics concepts. This online, fully editable and customizable title includes learning objectives, concept questions, links to labs and simulations, and ample practice opportunities to solve traditional physics application problems.</md:abstract>
+
+    <md:language>en</md:language>
+
+    <md:homepage>http://openstaxcollege.org</md:homepage>
+    <md:institution>OpenStaxCollege</md:institution>
+
+    <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+         Changes to the metadata section in the source will not be saved. -->
+  </metadata>
+
+  <col:parameters>
+    <col:param name="real-imaginary-notation" value="font"/>
+    <col:param name="and-or-notation"
+               value="propositional-logic"/>
+    <col:param name="gradient-notation" value="text"/>
+    <col:param name="mean-notation" value="bar"/>
+    <col:param name="remainder-notation" value="text"/>
+    <col:param name="conjugate-notation" value="bar"/>
+    <col:param name="imaginary-i-notation" value="i"/>
+    <col:param name="scalar-product-notation"
+               value="angle-bracket"/>
+    <col:param name="print-font-size" value="10pt"/>
+    <col:param name="curl-notation" value="text"/>
+    <col:param name="for-all-equation-layout"
+               value="symbolic"/>
+    <col:param name="vector-notation" value="bold"/>
+    <col:param name="print-paper-size" value="8.5x11"/>
+    <col:param name="print-font" value="computer-modern"/>
+    <col:param name="print-style" value="ccap-physics"/>
+    <col:param name="print-paragraph-spacing"
+               value="compact"/>
+  </col:parameters>
+
+  <col:content>
+
+    <col:module document="m42955" version="latest"
+                repository="http://legacy.cnx.org/content"
+                cnxorg:version-at-this-collection-version="1.9">
+      <md:title>Preface</md:title>
+    </col:module>
+
+    <col:subcollection>
+      <md:title>Frontiers of Physics</md:title>
+      <col:content>
+
+        <col:module document="m42683" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.4">
+          <md:title>Introduction to Frontiers of Physics</md:title>
+        </col:module>
+
+        <col:module document="m42686" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.8">
+          <md:title>Cosmology and Particle Physics</md:title>
+        </col:module>
+
+        <col:module document="m42689" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.6">
+          <md:title>General Relativity and Quantum Gravity</md:title>
+        </col:module>
+
+        <col:module document="m42691" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.3">
+          <md:title>Superstrings</md:title>
+        </col:module>
+
+        <col:module document="m42692" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.5">
+          <md:title>Dark Matter and Closure</md:title>
+        </col:module>
+
+        <col:module document="m42694" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.2">
+          <md:title>Complexity and Chaos</md:title>
+        </col:module>
+
+        <col:module document="m42696" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.5">
+          <md:title>High-temperature Superconductors</md:title>
+        </col:module>
+
+        <col:module document="m42704" version="latest"
+                    repository="http://legacy.cnx.org/content"
+                    cnxorg:version-at-this-collection-version="1.3">
+          <md:title>Some Questions We Know to Ask</md:title>
+        </col:module>
+
+      </col:content>
+    </col:subcollection>
+
+    <col:module document="m42699" version="latest"
+                repository="http://legacy.cnx.org/content"
+                cnxorg:version-at-this-collection-version="1.3">
+      <md:title>Atomic Masses</md:title>
+      <col:featured-links>
+        <cnxml:link-group type="example">
+          <cnxml:link url="http://example.com/exampe1">Example</cnxml:link>
+        </cnxml:link-group>
+        <cnxml:link-group type="supplemental">
+          <cnxml:link url="http://example.com/supplemental1">Supplemental 1</cnxml:link>
+          <cnxml:link url="http://example.com/supplemental2">Supplemental 2</cnxml:link>
+        </cnxml:link-group>
+      </col:featured-links>
+    </col:module>
+
+    <col:module document="m42702" version="latest"
+                repository="http://legacy.cnx.org/content"
+                cnxorg:version-at-this-collection-version="1.2">
+      <md:title>Selected Radioactive Isotopes</md:title>
+    </col:module>
+
+    <col:module document="m42720" version="latest"
+                repository="http://legacy.cnx.org/content"
+                cnxorg:version-at-this-collection-version="1.5">
+      <md:title>Useful Information</md:title>
+    </col:module>
+
+    <col:module document="m42709" version="latest"
+                repository="http://legacy.cnx.org/content"
+                cnxorg:version-at-this-collection-version="1.4">
+      <md:title>Glossary of Key Symbols and Notation</md:title>
+    </col:module>
+
+  </col:content>
+
+</col:collection>

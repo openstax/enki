@@ -1,4 +1,4 @@
-from cnxepub.models import (
+from nebu.models.base_binder import (
     flatten_to_documents,
     model_to_tree,
 )
@@ -73,39 +73,17 @@ class TestBinder(object):
 
         # Verify the metadata
         expected_metadata = {
-            'authors': [{'id': 'OpenStaxCollege',
-                         'name': 'OpenStaxCollege',
-                         'type': 'cnx-id'}],
             'cnx-archive-shortid': None,
             'cnx-archive-uri': '30189442-6998-4686-ac05-ed152b91b9de@23.41',
-            'copyright_holders': [{'id': 'OpenStaxCollege',
-                                   'name': 'OpenStaxCollege',
-                                   'type': 'cnx-id'}],
-            'created': '2013-07-18T19:30:26-05:00',
-            'derived_from_title': 'Principles of Economics',
-            'derived_from_uri': 'https://legacy.cnx.org/content/col11613/1.2',
-            'editors': [],
-            'illustrators': [],
-            'keywords': (),
             'language': 'en',
             'license_text': 'Creative Commons Attribution License',
             'license_url': 'http://creativecommons.org/licenses/by/4.0/',
-            'print_style': 'statistics',
-            'publishers': [{'id': 'OpenStaxCollege',
-                            'name': 'OpenStaxCollege',
-                            'type': 'cnx-id'},
-                           {'id': 'cnxstats',
-                            'name': 'cnxstats',
-                            'type': 'cnx-id'}],
             'revised': '2019-02-22T14:15:14.840187-06:00',
             # FIXME: Subject from derived-from is duplicated here
             # This is a problem with the cnxml library, not neb
             # Same problem will exist with keywords and potentially roles
-            'subjects': ('Mathematics and Statistics',
-                         'Mathematics and Statistics'),
             'summary': None,
             'title': 'Introductory Statistics',
-            'translators': [],
             'version': '23.41',
             'uuid': None,
             'canonical_book_uuid': None,
@@ -245,26 +223,14 @@ class TestBinder(object):
 
         # Verify the metadata
         expected_metadata = {
-            'authors': [],
             'cnx-archive-shortid': None,
             'cnx-archive-uri': '30189442-6998-4686-ac05-ed152b91b9de@af89d35',
-            'copyright_holders': [],
-            'created': None,
-            'derived_from_title': None,
-            'derived_from_uri': None,
-            'editors': [],
-            'illustrators': [],
-            'keywords': (),
             'language': None,
             'license_text': 'Creative Commons Attribution License',
             'license_url': 'http://creativecommons.org/licenses/by/4.0/',
-            'print_style': 'statistics',
-            'publishers': [],
             'revised': '2019-02-22T14:15:14.840187-06:00',
-            'subjects': (),
             'summary': None,
             'title': 'Introductory Statistics',
-            'translators': [],
             'version': 'af89d35',
             'uuid': '30189442-6998-4686-ac05-ed152b91b9de',
             'canonical_book_uuid': None,

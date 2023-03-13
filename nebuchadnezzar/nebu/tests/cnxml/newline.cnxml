@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" cnxml-version="0.7" id="id454" module-id="mXXXX">
+  <title>Test Module</title>
+
+<content>
+
+ <para id="p1">
+  <newline/>
+  <newline effect="normal"/>
+  <newline effect="underline"/>
+  <newline id="id123"/>
+  <newline count="3"/>
+  <newline id="id456" effect="underline"/>
+  <newline effect="underline" count="3"/>
+  <newline id="id789" effect="underline" count="3"/>
+  </para>
+  <para id="idm46259579218000"><newline/></para>
+  <list id="idm46259579217616">
+    <item><newline/><newline effect="underline"/></item>
+  </list>
+
+
+  <para id="idm46259579216400">
+    <space/>
+    <space effect="normal"/>
+    <space effect="underline"/>
+    <space id="id0123"/>
+    <space count="3"/>
+    <space id="id0456" effect="underline"/>
+    <space effect="underline" count="3"/>
+    <space id="id0789" effect="underline" count="3"/>
+  </para>
+
+  <para id="idm46259579211072">The following is not implemented yet</para>
+  <para id="idm46259579210640"><newline effect="underline"/></para>
+  <list id="idm46259579209984"><item><newline/></item></list>
+
+</content>
+</document>

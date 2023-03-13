@@ -2,8 +2,8 @@
 
 [report]
 omit =
-  *nebu/_version.py
-  *nebu/__init__.py
-  *nebu/tests/*
+  nebu/_version.py
+  nebu/__init__.py
+  nebu/tests/*
 exclude_lines =
   pragma: no cover

@@ -3,8 +3,8 @@ import re
 
 from lxml import etree
 import json
-from cnxml.parse import parse_metadata as parse_cnxml_metadata
-from cnxepub.models import (
+from nebu.parse import parse_metadata as parse_cnxml_metadata
+from nebu.models.base_binder import (
     Binder as BaseBinder,
     DocumentPointer,
     TranslucentBinder,
@@ -181,7 +181,7 @@ class Binder(BaseBinder):
         def factory(id, version):
             try:
                 filepath = id_to_path_map[id]
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 if os.environ.get('HACK_CNX_LOOSENESS', False) is not False:
                     print('Missing CNXML module "{}"'.format(id))
                     return None

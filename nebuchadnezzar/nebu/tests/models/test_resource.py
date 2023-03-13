@@ -1,6 +1,6 @@
 import hashlib
 
-from cnxepub.models import RESOURCE_HASH_TYPE
+from nebu.models.base_binder import RESOURCE_HASH_TYPE
 
 from nebu.models.resource import FileSystemResource
 

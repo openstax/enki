@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+
+<document
+  cnxml-version='0.7'
+  id='id1164845029421'
+  module-id='m#####'
+  xmlns='http://cnx.rice.edu/cnxml'
+  xmlns:bib='http://bibtexml.sf.net/'
+  xmlns:m='http://www.w3.org/1998/Math/MathML'
+  xmlns:md='http://cnx.rice.edu/mdml/0.4'
+  xmlns:md1='http://cnx.rice.edu/mdml'
+  xmlns:q='http://cnx.rice.edu/qml/1.0'
+  class="introduction flagged"
+>
+  <title>Document testing</title>
+  <content><?chapter-toc label="Learning Objectives"?>
+<?cnx.eoc class="section-summary" title="Section Summary"?>
+<?cnx.eoc class="conceptual-questions" title="Conceptual Questions"?>
+<?cnx.eoc class="problems-exercises" title="Problems & Exercises"?>
+
+<!-- m47819 // d7397b20-8abb-40e4-b074-dc58e46b399c -->
+    <example
+      class='foo bar'
+      id='example-test'
+      type='listing'
+    >
+      <label>Listing</label>
+      <title class='boldly'>
+        <emphasis
+          effect='bold'
+          id='Listing_1'
+        ></emphasis>Question 4.
+      </title>
+      <para id="pid6767">...</para>
+    </example>
+<!-- ...without existing classes -->
+    <example
+      id='example-test-2'
+      type='listing'
+    >
+      <label>Listing</label>
+      <title>
+        <emphasis
+          effect='bold'
+          id='Listing_2'
+        ></emphasis>Question 5.
+      </title>
+      <para id="pid234234">...</para>
+    </example>
+<!-- m42219 // 030347e9-f128-486f-a779-019ac474ff90 -->
+    <exercise
+      class='foo bar'
+      id='exercise-test'
+      print-placement='here'
+      type='check-understanding'
+    >
+      <label></label>
+      <title>Check Your Understanding</title>
+<!-- m31849 // fea36ff3-dc5d-43ee-ab74-f40da2a94c1a -->
+      <problem
+        id='problem-test'
+        type='problem-type'
+      >
+        <title>Extra Credit Problem</title>
+        <para
+          id='new1'
+        >
+          One extra credit point will be awarded to you and your partner if you can implement the dual-channel system without using the auxiliary registers
+          <code>AR0</code>
+          ,
+          <code>AR3</code>
+          , and
+          <code>AR5</code>
+          . Why is this more difficult? Renaming the registers using the
+          <code>.asg</code>directive does not count!
+        </para>
+      </problem>
+<!-- m46909 // cb418599-f69b-46c1-b0ef-60d9e36e677f -->
+      <solution
+        class='solutions'
+        id='solution-test'
+        print-placement='here'
+        type='solution-type'
+      >
+        <label></label>
+        <title>Try It Solutions</title>
+        <para
+          id='fs-idp54569968'
+        >
+          The
+          <emphasis>population</emphasis>is all families with children attending Knoll Academy.
+        </para>
+      </solution>
+    </exercise>
+<!-- m48084 -->
+    <note
+      class='interactive'
+      id='fs-idm13022000'
+    >
+      <label></label>
+      <title>Link to Learning</title>
+      <media
+        alt='QR Code representing a URL'
+        id='fs-idm145499088'
+      >
+        <image
+          mime-type='image/png'
+          src='pollinators2.png'
+          width='120'
+        ></image>
+      </media>
+      <para
+        id='fs-idm120942240'
+      >
+        Explore this
+        <link
+          url='http://openstaxcollege.org/l/pollinators2'
+          window='new'
+        >website</link>for additional information on pollinators.
+      </para>
+    </note>
+    <equation
+      class='foo bar'
+      id='element-252'
+    >
+      <m:math>
+        <m:mrow>
+          <m:munder>
+            <m:mi>Σ</m:mi>
+            <m:mi>k</m:mi>
+          </m:munder>
+          <m:mfrac>
+            <m:mrow>
+              <m:msup>
+                <m:mrow>
+                  <m:mo
+                    stretchy='false'
+                  >(</m:mo>
+                  <m:mi>O</m:mi>
+                  <m:mo>−</m:mo>
+                  <m:mi>E</m:mi>
+                  <m:mo
+                    stretchy='false'
+                  >)</m:mo>
+                </m:mrow>
+                <m:mn>2</m:mn>
+              </m:msup>
+            </m:mrow>
+            <m:mi>E</m:mi>
+          </m:mfrac>
+        </m:mrow>
+      </m:math>
+    </equation>
+    <definition
+      class='foo bar'
+      id='fs-idm19697904'
+    >
+      <term>Variable</term>
+      <meaning
+        id='fs-idm90760848'
+      >a characteristic of interest for each person or object in a population</meaning>
+    </definition>
+    <!-- figures contain a class based title -->
+    <figure id="fid234523">
+      <title
+        id='id989b1ea2-9f98-2bbd-a51e-32ec96d51b88'
+      >Green Beans</title>
+      <media
+        id="mid234543"
+        alt='green beans'
+        >
+        <image
+            mime-type='image/png'
+          src='/resources/f70c629d7879f221bacd9ce6eec01568402cf741'
+        ></image>
+      </media>
+      <caption>
+          The Caption goes here!
+      </caption>
+    </figure>
+  </content>
+</document>

@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:bib="http://bibtexml.sf.net/" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" id="idm45159773362944" cnxml-version="0.7" module-id="mXXXX">
+  <title>Test Module</title>
+  <content>
+    <list id="list-enumerated" list-type="enumerated">
+      <item>item</item>
+    </list>
+    <list id="list-arabic" list-type="enumerated" number-style="arabic">
+      <item>item</item>
+    </list>
+    <list id="list-upper-alpha" list-type="enumerated" number-style="upper-alpha">
+      <item>item</item>
+    </list>
+    <list id="list-lower-alpha" list-type="enumerated" number-style="lower-alpha">
+      <item>item</item>
+    </list>
+    <list id="list-upper-roman" list-type="enumerated" number-style="upper-roman">
+      <item>item</item>
+    </list>
+    <list id="list-lower-roman" list-type="enumerated" number-style="lower-roman">
+      <item>item</item>
+    </list>
+
+    <para id="para-list-enumerated">
+      <list id="para-list-enumerated-list" list-type="enumerated" number-style="upper-alpha" start-value="3">
+        <item>item</item>
+      </list>
+    </para>
+
+    <section id="idm45159773377600">
+      <title>Lists NOT in a paragraph</title>
+      <list id="idm45159773376592">
+        <item>list with item</item>
+      </list>
+      <list id="idm45159773375472">
+        <title>and title</title>
+        <item>and item</item>
+      </list>
+      <section id="idm45159773276544">
+        <title>Default list:</title>
+        <para id="idm45159773275632">with just an id attribute</para>
+        <list id="idm45159773274928">
+          <item>and item</item>
+        </list>
+        <list id="idm45159773273792">
+          <title>and title</title>
+          <item>and item</item>
+        </list>
+        <para id="idm45159773272336">... enumerated lower-alpha</para>
+        <list id="idm45159773271584" display="none" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" list-type="enumerated" type="LIST_TYPE" number-style="lower-alpha">
+          <item>list with all attributes</item>
+        </list>
+        <para id="idm45159773268624">... bulleted lower-alpha</para>
+        <list id="idm45159773267920" bullet-style="open-circle" display="none" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" list-type="bulleted" type="LIST_TYPE">
+          <title>list with all attributes and title</title>
+          <item>and item</item>
+        </list>
+        <section id="id-empty-section"/>
+      </section>
+      <section id="idm45159773264416">
+        <title>Bulleted list:</title>
+        <para id="idm45159773263472">with just an id attribute</para>
+        <list id="idm45159773262768" list-type="bulleted">
+          <item>and item</item>
+        </list>
+        <list id="idm45159773261424" list-type="bulleted">
+          <title>and title</title>
+          <item>and item</item>
+        </list>
+        <para id="idm45159773259664">... with all attributes</para>
+        <list id="idm45159773258976" bullet-style="open-circle" display="none" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+          <item>list with all attributes</item>
+        </list>
+        <list id="idm45159773256016" bullet-style="open-circle" display="none" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+          <title>list with all attributes and title</title>
+          <item>and item</item>
+        </list>
+      </section>
+      <section id="idm45159773252464">
+        <title>Enumerated list:</title>
+        <para id="idm45159773251520">with just an id attribute</para>
+        <list id="idm45159773250816" list-type="enumerated">
+          <item>and item</item>
+        </list>
+        <list id="idm45159773249504" list-type="enumerated">
+          <title>and title</title>
+          <item>and item</item>
+        </list>
+        <para id="idm45159773247776">... with all attributes</para>
+        <list id="idm45159773247040" bullet-style="open-circle" display="none" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+          <item>list with all attributes</item>
+        </list>
+        <list id="idm45159773243568" bullet-style="open-circle" display="none" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+          <title>list with all attributes and title</title>
+          <item>and item</item>
+        </list>
+      </section>
+      <section id="idm45159773239552">
+        <title>Labeled-Item list:</title>
+        <list id="idm45159773238608" list-type="labeled-item">
+          <item>
+            <label>with a label</label>and item
+          </item>
+        </list>
+      </section>
+    </section>
+    <para id="idm45159773236576">---------------------------------------------------------------------------------------</para>
+    <para id="idm45159773235920">---------------------------------------------------------------------------------------</para>
+    <para id="idm45159773235168">---------------------------------------------------------------------------------------</para>
+    <section id="idm45159773234416">
+      <title>The same tests but inside a paragraph (lists with titles should become spans instead of divs</title>
+      <para id="idm45159773233392">...
+        <list id="idm45159773232832">
+          <item>list with item</item>
+        </list>...
+      </para>
+      <para id="idm45159773231600">...
+        <list display="inline">
+          <item>list with item (inline)</item>
+        </list>...
+      </para>
+      <para id="idm45159773229536">...
+        <list id="idm45159773228976">
+          <title>and title</title>
+          <item>and item</item>
+        </list>...
+      </para>
+      <para id="idm45159773227328">...
+        <list display="inline">
+          <title>and title</title>
+          <item>and item (inline)</item>
+        </list>...
+      </para>
+      <section id="idm45159773224848">
+        <title>Default list:</title>
+        <para id="idm45159773223904">with just an id attribute</para>
+        <para id="idm45159773223200">...
+          <list id="idm45159773222640">
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773221440">...
+          <list display="inline">
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773219376">...
+          <list id="idm45159773218816">
+            <title>and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773217200">...
+          <list display="inline">
+            <title>and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773214720">... with all attributes</para>
+        <para id="idm45159773214032">...
+          <list id="idm45159773213472" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE" list-type="enumerated">
+            <item>list with all attributes</item>
+          </list>...
+        </para>
+        <para id="idm45159773210384">...
+          <list display="inline" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE" list-type="enumerated">
+            <item>list with all attributes (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773206432">...
+          <list id="idm45159773205872" display="block" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE" list-type="enumerated">
+            <title>list with all attributes and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773202096">...
+          <list display="inline" item-sep="[SEPARATOR]" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE" list-type="enumerated">
+            <title>list with all attributes and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+      </section>
+      <section id="idm45159773197600">
+        <title>Bulleted list:</title>
+        <para id="idm45159773196656">with just an id attribute</para>
+        <para id="idm45159773195952">...
+          <list id="idm45159773195392" list-type="bulleted">
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773193920">...
+          <list display="inline" list-type="bulleted">
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773191584">...
+          <list id="idm45159773191024" list-type="bulleted">
+            <title>and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773189136">...
+          <list display="inline" list-type="bulleted">
+            <title>and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773186384">... with all attributes</para>
+        <para id="idm45159773185696">...
+          <list id="idm45159773185136" bullet-style="open-circle" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+            <item>list with all attributes</item>
+          </list>...
+        </para>
+        <para id="idm45159773181776">...
+          <list bullet-style="open-circle" display="inline" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+            <item>list with all attributes (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773177552">...
+          <list id="idm45159773176992" bullet-style="open-circle" display="block" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+            <title>list with all attributes and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773172944">...
+          <list bullet-style="open-circle" display="inline" item-sep="[SEPARATOR]" list-type="bulleted" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" type="LIST-TYPE">
+            <title>list with all attributes and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+      </section>
+      <section id="idm45159773168176">
+        <title>Enumerated list:</title>
+        <para id="idm45159773167232">with just an id attribute</para>
+        <para id="idm45159773166528">...
+          <list id="idm45159773165968" list-type="enumerated">
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773164496">...
+          <list display="inline" list-type="enumerated">
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773162160">...
+          <list id="idm45159773161600" list-type="enumerated">
+            <title>and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773159712">...
+          <list display="inline" list-type="enumerated">
+            <title>and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773156960">... with all attributes</para>
+        <para id="idm45159773156272">...
+          <list id="idm45159773155712" display="block" item-sep="[SEPARATOR]" list-type="enumerated" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE">
+            <item>list with all attributes</item>
+          </list>...
+        </para>
+        <para id="idm45159773152080">...
+          <list display="inline" item-sep="[SEPARATOR]" list-type="enumerated" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE">
+            <item>list with all attributes (inline)</item>
+          </list>...
+        </para>
+        <para id="idm45159773147856">...
+          <list id="idm45159773147296" display="block" item-sep="[SEPARATOR]" list-type="enumerated" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE">
+            <title>list with all attributes and title</title>
+            <item>and item</item>
+          </list>...
+        </para>
+        <para id="idm45159773143248">...
+          <list display="inline" item-sep="[SEPARATOR]" list-type="enumerated" mark-prefix="[PREFIX]" mark-suffix="[SUFFIX]" number-style="lower-alpha" start-value="3" type="LIST-TYPE">
+            <title>list with all attributes and title</title>
+            <item>and item (inline)</item>
+          </list>...
+        </para>
+      </section>
+      <section id="idm45159773138480">
+        <title>Labeled-Item list:</title>
+        <para id="idm45159773137536">...
+          <list id="idm45159773136976" list-type="labeled-item">
+            <item>
+              <label>with a label</label>and item
+            </item>
+          </list>...
+        </para>
+        <para id="idm45159773135040">...
+          <list display="inline" list-type="labeled-item">
+            <item>
+              <label>with a label</label>and item (inline)
+            </item>
+          </list>...
+        </para>
+      </section>
+    </section>
+  </content>
+</document>

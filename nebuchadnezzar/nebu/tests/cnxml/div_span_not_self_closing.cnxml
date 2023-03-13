@@ -1,0 +1,25 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:q="http://cnx.rice.edu/qml/1.0" id="new" cnxml-version="0.7" module-id="new">
+
+<!-- derived from original m58457 -->
+<!-- empty title, no self closing div here -->
+<title></title>
+
+<content>
+<!-- image is missing in media here, no self closing span here -->
+<figure id="CNX_UPhysics_27_05_ChargeRC">
+<media id="fs-id1172099463127" alt="The figure shows four graphs of capacitor charging, with time on the x-axis. Parts a shows charge of the capacitor on the y-axis, the value increases from 0 to C&#949; and is equal to 0.632 C&#949; after 1 &#964;. Parts b shows current of the resistor on the y-axis, the value decreases from I subscript 0 to 0 and is equal to 0.368 I subscript 0 after 1 &#964;. Parts c shows voltage of the capacitor on the y-axis, the value increases from 0 to &#949; and is equal to 0.632 &#949; after 1 &#964;. Parts d shows voltage of the resistor on the y-axis, the value decreases from &#949; to 0 and is equal to 0.368 &#949; after 1 &#964;."></media>
+</figure>
+
+<!-- test for no-selfclose comment here -->
+<div></div>
+<div>content1</div>
+<div id="test1a"></div>
+<div id="test1b">content2</div>
+<div><span></span></div>
+<div><span>content3</span></div>
+<div id="test1c"><span id="test1d"></span></div>
+<span></span>
+<span id="test1e"></span>
+<span id="test1f">content4</span>
+</content>
+</document>

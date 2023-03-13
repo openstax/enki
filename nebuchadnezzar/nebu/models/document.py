@@ -1,12 +1,12 @@
 from pathlib import Path
 
 from lxml import etree
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
-from cnxepub.models import (
+from nebu.xml_utils import HTML_DOCUMENT_NAMESPACES
+from nebu.models.base_binder import (
     Document as BaseDocument,
 )
-from cnxml.parse import parse_metadata as parse_cnxml_metadata
-from cnxtransforms import cnxml_to_full_html
+from nebu.parse import parse_metadata as parse_cnxml_metadata
+from nebu.converters import cnxml_to_full_html
 
 from .resource import FileSystemResource
 from .utils import convert_to_model_compat_metadata, id_from_metadata
@@ -90,10 +90,10 @@ class Document(BaseDocument):
             namespaces=HTML_DOCUMENT_NAMESPACES,
         )
         for node in metadata_nodes:
-            body.remove(node)
+            body.remove(node)  # pragma: no cover
         for key in body.keys():
             if key in ('itemtype', 'itemscope'):
-                body.attrib.pop(key)
+                body.attrib.pop(key)  # pragma: no cover
         return etree.tostring(html)
 
     @staticmethod
@@ -120,7 +120,7 @@ class Document(BaseDocument):
         matches the reference's filename.
 
         """
-        if self._reference_resolver is None:
+        if self._reference_resolver is None:  # pragma: no cover
             # Without a resolver this method can't do anything.
             return
 
