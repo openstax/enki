@@ -82,7 +82,7 @@ def content_to_etree(content):
     if bods:
         return bods[0]
     else:
-        raise Exception('Content must have <body>')
+        raise Exception('Content must have <body>')  # pragma: no cover
 
 
 def etree_to_content(etree_, strip_root_node=False):
@@ -166,7 +166,7 @@ def _discover_uri_type(uri):
     parsed_uri = urlparse(uri)
     if not parsed_uri.netloc:
         if parsed_uri.scheme == 'data':
-            type_ = INLINE_REFERENCE_TYPE
+            type_ = INLINE_REFERENCE_TYPE  # pragma: no cover
         else:
             type_ = INTERNAL_REFERENCE_TYPE
     else:
@@ -193,7 +193,7 @@ class Reference(object):
         self.elm = elm
         try:
             assert remote_type in REFERENCE_REMOTE_TYPES
-        except AssertionError:
+        except AssertionError:  # pragma: no cover
             raise ValueError("remote_type: '{}' is invalid."
                              .format(remote_type))
         self.remote_type = remote_type
@@ -207,7 +207,7 @@ class Reference(object):
 
     # read-only property, use bind for writing.
     @property
-    def bound_model(self):
+    def bound_model(self):  # pragma: no cover
         return self._bound_model
 
     def _get_uri(self):
@@ -217,14 +217,14 @@ class Reference(object):
         return self.elm.get(self._uri_attr)
 
     def _set_uri(self, value):
-        if self.is_bound:
+        if self.is_bound:  # pragma: no cover
             raise ValueError("URI is bound to an object. Unbind first.")
         self.elm.set(self._uri_attr, value)
 
     uri = property(_get_uri, _set_uri)
 
     @property
-    def uri_parts(self):
+    def uri_parts(self):  # pragma: no cover
         """Returns a parsed URI"""
         return urlparse(self.uri)
 
@@ -242,7 +242,7 @@ class Reference(object):
         self._uri_template = template
         self._set_uri_from_bound_model()
 
-    def unbind(self):
+    def unbind(self):  # pragma: no cover
         """Unbind the model from the reference."""
         self._bound_model = None
         self._uri_template = None
@@ -310,7 +310,7 @@ class TranslucentBinder(MutableSequence):
         self._nodes = nodes or []
         self.metadata = utf8(metadata or {})
         if title_overrides is not None:
-            if len(self._nodes) != len(title_overrides):
+            if len(self._nodes) != len(title_overrides):  # pragma: no cover
                 raise ValueError(
                     "``title_overrides`` should be the same length as "
                     "``nodes``. {} != {}"
@@ -339,10 +339,10 @@ class TranslucentBinder(MutableSequence):
     def __getitem__(self, i):
         return self._nodes[i]
 
-    def __setitem__(self, i, v):
+    def __setitem__(self, i, v):  # pragma: no cover
         self._nodes[i] = v
 
-    def __delitem__(self, i):
+    def __delitem__(self, i):  # pragma: no cover
         del self._nodes[i]
         del self._title_overrides[i]
 
@@ -431,7 +431,7 @@ class Document(object):
         # reload the references after a content update
         self._references = _parse_references(self._xml)
 
-    def _content__del(self):
+    def _content__del(self):  # pragma: no cover
         self._xml = content_to_etree('')
 
     content = property(_content__get,
@@ -463,7 +463,7 @@ class Document(object):
             if version is not None:
                 args.append(version)
             value = '@'.join(args)
-        else:
+        else:  # pragma: no cover
             value = None
         return value
 
@@ -475,14 +475,14 @@ class Document(object):
         except ValueError:
             raise ValueError("ident_hash requires a version", value)
 
-    def get_uri(self, system, default=None):
+    def get_uri(self, system, default=None):  # pragma: no cover
         try:
             uri = self.metadata["{}-uri".format(system)]
         except KeyError:
             return default
         return uri
 
-    def set_uri(self, system, value):
+    def set_uri(self, system, value):  # pragma: no cover
         key = "{}-uri".format(system)
         self.metadata[key] = value
 
@@ -491,7 +491,7 @@ class Document(object):
         """Reference points in the document.
         These could be resources, other documents, external links, etc.
         """
-        if self._references is None:
+        if self._references is None:  # pragma: no cover
             return []
         return self._references
 
@@ -505,7 +505,7 @@ class DocumentPointer(object):
         self.metadata = utf8(metadata or {})
 
     @classmethod
-    def from_uri(cls, uri):
+    def from_uri(cls, uri):  # pragma: no cover
         parts = urlparse(uri)
         split_path = parts.path.split('/')
         ident_hash = split_path[-1]

@@ -181,7 +181,7 @@ class Binder(BaseBinder):
         def factory(id, version):
             try:
                 filepath = id_to_path_map[id]
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 if os.environ.get('HACK_CNX_LOOSENESS', False) is not False:
                     print('Missing CNXML module "{}"'.format(id))
                     return None

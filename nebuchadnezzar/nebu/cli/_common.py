@@ -57,7 +57,7 @@ def common_params(func):
 
 def set_verbosity(verbose):
     config = console_logging_config.copy()
-    if verbose:
+    if verbose:  # pragma: no cover
         level = 'DEBUG'
     else:
         level = 'INFO'

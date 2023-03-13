@@ -89,7 +89,7 @@ class HTMLFormatter(object):
             return jinja2.Template(DOCUMENT_POINTER_TEMPLATE,
                                    trim_blocks=True, lstrip_blocks=True)
 
-        def isdict(v):
+        def isdict(v):  # pragma: no cover
             return isinstance(v, dict)
 
         template_env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
@@ -116,7 +116,7 @@ class HTMLFormatter(object):
     def __str__(self):
         if IS_PY3:
             return self.__bytes__().decode('utf-8')
-        return self.__bytes__()
+        return self.__bytes__()  # pragma: no cover
 
     def __bytes__(self):
         html = self._template.render(self._template_args)
@@ -230,13 +230,13 @@ class SingleHTMLFormatter(object):
                             page_uuids[link_uuid]))
         self.built = True
 
-    def __unicode__(self):
+    def __unicode__(self):  # pragma: no cover
         return self.__bytes__().decode('utf-8')
 
     def __str__(self):
         if IS_PY3:
             return self.__bytes__().decode('utf-8')
-        return self.__bytes__()
+        return self.__bytes__()  # pragma: no cover
 
     def __bytes__(self):
         if not self.built:

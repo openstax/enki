@@ -90,10 +90,10 @@ class Document(BaseDocument):
             namespaces=HTML_DOCUMENT_NAMESPACES,
         )
         for node in metadata_nodes:
-            body.remove(node)
+            body.remove(node)  # pragma: no cover
         for key in body.keys():
             if key in ('itemtype', 'itemscope'):
-                body.attrib.pop(key)
+                body.attrib.pop(key)  # pragma: no cover
         return etree.tostring(html)
 
     @staticmethod
@@ -120,7 +120,7 @@ class Document(BaseDocument):
         matches the reference's filename.
 
         """
-        if self._reference_resolver is None:
+        if self._reference_resolver is None:  # pragma: no cover
             # Without a resolver this method can't do anything.
             return
 

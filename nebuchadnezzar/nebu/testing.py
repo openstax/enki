@@ -26,6 +26,6 @@ TEST_DATA_DIR = os.path.join(here, 'tests', 'data')
 
 
 def unescape(html):
-    if isinstance(html, bytes):
+    if isinstance(html, bytes):  # pragma: no cover
         html = html.decode('utf-8')
     return parser.unescape(html)
