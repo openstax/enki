@@ -5,14 +5,14 @@ s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
 for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
 for xhtmlfile in "$IO_JSONIFIED/"*@*:*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(basename "$xhtmlfile")"; done;
-try aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
-try copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
+aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
+copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
 
 # Copy subdirectories (Interactives and styles)
 shopt -s globstar nullglob
 for subdir in "$IO_RESOURCES"/*/; do
     dirname=$(basename $subdir)
-    try aws s3 cp --recursive "$subdir" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/resources/$dirname"
+    aws s3 cp --recursive "$subdir" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/resources/$dirname"
 done
 shopt -u globstar nullglob
 
@@ -37,11 +37,11 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     #######################################
     toc_s3_link_json="s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents/$book_uuid@$book_version.json"
     toc_s3_link_xhtml="s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents/$book_uuid@$book_version.xhtml"
-    try aws s3 cp "$IO_JSONIFIED/$slug_name.toc.json" "$toc_s3_link_json"
-    try aws s3 cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$toc_s3_link_xhtml"
+    aws s3 cp "$IO_JSONIFIED/$slug_name.toc.json" "$toc_s3_link_json"
+    aws s3 cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$toc_s3_link_xhtml"
 
-    try cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_ARTIFACTS/"
-    try cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_ARTIFACTS/"
+    cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_ARTIFACTS/"
+    cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_ARTIFACTS/"
 
     echo "DONE: See book at https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_bucket_prefix/contents/$book_uuid@$book_version.xhtml (maybe rename '-gatekeeper' to '-primary')"
 

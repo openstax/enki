@@ -2,30 +2,30 @@ parse_book_dir
 
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 
-try cp -R "$IO_FETCHED/." "$IO_FETCH_META"
+cp -R "$IO_FETCHED/." "$IO_FETCH_META"
 
 # Based on https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
 if [ ! -f $IO_FETCH_META/canonical.json ]; then
     slugs=()
     while IFS=$'\n' read -r line; do
         slugs+=("$line")
-    done < <(try xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' -n < "$IO_FETCH_META/META-INF/books.xml") # LCOV_EXCL_LINE
+    done < <(xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' -n < "$IO_FETCH_META/META-INF/books.xml") # LCOV_EXCL_LINE
     if [[ ${#slugs[@]} == 0 ]]; then
         die "Could not find slugs in $IO_FETCH_META/META-INF/books.xml" # LCOV_EXCL_LINE
     fi
     jo -p -a "${slugs[@]}" > "$IO_FETCH_META/canonical.json"
 fi
 
-try fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
-try rm -rf "$IO_FETCH_META/.git"
+fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
+rm -rf "$IO_FETCH_META/.git"
 
 export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
 if [[ -d "$IO_FETCH_META/media" ]]; then
-    try fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_INITIAL_RESOURCES)" "$IO_UNUSED_RESOURCES"
+    fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_INITIAL_RESOURCES)" "$IO_UNUSED_RESOURCES"
     # Either the media is in resources or unused-resources, this folder should be empty (-d will fail otherwise)
-    try rm -d "$IO_FETCH_META/media"
+    rm -d "$IO_FETCH_META/media"
 fi
 
 
@@ -44,16 +44,16 @@ while read -r slug_name; do
     if [[ ! -f "$style_dst" ]]; then
         # Check for resources that are not (1) online, or (2) encoded with data uri
         # Right now we assume no dependencies, but this may need to be revisited
-        deps="$(try awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
+        deps="$(awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
         if [[ $deps ]]; then
             die "Found unexpected dependencies in $style_src" # LCOV_EXCL_LINE
         fi
-        try cp "$style_src" "$style_dst"
+        cp "$style_src" "$style_dst"
 
         # Extract the sourcemap path from the file
         sourcemap_path="$(tail "$style_src" | awk '$0 ~ /\/\*# sourceMappingURL=/ { print substr($2, index($2, "=") + 1) }')"
         # Resolve the path to be absolute
-        sourcemap_src="$(try realpath "$BOOK_STYLES_ROOT/$sourcemap_path")"
+        sourcemap_src="$(realpath "$BOOK_STYLES_ROOT/$sourcemap_path")"
         if [[ -f "$sourcemap_src" ]]; then
             # LCOV_EXCL_START
             # Find out if any directories need to be made before copying
@@ -65,9 +65,9 @@ while read -r slug_name; do
                 die "Style sourcemap must be within $BOOK_STYLES_ROOT or one of its subdirectories" # LCOV_EXCL_LINE
             fi
             parent_path="$(dirname "$sourcemap_dst")"
-            [[ ! -e  "$parent_path" ]] && try mkdir -p "$parent_path"
-            try cp "$sourcemap_src" "$sourcemap_dst"
+            [[ ! -e  "$parent_path" ]] && mkdir -p "$parent_path"
+            cp "$sourcemap_src" "$sourcemap_dst"
             # LCOV_EXCL_STOP
         fi
     fi
-done < <(try xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -n < "$IO_FETCH_META/META-INF/books.xml")
+done < <(xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -n < "$IO_FETCH_META/META-INF/books.xml")

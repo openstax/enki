@@ -39,7 +39,6 @@ die() {
     exit 112
     # LCOV_EXCL_STOP
 }
-try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
@@ -84,7 +83,7 @@ function check_output_dir() {
     [[ $dir_name ]] || die "This output directory environment variable is not set ($1='$dir_name')"
     # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
     if [[ $dir_name =~ \/data\/ && ! -d $dir_name ]]; then
-        try mkdir -p $dir_name
+        mkdir -p $dir_name
     fi
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
@@ -319,9 +318,9 @@ function simulate_dirs_before() {
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
                 if [[ -d $child_dir_path ]]; then
                     warn "BUG: We should not have directories checked out from the attic at this point. Maybe turn this into a warning in the future" # LCOV_EXCL_LINE
-                    try rm -rf "$child_dir_path" # LCOV_EXCL_LINE
+                    rm -rf "$child_dir_path" # LCOV_EXCL_LINE
                 fi
-                try cp -R "$LOCAL_ATTIC_DIR/$io_name" "$child_dir_path"
+                cp -R "$LOCAL_ATTIC_DIR/$io_name" "$child_dir_path"
             else
                 die "The step '$step_name' expects '$LOCAL_ATTIC_DIR/$io_name' to have been created by a previous step but it does not exist" # LCOV_EXCL_LINE
             fi
@@ -350,9 +349,9 @@ function simulate_dirs_after() {
             child_dir_path="${!pointer}"
 
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
-                try rm -rf "$LOCAL_ATTIC_DIR/$io_name"
+                rm -rf "$LOCAL_ATTIC_DIR/$io_name"
             fi 
-            try mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
+            mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
         done
     fi
 
@@ -363,7 +362,7 @@ function simulate_dirs_after() {
             pointer=$io_name # https://stackoverflow.com/a/55331060
             child_dir_path="${!pointer}"
 
-            try rm -rf "$child_dir_path"
+            rm -rf "$child_dir_path"
         done
     fi
  

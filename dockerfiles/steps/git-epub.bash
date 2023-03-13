@@ -5,7 +5,7 @@ set -Eeuxo pipefail
 # Ensure $IO_EPUB is empty
 [[ -d $IO_EPUB ]] && rm -rf ${IO_EPUB:?}/*
 
-try node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" epub ./ "$IO_EPUB/"
+node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" epub ./ "$IO_EPUB/"
 
 shopt -s globstar nullglob
 for book_dir in "$IO_EPUB/"*; do
@@ -31,11 +31,11 @@ zip_url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$zip_filename"
 zip_path="$(realpath "$IO_ARTIFACTS/$zip_filename")"
 
 # Move into IO_ARTIFACTS so that the contents are in the root of the zip file
-try pushd "$IO_ARTIFACTS"
-try zip -0 "$zip_path" ./*.epub
-try popd
+pushd "$IO_ARTIFACTS"
+zip -0 "$zip_path" ./*.epub
+popd
 
 # This is used to communicate the link to CORGI
-try echo -n "$zip_url" > "$IO_ARTIFACTS/pdf_url"
+echo -n "$zip_url" > "$IO_ARTIFACTS/pdf_url"
 
 shopt -u globstar nullglob
