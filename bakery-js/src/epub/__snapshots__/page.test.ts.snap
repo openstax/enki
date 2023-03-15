@@ -18,8 +18,7 @@ exports[`Pages conversions converts a page that exercises a bunch of serializer 
         <a href="pageLink1#target-id"/>
         <img src="notarealimage.jpg"/>
       </body>
-    
-</html>
+    </html>
 <!-- # sourceMappingURL=somepath.map -->"
 `;
 
@@ -29,8 +28,7 @@ exports[`Pages conversions converts a simple file 1`] = `
       <body>
         <h1 data-type="document-title">KinematicsInFourDimensions</h1>
       </body>
-    
-</html>
+    </html>
 <!-- # sourceMappingURL=somepath.map -->"
 `;
 

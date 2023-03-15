@@ -1,10 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Container File with an empty book parses a simple container 1`] = `
-"<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
-  <rootfiles>
-    <rootfile media-type="application/oebps-package+xml" full-path="IO_DISASSEMBLE_LINKED/testslug.toc.xhtml"/>
-  </rootfiles>
-</container>
+"<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0"><rootfiles><rootfile media-type="application/oebps-package+xml" full-path="IO_DISASSEMBLE_LINKED/testslug.toc.xhtml"/></rootfiles></container>
 <!-- # sourceMappingURL=output.foo.map -->"
 `;

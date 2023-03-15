@@ -186,13 +186,7 @@ class XMLSerializer {
 
       const padding =
         currentDefaultNamespace === XHTML_NS ? '' : '  '.repeat(depth)
-      const startElPadding =
-        currentDefaultNamespace === XHTML_NS
-          ? ''
-          : `${depth === 0 ? '' : '\n'}${padding}`
-      const endElPadding =
-        currentDefaultNamespace === XHTML_NS ? '' : `\n${padding}`
-      this.w.writeText(n, `${startElPadding}<${prefixedTag}`)
+      this.w.writeText(n, `<${prefixedTag}`)
       if (
         newDefaultNamespace !== currentDefaultNamespace &&
         !el.getAttribute('xmlns')
@@ -218,7 +212,7 @@ class XMLSerializer {
         for (const child of Array.from(el.childNodes)) {
           this.recWrite(child, newDefaultNamespace, [], depth + 1)
         }
-        this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
+        this.w.writeText(n, `</${prefixedTag}>`)
       }
     }
   }
@@ -381,7 +375,10 @@ export async function readXmlWithSourcemap(filename: string) {
           })
           const abs = resolve(
             dirname(filename),
-            assertValue(mappedPos.source, 'BUG')
+            assertValue(
+              mappedPos.source,
+              'BUG: sourcemap does not contain which file'
+            )
           )
           const source = assertValue(
             sourcesMap.get(abs),
