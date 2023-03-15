@@ -180,6 +180,14 @@ RUN cd $PROJECT_ROOT/bakery-js && npm run build
 FROM base AS build-python-stage
 
 # ---------------------------
+# Install cnxml
+# ---------------------------
+COPY ./cnxml $PROJECT_ROOT/cnxml/
+RUN . $PROJECT_ROOT/venv/bin/activate && \
+    pip install $PROJECT_ROOT/cnxml/
+
+
+# ---------------------------
 # Install neb
 # ---------------------------
 
