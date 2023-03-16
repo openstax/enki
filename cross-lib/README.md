@@ -16,7 +16,11 @@ repo-name-1 book-slug-2
 
 ### Scripts
 
-`update_books.rb/sh` - Updates or creates the list of books in `AUTO_books.txt`.
+`update_books.rb` - Updates or creates the list of books in `AUTO_books.txt`. Requires Ruby to be installed.
+
+`updater.sh` - Runs `update_books.rb` without dependencies installed (bundles Docker `build` and `run`).
+
+`Dockerfile.ruby_env` - image instructions for updater
 
 `run_enki_on_all.sh` - Iterates over books in `AUTO_books.txt`, running enki to generate each. Outputs status of each run & the time to stdout.
 
