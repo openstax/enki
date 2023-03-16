@@ -280,17 +280,18 @@
 
 <!-- Help ensure that HTML paragraphs do not contain blockish elements as children -->
 
-<xsl:template match="c:para[not(.//c:figure|.//c:list[not(@display='inline')]|.//c:table|.//c:media[not(@display) or @display='block']|.//c:equation[not(ancestor::c:footnote)]|.//c:preformat|.//c:note|.//c:exercise)]" name="convert-para">
+<xsl:template match="c:para[not(
+		      .//c:figure
+		     |.//c:list[not(@display='inline')]
+		     |.//c:table
+		     |.//c:media[not(@display) or @display='block']
+		     |.//c:equation[not(ancestor::c:footnote)]
+		     |.//c:preformat
+		     |.//c:exercise
+		     )]" name="convert-para">
   <p><xsl:apply-templates select="@*|node()"/></p>
   <xsl:apply-templates mode="footnote-dumpsite" select="."/>
 </xsl:template>
-
-<!-- Make an ugly exception for American Govt (https://trello.com/c/hXPF6dJa/) because it needs to be released soon and the full Pull Request that creates valid XHTML is too large to release quickly: https://github.com/Connexions/rhaptos.cnxmlutils/pull/157 -->
-<xsl:template match="c:para[.//c:cite/c:note[@display='inline']]">
-  <p><xsl:apply-templates select="@*|node()"/></p>
-  <xsl:apply-templates mode="footnote-dumpsite" select="."/>
-</xsl:template>
-
 
 <!-- Unwrap the paragraph when it only contains a blockish child. Note that we will lose the paragraph @id attribute -->
 <xsl:template match="c:para[count(node()) >= 1][*//c:figure|*//c:list[not(@display='inline')]|*//c:table|*//c:media[not(@display) or @display='block']|c:equation|c:preformat|c:note|c:exercise]">

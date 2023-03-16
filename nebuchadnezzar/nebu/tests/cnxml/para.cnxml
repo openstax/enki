@@ -157,5 +157,13 @@
         </problem>
       </exercise>
     </para>
+
+    <para id="with-cite-and-note">
+      <cite>
+        <note>
+          Hello I am a para that occurs in American Govt.
+        </note>
+      </cite>
+    </para>
   </content>
 </document>
