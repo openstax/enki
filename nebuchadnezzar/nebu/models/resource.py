@@ -3,7 +3,8 @@ import hashlib
 from nebu.models.base_binder import RESOURCE_HASH_TYPE
 
 
-class FileSystemResource(object):
+# FIXME: Entire class and all usage can be removed as far as I can tell
+class FileSystemResource(object):  # pragma: no cover
     """A binary object used within the context of a ``Document``.
     It is typically referenced within the document's content.
 

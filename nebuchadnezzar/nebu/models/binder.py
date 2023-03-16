@@ -84,12 +84,13 @@ class Binder(BaseBinder):
 
         def handler(event, elm):
             nonlocal parent_node, current_node, ignoring
-            if elm.tag == DERIVED_FROM_TAG:
+            # FIXME: Lines 88-94 are most likely safe to remove
+            if elm.tag == DERIVED_FROM_TAG:  # pragma: no cover
                 if event == 'start':
                     ignoring = True
                 elif event == 'end':
                     ignoring = False
-            if ignoring:
+            if ignoring:  # pragma: no cover
                 return
             if elm.tag == TITLE_TAG and event == 'start':
                 title = elm.text
@@ -136,7 +137,8 @@ class Binder(BaseBinder):
             module_id_pattern = re.compile(r'\/(m\d{5})(@\d+[.]\d+([.]\d+)?)?')
             module_id_match = module_id_pattern.search(reference.uri)
 
-            if resource:
+            # FIXME: Probably safe to remove resource part
+            if resource:  # pragma: no cover
                 bind_id = id_to_uuid_map.get(id) or id
                 reference.bind(
                     resource,
@@ -216,7 +218,9 @@ class Binder(BaseBinder):
         """
         metadata_file = filepath.parent / 'metadata.json'
 
-        if metadata_file.exists():
+        # FIXME: Remove, metadata file never exists (ideally, _update_metadata
+        #        is removed altogether)
+        if metadata_file.exists():  # pragma: no cover
             with open(metadata_file) as metadata_json:
                 metadata = json.load(metadata_json)
                 cnx_archive_uri = '{}@{}'.format(

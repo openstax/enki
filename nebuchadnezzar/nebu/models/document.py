@@ -107,6 +107,7 @@ class Document(BaseDocument):
         :rtype: [:class:`cnxepub.models.Resource`]
 
         """
+        # FIXME: This is _technically_ used, however, it serves no purpose
         resources = []
         for filepath in loc.glob('*'):
             if filepath.name in IGNORE_RESOURCES_BY_FILENAME:

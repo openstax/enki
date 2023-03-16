@@ -6,6 +6,13 @@
   <md:uuid>3fb20c92-9515-420b-ab5e-6de221b89e99</md:uuid>
   <md:canonical-book-uuid>30189442-6998-4686-ac05-ed152b91b9de</md:canonical-book-uuid>
   <md:revised>2019/02/08 09:37:55.846 US/Central</md:revised>
+    <md:abstract>
+      <para id="para-00001">By the end of this section, you will be able to:</para>
+      <list id="list-00001">
+        <item>Fully cover the _squash_to_text function in nebu/parse.py</item>
+        <item>More closely reflect the way content looks today</item>
+      </list>
+    </md:abstract>
 </metadata>
 
 <content>

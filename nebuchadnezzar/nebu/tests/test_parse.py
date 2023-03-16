@@ -3,7 +3,7 @@ import json
 import pytest
 from lxml import etree
 
-from nebu.parse import NSMAP, parse_metadata
+from nebu.parse import parse_metadata
 
 
 @pytest.fixture
