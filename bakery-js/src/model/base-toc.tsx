@@ -71,13 +71,11 @@ export abstract class BaseTocFile<
     const children = li.find('h:ol/h:li')
     if (children.length > 0) {
       /* istanbul ignore next */
-      const title = li.has('h:a')
-        ? li.findOne('h:a').text()
-        : li.findOne('h:span').text()
+      const titleNode = li.has('h:a') ? li.findOne('h:a') : li.findOne('h:span')
       return {
         type: TocTreeType.INNER,
-        title, //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-        titlePos: getPos(li.findOne('h:a').node),
+        title: titleNode.text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+        titlePos: getPos(titleNode.node),
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
       }
     }
