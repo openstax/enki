@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from lxml import etree
 
@@ -11,33 +13,23 @@ def git_xml(datadir):
     return xml
 
 
-def test_git_parse(git_xml):
+def assert_props_match(snapshot, props, snapshot_name="metadata.json"):
+    snapshot.assert_match(json.dumps(props), snapshot_name)
+
+
+def test_git_parse(git_xml, snapshot):
     # Call the target
     props = parse_metadata(git_xml)
-
-    expected_props = {
-        'abstract': None,
-        'id': 'col11406',
-        'language': 'en',
-        'license_url': 'http://creativecommons.org/licenses/by/4.0/deed.en',
-        'license_text': 'Creative Commons Attribution License',
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': 'e1edc39a-14cd-4d61-886f-36bebd27e2d2',
-        'canonical_book_uuid': None,
-        'slug': 'college-physics'
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
-def test_parse_with_minimal_metadata():
+def test_parse_with_minimal_metadata(snapshot):
     cnxml = """
         <document xmlns="http://cnx.rice.edu/cnxml">
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27ebee</md:uuid>
                 <md:abstract/>
             </metadata>
         </document>
@@ -46,24 +38,10 @@ def test_parse_with_minimal_metadata():
     xml = etree.fromstring(cnxml)
     props = parse_metadata(xml)
 
-    expected_props = {
-        'abstract': '',
-        'id': 'col11406',
-        'language': None,
-        'license_url': None,
-        'license_text': None,
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': None,
-        'canonical_book_uuid': None,
-        'slug': None,
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
-def test_parse_with_optional_metadata():
+def test_parse_with_optional_metadata(snapshot):
     cnxml = """
         <document xmlns="http://cnx.rice.edu/cnxml">
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
@@ -79,21 +57,7 @@ def test_parse_with_optional_metadata():
     xml = etree.fromstring(cnxml)
     props = parse_metadata(xml)
 
-    expected_props = {
-        'abstract': '',
-        'id': 'col11406',
-        'language': None,
-        'license_url': None,
-        'license_text': None,
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': 'e1edc39a-14cd-4d61-886f-36bebd27e2d2',
-        'canonical_book_uuid': '70fe3889-8d4b-4061-8efa-d00c655f474d',
-        'slug': None,
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
 @pytest.mark.parametrize(
@@ -105,12 +69,13 @@ def test_parse_with_optional_metadata():
         ''
     ]
 )
-def test_parse_no_license_url_returns_default(license_el):
+def test_parse_no_license_url_returns_default(license_el, snapshot):
     cnxml = f"""
         <document xmlns="http://cnx.rice.edu/cnxml">
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:abstract/>
                 {license_el}
             </metadata>
@@ -120,21 +85,7 @@ def test_parse_no_license_url_returns_default(license_el):
     xml = etree.fromstring(cnxml)
     props = parse_metadata(xml)
 
-    expected_props = {
-        'abstract': '',
-        'id': 'col11406',
-        'language': None,
-        'license_url': None,
-        'license_text': None,
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': None,
-        'canonical_book_uuid': None,
-        'slug': None,
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
 # Currently, the en license is used in many instances where md:language is not en
@@ -175,12 +126,13 @@ def test_parse_no_license_url_returns_default(license_el):
         )
     ]
 )
-def test_parse_license_url_returns_expected_value(license_url, license_text, md_lang):
+def test_parse_license_url_returns_expected_value(license_url, license_text, md_lang, snapshot):
     cnxml = f"""
         <document xmlns="http://cnx.rice.edu/cnxml">
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:abstract/>
                 <md:language>{md_lang}</md:language>
                 <md:license url="{license_url}"/>
@@ -191,21 +143,7 @@ def test_parse_license_url_returns_expected_value(license_url, license_text, md_
     xml = etree.fromstring(cnxml)
     props = parse_metadata(xml)
 
-    expected_props = {
-        'abstract': '',
-        'id': 'col11406',
-        'language': md_lang,
-        'license_url': license_url.strip(),
-        'license_text': license_text,
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': None,
-        'canonical_book_uuid': None,
-        'slug': None,
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
 # For now, only check localized license match their language
@@ -222,6 +160,7 @@ def test_parse_license_with_localized_url_and_lang_mismatch_should_error(license
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:language>{md_lang}</md:language>
                 <md:abstract/>
                 {license_el}
@@ -256,12 +195,13 @@ def test_parse_license_with_localized_url_and_lang_mismatch_should_error(license
         )
     ]
 )
-def test_parse_localized_license_url_returns_element_text(license_url, license_text, md_lang):
+def test_parse_localized_license_url_returns_element_text(license_url, license_text, md_lang, snapshot):
     cnxml = f"""
         <document xmlns="http://cnx.rice.edu/cnxml">
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:abstract/>
                 <md:language>{md_lang}</md:language>
                 <md:license url="{license_url}"> {license_text} </md:license>
@@ -272,21 +212,7 @@ def test_parse_localized_license_url_returns_element_text(license_url, license_t
     xml = etree.fromstring(cnxml)
     props = parse_metadata(xml)
 
-    expected_props = {
-        'abstract': '',
-        'id': 'col11406',
-        'language': md_lang,
-        'license_url': license_url.strip(),
-        'license_text': license_text.strip(),
-        'revised': None,
-        'title': 'College Physics',
-        'version': None,
-        'uuid': None,
-        'canonical_book_uuid': None,
-        'slug': None,
-    }
-    # Verify the metadata
-    assert props == expected_props
+    assert_props_match(snapshot, props)
 
 
 @pytest.mark.parametrize(
@@ -302,6 +228,7 @@ def test_parse_localized_license_with_no_license_text_should_error(license_el):
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:language>xx</md:language>
                 <md:abstract/>
                 {license_el}
@@ -333,6 +260,7 @@ def test_parse_license_url_with_typo_should_error(license_url):
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:abstract/>
                 <md:license url="{license_url}"/>
             </metadata>
@@ -364,6 +292,7 @@ def test_parse_license_with_bad_url_should_error(license_url):
             <title>College Physics</title>
             <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
                 <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-deadbee7e2d2</md:uuid>
                 <md:abstract/>
                 <md:license url="{license_url}"/>
             </metadata>
