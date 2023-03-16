@@ -177,25 +177,46 @@ RUN cd $PROJECT_ROOT/bakery-js && npm run build
 # ===========================
 
 
-FROM base AS build-python-stage
+FROM base AS build-python-stage-3rd-party
 
-# ---------------------------
-# Install cnxml
-# ---------------------------
-COPY ./cnxml $PROJECT_ROOT/cnxml/
-RUN . $PROJECT_ROOT/venv/bin/activate && \
-    pip install $PROJECT_ROOT/cnxml/
-
-
-# ---------------------------
-# Install neb
-# ---------------------------
+# -----------------------
+# Install neb 3rd party
+# -----------------------
 
 COPY ./nebuchadnezzar/requirements $PROJECT_ROOT/nebuchadnezzar/requirements
 
 COPY            ./dockerfiles/build/build-stage-neb-3rdparty.bash \
     $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
 RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
+
+
+# -----------------------
+# Install bakery-scripts 3rd party
+# -----------------------
+
+ENV HOST_BAKERY_SRC_ROOT=./bakery-src
+ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
+
+COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $HOST_BAKERY_SRC_ROOT/scripts/*.json $BAKERY_SRC_ROOT/scripts/
+
+COPY            ./dockerfiles/build/build-stage-bakery-3rdparty.bash \
+    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
+RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
+
+
+FROM build-python-stage-3rd-party as build-python-stage
+
+# ---------------------------
+# Install cnxml
+# ---------------------------
+COPY ./cnxml $PROJECT_ROOT/cnxml/
+RUN . $PROJECT_ROOT/venv/bin/activate && \
+    pip3 install $PROJECT_ROOT/cnxml/
+
+
+# ---------------------------
+# Install neb
+# ---------------------------
 
 COPY ./nebuchadnezzar/ $PROJECT_ROOT/nebuchadnezzar/
 
@@ -208,16 +229,7 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
 # Install bakery-scripts
 # -----------------------
 
-ENV HOST_BAKERY_SRC_ROOT=./bakery-src
-ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
-
-COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $BAKERY_SRC_ROOT/scripts/
-
-COPY            ./dockerfiles/build/build-stage-bakery-3rdparty.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
-
-COPY $HOST_BAKERY_SRC_ROOT/scripts/*.py $HOST_BAKERY_SRC_ROOT/scripts/*.js $HOST_BAKERY_SRC_ROOT/scripts/*.json $BAKERY_SRC_ROOT/scripts/
+COPY $HOST_BAKERY_SRC_ROOT/scripts/*.py $HOST_BAKERY_SRC_ROOT/scripts/*.js $BAKERY_SRC_ROOT/scripts/
 COPY $HOST_BAKERY_SRC_ROOT/scripts/gdoc/ $BAKERY_SRC_ROOT/scripts/gdoc/
 
 COPY            ./dockerfiles/build/build-stage-bakery-install.bash \
