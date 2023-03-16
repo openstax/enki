@@ -229,7 +229,11 @@ fi
 [[ -d $data_dir ]] || mkdir -p "$data_dir"
 
 [[ $arg_repo && ! $arg_book_slug ]] && ( >&2 echo "ERROR: Missing --book-slug commandline argument when using --repo" && exit 111)
-repo_and_book_slug="--repo $arg_repo --book-slug $arg_book_slug"
+
+repo_slug_ref=""
+[[ $arg_repo ]] && repo_slug_ref="$repo_slug_ref --repo $arg_repo"
+[[ $arg_book_slug ]] && repo_slug_ref="$repo_slug_ref --book-slug $arg_book_slug"
+[[ $arg_ref ]] && repo_slug_ref="$repo_slug_ref --ref $arg_ref"
 
 # specify a directory to sideload the book from instead of cloning from github
 [[ $SIDELOAD_PATH ]] && {
@@ -276,7 +280,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
-    --rm $image_name "$arg_command" $repo_and_book_slug --ref "$arg_ref"
+    --rm $image_name "$arg_command" $repo_slug_ref
 
 if [[ $arg_command == *pdf ]]
 then
