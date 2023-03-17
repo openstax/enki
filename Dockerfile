@@ -335,7 +335,7 @@ COPY --from=concourse-resource-builder /code/dist .
 
 RUN set -x \
     && . $PROJECT_ROOT/venv/bin/activate \
-    && pip3 install corgi_concourse_resource-*.tar.gz \
+    && pip3 install corgi*concourse*resource*.tar.gz \
     && mkdir -p /opt/resource \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
 
