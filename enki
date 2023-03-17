@@ -247,8 +247,6 @@ repo_slug_ref=""
     fi
 }
 
-$root_dir/build-dockerfile.sh
-
 [[ $COOKBOOK_ROOT ]] && {
     [[ $COOKBOOK_ROOT != /* ]] && COOKBOOK_ROOT=$(cd $current_dir/$COOKBOOK_ROOT && pwd)
     opt_mount_recipes="--volume=$COOKBOOK_ROOT:/workspace/enki/recipes/"
