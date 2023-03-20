@@ -1,18 +1,21 @@
 import json
-import requests
+from urllib.parse import urlencode
 
+import requests
 from .utils import msg
 
 
-def build_url(api_root, *args):
+def build_url(api_root, *args, **kwargs):
     parts = [api_root]
     parts.extend(args)
-    parts = [str(p) for p in parts]
-    return "/".join(parts)
+    url = "/".join(str(p) for p in parts)
+    if kwargs:
+        return "?".join((url, urlencode(kwargs)))
+    return url
 
 
-def get_jobs(api_root):
-    url = build_url(api_root, "jobs")
+def get_jobs(api_root, **kwargs):
+    url = build_url(api_root, "jobs", "check", **kwargs)
     response = requests.get(url)
     msg(response.text)
     return response.json()

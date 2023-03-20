@@ -1,8 +1,8 @@
 import hashlib
-
+import json
 import magic
 from cnxcommon.urlslug import generate_slug
-from cnxepub.models import TRANSLUCENT_BINDER_ID, TranslucentBinder
+from .cnx_models import TRANSLUCENT_BINDER_ID, TranslucentBinder
 from dateutil import parser, tz
 import imagesize
 
@@ -37,7 +37,8 @@ def get_checksums(filename):
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
         if len(md5s) < 1:
-            s3_md5 = '"{}"'.format(hashlib.md5().hexdigest())  # pragma: no cover
+            s3_md5 = '"{}"'.format(
+                hashlib.md5().hexdigest())  # pragma: no cover
         elif len(md5s) == 1:
             s3_md5 = '"{}"'.format(md5s[0].hexdigest())
         else:  # pragma: no cover
@@ -69,6 +70,20 @@ def get_size(filename):
         return int(width), int(height)
 
 
+def create_json_metadata(output_dir, sha1, mime_type, s3_md5, original_name, width, height):
+    """ Create json with MIME type and other metadata of resource file """
+    data = {}
+    data['original_name'] = original_name
+    data['mime_type'] = mime_type
+    data['s3_md5'] = s3_md5
+    data['sha1'] = sha1
+    data['width'] = width
+    data['height'] = height
+    json_file = output_dir / f'{sha1}.json'
+    with json_file.open(mode='w') as outfile:
+        json.dump(data, outfile)
+
+
 # Based upon amend_tree_with_slugs from cnx-publishing
 # (https://github.com/openstax/cnx-publishing/blob/master/cnxpublishing/utils.py#L64)
 def amend_tree_with_slugs(tree, title_seq=[]):
@@ -92,6 +107,10 @@ def model_to_tree(model, title=None, lucent_id=TRANSLUCENT_BINDER_ID):
     md = model.metadata
     title = title is not None and title or md.get('title')
     tree = {'id': id, 'title': title}
+    if 'data-toc-type' in md:  # pragma: no cover
+        tree['toc_type'] = md['data-toc-type']
+    if 'data-toc-target-type' in md:  # pragma: no cover
+        tree['toc_target_type'] = md['data-toc-target-type']
     if hasattr(model, '__iter__'):
         contents = tree['contents'] = []
         for node in model:

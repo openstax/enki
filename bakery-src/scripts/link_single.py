@@ -9,8 +9,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote
 
-from cnxepub.collation import reconstitute
-from cnxepub.models import flatten_to_documents
+from .html_parser import reconstitute
+from .cnx_models import flatten_to_documents
 from lxml import etree
 
 
@@ -96,7 +96,7 @@ def gen_page_slug_resolver(book_tree_by_uuid):
 
 
 def patch_link(node, source_book_uuid, canonical_book_uuid,
-               canonical_book_slug, page_slug):
+               canonical_book_slug, page_slug, version):
     """replace legacy link"""
     # FIXME: Track and change EXTERNAL #id-based links in link-extras that have moved from baking
     # m12345 -> uuid::abcd
@@ -114,16 +114,10 @@ def patch_link(node, source_book_uuid, canonical_book_uuid,
             page_id = page_link
             page_fragment = ""
 
-        print('BEFORE:')
-        print(node.attrib)
-
         node.attrib["data-book-uuid"] = canonical_book_uuid
         node.attrib["data-book-slug"] = canonical_book_slug
         node.attrib["data-page-slug"] = page_slug
-        node.attrib["href"] = f"./{canonical_book_uuid}:{page_id}.xhtml{page_fragment}"
-
-        print('AFTER:')
-        print(node.attrib)
+        node.attrib["href"] = f"./{canonical_book_uuid}@{version}:{page_id}.xhtml{page_fragment}"
 
 
 def save_linked_collection(output_path, doc):
@@ -133,7 +127,7 @@ def save_linked_collection(output_path, doc):
 
 
 def transform_links(
-        baked_content_dir, baked_meta_dir, source_book_slug, output_path, mock_otherbook):
+        baked_content_dir, baked_meta_dir, source_book_slug, output_path, version, mock_otherbook):
     doc = load_baked_collection(baked_content_dir, source_book_slug)
     binders = parse_collection_binders(baked_content_dir)
     canonical_map = create_canonical_map(binders)
@@ -181,7 +175,7 @@ def transform_links(
                 f"from link {link}"
             )  # pragma: no cover
         patch_link(node, source_book_uuid, canonical_book_uuid,
-                   canonical_book_slug, page_slug)
+                   canonical_book_slug, page_slug, version)
 
     save_linked_collection(output_path, doc)
 
@@ -192,6 +186,7 @@ def main():
     parser.add_argument("baked_meta_dir")
     parser.add_argument("source_book_slug")
     parser.add_argument("output_path")
+    parser.add_argument("version")
     parser.add_argument("--mock-otherbook", action="store_true")
     args = parser.parse_args()
 
@@ -200,6 +195,7 @@ def main():
         args.baked_meta_dir,
         args.source_book_slug,
         args.output_path,
+        args.version,
         args.mock_otherbook
     )
 

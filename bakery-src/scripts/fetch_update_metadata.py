@@ -83,8 +83,10 @@ def main():
     for bookslug in reversed(canonical_list):
         collection = collections_dir / f'{bookslug}.collection.xml'
         col_tree = etree.parse(str(collection))
-        col_modules = col_tree.xpath("//col:module/@document", namespaces={"col": NS_COLLXML})
-        col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[0].text
+        col_modules = col_tree.xpath(
+            "//col:module/@document", namespaces={"col": NS_COLLXML})
+        col_uuid = col_tree.xpath(
+            "//md:uuid", namespaces={"md": NS_MDML})[0].text
         for module in col_modules:
             canonical_mapping[module] = col_uuid
 

@@ -148,6 +148,7 @@ TRACE_ON=$trace_on \
     IO_BAKED=$temp_dir/IO_BAKED\
     IO_ASSEMBLE_META=$temp_dir/IO_ASSEMBLE_META\
     IO_ASSEMBLED=$temp_dir/IO_ASSEMBLED\
+    IO_INITIAL_RESOURCES=$temp_dir/initial-resources\
     IO_RESOURCES=$temp_dir/resources\
     IO_FETCH_META=$temp_dir/IO_FETCH_META\
     IO_UNUSED_RESOURCES=$temp_dir/IO_UNUSED_RESOURCES\

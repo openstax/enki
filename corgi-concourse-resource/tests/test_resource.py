@@ -4,6 +4,7 @@ import os
 import tempfile
 
 import vcr
+import pytest
 
 from corgi_concourse_resource import check, in_, out
 
@@ -44,44 +45,42 @@ def make_input_stream(version, **kwargs):
 
 class TestCheck(object):
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
+    # This edge case is testing behavior when no previous version exists
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
     def test_edge_case_queued_jobs(self):
         version = None
 
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{'id': '2'},
-                          {'id': '1'}]
+        assert result == [{"id": "3"},
+                          {"id": "2"},
+                          {"id": "1"}]
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
     def test_edge_case_queued_no_jobs(self):
         version = None
 
-        in_stream = make_input_stream(version, status_id=6)
+        in_stream = make_input_stream(version, status_id=999)
         result = check.check(in_stream)
 
         assert result == []
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
-    def test_has_newest_job(self):
-        version = {"id": 1}
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
+    @pytest.mark.parametrize(
+        "id,result", [
+            ("1", [{"id": "3"}, {"id": "2"}]),
+            ("2", [{"id": "3"}]),
+            ("3", [])
+        ]
+    )
+    def test_has_newer_job(self, id, result):
+        version = {"id": id}
 
         in_stream = make_input_stream(version, status_id=1)
-        result = check.check(in_stream)
+        assert check.check(in_stream) == result
 
-        assert result == [{"id": "2"}]
-
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
-    def test_has_newer_jobs(self):
-        version = {"id": 0}
-
-        in_stream = make_input_stream(version, status_id=1)
-        result = check.check(in_stream)
-
-        assert result == [{'id': '2'}, {'id': '1'}]
-
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
     def test_check_without_status_id(self):
         version = {"id": 9}
 
@@ -90,7 +89,7 @@ class TestCheck(object):
 
         assert result == [version]
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
     def test_check_when_status_id_is_zero(self):
         version = {"id": 2}
 
@@ -99,17 +98,7 @@ class TestCheck(object):
 
         assert result == [version]
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
-    def test_check_without_version_with_status(self):
-        payload = make_input(None, status_id=5)
-        del payload["version"]
-
-        in_stream = make_stream(payload)
-        result = check.check(in_stream)
-
-        assert result == [{'id': '10'}, {'id': '9'}]
-
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
     def test_check_without_version_without_status(self):
         payload = make_input(None)
         del payload["version"]
@@ -119,18 +108,42 @@ class TestCheck(object):
 
         assert result == []
 
-    @vcr.use_cassette("tests/cassettes/test_check.yaml")
-    def test_check_with_job_type(self):
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
+    @pytest.mark.parametrize(
+        "job_type_id,result", [
+            (1, []),
+            (2, []),
+            (3, [{"id": "1"}]),
+            (4, [{"id": "2"}]),
+            (5, [{"id": "3"}])
+        ]
+    )
+    def test_check_with_job_type(self, job_type_id, result):
         version = None
 
-        in_stream = make_input_stream(version, status_id=1, job_type_id=2)
-        result = check.check(in_stream)
+        in_stream = make_input_stream(version, status_id=1, job_type_id=job_type_id)
+        assert result == check.check(in_stream)
 
-        assert result == [{'id': '2'}]
+
+    @vcr.use_cassette("tests/cassettes/test_check.yaml", record_mode="new_episode")
+    @pytest.mark.parametrize(
+        "status_id,result", [
+            (1, [{"id": "3"}, {"id": "2"}, {"id": "1"}],),
+            (2, [{"id": "6"}, {"id": "5"}, {"id": "4"}]),
+            (3, [{"id": "9"}, {"id": "8"}, {"id": "7"}]),
+            (4, [{"id": "12"}, {"id": "11"}, {"id": "10"}]),
+            (5, [{"id": "15"}, {"id": "14"}, {"id": "13"}]),
+        ]
+    )
+    def test_check_with_status(self, status_id, result):
+        version = None
+
+        in_stream = make_input_stream(version, status_id=status_id)
+        assert result == check.check(in_stream)
 
 
 class TestIn(object):
-    @vcr.use_cassette('tests/cassettes/test_in.yaml')
+    @vcr.use_cassette("tests/cassettes/test_in.yaml")
     def test_resource_files_are_written(self):
         id = "1"
         version = {"version": {"id": id}}
@@ -148,6 +161,10 @@ class TestIn(object):
         expected_json = json.loads(
             read_file(os.path.join(DATA_DIR, "job.json"))
         )
+        # Ignore information that is expected to change
+        for key in ("created_at", "updated_at", "user", "version", "books",
+                    "artifact_urls"):
+            job_json[key] = None
         assert job_json == expected_json
 
         collection_id = read_file(os.path.join(dest_path, "collection_id"))
@@ -159,14 +176,12 @@ class TestIn(object):
         collection_style = read_file(os.path.join(dest_path, "collection_style"))
         assert collection_style == read_file(os.path.join(DATA_DIR, "collection_style"))
 
-        content_server = read_file(os.path.join(dest_path, "content_server"))
-        assert content_server == read_file(os.path.join(DATA_DIR, "content_server"))
 
 
 class TestOut(object):
 
-    @vcr.use_cassette("tests/cassettes/test_out.yaml")
-    def test_update_job_status_and_url(self):
+    @vcr.use_cassette("tests/cassettes/test_out.yaml", record_mode="new_episode")
+    def test_update_job_status_and_url(self, monkeypatch):
         id = "1"
         pdf_url = "http://dummy.cops.org/col12345-latest.pdf"
         src_path = tempfile.mkdtemp()
@@ -188,6 +203,16 @@ class TestOut(object):
         payload["params"] = params
 
         in_stream = make_stream(payload)
+ 
+        from corgi_concourse_resource.corgi_api import update_job
+        def test_data(api_root, id, data):
+            assert data
+            assert id
+            assert "status_id" in data
+            assert "artifact_urls" in data
+            return update_job(api_root, id, data)
+        
+        monkeypatch.setattr("corgi_concourse_resource.out.update_job", test_data)
 
         result = out.out(src_path, in_stream)
 
