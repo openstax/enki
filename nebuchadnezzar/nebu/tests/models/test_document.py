@@ -11,10 +11,8 @@ from nebu.models.document import Document
 REFERENCE_MARKER = '#!--testing--'
 
 
-def mock_reference_resolver(reference, resource):
-    """Used for testing reference resolution during model tests"""
-    if resource:
-        reference.bind(resource, '{}/{{}}'.format(REFERENCE_MARKER))
+def mock_reference_resolver(reference):
+    pass
 
 
 class TestDocument(object):

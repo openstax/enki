@@ -121,7 +121,7 @@ class Binder(BaseBinder):
     @staticmethod
     def _make_reference_resolver(id, id_to_uuid_map):
 
-        def func(reference, resource):
+        def func(reference):
             # Look for module ID with an optional version
             module_id_pattern = re.compile(r'\/(m\d{5})(@\d+[.]\d+([.]\d+)?)?')
             module_id_match = module_id_pattern.search(reference.uri)

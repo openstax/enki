@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from lxml import etree
 from nebu.xml_utils import HTML_DOCUMENT_NAMESPACES
 from nebu.models.base_binder import (
@@ -104,12 +102,4 @@ class Document(BaseDocument):
         for ref in self.references:
             if ref.remote_type == 'external':
                 continue
-            name = Path(ref.uri).name
-            try:
-                resource = [r for r in self.resources if r.filename == name][0]
-            except IndexError:
-                # When resources are missing, the problem is pushed off
-                # to the rendering process, which will
-                # raise a missing reference exception when necessary.
-                resource = None
-            self._reference_resolver(ref, resource)
+            self._reference_resolver(ref)
