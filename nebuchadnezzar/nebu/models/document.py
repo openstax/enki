@@ -8,7 +8,6 @@ from nebu.models.base_binder import (
 from nebu.parse import parse_metadata as parse_cnxml_metadata
 from nebu.converters import cnxml_to_full_html
 
-from .resource import FileSystemResource
 from .utils import convert_to_model_compat_metadata, id_from_metadata
 
 # A list of filenames to ignore while attempting to discover
@@ -55,7 +54,6 @@ class Document(BaseDocument):
         with filepath.open('r') as fb:
             html = etree.fromstring(cnxml_to_full_html(fb.read()).encode())
 
-        resources = []
         metadata = parse_cnxml_metadata(cnxml)
         metadata = convert_to_model_compat_metadata(metadata)
         id = id_from_metadata(metadata)
@@ -63,11 +61,8 @@ class Document(BaseDocument):
         # Clean and sanatize the content
         content = cls._sanatize_content(html)
 
-        # Process the resource file
-        resources = cls._find_resources(filepath.parent)
-
         # Create the object
-        return cls(id, content, metadata=metadata, resources=resources,
+        return cls(id, content, metadata=metadata,
                    reference_resolver=reference_resolver)
 
     @staticmethod
@@ -95,25 +90,6 @@ class Document(BaseDocument):
             if key in ('itemtype', 'itemscope'):
                 body.attrib.pop(key)  # pragma: no cover
         return etree.tostring(html)
-
-    @staticmethod
-    def _find_resources(loc):
-        """Given a location to look for resources, create and return a list of
-        :class:`cnxepub.models.Resource` objects.
-
-        :param loc: location to look for resource files
-        :type loc: :class:`pathlib.Path`
-        :return: list of Resources
-        :rtype: [:class:`cnxepub.models.Resource`]
-
-        """
-        # FIXME: This is _technically_ used, however, it serves no purpose
-        resources = []
-        for filepath in loc.glob('*'):
-            if filepath.name in IGNORE_RESOURCES_BY_FILENAME:
-                continue
-            resources.append(FileSystemResource(filepath))
-        return resources
 
     def resolve_references(self):
         """\
