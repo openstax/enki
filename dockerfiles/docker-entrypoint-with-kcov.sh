@@ -14,7 +14,7 @@ elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
     shift 1
     while [ -n "$1" ]; do
         case "$1" in
-            --repo) shift ;;
+            --repo) ;;
             --book-slug) shift ;;
             *)
                 dirs_to_merge="$dirs_to_merge $1"
