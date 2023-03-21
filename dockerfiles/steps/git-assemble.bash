@@ -7,14 +7,15 @@ try cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 repo_root=$IO_FETCH_META
 
 
-echo 'Annotating XML files...'
-pushd $IO_FETCH_META
-files=$(find . -name '*.cnxml')
-for file in $files; do
-    try node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
-done
-popd
-
+if [[ $LOCAL_ATTIC_DIR != '' ]]; then
+    echo 'Annotating XML files...'
+    pushd $IO_FETCH_META
+    files=$(find . -name '*.cnxml')
+    for file in $files; do
+        try node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
+    done
+    popd
+fi
 
 col_sep='|'
 # https://stackoverflow.com/a/31838754
