@@ -281,7 +281,7 @@ RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo
 # Build concourse resource
 # ---------------------------
 
-FROM openstax/python3-poetry:20220614.214642 as concourse-resource-builder
+FROM openstax/python3-poetry:20230310.212344 as concourse-resource-builder
 
 WORKDIR /code
 COPY ./corgi-concourse-resource .
@@ -314,7 +314,7 @@ COPY --from=concourse-resource-builder /code/dist .
 
 RUN set -x \
     && . $PROJECT_ROOT/venv/bin/activate \
-    && pip3 install corgi-concourse-resource-*.tar.gz \
+    && pip3 install corgi*concourse*resource*.tar.gz \
     && mkdir -p /opt/resource \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
 
