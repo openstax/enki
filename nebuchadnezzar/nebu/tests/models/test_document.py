@@ -1,197 +1,65 @@
-# import pytest
-# from copy import copy
+import json
 
-# from lxml import etree
-# from nebu.html_parsers import (
-#     HTML_DOCUMENT_NAMESPACES,
-# )
+from lxml import etree
+from nebu.xml_utils import (
+    HTML_DOCUMENT_NAMESPACES,
+)
 
-# from nebu.models.document import Document
-# from nebu.models.utils import (
-#     id_from_metadata,
-# )
+from nebu.models.document import Document
 
 
-# REFERENCE_MARKER = '#!--testing--'
-# M46882_METADATA = {
-#     #     'cnx-archive-shortid': None,
-#     'cnx-archive-uri': 'm46882@1.17',
-#     #     #     'derived_from_title': None,
-#     'derived_from_uri': None,
-#     #     #     #     'language': 'en',
-#     'license_text': 'Creative Commons Attribution License',
-#     'license_url': 'http://creativecommons.org/licenses/by/4.0/',
-#     #     'publishers': [{'id': 'OpenStaxCollege',
-#                     'name': 'OpenStaxCollege',
-#                     'type': 'cnx-id'},
-#                    {'id': 'cnxstats', 'name': 'cnxstats', 'type': 'cnx-id'}],
-#     'revised': '2019/02/08 09:37:55.846 US/Central',
-#     #     'summary': None,
-#     'title': 'Frequency, Frequency Tables, and Levels of Measurement',
-#     #     'version': '1.17',
-#     'canonical_book_uuid': None,
-#     'slug': None,
-# }
-# M46882_GIT_METADATA = {
-#     #     'cnx-archive-shortid': None,
-#     'cnx-archive-uri': 'm46882@None',
-#     #     #     'derived_from_title': None,
-#     'derived_from_uri': None,
-#     #     #     #     'language': None,
-#     'license_text': 'Creative Commons Attribution License (ASSUMED)',
-#     'license_url': None,
-#     #     #     'revised': '2019/02/08 09:37:55.846 US/Central',
-#     #     'summary': None,
-#     'title': 'Frequency, Frequency Tables, and Levels of Measurement',
-#     #     'version': 'None',
-#     'uuid': '3fb20c92-9515-420b-ab5e-6de221b89e99',
-#     'canonical_book_uuid': '30189442-6998-4686-ac05-ed152b91b9de',
-#     'slug': None,
-# }
+REFERENCE_MARKER = '#!--testing--'
 
 
-# def mock_reference_resolver(reference, resource):
-#     """Used for testing reference resolution during model tests"""
-#     if resource:
-#         reference.bind(resource, '{}/{{}}'.format(REFERENCE_MARKER))
+def mock_reference_resolver(reference):
+    pass
 
 
-# class TestDocument(object):
+class TestDocument(object):
 
-#     @pytest.mark.parametrize(
-#         'assembled', ['neb_assembled_data', 'git_assembled_data'])
-#     def test_sanatize_content(self, request, assembled):
-#         assembled_data = request.getfixturevalue(assembled)
-#         with (assembled_data / 'm46913.xhtml').open('rb') as fb:
-#             html = etree.parse(fb)
-#             # And parse a second copy for verification
-#             fb.seek(0)
-#             expected_html = etree.parse(fb)
+    def test_sanatize_content(self, datadir):
+        for assembled in datadir.glob("desserts-*.xhtml"):
+            with assembled.open('rb') as fb:
+                html = etree.parse(fb)
+                # And parse a second copy for verification
+                fb.seek(0)
+                expected_html = etree.parse(fb)
 
-#         # Hit the target
-#         results = Document._sanatize_content(html)
+            # Hit the target
+            results = Document._sanatize_content(html)
 
-#         # Construct expected results
-#         body = expected_html.xpath(
-#             "//xhtml:body",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         )[0]
-#         metadata_elm = body.xpath(
-#             "//xhtml:div[@data-type='metadata']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         )[0]
-#         body.remove(metadata_elm)
-#         body.attrib.pop('itemtype')
-#         body.attrib.pop('itemscope')
-#         expected_results = etree.tostring(expected_html)
+            # Construct expected results
+            body = expected_html.xpath(
+                "//xhtml:body",
+                namespaces=HTML_DOCUMENT_NAMESPACES,
+            )[0]
+            metadata_elm = body.xpath(
+                "//xhtml:div[@data-type='metadata']",
+                namespaces=HTML_DOCUMENT_NAMESPACES,
+            )[0]
+            body.remove(metadata_elm)
+            body.attrib.pop('itemtype')
+            body.attrib.pop('itemscope')
+            expected_results = etree.tostring(expected_html)
 
-#         assert results == expected_results
+            assert results == expected_results
 
-#     def test_find_resources(self, request, neb_collection_data):
-#         loc = neb_collection_data / 'm46909'
+    def test_from_git_index_cnxml(self, git_collection_data, snapshot):
+        filepath = git_collection_data / 'm46882' / 'index.cnxml'
 
-#         # Hit the target
-#         resources = Document._find_resources(loc)
+        # Hit the target
+        doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
 
-#         # Verify we discovered the resource files
-#         expected_filenames = [
-#             'Prev_m16020_DotPlot.png',
-#             'fig-ch01_02_01n.png',
-#             'm16020_DotPlot_description.html',
-#             'm16020_DotPlot_download.pdf',
-#         ]
-#         assert sorted([r.id for r in resources]) == expected_filenames
-#         assert sorted([r.filename for r in resources]) == expected_filenames
+        # Verify the metadata
+        assert doc.id == 'm46882'
+        snapshot.assert_match(json.dumps(doc.metadata), "metadata.json")
 
-#     def test_from_index_cnxml(self, neb_collection_data):
-#         filepath = neb_collection_data / 'm46882' / 'index.cnxml'
-
-#         # Hit the target
-#         doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
-
-#         # Verify the metadata
-#         assert doc.id == 'm46882'
-#         expected_metadata = copy(M46882_METADATA)
-#         # When parsing from index.cnxml, neb uses the cnxml metadata parser
-#         expected_metadata['uuid'] = None
-#         assert doc.metadata == expected_metadata
-
-#         # Verify the content is content'ish
-#         assert doc._xml.xpath(
-#             "/xhtml:body/*[@data-type='metadata']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         ) == []
-#         assert len(doc._xml.xpath(
-#             "//*[@id='fs-idm20141232']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         )) == 1
-
-#         # Verify the resources are attached to the object
-#         expected_filenames = [
-#             'CNX_Stats_C01_M10_001.jpg',
-#             'CNX_Stats_C01_M10_002.jpg',
-#             'CNX_Stats_C01_M10_003.jpg',
-#         ]
-#         filenames = [r.filename for r in doc.resources]
-#         assert sorted(filenames) == expected_filenames
-
-#         # Verify the references have been rewritten
-#         ref = '{}/CNX_Stats_C01_M10_003.jpg'.format(REFERENCE_MARKER).encode()
-#         assert ref in doc.content
-#         # Verify external and non-existent resource references remain
-#         assert b'src="foobar.png"' in doc.content
-#         assert b'ef="/m10275@2.1"' in doc.content  # rewritten in cnxml->html
-#         assert b'ef="http://en.wikibooks.org/"' in doc.content
-
-#     def test_from_git_index_cnxml(self, git_collection_data):
-#         filepath = git_collection_data / 'm46882' / 'index.cnxml'
-
-#         # Hit the target
-#         doc = Document.from_index_cnxml(filepath, mock_reference_resolver)
-
-#         # Verify the metadata
-#         assert doc.id == 'm46882'
-#         expected_metadata = copy(M46882_GIT_METADATA)
-#         assert doc.metadata == expected_metadata
-
-#         # Verify the content is content'ish
-#         assert doc._xml.xpath(
-#             "/xhtml:body/*[@data-type='metadata']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         ) == []
-#         assert len(doc._xml.xpath(
-#             "//*[@id='fs-idm20141232']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         )) == 1
-
-#     def test_from_git_filepath(self, git_assembled_data):
-#         filepath = git_assembled_data / 'm46882.xhtml'
-
-#         # Hit the target
-#         doc = from_filepath(filepath)
-
-#         # Verify the metadata
-#         assert doc.id == 'm46882'
-#         expected_metadata = copy(M46882_GIT_METADATA)
-#         # cnx-epub metadata is mutable, so sequences are lists rather than
-#         # tuples.
-#         expected_metadata['keywords'] = list(expected_metadata['keywords'])
-#         expected_metadata['subjects'] = list(expected_metadata['subjects'])
-#         # Document.from_index_cnxml uses cnxml to parse metadata and then does
-#         # some conversions while from_filepath uses cnx-epub. These
-#         # generate slightly different values
-#         del expected_metadata['uuid']
-#         expected_metadata.update({
-#             'license_text': None,
-#         })
-#         assert doc.metadata == expected_metadata
-
-#         # Verify the content is content'ish
-#         assert doc._xml.xpath(
-#             "/xhtml:body/*[@data-type='metadata']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         ) == []
-#         assert len(doc._xml.xpath(
-#             "//*[@id='fs-idm20141232']",
-#             namespaces=HTML_DOCUMENT_NAMESPACES,
-#         )) == 1
+        # Verify the content is content'ish
+        assert doc._xml.xpath(
+            "/xhtml:body/*[@data-type='metadata']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        ) == []
+        assert len(doc._xml.xpath(
+            "//*[@id='fs-idm20141232']",
+            namespaces=HTML_DOCUMENT_NAMESPACES,
+        )) == 1

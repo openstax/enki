@@ -10,7 +10,7 @@ from nebu.cli.main import cli
 
 @pytest.fixture
 def src_data(datadir):
-    return datadir / 'collection_for_bakedpdf_workflow'
+    return datadir / 'collection_for_git_workflow'
 
 
 @pytest.fixture

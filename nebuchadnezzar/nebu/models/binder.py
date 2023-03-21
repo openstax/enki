@@ -2,7 +2,6 @@ import os
 import re
 
 from lxml import etree
-import json
 from nebu.parse import parse_metadata as parse_cnxml_metadata
 from nebu.models.base_binder import (
     Binder as BaseBinder,
@@ -80,17 +79,8 @@ class Binder(BaseBinder):
         parent_node = current_node = binder
         chain = [binder]
 
-        ignoring = False
-
         def handler(event, elm):
-            nonlocal parent_node, current_node, ignoring
-            if elm.tag == DERIVED_FROM_TAG:
-                if event == 'start':
-                    ignoring = True
-                elif event == 'end':
-                    ignoring = False
-            if ignoring:
-                return
+            nonlocal parent_node, current_node
             if elm.tag == TITLE_TAG and event == 'start':
                 title = elm.text
                 if isinstance(current_node, DOC_TYPES):
@@ -131,18 +121,12 @@ class Binder(BaseBinder):
     @staticmethod
     def _make_reference_resolver(id, id_to_uuid_map):
 
-        def func(reference, resource):
+        def func(reference):
             # Look for module ID with an optional version
             module_id_pattern = re.compile(r'\/(m\d{5})(@\d+[.]\d+([.]\d+)?)?')
             module_id_match = module_id_pattern.search(reference.uri)
 
-            if resource:
-                bind_id = id_to_uuid_map.get(id) or id
-                reference.bind(
-                    resource,
-                    '{}/{{}}'.format(bind_id),
-                )
-            elif module_id_match:
+            if module_id_match:
                 # SingleHTMLFormatter looks for links that start with
                 # "/contents/" for intra book links.  These links are important
                 # for baking to work.
@@ -214,25 +198,12 @@ class Binder(BaseBinder):
         :type model: :class:`Binder` or :class:`Document`
 
         """
-        metadata_file = filepath.parent / 'metadata.json'
+        metadata = parse_cnxml_metadata(etree.parse(filepath.open()))
+        uuid = metadata.get('uuid')
+        version = metadata.get('version')
 
-        if metadata_file.exists():
-            with open(metadata_file) as metadata_json:
-                metadata = json.load(metadata_json)
-                cnx_archive_uri = '{}@{}'.format(
-                    metadata['id'],
-                    metadata['version']
-                )
-                model.metadata['cnx-archive-uri'] = cnx_archive_uri
-                model.ident_hash = cnx_archive_uri
-        else:
-            # Fallback to trying CNXML for UUID metadata
-            metadata = parse_cnxml_metadata(etree.parse(filepath.open()))
-            uuid = metadata.get('uuid')
-            version = metadata.get('version')
-
-            assert uuid is not None, 'Expected to find a UUID'
-            cnx_archive_uri = '{}@{}'.format(uuid, version) if version \
-                else '{}@'.format(uuid)
-            model.metadata['cnx-archive-uri'] = cnx_archive_uri
-            model.ident_hash = cnx_archive_uri
+        assert uuid is not None, 'Expected to find a UUID'
+        cnx_archive_uri = '{}@{}'.format(uuid, version) if version \
+            else '{}@'.format(uuid)
+        model.metadata['cnx-archive-uri'] = cnx_archive_uri
+        model.ident_hash = cnx_archive_uri

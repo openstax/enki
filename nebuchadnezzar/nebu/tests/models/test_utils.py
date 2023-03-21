@@ -116,7 +116,7 @@ class TestScanForIdMapping(object):
         }
 
     @pytest.mark.parametrize(
-        'collection', ['neb_collection_data', 'git_collection_data'])
+        'collection', ['git_collection_data'])
     def test(self, request, collection):
         # Call the target
         collection_data = request.getfixturevalue(collection)
@@ -198,7 +198,7 @@ class TestScanForUUIDMapping(object):
         }
 
     @pytest.mark.parametrize(
-        'collection', ['neb_collection_data', 'git_collection_data'])
+        'collection', ['git_collection_data'])
     def test(self, request, collection):
         collection_data = request.getfixturevalue(collection)
         # Call the target
