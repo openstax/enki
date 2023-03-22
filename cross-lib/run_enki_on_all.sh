@@ -2,6 +2,8 @@
 
 set -e
 
+trap 'exit 1' INT
+
 # Setup
 while [ -n "$1" ]; do
   case "$1" in
@@ -28,14 +30,24 @@ mkdir -p cross-lib/logs/
 echo_green() { echo -e "$(tput setaf 2)$*$(tput sgr0)"; }
 echo_red() { echo -e "$(tput setaf 1)$*$(tput sgr0)"; }
 
+format_time() {
+  if [[ $(uname -s) = "Darwin" ]]; then 
+    echo "$(date -u -r $1 +%T)"
+  elif [[ $(uname -s) = "Linux" ]]; then
+    echo "$(date --date="$1" +%H:%M:%S)"
+  else
+    echo "WARNING: Unrecognized operating system. Unable to format datetime."
+  fi
+}
+
 # Nicely handle an enki run
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> cross-lib/logs/$2-$3.txt
+  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> cross-lib/logs/$repo-$slug.txt
   exit=$?
   stop_time=$(date +%s)
-  elapsed_formatted="$(date -u -r $(($stop_time - $start_time)) +%T)"
+  elapsed_formatted=$( format_time $(($stop_time-$start_time)) )
   echo "  time to build $elapsed_formatted"
   if [ $exit == 0 ]; then
     echo_green "==> SUCCESS: $2 $3"
@@ -57,7 +69,7 @@ while read -r line; do
     && success_count=$(($success_count+1)) || failed_count=$(($failed_count+1))
 done < <(cat "$all_books")
 total_end=$(date +%s)
-elapsed_formatted="$(date -u -r $(($total_end - $total_start)) +%T)"
+elapsed_formatted=$( format_time $(($total_end-$total_start)) )
 
 # Final report:
 echo "
