@@ -162,16 +162,6 @@ The book pipeline uses S3 buckets to accomplish two different goals: Uploading a
 | `WEB_S3_BUCKET` | State | Webhosting JSON files are uploaded to this bucket
 
 
-## Pipeline-generation Environment Variables
-
-The pipeline-generation code uses a few additional environment variables:
-
-| Name | Use | Description |
-| :--- | :-- | :---------- |
-| `DOCKERHUB_USERNAME` | | Your DockerHub username in case you are rate-limited
-| `DOCKERHUB_PASSWORD` | | Your DockerHub password in case you are rate-limited
-
-
 # Features
 
 - Dependency Graph explicitly in code (concourse steps, local steps, and graphical documentation are all kept in sync)
