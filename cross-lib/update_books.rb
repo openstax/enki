@@ -16,18 +16,18 @@ abl_hash = JSON.parse(
 )
 
 books=Set[]
+# Write unapproved books
+if File.exist?(ubl)
+  File.readlines(ubl).each do |line|
+    books.add(line)
+  end
+end
+
 # Write ABL
 abl_hash['approved_books'].each do |book|
   repo = book['repository_name']
   book['versions'][0]['commit_metadata']['books'].each do |volume| 
     books.add("#{repo} #{volume['slug']}\n")
-  end
-end
-
-# Write unapproved books
-if File.exist?(ubl)
-  File.readlines(ubl).each do |line|
-    books.add(line)
   end
 end
 

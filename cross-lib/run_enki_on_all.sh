@@ -20,10 +20,11 @@ done
 
 [[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'all-git-epub'" && exit 1 )
 
-all_books="cross-lib/book-data/AUTO_books.txt"
+root="cross-lib"
+all_books="$root/book-data/AUTO_books.txt"
 test -f $all_books || ( echo "ERROR: Book list not found at ${all_books}" && exit 1 )
 
-mkdir -p cross-lib/logs/
+mkdir -p $root/logs/
 
 # Helpers
 # https://stackoverflow.com/a/20983251
@@ -44,7 +45,7 @@ format_time() {
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> cross-lib/logs/$repo-$slug.txt
+  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> $root/logs/$repo-$slug.txt
   exit=$?
   stop_time=$(date +%s)
   elapsed_formatted=$( format_time $(($stop_time-$start_time)) )
@@ -53,6 +54,7 @@ run_and_log_enki () {
     echo_green "==> SUCCESS: $2 $3"
   else
     echo_red "==> FAILED with $exit: $2 $3"
+    echo "For more information see $root/logs/$repo-$slug.txt"
   fi
   return $exit
 }
