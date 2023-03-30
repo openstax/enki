@@ -32,4 +32,5 @@ while read -r line; do
     done
 done < <(jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
+"$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" kill
 # LCOV_EXCL_STOP
