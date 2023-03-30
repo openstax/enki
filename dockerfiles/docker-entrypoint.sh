@@ -118,16 +118,7 @@ function do_xhtml_validate() {
 
 function read_style() {
     slug_name=$1
-    style_name=''
-
-    if [[ ! $style_name || $style_name == 'default' ]]; then
-        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-    fi
-
-    if [[ ! $style_name ]]; then
-        die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-    fi
-
+    style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
     echo $style_name
 }
 
