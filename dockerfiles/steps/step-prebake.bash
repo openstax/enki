@@ -1,3 +1,4 @@
+# Formerly git-fetch-metadata
 parse_book_dir
 
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
@@ -71,3 +72,86 @@ while read -r slug_name; do
         fi
     fi
 done < <(xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -n < "$IO_FETCH_META/META-INF/books.xml")
+
+
+# Formerly git-assemble
+parse_book_dir
+
+cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
+
+repo_root=$IO_FETCH_META
+col_sep='|'
+# https://stackoverflow.com/a/31838754
+xpath_sel="//*[@slug]" # All the book entries
+while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
+    IFS=$col_sep read -r slug href _ <<< "$line"
+    path="$repo_root/META-INF/$href"
+
+    # ------------------------------------------
+    # Available Variables: slug href style path
+    # ------------------------------------------
+    # --------- Code starts here
+
+
+
+    cp "$path" "$IO_FETCH_META/modules/collection.xml"
+
+    if [[ -f temp-assembly/collection.assembled.xhtml ]]; then
+        rm temp-assembly/collection.assembled.xhtml # LCOV_EXCL_LINE
+    fi
+
+    neb assemble "$IO_FETCH_META/modules" temp-assembly/
+
+    ## download exercise images and replace internet links with local resource links
+    download-exercise-images "$IO_RESOURCES" "temp-assembly/collection.assembled.xhtml" "$IO_ASSEMBLED/$slug.assembled.xhtml"
+
+    rm -rf temp-assembly
+    rm "$IO_FETCH_META/modules/collection.xml"
+
+
+
+    # --------- Code ends here
+done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
+
+# Formerly git-validate-references
+check_input_dir IO_RESOURCES
+
+shopt -s globstar nullglob
+
+for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
+    slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+
+    if [[ ! -f "$IO_ASSEMBLED/$slug_name.assembled.xhtml" ]]; then
+        die "Expected $IO_ASSEMBLED/$slug_name.assembled.xhtml to exist" # LCOV_EXCL_LINE
+    fi
+
+    set +e
+    xmlstarlet sel -t --match '//*[@src]' --value-of '@src' --nl < "$IO_ASSEMBLED/$slug_name.assembled.xhtml" > /tmp/references
+    set -e
+
+    while read reference_url; do
+        if [[ $reference_url =~ ^https?:\/\/ ]]; then
+            echo "skipping $reference_url"
+            continue
+        fi
+        if [[ ! -f "$IO_ASSEMBLED/$reference_url" ]]; then
+            # LCOV_EXCL_START
+            abs_path=$(realpath "$IO_ASSEMBLED/$reference_url")
+            die "$reference_url invalid reference. A file does not exist at this location '$abs_path'"
+            # LCOV_EXCL_STOP
+        fi
+    done < /tmp/references # LCOV_EXCL_LINE
+done
+
+shopt -u globstar nullglob
+
+# Formerly git-assemble-meta
+shopt -s globstar nullglob
+# Create an empty map file for invoking assemble-meta
+echo "{}" > uuid-to-revised-map.json
+for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
+    slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
+    assemble-meta "$IO_ASSEMBLED/$slug_name.assembled.xhtml" uuid-to-revised-map.json "$IO_ASSEMBLE_META/$slug_name.assembled-metadata.json"
+done
+rm uuid-to-revised-map.json
+shopt -u globstar nullglob

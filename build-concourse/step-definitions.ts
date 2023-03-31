@@ -27,96 +27,63 @@ function set(step: Step) {
 }
 
 // GIT_PDF_STEPS
-set({name: 'git-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
-set({name: 'git-fetch-metadata', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.UNUSED_RESOURCES], env: {}})
-set({name: 'git-validate-cnxml', inputs: [IO.FETCHED], outputs: [], env: {}})
-set({name: 'git-assemble', inputs: [IO.BOOK, IO.FETCH_META, IO.INITIAL_RESOURCES], outputs: [IO.ASSEMBLED, IO.RESOURCES], env: {}})
-set({name: 'git-validate-references', inputs: [IO.BOOK, IO.ASSEMBLED, IO.RESOURCES], outputs: [], env: {}})
-set({name: 'git-assemble-meta', inputs: [IO.BOOK, IO.ASSEMBLED], outputs: [IO.ASSEMBLE_META], env: {}})
-set({name: 'git-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})
-set({name: 'git-bake-meta', inputs: [IO.BOOK, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META], env: {}})
-set({name: 'git-validate-xhtml-mathified', inputs: [IO.BOOK, IO.MATHIFIED], outputs: [], env: {}})
-set({name: 'git-link', inputs: [IO.BOOK, IO.BAKED, IO.BAKE_META, IO.FETCHED], outputs: [IO.LINKED], env: {}})
-set({name: 'git-mathify', inputs: [IO.BOOK, IO.LINKED, IO.BAKED], outputs: [IO.MATHIFIED], env: {}})
-set({name: 'git-link-rex', inputs: [IO.BOOK, IO.MATHIFIED, IO.FETCHED, IO.FETCH_META], outputs: [IO.REX_LINKED], env: {}})
-set({name: 'git-pdfify', inputs: [IO.BOOK, IO.REX_LINKED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
-set({name: 'git-pdfify-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
+set({name: 'step-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
+set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.UNUSED_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
+set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})
+set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED], env: {}})
+
+
+set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META], outputs: [IO.MATHIFIED, IO.REX_LINKED, IO.ARTIFACTS], env: {}})
+set({name: 'step-pdf-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // GIT_WEB_STEPS
-set({name: 'git-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLED], env: {}})
-set({name: 'git-patch-disassembled-links', inputs: [IO.BOOK, IO.DISASSEMBLED], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
-set({name: 'git-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
-set({name: 'git-validate-xhtml-jsonify', inputs: [IO.BOOK, IO.JSONIFIED], outputs: [], env: {}})
-set({name: 'git-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLED, IO.DISASSEMBLE_LINKED], env: {}})
+set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
+set({name: 'step-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_EPUB_STEPS
-set({name: 'git-assemble-epub', inputs: [IO.BOOK, IO.FETCH_META], outputs: [IO.ASSEMBLED], env: {}})
-set({name: 'git-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: { CORGI_ARTIFACTS_S3_BUCKET: true }})
-set({name: 'git-epub-validate', inputs: [IO.BOOK, IO.EPUB, IO.ARTIFACTS], outputs: [], env: {}})
+set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: { CORGI_ARTIFACTS_S3_BUCKET: true }})
 
 // GIT_GDOC_STEPS
-set({name: 'git-gdocify', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED], env: {}})
-set({name: 'git-convert-docx', inputs: [IO.BOOK, IO.GDOCIFIED], outputs: [IO.DOCX], env: {}})
-set({name: 'git-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
+set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED, IO.DOCX, IO.ARTIFACTS], env: {}})
+set({name: 'step-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // Concourse-specific steps
 set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
 set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 export const CLI_GIT_PDF_STEPS = [
-    get('git-fetch'),
-    get('git-fetch-metadata'),
-    // get('git-validate-cnxml'),
-    get('git-assemble'),
-    get('git-assemble-meta'),
-    get('git-validate-references'),
-    get('git-bake'),
-    get('git-bake-meta'),
-    get('git-link'),
-    get('git-mathify'),
-    get('git-validate-xhtml-mathified'),
-    get('git-link-rex'),
-    get('git-pdfify'),
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-pdf'),
 ]
 export const GIT_PDF_STEPS = [
     ...CLI_GIT_PDF_STEPS,
-    get('git-pdfify-meta'),
+    get('step-pdf-meta'),
 ]
 
 export const CLI_GIT_WEB_STEPS = [
-    get('git-fetch'),
-    get('git-fetch-metadata'),
-    // get('git-validate-cnxml'),
-    get('git-assemble'),
-    get('git-assemble-meta'),
-    get('git-validate-references'),
-    get('git-bake'),
-    get('git-bake-meta'),
-    get('git-link'),
-    get('git-disassemble'),
-    get('git-patch-disassembled-links'),
-    get('git-jsonify'),
-    get('git-validate-xhtml-jsonify'),
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-disassemble'),
+    get('step-jsonify'),
 ]
 export const GIT_WEB_STEPS = [
     ...CLI_GIT_WEB_STEPS,
-    get('git-upload-book'),
+    get('step-upload-book'),
 ]
 
 export const CLI_GIT_EPUB_STEPS = [
-    get('git-fetch'),
-    get('git-fetch-metadata'),
-    // get('git-validate-cnxml'),
-    get('git-assemble'),
-    get('git-assemble-meta'),
-    get('git-validate-references'),
-    get('git-bake'),
-    get('git-bake-meta'),
-    get('git-link'),
-    get('git-disassemble'),
-    get('git-patch-disassembled-links'),
-    get('git-epub'),
-    get('git-epub-validate'),
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-disassemble'),
+    get('step-epub'),
 ]
 
 export const GIT_EPUB_STEPS = [
@@ -125,13 +92,12 @@ export const GIT_EPUB_STEPS = [
 
 export const CLI_GIT_GDOC_STEPS = [
     ...CLI_GIT_WEB_STEPS,
-    get('git-gdocify'),
-    get('git-convert-docx'),
+    get('step-docx'),
 ]
 
 export const GIT_GDOC_STEPS = [
     ...CLI_GIT_GDOC_STEPS,
-    get('git-docx-meta'),
+    get('step-docx-meta'),
 ]
 
 export function buildLookUpBook(inputSource: RESOURCES): Step {

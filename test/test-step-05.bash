@@ -7,4 +7,4 @@ BOOK_DIR=../data/test-book
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov05 \
-../enki --keep-data --data-dir $BOOK_DIR --command all-git-gdoc --start-at git-gdocify --stop-at git-convert-docx
+../enki --keep-data --data-dir $BOOK_DIR --command step-docx
