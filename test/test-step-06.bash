@@ -5,7 +5,7 @@ set -e
 
 BOOK_DIR=../data/test-book
 
-xhtml_files_dir="$BOOK_DIR/_attic/IO_GDOCIFIED/content"
+xhtml_files_dir="$BOOK_DIR/_attic/IO_DOCX/content"
 # shellcheck disable=SC2206
 files=($xhtml_files_dir/*.xhtml)
 keep_file="${files[0]}"

@@ -28,16 +28,16 @@ function set(step: Step) {
 
 // GIT_PDF_STEPS
 set({name: 'step-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
-set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.UNUSED_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
+set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
 set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})
 set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED], env: {}})
 
 
-set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META], outputs: [IO.MATHIFIED, IO.REX_LINKED, IO.ARTIFACTS], env: {}})
+set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'step-pdf-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // GIT_WEB_STEPS
-set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLED, IO.DISASSEMBLE_LINKED], env: {}})
+set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
 set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
 set({name: 'step-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
@@ -45,7 +45,7 @@ set({name: 'step-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], ou
 set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: { CORGI_ARTIFACTS_S3_BUCKET: true }})
 
 // GIT_GDOC_STEPS
-set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.GDOCIFIED, IO.DOCX, IO.ARTIFACTS], env: {}})
+set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
 set({name: 'step-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // Concourse-specific steps

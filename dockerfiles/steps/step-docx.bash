@@ -1,10 +1,10 @@
 # Formerly git-gdocify
 
 # This /content/ subdir is necessary so that gdocify can resolve the relative path to the resources (../resources/{sha})
-[[ -d "$IO_GDOCIFIED/content" ]] || mkdir "$IO_GDOCIFIED/content"
-cp -R "$IO_RESOURCES/." "$IO_GDOCIFIED/resources"
+[[ -d "$IO_DOCX/content" ]] || mkdir "$IO_DOCX/content"
+cp -R "$IO_RESOURCES/." "$IO_DOCX/resources"
 
-book_slugs_file="$IO_GDOCIFIED/book-slugs.json"
+book_slugs_file="$IO_DOCX/book-slugs.json"
 
 jo_args=''
 
@@ -33,15 +33,14 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 # NOTE: This file is also used in convert-docx
 jo -a $jo_args > "$book_slugs_file"
 
-gdocify "$IO_JSONIFIED" "$IO_GDOCIFIED/content" "$book_slugs_file"
-cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_GDOCIFIED/content"
+gdocify "$IO_JSONIFIED" "$IO_DOCX/content" "$book_slugs_file"
+cp "$IO_DISASSEMBLE_LINKED"/*@*-metadata.json "$IO_DOCX/content"
 
 lang="$(jq -r '.language' "$IO_JSONIFIED/"*.toc.json | uniq)"
 # If there was more than one result from uniq, there were different languages
 if [[ $(wc -l <<< "$lang") != 1 ]]; then
     die "Language mismatch between book slugs."  # LCOV_EXCL_LINE
 fi
-echo "$lang" > "$IO_GDOCIFIED/language"
 
 
 # Formerly git-convert-docx
@@ -52,11 +51,10 @@ set -Eeuo pipefail
 pushd "$BAKERY_SCRIPTS_ROOT/scripts/"
 "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
 popd
-cp -r "$IO_GDOCIFIED/." "$IO_DOCX"
-book_slugs_file="$(realpath "$IO_GDOCIFIED/book-slugs.json")"
+
+book_slugs_file="$(realpath "$IO_DOCX/book-slugs.json")"
 book_dir="$(realpath "$IO_DOCX/content")"
 target_dir="$(realpath "$IO_DOCX/docx")"
-lang="$(cat "$IO_GDOCIFIED/language")"
 reference_doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference-$lang.docx"
 mkdir -p "$target_dir"
 cd "$book_dir"

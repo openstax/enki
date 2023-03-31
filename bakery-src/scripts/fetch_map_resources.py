@@ -98,10 +98,8 @@ def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     original_resources_dir = Path(sys.argv[2]).resolve(strict=True)
     resources_parent_dir = Path(sys.argv[3]).resolve(strict=True)
-    unused_resources_dump = Path(sys.argv[4]).resolve()
     resources_dir = resources_parent_dir / resources_dir_name
     resources_dir.mkdir(exist_ok=True)
-    unused_resources_dump.mkdir(exist_ok=True)
 
     cnxml_files = in_dir.glob("**/*.cnxml")
 
@@ -162,7 +160,6 @@ def main():
     # here that all media files come from an original_resources_dir input
     # should be revisited.
     for unused_resource_file in original_resources_dir.glob('**/*'):
-        shutil.move(str(unused_resource_file), unused_resources_dump)
         print(
             f"WARNING: Resource file '{unused_resource_file.name}' seems to be unused",
             file=sys.stderr

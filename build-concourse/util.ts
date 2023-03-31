@@ -83,7 +83,6 @@ export enum RESOURCES {
 export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
-    ARTIFACTS_SINGLE = 'artifacts-single',
     PREVIEW_URLS = 'preview-urls',
 
     // Git directories
@@ -91,20 +90,15 @@ export enum IO {
     FETCH_META = 'fetch-meta',
     INITIAL_RESOURCES = 'initial-resources',
     RESOURCES = 'resources',
-    UNUSED_RESOURCES = 'unused-resources',
     ASSEMBLED = 'assembled', // 'assembled-book-group',
     ASSEMBLE_META = 'assemble-meta', // 'assembled-metadata-group',
     BAKED = 'baked', // 'baked-book-group',
     BAKE_META = 'bake-meta', // 'baked-metadata-group',
     LINKED = 'linked', // 'linked-single',
-    MATHIFIED = 'mathified', // 'mathified-single',
-    REX_LINKED = 'rex-linked',
-    DISASSEMBLED = 'disassembled', // 'disassembled-single',
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
     JSONIFIED = 'jsonified', // 'jsonified-single',
     EPUB = 'epub',
-    GDOCIFIED = 'gdocified', // 'gdocified-single'
     DOCX = 'docx', // 'docx-single'
 }
 

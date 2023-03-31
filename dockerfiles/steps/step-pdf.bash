@@ -3,13 +3,12 @@ parse_book_dir
 
 # Style needed because mathjax will size converted math according to surrounding text
 cp "$IO_BAKED/the-style-pdf.css" "$IO_LINKED"
-cp "$IO_BAKED/the-style-pdf.css" "$IO_MATHIFIED"
 
 shopt -s globstar nullglob
 for collection in "$IO_LINKED/"*.linked.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    node --max-old-space-size=8152 $MATHIFY_ROOT/typeset/start.js -i "$IO_LINKED/$slug_name.linked.xhtml" -o "$IO_MATHIFIED/$slug_name.mathified.xhtml" -f svg
+    node --max-old-space-size=8152 $MATHIFY_ROOT/typeset/start.js -i "$IO_LINKED/$slug_name.linked.xhtml" -o "$IO_LINKED/$slug_name.mathified.xhtml" -f svg
 
 done
 shopt -u globstar nullglob
@@ -19,7 +18,7 @@ shopt -u globstar nullglob
 parse_book_dir
 
 
-target_dir="$IO_REX_LINKED"
+target_dir="$IO_LINKED"
 book_slugs_file="/tmp/book-slugs.json"
 
 # Build a JSON array of uuid/slug pairs
@@ -54,26 +53,23 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 jo -a $jo_args > $book_slugs_file
 
 shopt -s globstar nullglob
-for collection in "$IO_MATHIFIED/"*.mathified.xhtml; do
+for collection in "$IO_LINKED/"*.mathified.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
+    link-rex "$IO_LINKED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
 
 done
 shopt -u globstar nullglob
 
 
-cp "$IO_MATHIFIED/the-style-pdf.css" "$IO_REX_LINKED"
-
-
 # Formerly git-pdfify
 parse_book_dir
 
-prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_REX_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
+prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
 
 # Verify the style file exists before building a PDF
 # LCOV_EXCL_START
-if [[ ! -f "$IO_REX_LINKED/the-style-pdf.css" ]]; then
+if [[ ! -f "$IO_LINKED/the-style-pdf.css" ]]; then
     say "=============================================="
     say " WARNING: There was no CSS file. Maybe a bug?"
     say " WARNING: Waiting 15 seconds"
