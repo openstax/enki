@@ -38,7 +38,6 @@ show_help() {
         --debug                     Enable trace logging for debugging
         --book-slug <prealgebra>    Name of the book slug to generate
         --temp-dir <path>           Path to store temporary files
-        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
     
     Optional Environment Variables:
 
@@ -59,7 +58,6 @@ EOF
 }
 
 # Defaults
-style='default'
 trace_on=${TRACE_ON:-}
 book_slug=''
 repo_name='doesnotmatter'
@@ -78,7 +76,6 @@ while [ -n "$1" ]; do
         --command) shift; command=$1 ;;
         --repo-dir) shift; repo_dir=$1 ;;
         --book-slug) shift; book_slug=$1 ;;
-        --style) shift; style=$1 ;;
         --temp-dir) shift; temp_dir=$1 ;;
         --debug) shift; trace_on=1 ;;
         *)
@@ -159,4 +156,4 @@ TRACE_ON=$trace_on \
     INPUT_SOURCE_DIR=$temp_dir/INPUT_SOURCE_DIR \
     IO_FETCHED=$temp_dir/IO_FETCHED \
     INPUT_SOURCE_DIR=$temp_dir/INPUT_SOURCE_DIR \
-    "$root_dir/docker-entrypoint.sh" "$command" "$repo_name/$book_slug" "$style" main
+    "$root_dir/docker-entrypoint.sh" "$command" --repo "$repo_name" --book-slug "$book_slug" main
