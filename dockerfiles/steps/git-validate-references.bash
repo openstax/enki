@@ -23,8 +23,6 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
             abs_path=$(realpath "$IO_ASSEMBLED/$reference_url")
             die "$reference_url invalid reference. A file does not exist at this location '$abs_path'"
             # LCOV_EXCL_STOP
-        else
-            say "$reference_url valid reference"
         fi
     done < /tmp/references # LCOV_EXCL_LINE
 done
