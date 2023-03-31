@@ -1,6 +1,6 @@
+# LCOV_EXCL_START
 set -Eeuo pipefail
 
-# LCOV_EXCL_START
 pushd "$BAKERY_SCRIPTS_ROOT/scripts/"
 "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
 popd
