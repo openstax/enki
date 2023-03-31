@@ -10,6 +10,8 @@ while [ -n "$1" ]; do
     --command) 
       shift; arg_command=$1
     ;;
+    --echo) do_echo=true ;;
+    --continue) do_continue=true ;;
     *)
       echo "Invalid argument $1"
       exit 1
@@ -35,7 +37,7 @@ format_time() {
   if [[ $(uname -s) = "Darwin" ]]; then 
     echo "$(date -u -r $1 +%T)"
   elif [[ $(uname -s) = "Linux" ]]; then
-    echo "$(date --date="$1" +%H:%M:%S)"
+    echo "$(date --date="@$1" +%H:%M:%S)"
   else
     echo "WARNING: Unrecognized operating system. Unable to format datetime."
   fi
@@ -45,8 +47,19 @@ format_time() {
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  ./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main &> $root/logs/$repo-$slug.txt
-  exit=$?
+  cmd="./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main"
+  log="$root/logs/$repo-$slug.txt"
+  if [[ $do_continue && -f "$log" ]]; then
+    echo "Skipping because log file exists. To build anyway, unset --continue flag."
+    return 0
+  fi
+  if [[ $do_echo ]]; then
+    $cmd 2>&1 | tee "$log"
+    exit=${PIPESTATUS[0]}
+  else
+    $cmd &> "$log"
+    exit=$?
+  fi
   stop_time=$(date +%s)
   elapsed_formatted=$( format_time $(($stop_time-$start_time)) )
   echo "  time to build $elapsed_formatted"
