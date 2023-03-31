@@ -12,7 +12,7 @@ if [[ $LOCAL_ATTIC_DIR != '' ]]; then
     pushd $IO_FETCH_META
     files=$(find . -name '*.cnxml')
     for file in $files; do
-        try node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
+        node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
     done
     popd
 fi
