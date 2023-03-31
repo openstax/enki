@@ -107,6 +107,16 @@ function escapeText(v: string) {
 
 const XHTML_NS = 'http://www.w3.org/1999/xhtml'
 
+const ALLOWS_LOOSE_WHITESPACE = new Set([
+  'urn:oasis:names:tc:opendocument:xmlns:container',
+  'http://www.daisy.org/z3986/2005/ncx/',
+  'http://www.idpf.org/2007/opf',
+])
+
+function hasStrictWhitespace(ns: string | null) {
+  return ns === null ? true : !ALLOWS_LOOSE_WHITESPACE.has(ns)
+}
+
 class XMLSerializer {
   private w: SourceMapWriter
   constructor(private outputFile: string, private root: Node) {
@@ -184,9 +194,16 @@ class XMLSerializer {
         ? currentDefaultNamespace
         : el.namespaceURI || null
 
-      const padding =
-        currentDefaultNamespace === XHTML_NS ? '' : '  '.repeat(depth)
-      this.w.writeText(n, `<${prefixedTag}`)
+      const padding = hasStrictWhitespace(currentDefaultNamespace)
+        ? ''
+        : '  '.repeat(depth)
+      const startElPadding = hasStrictWhitespace(currentDefaultNamespace)
+        ? ''
+        : `${depth === 0 ? '' : '\n'}${padding}`
+      const endElPadding = hasStrictWhitespace(currentDefaultNamespace)
+        ? ''
+        : `\n${padding}`
+      this.w.writeText(n, `${startElPadding}<${prefixedTag}`)
       if (
         newDefaultNamespace !== currentDefaultNamespace &&
         !el.getAttribute('xmlns')
@@ -212,7 +229,7 @@ class XMLSerializer {
         for (const child of Array.from(el.childNodes)) {
           this.recWrite(child, newDefaultNamespace, [], depth + 1)
         }
-        this.w.writeText(n, `</${prefixedTag}>`)
+        this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
       }
     }
   }
