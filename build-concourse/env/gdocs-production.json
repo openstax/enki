@@ -7,7 +7,5 @@
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-web-hosting-content-queue-state",
     "PIPELINE_TICK_INTERVAL": "12h",
     "MAX_BOOKS_PER_TICK": "50",
-    "GH_SECRET_CREDS": "git:((github-api-token))",
-    "DOCKERHUB_USERNAME": "((ce-dockerhub-id))",
-    "DOCKERHUB_PASSWORD": "((ce-dockerhub-token))"
+    "GH_SECRET_CREDS": "git:((github-api-token))"
   }

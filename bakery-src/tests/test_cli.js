@@ -133,9 +133,7 @@ test('non-local pipelines do not use credentials in env vars', async t => {
           ...{
             AWS_ACCESS_KEY_ID: fakeAKI,
             AWS_SECRET_ACCESS_KEY: fakeSAK,
-            GH_SECRET_CREDS: fakeGHCreds,
-            DOCKERHUB_USERNAME: fakeDHU,
-            DOCKERHUB_PASSWORD: fakeDHP
+            GH_SECRET_CREDS: fakeGHCreds
           }
         }
       }
@@ -221,9 +219,7 @@ test('credentials for local pipelines', async t => {
   const fakeCreds = {
     AWS_ACCESS_KEY_ID: fakeAKI,
     AWS_SECRET_ACCESS_KEY: fakeSAK,
-    GH_SECRET_CREDS: fakeGHCreds,
-    DOCKERHUB_USERNAME: fakeDHU,
-    DOCKERHUB_PASSWORD: fakeDHP
+    GH_SECRET_CREDS: fakeGHCreds
 
   }
 

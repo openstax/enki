@@ -48,7 +48,7 @@ If you are not testing the upload parts you can provide dummy values for the fol
 Since we are not changing the image we can use the images on dockerhub.
 DockerHub does have a rate limit. If you start too many jobs, Concourse will provide a cryptic error.
 
-At that point you can switch to **Option B** or provide your `DOCKERHUB_USERNAME` and `DOCKERHUB_PASSWORD` credentials (as environment variables) when running `npm run build:local` and those will be injected into the pipeline.yml files. A local registry is **strongly encouraged**.
+At that point you can switch to **Option B** (a local registry is **strongly encouraged**).
 
 Run the following to build the Cnocourse Pipeline.yml files:
 
