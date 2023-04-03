@@ -8,13 +8,13 @@ repo_root=$IO_FETCH_META
 
 
 if [[ $LOCAL_ATTIC_DIR != '' ]]; then
-    echo 'Annotating XML files...'
-    pushd $IO_FETCH_META
-    files=$(find . -name '*.cnxml')
+    echo 'Annotating XML files with source map information (data-sm="...")'
+    pushd $IO_FETCH_META > /dev/null
+    files=$(find . -name '*.cnxml' -or -name '*.collection.xml')
     for file in $files; do
         node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
     done
-    popd
+    popd > /dev/null
 fi
 
 col_sep='|'
