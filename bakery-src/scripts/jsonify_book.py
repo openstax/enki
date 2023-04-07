@@ -3,7 +3,10 @@ import sys
 from glob import glob
 from os.path import basename
 
+from .profiler import timed
 
+
+@timed
 def main():
     book_dir, out_dir = sys.argv[1:3]
 

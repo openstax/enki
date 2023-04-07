@@ -132,7 +132,7 @@ CHARLISTS = {
     )
 }
 
-
+@timed
 def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     """Modify links in doc"""
 
@@ -172,7 +172,7 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
                 book_slug, page_slug, page_fragment
             )
 
-
+@timed
 def patch_math(doc):
     """Patch MathML as needed for the conversion process used for gdocs"""
 
@@ -295,7 +295,7 @@ def _universal_convert_rgb_command(img_filename):
     Warning: Probably does not work perfectly color accurate."""
     return f'mogrify -colorspace sRGB -type truecolor "{img_filename}"'  # pragma: no cover
 
-
+@timed
 async def fix_jpeg_colorspace(img_filename):
     """Searches for JPEG image resources which are encoded in colorspace
     other than RGB or Greyscale and convert them to RGB"""
@@ -366,6 +366,7 @@ class AsyncJobQueue:
                       else asyncio.Queue())
         self.workers = []
 
+    @timed
     async def __aenter__(self):
         async def worker(queue):
             while True:
@@ -380,12 +381,13 @@ class AsyncJobQueue:
                         for _ in range(self.worker_count)]
         return self.queue
 
+    @timed
     async def __aexit__(self, *_):
         await self.queue.join()
         for worker in self.workers:
             worker.cancel()
 
-
+@timed
 def get_img_resources(doc, out_dir):
     """Iterates over all image resources--absolute paths--in the document"""
 
@@ -401,7 +403,7 @@ def get_img_resources(doc, out_dir):
         img_filename = (out_dir / img_filename).resolve().absolute()
         yield img_filename
 
-
+@timed
 async def run_async():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     out_dir = Path(sys.argv[2]).resolve(strict=True)

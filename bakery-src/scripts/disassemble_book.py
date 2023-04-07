@@ -10,8 +10,10 @@ from lxml import etree
 from lxml.builder import ElementMaker, E
 
 from .utils import model_to_tree
+from .profiler import timed
 
 
+@timed
 def extract_slugs_from_tree(tree, data):
     """Given a tree with slugs create a flattened structure where slug data
     can be retrieved based upon id key
@@ -24,6 +26,7 @@ def extract_slugs_from_tree(tree, data):
             extract_slugs_from_tree(node, data)
 
 
+@timed
 def extract_slugs_from_binder(binder):
     """Given a binder return a dictionary that allows caller to retrieve
     computed slugs using ident_hash values"""
@@ -36,13 +39,14 @@ def extract_slugs_from_binder(binder):
     return slugs
 
 
+@timed
 def main():
     """Main function"""
     xhtml_file = Path(sys.argv[1]).resolve(strict=True)
     metadata_file = Path(sys.argv[2]).resolve(strict=True)
     book_slug = sys.argv[3]
     out_dir = Path(sys.argv[4])
-
+    
     with open(xhtml_file, "rb") as file:
         html_root = etree.parse(file)
         file.seek(0)
@@ -76,6 +80,8 @@ def main():
                     namespaces=HTML_DOCUMENT_NAMESPACES
             ):
                 link.attrib['href'] = f'./{id_with_context}.xhtml'
+            elif len([ref for ref in ['page', 'composite-page'] if link_href[1:].startswith(ref)])==0:
+                link.attrib["id"] = link_href[1:]
 
         # Add metadata to same-book-different-module links.
         # The module in which same-book link targets reside is only fully known

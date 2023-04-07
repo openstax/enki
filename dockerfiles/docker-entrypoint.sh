@@ -56,6 +56,7 @@ START_AT_STEP=${START_AT_STEP:-}
 STOP_AT_STEP=${STOP_AT_STEP:-}
 KCOV_DIR=${KCOV_DIR:-}
 LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
+JAVA_DEBUG=${JAVA_DEBUG:-}
 
 source $PYTHON_VENV_ROOT/bin/activate
 
@@ -94,15 +95,14 @@ function do_xhtml_validate() {
     dir_name=$1
     file_pattern=$2
     check=$3
-    for xhtmlfile in $(find $dir_name -name "$file_pattern")
-    do
-        # TODO: FIXME: remove the grep check for TOC elements.
-        # TOC xhtml files should also be checked in future but are now intentionally excluded because
-        # they break rex-preview command
-        if ! grep -q '<nav id="toc">' "$xhtmlfile"; then
-            java -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main - $check broken-link < "$xhtmlfile" || failure=true
-        fi
-    done
+    extra_vars=""
+    echo "Validating xhtml links in $dir_name"
+    if [[ $JAVA_DEBUG == 1 ]]
+    then
+        extra_vars="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${DEBUG_HOST}:${JAVA_DEBUG_PORT}"
+    fi
+
+    java $extra_vars -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main  "$dir_name" $file_pattern $check broken-link || failure=true
     if $failure; then
         exit 1 # LCOV_EXCL_LINE
     fi

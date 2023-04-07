@@ -1,24 +1,42 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Remote Debug",
+      "type": "python",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5678
+      },
+      "pathMappings": [
         {
-            "name": "Python: Remote Attach",
-            "type": "python",
-            "request": "attach",
-            "connect": {
-                "host": "localhost",
-                "port": 5678
-            },
-            "pathMappings": [
-                {
-                    "localRoot": "${workspaceFolder}/bakery-src/scripts/",
-                    "remoteRoot": "/workspace/enki/venv/lib/python3.8/site-packages/bakery_scripts"
-                }
-            ],
-            "justMyCode": false
+          "localRoot": "${workspaceFolder}/bakery-src/scripts/",
+          "remoteRoot": "/workspace/enki/venv/lib/python3.8/site-packages/bakery_scripts"
         }
-    ]
+      ],
+      "justMyCode": false
+    },
+    {
+      "name": "Java: Remote Debug",
+      "type": "java",
+      "projectName": "xhtml-validator",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 7777
+    },
+    {
+      "name": "Typescript: Remote Debug",
+      "type": "node",
+      "address": "localhost",
+      "localRoot": "${workspaceFolder}/bakery-js/src",
+      "port": 9229,
+      "remoteRoot": "/workspace/enki/bakery-js/dist",
+      "request": "attach",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
 }

@@ -1,1 +1,1 @@
-do_xhtml_validate $IO_MATHIFIED '*.mathified.xhtml' link-to-duplicate-id 
+do_xhtml_validate $IO_MATHIFIED 'mathified.xhtml' link-to-duplicate-id 

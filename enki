@@ -107,7 +107,9 @@ show_help() {
 
         --sideload-book <path>      A local path to a cloned git repo instead of fetching from GitHub
         --sideload-cookbook <path>  Path to a locally cloned cookbook
-        --pdb                       Enable python debugging
+        --pdb                       Enable Python debugging
+        --jdb                       Enable Java debugging
+        --jsdb                      Enable Javascript debugging
 
     Status:
 
@@ -169,6 +171,8 @@ while [ -n "$1" ]; do
         --stop-at) shift; export STOP_AT_STEP=$1 ;;
         --sideload-cookbook) shift; COOKBOOK_ROOT=$1 ;;
         --pdb) PYTHON_DEBUG=1 ;;
+        --jdb) JAVA_DEBUG=1 ;;
+        --jsdb) JS_DEBUG=1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -258,7 +262,23 @@ $root_dir/build-dockerfile.sh
 [[ $SKIP_DOCKER_BUILD ]] || {
     DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
 }
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
+
+ports=()
+envs=()
+(( PYTHON_DEBUG == 1 )) && { 
+    ports+=('-p 5678:5678')
+    envs+=('--env PYTHON_DEBUG=1')
+}
+(( JS_DEBUG == 1 )) && {
+    ports+=('-p 9229:9229')
+    envs+=('--env JS_DEBUG=1')
+}
+(( JAVA_DEBUG == 1 )) && {
+    ports+=('-p 7777:7777')
+    envs+=('--env JAVA_DEBUG=1')
+}
+
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run ${ports[@]} $interactive $enable_tty \
     $opt_sideload_book_arg \
     --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \
@@ -280,9 +300,10 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     --env STOP_AT_STEP \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
-    --env __CI_KCOV_MERGE_ALL__ \
-    "$( (( PYTHON_DEBUG == 1 )) && printf %s '-p 5678:5678' )"  \
+    --env __CI_KCOV_MERGE_ALL__  \
+    ${envs[@]} \
     --rm $image_name "$arg_command" "$arg_repo_and_slug" "$arg_style" "$arg_ref"
+    
 
 if [[ $arg_command == *pdf ]]
 then

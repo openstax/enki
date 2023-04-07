@@ -77,6 +77,7 @@ def get_size(filename):
 
 # Based upon amend_tree_with_slugs from cnx-publishing
 # (https://github.com/openstax/cnx-publishing/blob/master/cnxpublishing/utils.py#L64)
+@timed
 def amend_tree_with_slugs(tree, title_seq=[]):
     """Recursively walk through tree and add slug fields"""
     title_seq = title_seq + [tree['title']]

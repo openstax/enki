@@ -4,8 +4,9 @@ from pathlib import Path
 import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from .profiler import timed
 
-
+@timed
 def find_or_create_folder_by_name(drive_service, parent_google_folder_id,
                                   folder_name):
     """Attempt to find existing folder with provided parent or create one if
@@ -40,7 +41,7 @@ def find_or_create_folder_by_name(drive_service, parent_google_folder_id,
     ).execute()
     return new_folder.get('id')
 
-
+@timed
 def get_gdocs_in_folder(drive_service, folder_id):
     """Get list of all existing gdoc names and IDs from a folder"""
     page_token = None
@@ -60,7 +61,7 @@ def get_gdocs_in_folder(drive_service, folder_id):
             break
     return files
 
-
+@timed
 def upsert_docx_to_folder(drive_service, docx_files, book_folder_id):
     """Upsert docx files to google Drive folder"""
 
@@ -112,7 +113,7 @@ def upsert_docx_to_folder(drive_service, docx_files, book_folder_id):
 
     return upserted_docs
 
-
+@timed
 def main():  # pragma: no cover
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     book_title = sys.argv[2]

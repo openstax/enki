@@ -27,6 +27,7 @@ We build books in a pipeline of steps. These steps are written in different lang
   - [Run steps beginning with a step](#run-steps-beginning-with-a-step)
 - [Debugging](#debugging)
   - [Python Debugging](#python-debugging)
+  - [Java Debugging](#java-debugging)
 - [CI/Gitpod Integration](#cigitpod-integration)
 - [Create a Webhosting Pipeline](#create-a-webhosting-pipeline)
 - [TODO list](#todo-list)
@@ -237,13 +238,16 @@ START_AT_STEP=git-bake ./enki ./data/tin-bk all-git-pdf
 ## Python Debugging
 
 In order to debug a python script from the `./bakery-src/scripts` folder, you can add the `--pdb` flag to the `./enki` command. This will open the `5678` port on the container and allow you to connect to it with a debugger.
-In addition, you should add the following script on top of the python script you want to debug and set breakpoints:
+In addition, you should add the following script on top of the python script you want to debug and set breakpoints below the `debug()` line:
 
 ```python
 from .profiler import debug
 debug()
 ```
 
+## Java Debugging
+
+In order to debug the Java code, you can set the breakpoints in the Java code and then run the `./enki` command with the `--jdb` flag. The java program will then suspend till the client is connected to it and stop at the breakpoints and you can step through the code.
 
 
 # CI/Gitpod Integration

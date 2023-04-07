@@ -2,11 +2,10 @@ import json
 import sys
 from pathlib import Path
 
-
-from .utils import ensure_isoformat
-from .profiler import timed
 from .cnx_models import flatten_to_documents
 from .html_parser import reconstitute
+from .profiler import debug, timed
+from .utils import ensure_isoformat
 
 
 @timed

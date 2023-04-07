@@ -15,6 +15,7 @@ HTML_DOCUMENT_NAMESPACES = {
 }
 
 
+@timed
 def squash_xml_to_text(elm, remove_namespaces=False):
     """Squash the given XML element (as `elm`) to a text containing XML.
     The outer most element/tag will be removed, but inner elements will

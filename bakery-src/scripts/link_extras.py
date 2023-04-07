@@ -7,6 +7,7 @@ import json
 import re
 import sys
 from urllib.parse import unquote
+from .profiler import timed
 
 import requests
 from lxml import etree
@@ -21,13 +22,13 @@ def load_canonical_list(canonical_list):
 
     return canonical_ids
 
-
+@timed
 def load_assembled_collection(input_dir):
     """load assembled collection"""
     assembled_collection = f"{input_dir}/collection.assembled.xhtml"
     return etree.parse(assembled_collection)
 
-
+@timed
 def find_legacy_id(link):
     """find legacy module id"""
     parsed = unquote(link)
@@ -40,7 +41,7 @@ def init_requests_session(adapter):
     session.mount("https://", adapter)
     return session
 
-
+@timed
 def get_target_uuid(session, server, legacy_id):
     """get target module uuid"""
     response = session.get(
@@ -51,7 +52,7 @@ def get_target_uuid(session, server, legacy_id):
 
     return response.headers["Location"].split("/")[-1]
 
-
+@timed
 def get_containing_books(session, server, module_uuid):
     """get list of books containing module"""
     response = session.get(f"https://{server}/extras/{module_uuid}")
@@ -60,7 +61,7 @@ def get_containing_books(session, server, module_uuid):
     content = response.json()
     return [book["ident_hash"].split("@")[0] for book in content["books"]]
 
-
+@timed
 def gen_page_slug_resolver(session, server):
     """Generate a page slug resolver function"""
 
@@ -98,7 +99,7 @@ def gen_page_slug_resolver(session, server):
 
     return _get_page_slug
 
-
+@timed
 def match_canonical_book(canonical_ids, containing_books, module_uuid, link):
     """match uuid in canonical book list"""
     if len(containing_books) == 0:
@@ -125,7 +126,7 @@ def match_canonical_book(canonical_ids, containing_books, module_uuid, link):
 
     return match
 
-
+@timed
 def patch_link(node, legacy_id, module_uuid, match, page_slug):
     """replace legacy link"""
     print('BEFORE:')
@@ -143,14 +144,14 @@ def patch_link(node, legacy_id, module_uuid, match, page_slug):
     print('AFTER:')
     print(node.attrib)
 
-
+@timed
 def save_linked_collection(output_dir, doc):
     """write modified output"""
     linked_collection = f"{output_dir}/collection.linked.xhtml"
     with open(f"{linked_collection}", "wb") as f:
         doc.write(f, encoding="utf-8", xml_declaration=True)
 
-
+@timed
 def transform_links(data_dir, server, canonical_list, adapter):
     # define the canonical books
     canonical_ids = load_canonical_list(canonical_list)
@@ -190,7 +191,7 @@ def transform_links(data_dir, server, canonical_list, adapter):
 
     save_linked_collection(data_dir, doc)
 
-
+@timed
 def main():  # pragma: no cover
     data_dir, server, canonical_list = sys.argv[1:4]
     adapter = requests.adapters.HTTPAdapter(max_retries=MAX_RETRIES)

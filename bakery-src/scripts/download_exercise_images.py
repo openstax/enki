@@ -12,10 +12,11 @@ from pathlib import Path
 from lxml import etree
 from tempfile import SpooledTemporaryFile
 from .utils import get_checksums, get_size, create_json_metadata, get_mime_type
+from .profiler import timed
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 
-
+@timed
 def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_xml):
     doc = etree.parse(str(input_xml))
     with requests.Session() as session:
@@ -55,7 +56,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
             node.set('src', new_local_src)
         doc.write(output_xml, encoding="utf8")
 
-
+@timed
 def main():  # pragma: no cover
     resources_dir = Path(sys.argv[1]).resolve(strict=True)
     input_xml = Path(sys.argv[2]).resolve(strict=True)

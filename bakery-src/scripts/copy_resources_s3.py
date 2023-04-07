@@ -4,7 +4,7 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from timeit import default_timer as timer
+from .profiler import timed
 
 import boto3
 import boto3.session
@@ -43,7 +43,7 @@ def slash_join(*args):
     """ join url parts safely """
     return "/".join(arg.strip("/") for arg in args)
 
-
+@timed
 def is_s3_folder_empty(aws_key, aws_secret, aws_session_token, bucket, key):
     """ check if s3 folder is empty or not existing """
     result = False
@@ -67,7 +67,7 @@ def is_s3_folder_empty(aws_key, aws_secret, aws_session_token, bucket, key):
         raise (e)
     return result
 
-
+@timed
 def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
                        disable_check=False):
     """ check if resource is already existing or needs uploading """
@@ -112,7 +112,7 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
         print('Error: No metadata json found!')
         raise (e)
 
-
+@timed
 def upload_s3(aws_key, aws_secret, aws_session_token,
               filename, bucket, key, content_type, metadata=None):
     """ upload s3 process for ThreadPoolExecutor """
@@ -139,7 +139,7 @@ def upload_s3(aws_key, aws_secret, aws_session_token,
     )
     return key
 
-
+@timed
 def upload(in_dir, bucket, bucket_folder):
     """ upload resource and resource json to S3 """
 
@@ -296,7 +296,7 @@ def upload(in_dir, bucket, bucket_folder):
         sys.exit(1)
     print('FINISHED uploading resources.')
 
-
+@timed
 def main():  # pragma: no cover
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     bucket = sys.argv[2]

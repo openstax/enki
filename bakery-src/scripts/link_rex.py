@@ -7,7 +7,7 @@ from lxml import etree
 from .utils import unformatted_rex_links
 from .profiler import timed
 
-
+@timed
 def update_doc_links(doc, book_slugs_by_uuid=None):
     """Modify links in doc"""
 
