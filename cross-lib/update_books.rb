@@ -26,7 +26,9 @@ end
 # Write ABL
 abl_hash['approved_books'].each do |book|
   repo = book['repository_name']
-  book['versions'][0]['commit_metadata']['books'].each do |volume| 
+  book['versions'].sort_by{ |version| 
+    version['commit_metadata']['committed_at'] 
+  }.reverse!.first['commit_metadata']['books'].each do |volume|
     books.add("#{repo} #{volume['slug']}\n")
   end
 end
