@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Example:
-# TRACE_ON=1 enki-in-container --command all-git-epub --repo-dir ./therepo
+# TRACE_ON=1 enki-in-container --command all-epub --repo-dir ./therepo
 
 set -Eeuo pipefail
 
@@ -28,7 +28,7 @@ show_help() {
 
     Required Arguments:
 
-        --command all-git-pdf       Command/Step to run. Can be a shortcut like all-git-pdf or all-git-web)
+        --command all-pdf       Command/Step to run. Can be a shortcut like all-pdf or all-web)
         --repo-dir <path>           Path to the repository (contains a META-INF/books.xml file)
 
     Optional Arguments:

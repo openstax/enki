@@ -180,14 +180,14 @@
         }
     },
     "pipelines": {
-        "all-git-pdf": [
+        "all-pdf": [
             "step-fetch",
             "step-prebake",
             "step-bake",
             "step-postbake",
             "step-pdf"
         ],
-        "all-git-web": [
+        "all-web": [
             "step-fetch",
             "step-prebake",
             "step-bake",
@@ -195,7 +195,7 @@
             "step-disassemble",
             "step-jsonify"
         ],
-        "all-git-epub": [
+        "all-epub": [
             "step-fetch",
             "step-prebake",
             "step-bake",
@@ -203,7 +203,7 @@
             "step-disassemble",
             "step-epub"
         ],
-        "all-git-gdoc": [
+        "all-docx": [
             "step-fetch",
             "step-prebake",
             "step-bake",
