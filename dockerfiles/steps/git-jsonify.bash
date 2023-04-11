@@ -1,8 +1,8 @@
 parse_book_dir
 
-try jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
+jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
 
-repo_schema_version=$(try xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCHED/META-INF/books.xml")
+repo_schema_version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCHED/META-INF/books.xml")
 style_resource_root="$IO_RESOURCES/styles"
 generic_style="webview-generic.css"
 
@@ -25,9 +25,9 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 
     book_json_append=$(jo repo_schema_version=$repo_schema_version style_name="$style_name" style_href="../resources/styles/$style_filename")
     # Add our new information to the books json file, then overwrite the books json file
-    try jq '. + '"$book_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
+    jq '. + '"$book_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
 
-    try jsonschema -i "$IO_JSONIFIED/$slug_name.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
+    jsonschema -i "$IO_JSONIFIED/$slug_name.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
 
     # Parse the UUID and versions from the book metadata since it will be accessible
     # for any pipeline (web-hosting or web-preview) and to be self-consistent
@@ -36,13 +36,13 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     book_version=$(jq -r '.version' "$book_json_file")
 
     # Rename these files so local REX preview works
-    try cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_JSONIFIED/$book_uuid@$book_version.json.rex-preview"
-    try cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_JSONIFIED/$book_uuid@$book_version.xhtml.rex-preview"
+    cp "$IO_JSONIFIED/$slug_name.toc.json" "$IO_JSONIFIED/$book_uuid@$book_version.json.rex-preview"
+    cp "$IO_JSONIFIED/$slug_name.toc.xhtml" "$IO_JSONIFIED/$book_uuid@$book_version.xhtml.rex-preview"
 
 done
 shopt -u globstar nullglob
 
 
 for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do
-    try jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
+    jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
 done

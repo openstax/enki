@@ -13,6 +13,8 @@ import { ContainerFile } from './epub/container'
 import { factorio } from './epub/singletons'
 import { ResourceFile } from './model/file'
 import { DIRNAMES } from './env'
+import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
+import { dom } from './minidom'
 sourceMapSupport.install()
 
 const program = new Command()
@@ -170,9 +172,25 @@ epubCommand
     }
   })
 
+const sourceFileArg = program.createArgument(
+  '<source_file>',
+  'Source XML filename (e.g. modules/m123/index.cnxml'
+)
+const destinationFileArg = program.createArgument(
+  '<destination_file>',
+  'Destination XML filename (e.g. modules/m123/index.cnxml'
+)
+
 program
-  .command('fetch-images')
-  .addArgument(sourceDirArg)
-  .addArgument(destinationDirArg)
-  .action(async (sourceDir: string, destinationDir: string) => {})
+  .command('add-sourcemap-info')
+  .addArgument(sourceFileArg)
+  .addArgument(destinationFileArg)
+  .action(async (sourceFile: string, destinationFile: string) => {
+    const $doc = dom(await readXmlWithSourcemap(sourceFile))
+    $doc.forEach('//*[not(@data-sm)]', (el) => {
+      const p = getPos(el.node)
+      el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+    })
+    await writeXmlWithSourcemap(destinationFile, $doc.node)
+  })
 program.parse()

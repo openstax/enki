@@ -7,12 +7,12 @@ BOOK_DIR=../data/test-book
 
 # Run the first step just to make sure the codepath works
 KCOV_DIR=_kcov02-a \
-../enki --clear-data --data-dir $BOOK_DIR --command local-create-book-directory --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
+../enki --clear-data --data-dir $BOOK_DIR --command local-create-book-directory --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
 
 # Build git PDF and web
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-b \
-../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
+../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-c \
@@ -26,7 +26,7 @@ KCOV_DIR=_kcov02-c \
 # ################################
 
 SKIP_DOCKER_BUILD=1 \
-../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref long-lived-branch-for-testing-with-#-char
+../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref long-lived-branch-for-testing-with-#-char
 
 SKIP_DOCKER_BUILD=1 \
 ../enki --keep-data --data-dir $BOOK_DIR --command git-pdfify-meta

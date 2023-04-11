@@ -162,9 +162,7 @@ export function toDockerSourceSection(env: KeyValue) {
     return {
         insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
         repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
-        tag: toDockerTag(expect(env.CODE_VERSION)),
-        username: env.DOCKERHUB_USERNAME,
-        password: env.DOCKERHUB_PASSWORD
+        tag: toDockerTag(expect(env.CODE_VERSION))
     }
 }
 export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[], outputs: string[], envNames: Env, cmd: string): ConcourseTask => ({
@@ -316,8 +314,6 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'AWS_SECRET_ACCESS_KEY')
     defaultEnv(env, 'DOCKER_REPOSITORY', true)
     defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
-    defaultEnv(env, 'DOCKERHUB_USERNAME', true)
-    defaultEnv(env, 'DOCKERHUB_PASSWORD', true)
     defaultEnv(env, 'GDOC_GOOGLE_FOLDER_ID', true)
     defaultEnv(env, 'GOOGLE_SERVICE_ACCOUNT_CREDENTIALS', true)
 
@@ -352,8 +348,6 @@ export type KeyValue = {
     SKIP_TORPEDO_TASK: string
 
     // Secrets
-    DOCKERHUB_USERNAME: string
-    DOCKERHUB_PASSWORD: string
     AWS_ACCESS_KEY_ID: string
     AWS_SECRET_ACCESS_KEY: string
     AWS_SESSION_TOKEN?: string

@@ -7,7 +7,7 @@ shopt -s globstar nullglob
 for collection in "$IO_BAKED/"*.baked.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    try link-single "$IO_BAKED" "$IO_BAKE_META" "$slug_name" "$IO_LINKED/$slug_name.linked.xhtml" $version
+    link-single "$IO_BAKED" "$IO_BAKE_META" "$slug_name" "$IO_LINKED/$slug_name.linked.xhtml" $version
 
 done
 shopt -u globstar nullglob

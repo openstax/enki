@@ -44,9 +44,9 @@ Then try the following to build PDFs and other formats:
 ```sh
 # All-in-one Git-based books
 #  CLI             command             repo_name                        book_slug
-./enki --command all-git-pdf  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default
-./enki --command all-git-web  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --style default --ref main
-./enki --command all-git-epub --repo 'openstax/osbooks-introduction-anthropology' --book-slug 'introduction-anthropology' --style default --ref main
+./enki --command all-git-pdf  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
+./enki --command all-git-web  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
+./enki --command all-git-epub --repo 'openstax/osbooks-introduction-anthropology' --book-slug 'introduction-anthropology' --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
 ```
 
@@ -59,7 +59,7 @@ For REX preview you need to build a `all-git-web` book and run rex-preview comma
 Example with using a custom data "rextest" directory:
 
 ```sh
-./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/rextest/ --book-slug 'book-slug1' --style default --ref main
+./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/rextest/ --book-slug 'book-slug1' --ref main
 # Start up a local REX Preview (after running all-git-web)
 ./enki --command rex-preview --data-dir ./data/rextest/
 ```
@@ -75,7 +75,7 @@ For local preview of HTML files with working image resources you need to build a
 Example with using a custom data `localptest` directory:
 
 ```sh
-./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/localptest/ --book-slug 'book-slug1' --style default --ref main
+./enki --command all-git-web --repo 'philschatz/tiny-book' --data-dir ./data/localptest/ --book-slug 'book-slug1' --ref main
 # Start up a local preview (after running all-git-web)
 ./enki --command local-preview --data-dir ./data/localptest/
 ```
@@ -160,16 +160,6 @@ The book pipeline uses S3 buckets to accomplish two different goals: Uploading a
 | `S3_QUEUE` | Queue | Webhosting and GDocs pipeline stores a queue of books that need to be built. It is one file with multiple versions
 | `CORGI_ARTIFACTS_S3_BUCKET` | State | CORGI job artifacts (PDF, Webhosting JSON files, GDocs DOCX files) are uploaded here
 | `WEB_S3_BUCKET` | State | Webhosting JSON files are uploaded to this bucket
-
-
-## Pipeline-generation Environment Variables
-
-The pipeline-generation code uses a few additional environment variables:
-
-| Name | Use | Description |
-| :--- | :-- | :---------- |
-| `DOCKERHUB_USERNAME` | | Your DockerHub username in case you are rate-limited
-| `DOCKERHUB_PASSWORD` | | Your DockerHub password in case you are rate-limited
 
 
 # Features
