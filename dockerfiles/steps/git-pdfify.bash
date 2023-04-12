@@ -3,7 +3,7 @@ parse_book_dir
 if [[ $ARG_TARGET_SLUG_NAME ]]; then
   prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_REX_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
 else
-  rex_linked=($(ls "$IO_REX_LINKED/"*".xhtml"))
+  rex_linked=("$(ls "$IO_REX_LINKED/"*".xhtml")")
   for file in "${rex_linked[@]}"; do
     slug=$(basename $file | awk -F'[.]' '{ print $1; }') # from git-jsonify
     prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$file"
