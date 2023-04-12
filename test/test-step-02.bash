@@ -12,10 +12,13 @@ KCOV_DIR=_kcov02-a \
 # Build git PDF and web
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-b \
+../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo tiny-book --ref main
+SKIP_DOCKER_BUILD=1 \
+KCOV_DIR=_kcov02-c \
 ../enki --keep-data --data-dir $BOOK_DIR --command all-git-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
 
 SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov02-c \
+KCOV_DIR=_kcov02-d \
 ../enki --keep-data --data-dir $BOOK_DIR --command git-validate-cnxml
 
 
