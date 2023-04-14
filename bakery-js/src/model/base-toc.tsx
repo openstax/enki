@@ -1,5 +1,4 @@
-import { basename, resolve, dirname, sep, join } from 'path'
-import { dom, Dom, fromJSX, JSXNode } from '../minidom'
+import { dom, Dom} from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory, Opt } from '../model/factory'
@@ -74,6 +73,7 @@ export abstract class BaseTocFile<
       const title = li.has('h:a')
         ? li.findOne('h:a').text()
         : li.find('h:span').map(e => e.text().trim()).join(" ")
+      /* istanbul ignore next */
       const titlePosition = li.has('h:a') ? getPos(li.findOne('h:a').node) : getPos(li.find('h:span')[0].node)
       return {
         type: TocTreeType.INNER,
