@@ -80,8 +80,12 @@ def main():
                     namespaces=HTML_DOCUMENT_NAMESPACES
             ):
                 link.attrib['href'] = f'./{id_with_context}.xhtml'
-            elif len([ref for ref in ['page', 'composite-page'] if link_href[1:].startswith(ref)])==0:
-                link.attrib["id"] = link_href[1:]
+            elif len([ref for ref in ['page', 'composite-page'] if link_href[1:].startswith(ref)])==0 and link.getparent() is not None:
+                span = etree.Element("span")
+                for child in link.getchildren():
+                    span.append(child)
+                link.getparent().replace(link, span)
+                
 
         # Add metadata to same-book-different-module links.
         # The module in which same-book link targets reside is only fully known

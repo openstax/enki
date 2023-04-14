@@ -92,7 +92,7 @@ show_help() {
         --help                      This help page
         --version                   The version of enki
 
-        --clear-data                Remove the date directory before running
+        --clear-data                Remove the data directory before running
         --keep-data                 Keep the data directory before running
         --data-dir <path>           Path to store temporary files
         --dotenv-file <path>        Path to dotenv file (for GitHub credentials)
