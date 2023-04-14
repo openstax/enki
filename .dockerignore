@@ -14,7 +14,6 @@ build/
 cli.env
 enki
 Dockerfile
-Dockerfile.common
 gitpod-build-and-run-git-book-pdf.bash
 gitpod.env
 google-docs.md

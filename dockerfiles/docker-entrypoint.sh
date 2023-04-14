@@ -39,7 +39,6 @@ die() {
     exit 112
     # LCOV_EXCL_STOP
 }
-try() { "$@" || die "ERROR: could not run [$*]$c_none" 112; }
 
 [[ $PROJECT_ROOT ]] || die "Environment variable PROJECT_ROOT was not set. It should be set inside the Dockerfile"
 
@@ -86,7 +85,7 @@ function check_output_dir() {
     [[ $dir_name ]] || die "This output directory environment variable is not set ($1='$dir_name')"
     # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
     if [[ $dir_name =~ \/data\/ && ! -d $dir_name ]]; then
-        try mkdir -p $dir_name
+        mkdir -p $dir_name
     fi
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"
 }
@@ -120,31 +119,12 @@ function do_xhtml_validate() {
 
 function read_style() {
     slug_name=$1
-    style_name=''
-
-    # This check is always true in CORGI and never true in webhosting pipeline.
-    if [[ -f $IO_BOOK/style ]]; then
-        style_name=$(cat $IO_BOOK/style)
-    fi
-
-    if [[ ! $style_name || $style_name == 'default' ]]; then
-        style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-    fi
-
-    if [[ ! $style_name ]]; then
-        die "Book style was not in the META-INF/books.xml file and was not specified (if this was built via CORGI)" # LCOV_EXCL_LINE
-    fi
-
+    style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
     echo $style_name
 }
 
 function parse_book_dir() {
     check_input_dir IO_BOOK
-
-    # This is ONLY used for archive books. git books use read_style to get the style from the META-INF/books.xml
-    if [ -e $IO_BOOK/style ]; then
-        ARG_RECIPE_NAME=$(cat $IO_BOOK/style)
-    fi
 
     [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
     [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
@@ -160,7 +140,6 @@ function parse_book_dir() {
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
 # reset between each step
 function unset_book_vars() {
-    unset ARG_RECIPE_NAME
     unset ARG_TARGET_PDF_FILENAME
     unset ARG_COLLECTION_ID
     unset ARG_ARCHIVE_SERVER
@@ -174,6 +153,24 @@ function unset_book_vars() {
 function do_step() {
     step_name=$1
 
+    # Parse the commandline args (runs in concourse and locally though only some args are used locally)
+    shift 1
+
+    while [ -n "${1:-}" ]; do
+        case "$1" in
+            --ref) shift; arg_ref=$1 ;;
+            --repo) shift; arg_repo=$1 ;;
+            --book-slug) shift; arg_book_slug=$1 ;;
+            *) # LCOV_EXCL_START
+                echo -e "Invalid argument '$1'"
+                exit 2
+                # LCOV_EXCL_END
+            ;;
+        esac
+        shift
+    done
+
+
     case $step_name in
         shell | '/bin/bash' | '/bin/sh')
             bash # LCOV_EXCL_LINE
@@ -182,25 +179,19 @@ function do_step() {
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
-            collection_id=$2 # repo name or collection id
-            recipe=$3
-            version=$4 # repo branch/tag/commit or archive collection version
-            archive_server=${5:-cnx.org}
+            repo_and_book_slug="$arg_repo/$arg_book_slug"
+            version=$arg_ref
 
-            ensure_arg collection_id 'Specify repo name (or archive collection id)'
-            ensure_arg recipe 'Specify recipe name'
+            ensure_arg repo_and_book_slug 'Specify repo name (or archive collection id)'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
-            ensure_arg archive_server 'Specify archive server (e.g. cnx.org)'
 
             [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
 
             check_output_dir INPUT_SOURCE_DIR
 
             # Write out the files
-            echo "$collection_id" > $INPUT_SOURCE_DIR/collection_id
-            echo "$recipe" > $INPUT_SOURCE_DIR/collection_style
+            echo "$repo_and_book_slug" > $INPUT_SOURCE_DIR/collection_id
             echo "$version" > $INPUT_SOURCE_DIR/version
-            echo "$archive_server" > $INPUT_SOURCE_DIR/content_server
             # Dummy files
             echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
             echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
@@ -216,7 +207,6 @@ function do_step() {
             tail $INPUT_SOURCE_DIR/*
             cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
             cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-            cp $INPUT_SOURCE_DIR/collection_style $IO_BOOK/style 
 
             # Git book
             if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
@@ -320,9 +310,9 @@ function simulate_dirs_before() {
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
                 if [[ -d $child_dir_path ]]; then
                     warn "BUG: We should not have directories checked out from the attic at this point. Maybe turn this into a warning in the future" # LCOV_EXCL_LINE
-                    try rm -rf "$child_dir_path" # LCOV_EXCL_LINE
+                    rm -rf "$child_dir_path" # LCOV_EXCL_LINE
                 fi
-                try cp -R "$LOCAL_ATTIC_DIR/$io_name" "$child_dir_path"
+                cp -R "$LOCAL_ATTIC_DIR/$io_name" "$child_dir_path"
             else
                 die "The step '$step_name' expects '$LOCAL_ATTIC_DIR/$io_name' to have been created by a previous step but it does not exist" # LCOV_EXCL_LINE
             fi
@@ -351,9 +341,9 @@ function simulate_dirs_after() {
             child_dir_path="${!pointer}"
 
             if [[ -d "$LOCAL_ATTIC_DIR/$io_name" ]]; then
-                try rm -rf "$LOCAL_ATTIC_DIR/$io_name"
+                rm -rf "$LOCAL_ATTIC_DIR/$io_name"
             fi 
-            try mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
+            mv "$child_dir_path" "$LOCAL_ATTIC_DIR/$io_name"
         done
     fi
 
@@ -364,7 +354,7 @@ function simulate_dirs_after() {
             pointer=$io_name # https://stackoverflow.com/a/55331060
             child_dir_path="${!pointer}"
 
-            try rm -rf "$child_dir_path"
+            rm -rf "$child_dir_path"
         done
     fi
  

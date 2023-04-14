@@ -18,3 +18,6 @@
 	path = ce-styles
 	url = https://github.com/openstax/ce-styles
 	branch = main
+[submodule "cnxml"]
+	path = cnxml
+	url = https://github.com/openstax/cnxml

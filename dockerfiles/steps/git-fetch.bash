@@ -12,7 +12,7 @@ if [[ $LOCAL_SIDELOAD_REPO_PATH && -d $LOCAL_SIDELOAD_REPO_PATH ]]; then
     warn "-----------------------------------" # LCOV_EXCL_LINE
     warn "Sideloading book instead of cloning" # LCOV_EXCL_LINE
     warn "-----------------------------------" # LCOV_EXCL_LINE
-    try cp -r $LOCAL_SIDELOAD_REPO_PATH "$IO_FETCHED" # LCOV_EXCL_LINE
+    cp -r $LOCAL_SIDELOAD_REPO_PATH "$IO_FETCHED" # LCOV_EXCL_LINE
 elif [[ -d "$IO_FETCHED/.git" ]]; then # Skip if we already cloned (dev)
     warn "---------------------------------------------------" # LCOV_EXCL_LINE
     warn "Skipping git clone because directory already exists" # LCOV_EXCL_LINE
@@ -52,8 +52,8 @@ else
         # 3. Upgrade to a deep clone
         git_commit="${ARG_GIT_REF:1}"
 
-        GIT_TERMINAL_PROMPT=0 try git clone --depth 50 "$remote_url" "$IO_FETCHED"
-        try pushd "$IO_FETCHED"
+        GIT_TERMINAL_PROMPT=0 git clone --depth 50 "$remote_url" "$IO_FETCHED"
+        pushd "$IO_FETCHED"
 
         set +e
         git reset --hard "$git_commit"
@@ -63,8 +63,8 @@ else
         # If the commit was not recent, try fetching all the branches
         if [[ $commit_not_found != 0 ]]; then
 
-            try git remote set-branches origin '*'
-            GIT_TERMINAL_PROMPT=0 try git fetch -v
+            git remote set-branches origin '*'
+            GIT_TERMINAL_PROMPT=0 git fetch -v
 
             set +e
             git reset --hard "$git_commit"
@@ -74,20 +74,20 @@ else
             # If the commit was not in the branches, convert the shallow clone to a deep clone
             # LCOV_EXCL_START
             if [[ $commit_not_found != 0 ]]; then
-                GIT_TERMINAL_PROMPT=0 try git fetch --unshallow # convert shallow clone to deep clone
-                try git reset --hard "$git_commit"
+                GIT_TERMINAL_PROMPT=0 git fetch --unshallow # convert shallow clone to deep clone
+                git reset --hard "$git_commit"
             fi
             # LCOV_EXCL_END
         fi
-        try popd
+        popd
     else
-        GIT_TERMINAL_PROMPT=0 try git clone --depth 1 "$remote_url" --branch "$ARG_GIT_REF" "$IO_FETCHED"
+        GIT_TERMINAL_PROMPT=0 git clone --depth 1 "$remote_url" --branch "$ARG_GIT_REF" "$IO_FETCHED"
     fi
 fi
 
 # Clean up the temporary credentials file if it exists
 if [[ -f $creds_dir ]]; then
-    try rm -rf $creds_dir # LCOV_EXCL_LINE
+    rm -rf $creds_dir # LCOV_EXCL_LINE
 fi
 
 # If the user wants to build one book then check that the book exists
@@ -96,8 +96,8 @@ ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-}
 if [[ $ARG_TARGET_SLUG_NAME ]]; then
     manifest_file="$IO_FETCHED/META-INF/books.xml"
     set +e
-    book_slugs=$(try xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' < $manifest_file)
-    book_href=$(try xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' < $manifest_file)
+    book_slugs=$(xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' < $manifest_file)
+    book_href=$(xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' < $manifest_file)
     set -e
     [[ $book_href ]] || die "META-INF/books.xml is missing an entry for slug='$ARG_TARGET_SLUG_NAME'. Valid slugs: $book_slugs" # LCOV_EXCL_LINE
 fi

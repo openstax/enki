@@ -30,19 +30,19 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
 
 
     # --------- Code ends here
-done < <(try xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
+done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
 
 # Save all the slug/uuid pairs into a JSON file
-try jo -a $jo_args > $book_slugs_file
+jo -a $jo_args > $book_slugs_file
 
 shopt -s globstar nullglob
 for collection in "$IO_MATHIFIED/"*.mathified.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    try link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
+    link-rex "$IO_MATHIFIED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
 
 done
 shopt -u globstar nullglob
 
 
-try cp "$IO_MATHIFIED/the-style-pdf.css" "$IO_REX_LINKED"
+cp "$IO_MATHIFIED/the-style-pdf.css" "$IO_REX_LINKED"
