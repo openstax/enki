@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .cnx_models import flatten_to_documents
 from .html_parser import reconstitute
-from .profiler import debug, timed
+from .profiler import timed
 from .utils import ensure_isoformat
 
 

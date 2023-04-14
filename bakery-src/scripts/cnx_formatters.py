@@ -46,6 +46,7 @@ class DocumentContentFormatter(object):
         et = etree.HTML(html.decode('utf-8'))
         return etree.tostring(et, pretty_print=True, encoding='utf-8')
 
+
 @timed
 def _fix_namespaces(html):
     # Get rid of unused namespaces and put them all in the root tag

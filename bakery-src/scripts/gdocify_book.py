@@ -132,6 +132,7 @@ CHARLISTS = {
     )
 }
 
+
 @timed
 def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     """Modify links in doc"""
@@ -171,6 +172,7 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
             node.attrib["href"] = _rex_url_builder(
                 book_slug, page_slug, page_fragment
             )
+
 
 @timed
 def patch_math(doc):
@@ -295,6 +297,7 @@ def _universal_convert_rgb_command(img_filename):
     Warning: Probably does not work perfectly color accurate."""
     return f'mogrify -colorspace sRGB -type truecolor "{img_filename}"'  # pragma: no cover
 
+
 @timed
 async def fix_jpeg_colorspace(img_filename):
     """Searches for JPEG image resources which are encoded in colorspace
@@ -387,6 +390,7 @@ class AsyncJobQueue:
         for worker in self.workers:
             worker.cancel()
 
+
 @timed
 def get_img_resources(doc, out_dir):
     """Iterates over all image resources--absolute paths--in the document"""
@@ -402,6 +406,7 @@ def get_img_resources(doc, out_dir):
         img_filename = Path(node)
         img_filename = (out_dir / img_filename).resolve().absolute()
         yield img_filename
+
 
 @timed
 async def run_async():

@@ -14,6 +14,7 @@ NS_CNXML = "http://cnx.rice.edu/cnxml"
 NS_COLLXML = "http://cnx.rice.edu/collxml"
 GIT_SHA_PREFIX_LEN = 7
 
+
 @timed
 def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
     metadata = xml_doc.xpath(
@@ -29,6 +30,7 @@ def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
         if element:
             metadata.remove(element[0])
 
+
 @timed
 def add_metadata_entries(xml_doc, new_metadata, md_namespace):
     """Insert metadata entries from dictionairy into document"""
@@ -42,6 +44,7 @@ def add_metadata_entries(xml_doc, new_metadata, md_namespace):
         element.text = value
         element.tail = "\n"
         metadata.append(element)
+
 
 @timed
 def determine_book_version(reference, repo, commit):
@@ -67,6 +70,7 @@ def determine_book_version(reference, repo, commit):
 
     # Fallback to returning a version based on commit sha in all other cases
     return str(commit.id)[0:GIT_SHA_PREFIX_LEN]
+
 
 @timed
 def main():

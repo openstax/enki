@@ -46,7 +46,7 @@ def main():
     metadata_file = Path(sys.argv[2]).resolve(strict=True)
     book_slug = sys.argv[3]
     out_dir = Path(sys.argv[4])
-    
+
     with open(xhtml_file, "rb") as file:
         html_root = etree.parse(file)
         file.seek(0)
@@ -80,12 +80,12 @@ def main():
                     namespaces=HTML_DOCUMENT_NAMESPACES
             ):
                 link.attrib['href'] = f'./{id_with_context}.xhtml'
-            elif len([ref for ref in ['page', 'composite-page'] if link_href[1:].startswith(ref)])==0 and link.getparent() is not None:
+            elif len([ref for ref in ['page', 'composite-page'] if
+                      link_href[1:].startswith(ref)]) == 0 and link.getparent() is not None:
                 span = etree.Element("span")
                 for child in link.getchildren():
                     span.append(child)
                 link.getparent().replace(link, span)
-                
 
         # Add metadata to same-book-different-module links.
         # The module in which same-book link targets reside is only fully known

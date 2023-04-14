@@ -14,11 +14,13 @@ from .cnx_models import flatten_to_documents
 from lxml import etree
 from .profiler import timed
 
+
 @timed
 def load_baked_collection(input_dir, book_slug):
     """load assembled collection"""
     baked_collection = f"{input_dir}/{book_slug}.baked.xhtml"
     return etree.parse(baked_collection)
+
 
 @timed
 def parse_collection_binders(input_dir):
@@ -33,6 +35,7 @@ def parse_collection_binders(input_dir):
 
     return binders
 
+
 @timed
 def create_canonical_map(binders):
     """Create a canonical book map from a set of binders"""
@@ -43,6 +46,7 @@ def create_canonical_map(binders):
             canonical_map[doc.id] = doc.metadata['canonical_book_uuid']
 
     return canonical_map
+
 
 @timed
 def parse_book_metadata(binders, input_dir):
@@ -59,6 +63,7 @@ def parse_book_metadata(binders, input_dir):
 
     return book_metadata
 
+
 @timed
 def get_target_uuid(link):
     """get target module uuid"""
@@ -67,6 +72,7 @@ def get_target_uuid(link):
     return re.search(
         r'/contents/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
         parsed).group(1)
+
 
 @timed
 def gen_page_slug_resolver(book_tree_by_uuid):
@@ -95,6 +101,7 @@ def gen_page_slug_resolver(book_tree_by_uuid):
 
     return _get_page_slug
 
+
 @timed
 def patch_link(node, source_book_uuid, canonical_book_uuid,
                canonical_book_slug, page_slug, version):
@@ -120,11 +127,13 @@ def patch_link(node, source_book_uuid, canonical_book_uuid,
         node.attrib["data-page-slug"] = page_slug
         node.attrib["href"] = f"./{canonical_book_uuid}@{version}:{page_id}.xhtml{page_fragment}"
 
+
 @timed
 def save_linked_collection(output_path, doc):
     """write modified output"""
     with open(output_path, "wb") as f:
         doc.write(f, encoding="utf-8", xml_declaration=True)
+
 
 @timed
 def transform_links(
@@ -179,6 +188,7 @@ def transform_links(
                    canonical_book_slug, page_slug, version)
 
     save_linked_collection(output_path, doc)
+
 
 @timed
 def main():

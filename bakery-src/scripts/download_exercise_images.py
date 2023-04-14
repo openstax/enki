@@ -16,6 +16,7 @@ from .profiler import timed
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 
+
 @timed
 def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_xml):
     doc = etree.parse(str(input_xml))
@@ -55,6 +56,7 @@ def fetch_and_replace_external_exercise_images(resources_dir, input_xml, output_
             print('to local: ' + new_local_src)
             node.set('src', new_local_src)
         doc.write(output_xml, encoding="utf8")
+
 
 @timed
 def main():  # pragma: no cover
