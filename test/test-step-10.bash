@@ -11,7 +11,7 @@ fi
 pip install "../bakery-src/scripts/.[test]"
 flake8 "../bakery-src/scripts" --max-line-length=110
 
-pytest --asyncio-mode=strict --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term  ../bakery-src -vvv
+pytest --asyncio-mode=strict --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term-missing  ../bakery-src -vvv
 sed -i 's/filename=".*\/bakery_scripts/filename="/g' cov.xml
 
 # Upload to codecov only if running inside CI

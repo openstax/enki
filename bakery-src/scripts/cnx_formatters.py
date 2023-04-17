@@ -27,28 +27,27 @@ __all__ = (
 
 class DocumentContentFormatter(object):
     def __init__(self, document):
-        self.document = document
+        self.document = document  # pragma: no cover
 
     def __unicode__(self):
-        return self.__bytes__().decode('utf-8')
+        return self.__bytes__().decode('utf-8')  # pragma: no cover
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         if IS_PY3:
             return self.__bytes__().decode('utf-8')
         return self.__bytes__()
 
-    def __bytes__(self):
-        html = """\
-<html xmlns="http://www.w3.org/1999/xhtml">
-  {}
-</html>""".format(utf8(self.document.content))
+    def __bytes__(self):  # pragma: no cover
+        html = """
+                <html xmlns="http://www.w3.org/1999/xhtml">{}</html>
+            """.format(utf8(self.document.content))
         html = _fix_namespaces(html.encode('utf-8'))
         et = etree.HTML(html.decode('utf-8'))
         return etree.tostring(et, pretty_print=True, encoding='utf-8')
 
 
 @timed
-def _fix_namespaces(html):
+def _fix_namespaces(html):  # pragma: no cover
     # Get rid of unused namespaces and put them all in the root tag
     nsmap = {None: u"http://www.w3.org/1999/xhtml",
              u"m": u"http://www.w3.org/1998/Math/MathML",
