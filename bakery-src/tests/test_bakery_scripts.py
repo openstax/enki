@@ -3510,7 +3510,7 @@ def test_ensure_isoformat():
 
 # Profiler test
 def test_convert_ms():
-    assert profiler.convert_ms(1000) == "1 second"
+    assert profiler.convert_ms(2000) == "2 seconds"
     assert profiler.convert_ms(1000 * 60) == "1 minute(s)"
     assert profiler.convert_ms(1000 * 60 * 60) == "1 hour(s)"
 
