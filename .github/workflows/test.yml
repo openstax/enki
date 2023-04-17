@@ -41,15 +41,15 @@ jobs:
         run: CI_TEST=true ./test/test-step-00.bash
       - name: prepare directories and build container
         run: CI_TEST=true ./test/test-step-01.bash
-      - name: Run all-git-pdf
+      - name: Run all-pdf
         run: CI_TEST=true ./test/test-step-02.bash
-      - name: Run all-git-web
+      - name: Run all-web
         run: CI_TEST=true ./test/test-step-03.bash
-      - name: Run all-git-gdoc
+      - name: Run all-docx
         run: CI_TEST=true ./test/test-step-05.bash
-      - name: Run the last step of all-git-gdoc (git-convert-docx)
+      - name: Run the last step of all-docx (git-convert-docx)
         run: CI_TEST=true ./test/test-step-06.bash
-      - name: Run all-git-epub
+      - name: Run all-epub
         run: CI_TEST=true ./test/test-step-11.bash
       - name: Run Bakery Scripts Tests
         if: steps.cache-pipenv.outputs.cache-hit != 'true'

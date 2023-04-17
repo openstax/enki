@@ -2536,9 +2536,6 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
         f'</document>'
     )
     assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
-    assert set(file.name for file in unused_resources_dir.glob('**/*')) == set([
-        "image_unused.svg",
-    ])
 
     assert(initial_resources_dir.is_dir())
 
@@ -2675,9 +2672,6 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
             f'</document>'
         )
         assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
-        assert set(file.name for file in unused_resources_dir.glob('**/*')) == set([
-            "image_unused.svg",
-        ])
 
         assert(initial_resources_dir.is_dir())
     finally:

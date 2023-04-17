@@ -89,15 +89,3 @@ fi
 if [[ -f $creds_dir ]]; then
     rm -rf $creds_dir # LCOV_EXCL_LINE
 fi
-
-# If the user wants to build one book then check that the book exists
-# so we can error early.
-ARG_TARGET_SLUG_NAME=${ARG_TARGET_SLUG_NAME:-}
-if [[ $ARG_TARGET_SLUG_NAME ]]; then
-    manifest_file="$IO_FETCHED/META-INF/books.xml"
-    set +e
-    book_slugs=$(xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' < $manifest_file)
-    book_href=$(xmlstarlet sel -t --match "//*[@slug=\"$ARG_TARGET_SLUG_NAME\"]" --value-of '@href' < $manifest_file)
-    set -e
-    [[ $book_href ]] || die "META-INF/books.xml is missing an entry for slug='$ARG_TARGET_SLUG_NAME'. Valid slugs: $book_slugs" # LCOV_EXCL_LINE
-fi
