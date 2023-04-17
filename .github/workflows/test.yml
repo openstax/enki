@@ -28,7 +28,7 @@ jobs:
       - name: Install pipenv & Setting up environment
         run: |
           python -m pip install --upgrade pipenv wheel
-          sudo apt-get install -y imagemagick icc-profiles-free ghostscript
+          sudo apt-get install --fix-missing -y imagemagick icc-profiles-free ghostscript
       - id: cache-pipenv
         uses: actions/cache@v1
         with:
