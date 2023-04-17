@@ -367,8 +367,6 @@ COPY ./dockerfiles/entrypointd.sh \
 
 COPY ./step-config.json $PROJECT_ROOT
 
-# ^^^^^^^^^^^^^^^ Dockerfile.common ^^^^^^^^^^^^^^^
-# vvvvvvvvvvv Dockerfile.cli-endmatter vvvvvvvvvvvv
 WORKDIR /data/
 
 RUN useradd --create-home -u 5000 app

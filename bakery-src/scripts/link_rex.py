@@ -16,7 +16,6 @@ def update_doc_links(doc, book_slugs_by_uuid=None):
         return f"http://openstax.org/books/{book}/pages/{page}"
 
     external_link_elems = unformatted_rex_links(doc)
-    external_link_elems = unformatted_rex_links(doc)
 
     for node in external_link_elems:
         # This an inter-book link defined by data-book-uuid attrib
