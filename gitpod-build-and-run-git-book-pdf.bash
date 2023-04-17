@@ -27,4 +27,4 @@ set +o allexport
 [ -d ./data ] && rm -rf ./data
 mkdir ./data
 
-TRACE_ON=1 ./dockerfiles/docker-entrypoint.sh all-git-pdf philschatz/tiny-book/book-slug1 chemistry main
+TRACE_ON=1 ./dockerfiles/docker-entrypoint.sh all-pdf philschatz/tiny-book/book-slug1 chemistry main

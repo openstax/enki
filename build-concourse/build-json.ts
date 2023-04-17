@@ -22,10 +22,10 @@ const json = {
     __note__: "This file is autogenerted. Do not edit it directly",
     steps,
     pipelines: {
-        'all-git-pdf': CLI_GIT_PDF_STEPS.map(toName),
-        'all-git-web': CLI_GIT_WEB_STEPS.map(toName),
-        'all-git-epub': CLI_GIT_EPUB_STEPS.map(toName),
-        'all-git-gdoc': CLI_GIT_GDOC_STEPS.map(toName),
+        'all-pdf': CLI_GIT_PDF_STEPS.map(toName),
+        'all-web': CLI_GIT_WEB_STEPS.map(toName),
+        'all-epub': CLI_GIT_EPUB_STEPS.map(toName),
+        'all-docx': CLI_GIT_GDOC_STEPS.map(toName),
     }
 }
 
