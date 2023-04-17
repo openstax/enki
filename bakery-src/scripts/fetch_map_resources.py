@@ -60,7 +60,7 @@ def rename(filename_to_data, resource_original_filepath, is_image):
         opt_width, opt_height = get_size(str(resource_original_filepath))
     filename_to_data[resource_original_filepath.name] = \
         (sha1, s3_md5, mime_type, resource_original_filepath, opt_width, opt_height)
-    return f"../{RESOURCES_DIR_NAME}/{sha1}"
+    return f"../{resources_dir_name}/{sha1}"
 
 
 @timed

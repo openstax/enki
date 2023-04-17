@@ -20,14 +20,14 @@ We build books in a pipeline of steps. These steps are written in different lang
 - [Steps](#steps)
 - [Environment Variables](#environment-variables)
   - [Artifact and Queue Buckets](#artifact-and-queue-buckets)
-  - [Pipeline-generation Environment Variables](#pipeline-generation-environment-variables)
 - [Features](#features)
 - [Development](#development)
   - [Run Tests](#run-tests)
   - [Run steps beginning with a step](#run-steps-beginning-with-a-step)
-- [Debugging](#debugging)
-  - [Python Debugging](#python-debugging)
-  - [Java Debugging](#java-debugging)
+  - [Debugging](#debugging)
+    - [Python Debugging](#python-debugging)
+    - [Java Debugging](#java-debugging)
+    - [Javascript Debugging](#javascript-debugging)
 - [CI/Gitpod Integration](#cigitpod-integration)
 - [Create a Webhosting Pipeline](#create-a-webhosting-pipeline)
 - [TODO list](#todo-list)
@@ -211,9 +211,9 @@ START_AT_STEP=git-bake ./enki ./data/tin-bk all-pdf
 **Note:** The arguments following all-pdf can be omitted since they are only used in the initial step
 
 
-# Debugging
+## Debugging
 
-## Python Debugging
+### Python Debugging
 
 In order to debug a python script from the `./bakery-src/scripts` folder, you can add the `--pdb` flag to the `./enki` command. This will open the `5678` port on the container and allow you to connect to it with a debugger.
 In addition, you should add the following script on top of the python script you want to debug and set breakpoints below the `debug()` line:
@@ -223,10 +223,13 @@ from .profiler import debug
 debug()
 ```
 
-## Java Debugging
+### Java Debugging
 
 In order to debug the Java code, you can set the breakpoints in the Java code and then run the `./enki` command with the `--jdb` flag. The java program will then suspend till the client is connected to it and stop at the breakpoints and you can step through the code.
 
+### Javascript Debugging
+
+In order to debug the Javascript code, you can set the breakpoints in the Javascript code under `bakery-js/src` and then run the `./enki` command with the `--jsdb` flag. The node program will then suspend till the client is connected to it and stop at the breakpoints and you can step through the code.
 
 # CI/Gitpod Integration
 
