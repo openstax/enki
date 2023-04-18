@@ -10,6 +10,7 @@ from lxml import etree
 from .utils import get_checksums, get_mime_type, get_size, create_json_metadata
 from .profiler import timed
 
+
 def get_resource_dir_name_env():
     # relative links must work both locally, on PDF, and on REX, and images are
     # uploaded with the prefix 'resources/' in S3 for REX
