@@ -262,22 +262,22 @@ repo_slug_ref=""
     DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
 }
 
-ports=()
-envs=()
+ports=""
+envs=""
 (( PYTHON_DEBUG == 1 )) && { 
-    ports+=('-p 5678:5678')
-    envs+=('--env PYTHON_DEBUG=1')
+    ports+=' -p 5678:5678 '
+    envs+=' --env PYTHON_DEBUG=1'
 }
 (( JS_DEBUG == 1 )) && {
-    ports+=('-p 9229:9229')
-    envs+=('--env JS_DEBUG=1')
+    ports+=' -p 9229:9229 '
+    envs+=' --env JS_DEBUG=1 '
 }
 (( JAVA_DEBUG == 1 )) && {
-    ports+=('-p 7777:7777')
-    envs+=('--env JAVA_DEBUG=1')
+    ports+=' -p 7777:7777 '
+    envs+=' --env JAVA_DEBUG=1 '
 }
 
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run ${ports[@]} $interactive $enable_tty \
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $ports $interactive $enable_tty \
     $opt_sideload_book_arg \
     --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \
@@ -300,7 +300,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run ${ports[@]} $interactive $enable_
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__\
-    ${envs[@]} \
+    $envs \
     --rm $image_name "$arg_command" $repo_slug_ref
 
 output=""
