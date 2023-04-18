@@ -139,7 +139,7 @@ export class TocFile extends BaseTocFile<
     })
 
     // Unwrap the spans inside the list items and replace with a single span
-    doc.forEach('//h:ol/h:li/h:span', (el)=>{
+    doc.forEach('//h:ol/h:li/h:span', (el) => {
       const children = el.find('h:span//text()')
       el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
     })
