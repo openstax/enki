@@ -28,7 +28,7 @@ All scripts are meant to be run from Enki root (eg. by calling `./cross-lib/upda
 `run_enki_on_all.sh` - Iterates over books in `AUTO_books.txt`, running enki to generate each. Outputs status of each run & the time to stdout. Book files are found in `/data/<slug>-<command>`. 
 
 Options:
-- --command: A [step or set of steps](../step-config.json) to run on all books . Example: `all-git-pdf`
+- --command: A [step or set of steps](../step-config.json) to run on all books . Example: `all-pdf`
 
 ## Logs
 

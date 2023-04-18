@@ -20,7 +20,7 @@ while [ -n "$1" ]; do
   shift
 done
 
-[[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'all-git-epub'" && exit 1 )
+[[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-pdf' or 'all-web' or 'all-epub'" && exit 1 )
 
 root="cross-lib"
 all_books="$root/book-data/AUTO_books.txt"
@@ -47,7 +47,7 @@ format_time() {
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  cmd="./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --style default --ref main"
+  cmd="./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --ref main"
   log="$root/logs/$repo-$slug.txt"
   if [[ $do_continue && -f "$log" ]]; then
     echo "Skipping because log file exists. To build anyway, unset --continue flag."
