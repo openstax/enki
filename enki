@@ -303,7 +303,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $ports $interactive $enable_tty \
     $envs \
     --rm $image_name "$arg_command" $repo_slug_ref
 
-output=""
+output="book"
 path="IO_ARTIFACTS"
 [[  $arg_command == *pdf ]] && output="PDF File"
 [[ $arg_command == *epub ]] && output="EPUB File"
