@@ -43,5 +43,5 @@ In https://drive.google.com create a new Folder (e.g. “Test GDocs Root” ) an
 Use the [CLI](./enki) to generate DOCX files for a book. For example: (the exact syntax is subject to change):
 
 ```sh
-./enki --command all-git-gdoc --repo openstax/osbooks-introduction-sociology --book-slug introduction-sociology-3e --ref main --style default
+./enki --command all-docx --repo openstax/osbooks-introduction-sociology --book-slug introduction-sociology-3e --ref main
 ```

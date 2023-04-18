@@ -10,7 +10,23 @@ set -e
 if [[ $1 == 'shell' ]]; then
     bash
 elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
-    kcov --merge ${@:2}
+    dirs_to_merge=''
+    shift 1
+    while [ -n "$1" ]; do
+        case "$1" in
+            --repo) ;;
+            --book-slug) shift ;;
+            *)
+                dirs_to_merge="$dirs_to_merge $1"
+            ;;
+        esac
+        shift
+    done
+    if [[ $dirs_to_merge = '' ]]; then
+        echo "BUG: Did not specify which directories to merge"
+        exit 1
+    fi
+    kcov --merge $dirs_to_merge
 elif [[ $KCOV_DIR != '' ]]; then
     [[ -d /data/$KCOV_DIR ]] || mkdir /data/$KCOV_DIR
     kcov \

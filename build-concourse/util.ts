@@ -83,7 +83,6 @@ export enum RESOURCES {
 export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
-    ARTIFACTS_SINGLE = 'artifacts-single',
     PREVIEW_URLS = 'preview-urls',
 
     // Git directories
@@ -91,20 +90,15 @@ export enum IO {
     FETCH_META = 'fetch-meta',
     INITIAL_RESOURCES = 'initial-resources',
     RESOURCES = 'resources',
-    UNUSED_RESOURCES = 'unused-resources',
     ASSEMBLED = 'assembled', // 'assembled-book-group',
     ASSEMBLE_META = 'assemble-meta', // 'assembled-metadata-group',
     BAKED = 'baked', // 'baked-book-group',
     BAKE_META = 'bake-meta', // 'baked-metadata-group',
     LINKED = 'linked', // 'linked-single',
-    MATHIFIED = 'mathified', // 'mathified-single',
-    REX_LINKED = 'rex-linked',
-    DISASSEMBLED = 'disassembled', // 'disassembled-single',
     ARTIFACTS = 'artifacts', // 'artifacts-single',
     DISASSEMBLE_LINKED = 'disassemble-linked', // 'disassembled-linked-single',
     JSONIFIED = 'jsonified', // 'jsonified-single',
     EPUB = 'epub',
-    GDOCIFIED = 'gdocified', // 'gdocified-single'
     DOCX = 'docx', // 'docx-single'
 }
 
@@ -162,9 +156,7 @@ export function toDockerSourceSection(env: KeyValue) {
     return {
         insecure_registries: env.DOCKER_REGISTRY_HOST ? [env.DOCKER_REGISTRY_HOST] : undefined,
         repository: env.DOCKER_REGISTRY_HOST ? `${env.DOCKER_REGISTRY_HOST}/${expect(env.DOCKER_REPOSITORY)}` : expect(env.DOCKER_REPOSITORY),
-        tag: toDockerTag(expect(env.CODE_VERSION)),
-        username: env.DOCKERHUB_USERNAME,
-        password: env.DOCKERHUB_PASSWORD
+        tag: toDockerTag(expect(env.CODE_VERSION))
     }
 }
 export const toConcourseTask = (env: KeyValue, taskName: string, inputs: string[], outputs: string[], envNames: Env, cmd: string): ConcourseTask => ({
@@ -316,8 +308,6 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'AWS_SECRET_ACCESS_KEY')
     defaultEnv(env, 'DOCKER_REPOSITORY', true)
     defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
-    defaultEnv(env, 'DOCKERHUB_USERNAME', true)
-    defaultEnv(env, 'DOCKERHUB_PASSWORD', true)
     defaultEnv(env, 'GDOC_GOOGLE_FOLDER_ID', true)
     defaultEnv(env, 'GOOGLE_SERVICE_ACCOUNT_CREDENTIALS', true)
 
@@ -352,8 +342,6 @@ export type KeyValue = {
     SKIP_TORPEDO_TASK: string
 
     // Secrets
-    DOCKERHUB_USERNAME: string
-    DOCKERHUB_PASSWORD: string
     AWS_ACCESS_KEY_ID: string
     AWS_SECRET_ACCESS_KEY: string
     AWS_SESSION_TOKEN?: string

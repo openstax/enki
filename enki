@@ -85,7 +85,7 @@ show_help() {
 
     Required Arguments:
 
-        --command all-git-pdf       Command/Step to run. Can be a shortcut like all-git-pdf or all-git-web)
+        --command all-pdf       Command/Step to run. Can be a shortcut like all-pdf or all-web)
 
     Optional Arguments:
 
@@ -99,7 +99,6 @@ show_help() {
 
         --repo osbooks-mybook       The name of the repo. Can be "owner/name" if the owner is not openstax
         --book-slug calculus-vol-1  Which book (identified by slug) to build
-        --style <name|"default">    A recipe style to use or "default" to use what is defined in the repo
         --ref <branch|tag|@commit>  Which version of the book to build
 
         --start-at git-bake         Step to start at (also sets --keep-data)
@@ -118,7 +117,6 @@ show_help() {
         Repo: $arg_repo
         Slug: $arg_book_slug
         Ref: $arg_ref
-        Style: $arg_style
 
 EOF
 }
@@ -136,7 +134,7 @@ EOF
 
 
 # Defaults
-image_name=enki
+image_name=${ENKI_IMAGE_NAME:-enki}
 if [[ $XDG_DATA_HOME ]]; then
     data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
 else
@@ -160,7 +158,6 @@ while [ -n "$1" ]; do
         --data-dir) shift; data_dir=$1 ;;
         --command) shift; arg_command=$1 ;;
         --sideload-book) shift; SIDELOAD_PATH=$1 ;;
-        --style) shift; arg_style=$1 ;;
         --ref) shift; arg_ref=$1 ;;
         --repo) shift; arg_repo=$1 ;;
         --book-slug) shift; arg_book_slug=$1 ;;
@@ -221,7 +218,7 @@ if [[ $arg_command == 'local-preview' ]]; then
 fi
 
 [[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
-[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'rex-preview'" && exit 111)
+[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-pdf' or 'all-web' or 'rex-preview'" && exit 111)
 
 [[ $clear_cache && -d $data_dir ]] && rm -rf $data_dir
 
@@ -231,8 +228,12 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $data_dir ]] || mkdir -p "$data_dir"
 
-[[ $arg_repo && ! $arg_book_slug ]] && arg_repo_and_slug="$arg_repo" # This is just used by __CI_KCOV_MERGE_ALL__.
-[[ $arg_repo && $arg_book_slug ]] && arg_repo_and_slug="$arg_repo/$arg_book_slug"
+[[ $arg_repo && ! $arg_book_slug ]] && ( >&2 echo "ERROR: Missing --book-slug commandline argument when using --repo" && exit 111)
+
+repo_slug_ref=""
+[[ $arg_repo ]] && repo_slug_ref="$repo_slug_ref --repo $arg_repo"
+[[ $arg_book_slug ]] && repo_slug_ref="$repo_slug_ref --book-slug $arg_book_slug"
+[[ $arg_ref ]] && repo_slug_ref="$repo_slug_ref --ref $arg_ref"
 
 # specify a directory to sideload the book from instead of cloning from github
 [[ $SIDELOAD_PATH ]] && {
@@ -277,7 +278,7 @@ DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__ \
-    --rm $image_name "$arg_command" "$arg_repo_and_slug" "$arg_style" "$arg_ref"
+    --rm $image_name "$arg_command" $repo_slug_ref
 
 if [[ $arg_command == *pdf ]]
 then
