@@ -1,6 +1,5 @@
 # Formerly git-fetch-metadata
 parse_book_dir
-js_debug_vars
 
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 

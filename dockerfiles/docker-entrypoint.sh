@@ -58,6 +58,10 @@ LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
 JAVA_DEBUG=${JAVA_DEBUG:-}
 JS_DEBUG=${JS_DEBUG:-}
 
+if [[ $JS_DEBUG ]]; then
+    export NODE_OPTIONS="--inspect-brk=0.0.0.0:9229"
+fi
+
 source $PYTHON_VENV_ROOT/bin/activate
 
 function ensure_arg() {
@@ -358,14 +362,6 @@ function simulate_dirs_after() {
         done
     fi
  
-}
-
-function js_debug_vars(){
-    JS_EXTRA_VARS=()
-    if [[ $JS_DEBUG == 1 ]]; then
-        echo "Javascript debug mode is on $DEBUG_HOST:$JS_DEBUG_PORT"  # LCOV_EXCL_LINE
-        JS_EXTRA_VARS+=("--inspect-brk=$DEBUG_HOST:$JS_DEBUG_PORT") # LCOV_EXCL_LINE
-    fi
 }
 
 # Try to find if the command is in the pipeline first
