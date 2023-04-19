@@ -28,7 +28,10 @@ We build books in a pipeline of steps. These steps are written in different lang
     - [Python Debugging](#python-debugging)
     - [Java Debugging](#java-debugging)
     - [Javascript Debugging](#javascript-debugging)
-- [CI/Gitpod Integration](#cigitpod-integration)
+- [CI Integration](#ci-integration)
+- [Running the Enki command in Gitpod](#running-the-enki-command-in-gitpod)
+  - [Gitpod Differences](#gitpod-differences)
+  - [Submodule Development](#submodule-development)
 - [Create a Webhosting Pipeline](#create-a-webhosting-pipeline)
 - [TODO list](#todo-list)
   - [Future TODO work](#future-todo-work)
@@ -231,9 +234,37 @@ In order to debug the Java code, you can set the breakpoints in the Java code an
 
 In order to debug the Javascript code, you can set the breakpoints in the Javascript code under `bakery-js/src` and then run the `./enki` command with the `--jsdb` flag. The node program will then suspend till the client is connected to it and stop at the breakpoints and you can step through the code.
 
-# CI/Gitpod Integration
+# CI Integration
 
 This repo can be used as the image in a gitpod environment. All of code to build the variaous dependencies (like `cookbook`) are in bash scripts inside the container so they can be run from within the container (see [Dockerfile](./Dockerfile))
+
+
+# Running the Enki command in Gitpod
+
+1. Open the [Enki Repository in Gitpod](https://gitpod.io/from-referrer/)
+2. Follow [Local Instructions](#local-instructions) to build a book
+    * **NOTE:** You will want to set a `--data-dir` that is relative to your working directory (like `./data`) so that artifacts are easy to download/preview
+
+## Gitpod Differences
+* Local preview can be utilized via the Live Server extension that should be preinstalled in the Gitpod workspace
+  1. Starting Live Server
+      * Open the command palette and run "Open with Live Server" 
+      * OR Right click an html document and click "Open with Live Server" 
+      * OR CMD + L followed by CMD + O
+  2. When you start Live Server, a new tab that shows a directory listing should open in your browser 
+      * If a tab does not open automatically
+          1. Open your terminal (Control + \` OR `Create New Terminal` in command palette)
+          2. If you do not see a `Ports` tab above your terminal, right click the bar and check the `Ports` option
+          3. Click ports. You should see that port 5500 is open. If not, make sure that Live Server is running.
+          4. Click the address or the Globe icon. That should open the aforementioned directory listing
+  3. Navigate to your local preview.
+      * In my case, I ran `./enki --command local-preview --data-dir ./data/localptest`, so my local preview was in `data/localptest/local-preview/contents`
+* Build artifacts need to be downloaded
+  You can download build artifacts like pdfs and zips by locating them in the explorer panel, right clicking them, and click `Download...`
+
+## Submodule Development
+* Submodules like nebuchadnezzar, cookbook, etc. can be used like any other git repository. You can checkout branches, modify files, pull or push changes, and anything else you might do with a git repository.
+* When a submodule is changed, the Enki image should automatically rebuild the layers that were affected by the change. 
 
 
 # Create a Webhosting Pipeline
