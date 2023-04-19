@@ -15,8 +15,7 @@
     "lint:fix": "prettier --write .",
     "clean": "git clean -dfqX",
     "test": "jest --coverage",
-    "test:ci": "jest --ci --maxWorkers=2 --reporters=default --reporters=jest-junit",
-    "watch": "npx nodemon --inspect=0.0.0.0:9229 --watch dist/index.js "
+    "test:ci": "jest --ci --maxWorkers=2 --reporters=default --reporters=jest-junit"
   },
   "devDependencies": {
     "@jest/types": "^29.3.1",

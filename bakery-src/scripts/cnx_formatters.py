@@ -33,9 +33,7 @@ class DocumentContentFormatter(object):
         return self.__bytes__().decode('utf-8')  # pragma: no cover
 
     def __str__(self):  # pragma: no cover
-        if IS_PY3:
-            return self.__bytes__().decode('utf-8')
-        return self.__bytes__()
+        return self.__bytes__().decode('utf-8')
 
     def __bytes__(self):  # pragma: no cover
         html = """

@@ -29,12 +29,23 @@
       "port": 7777
     },
     {
-      "name": "Typescript: Remote Debug",
+      "name": "Bakery JS: Remote Debug",
+      "type": "node",
+      "sourceMaps": true,
+      "address": "localhost",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}/bakery-js/dist/",
+      "remoteRoot": "/workspace/enki/bakery-js/dist/",
+      "request": "attach",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Mathify: Remote Debug",
       "type": "node",
       "address": "localhost",
-      "localRoot": "${workspaceFolder}/bakery-js/src",
       "port": 9229,
-      "remoteRoot": "/workspace/enki/bakery-js/dist",
+      "localRoot": "${workspaceFolder}/mathify/typeset/",
+      "remoteRoot": "/workspace/enki/mathify/typeset/",
       "request": "attach",
       "skipFiles": ["<node_internals>/**"]
     }

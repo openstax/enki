@@ -99,7 +99,7 @@ function do_xhtml_validate() {
     echo "Validating xhtml links in $dir_name"
     if [[ $JAVA_DEBUG == 1 ]]
     then
-        extra_vars="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${DEBUG_HOST}:${JAVA_DEBUG_PORT}"
+        extra_vars="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=${DEBUG_HOST}:${JAVA_DEBUG_PORT}" # LCOV_EXCL_LINE 
     fi
 
     java $extra_vars -cp $XHTML_VALIDATOR_ROOT/xhtml-validator.jar org.openstax.xml.Main  "$dir_name" $file_pattern $check broken-link || failure=true
@@ -360,6 +360,13 @@ function simulate_dirs_after() {
  
 }
 
+function js_debug_vars(){
+    JS_EXTRA_VARS=()
+    if [[ $JS_DEBUG == 1 ]]; then
+        echo "Javascript debug mode is on $DEBUG_HOST:$JS_DEBUG_PORT"  # LCOV_EXCL_LINE
+        JS_EXTRA_VARS+=("--inspect-brk=$DEBUG_HOST:$JS_DEBUG_PORT") # LCOV_EXCL_LINE
+    fi
+}
 
 # Try to find if the command is in the pipeline first
 first_arg=$1

@@ -1,5 +1,6 @@
 # Formerly git-fetch-metadata
 parse_book_dir
+js_debug_vars
 
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 
@@ -80,13 +81,13 @@ cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 
 repo_root=$IO_FETCH_META
 
-
+# TODO: Pass file name pattern to node command and avoid the loop below
 if [[ $LOCAL_ATTIC_DIR != '' ]]; then
     echo 'Annotating XML files with source map information (data-sm="...")'
     pushd $IO_FETCH_META > /dev/null
     files=$(find . -name '*.cnxml' -or -name '*.collection.xml')
     for file in $files; do
-        node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
+        node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}"  "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
     done
     popd > /dev/null
 fi

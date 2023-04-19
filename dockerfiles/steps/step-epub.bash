@@ -1,18 +1,11 @@
 # Formerly git-epub
 parse_book_dir
+js_debug_vars
 
 set -Eeuxo pipefail
-
 # Ensure $IO_EPUB is empty
 [[ -d $IO_EPUB ]] && rm -rf ${IO_EPUB:?}/*
-
-extra_vars=""
-(( JS_DEBUG==1 )) && {
-    echo "Javascript debug mode is on"
-    extra_vars+="--inspect-brk=0.0.0.0:9229"
-}
-
-node --unhandled-rejections=strict  $extra_vars "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" epub ./ "$IO_EPUB/"
+node --unhandled-rejections=strict  "${JS_EXTRA_VARS[@]}"  "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" epub ./ "$IO_EPUB/"
 
 shopt -s globstar nullglob
 for book_dir in "$IO_EPUB/"*; do
