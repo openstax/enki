@@ -1,0 +1,321 @@
+#!/bin/bash
+
+set -Eeuo pipefail
+trap 'exit 0' INT
+
+show_help() {
+    cat << EOF
+
+    Commands:
+        update-abl
+        update-content
+        build-image-expected        Build the docker image using what's in enki right now
+        build-image-actual          Build the docker image using what's in enki right now
+        run-expected <enki-command> Generate all the books
+        run-actual   <enki-command>
+        status                      Print status information for all the books
+        compare                     Compare expected vs actual directories
+
+    Optional Arguments:
+
+        --data-dir <dir>            Where to store the temporary enki files
+        --content-dir <dir>         Where to store the cloned book repos
+        --random                    Build the books in a random order
+    
+    Environment Variables:
+        TRACE_ON=1                  Enable trace debugging
+        BAP_*                       Instead of commandline args, environemnt vars can be set.
+    
+    .env file:                      All environment variables can be set in a .env file
+
+EOF
+}
+
+
+c_red=$(tput setaf 1)
+c_green=$(tput setaf 2)
+c_none=$(tput sgr0)
+say() { echo -e "$c_green$*$c_none"; }
+yell() { >&2 echo -e "$0: $c_red$*$c_none"; }
+die() {
+    yell "$1"
+    exit 112
+}
+
+
+# see https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself
+THIS_SCRIPT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+readonly THIS_SCRIPT
+
+
+current_dir=$(pwd)
+if [[ ${DOTENV_PATH:-} ]]; then
+    [[ $DOTENV_PATH != /* ]] && DOTENV_PATH=$(cd "$current_dir/$(dirname "$DOTENV_PATH")" && pwd)
+elif [[ -f "$current_dir/.env" ]]; then
+    DOTENV_PATH="$current_dir/.env"
+else
+    DOTENV_PATH="$THIS_SCRIPT/.env"
+fi
+# Parse .env file if it exists
+# https://gist.github.com/mihow/9c7f559807069a03e302605691f85572#gistcomment-3699759
+[[ -f $DOTENV_PATH ]] && {
+    # shellcheck disable=SC2046
+    export $(sed 's/#.*//g' < "$DOTENV_PATH" | awk '{printf "%s ",$0} END {print ""}' | xargs)
+}
+
+
+# Trace if TRACE_ON is set
+[[ ${TRACE_ON:-} ]] && set -x && export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+
+
+cmd_update_abl() {
+    say "Running Update-ABL..."
+    # Refresh ABL
+    abl="$(curl -Ss 'https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json')"
+
+    # # shellcheck disable=SC2016
+    # query='
+    # .approved_books
+    # | .[]
+    # | .repository_name as $repo
+    # | .versions[0].commit_metadata.books
+    # | .[]
+    # | $repo + " " + .slug
+    # '
+
+    # shellcheck disable=SC2016
+    query='
+    .approved_books
+    | .[]
+    | .repository_name
+    '
+
+    echo "$abl" | jq -r "$query" > "$abl_repos_file"
+}
+
+cmd_update_content() {
+    say "Running Update Content..."
+
+    for repo in $all_repos; do
+        if [[ ! -d "$content_dir/$repo" ]]; then
+            say "Cloning $repo"
+            git clone "https://github.com/openstax/$repo" "$content_dir/$repo"
+        else
+            say "Pulling changes in $repo"
+            pushd "$content_dir/$repo" > /dev/null
+            git pull
+            popd > /dev/null
+        fi
+    done
+}
+
+image_enki_expected="enki-expected"
+image_enki_actual="enki-actual"
+
+cmd_build_image() {
+    expectedactual=$1
+    image=''
+    case "$expectedactual" in
+        expected) image=$image_enki_expected;;
+        actual)   image=$image_enki_actual;;
+        *) die "BUG: unexpected value '$expectedactual'";;
+    esac
+    DOCKER_DEFAULT_PLATFORM=linux/amd64 docker build --tag $image --file "$THIS_SCRIPT"/Dockerfile "$THIS_SCRIPT"/.
+
+    git describe --long --dirty --abbrev=7 --tags > "$data_dir/bap-enki-commit-$expectedactual"
+}
+
+cmd_run() {
+    expectedactual=$1
+    image=''
+    case "$expectedactual" in
+        expected) image=$image_enki_expected;;
+        actual)   image=$image_enki_actual;;
+        *) die "BUG: unexpected value '$expectedactual'";;
+    esac
+    say "Running run $expectedactual... $the_enki_command"
+
+    for repo in $all_repos; do
+        if [[ ! -d "$content_dir/$repo" ]]; then
+            die "Could not find '$content_dir/$repo'. Maybe run update-content"
+        fi
+        # if [[ $(get_status "$data_dir/$expectedactual/$repo") == 'VALID' ]]; then
+        #     echo "Skipping because this repo is already done/valid: '$data_dir/$expectedactual/$repo'"
+        #     sleep 5
+        #     continue
+        # fi
+
+        if [[ -d "$data_dir/$expectedactual/$repo" ]]; then
+            rm -rf "${data_dir:?}/$expectedactual/$repo"
+        fi
+        set +e
+        CI_TEST=1 \
+        SKIP_DOCKER_BUILD=1 \
+        ENKI_IMAGE_NAME=$image \
+        "$THIS_SCRIPT/enki" \
+            --command "$the_enki_command" \
+            --data-dir "$data_dir/$expectedactual/$repo" \
+            --sideload-book "$content_dir/$repo" \
+            \
+            --repo doesnotmatterbecausewesideload \
+            --book-slug calculus-volume-1 \
+            --ref doesnotmatterbecausewesideload \
+            || say "Failed to build $expectedactual/$repo"
+        set -e
+    done
+}
+
+cmd_compare() {
+    say "Running Compare..."
+    for repo in $all_repos; do
+        status_expected=$(get_status "$data_dir/expected/$repo")
+        status_actual=$(get_status "$data_dir/actual/$repo")
+
+        if [[ $status_expected != "$status_actual" ]]; then
+            echo "$repo : status differs. Expected '$status_expected' but actually is '$status_actual'"
+        else
+
+            # Loop over each directory in the expected _attic and see if it is missing/same/different compared to the actual dir
+            dir_same=()
+            dir_differs=()
+            dir_missing=()
+            for iodir in "$data_dir/expected/$repo"/_attic/*/; do
+                iodir=$(basename "$iodir")
+                if [[ -d "$data_dir/actual/$repo/_attic/$iodir" ]]; then
+                    set +e
+                    diff --ignore-all-space --brief --recursive "$data_dir/expected/$repo/_attic/$iodir" "$data_dir/actual/$repo/_attic/$iodir" > /dev/null
+                    differs=$?
+                    set -e
+                    if [[ $differs != 0 ]]; then
+                        dir_differs+=("$iodir")
+                    else
+                        dir_same+=("$iodir")
+                    fi
+                else
+                    dir_missing+=("$iodir")
+                fi
+            done
+
+            echo "$repo missing=[${dir_missing[@]}] differs=[${dir_differs[@]}]"
+
+
+
+            # set +e
+            # has_non_whitespace_whitespace_changes=$(diff --brief --ignore-all-space --recursive "$data_dir/expected/$repo" "$data_dir/actual/$repo")
+            # set -e
+            # if [[ $has_non_whitespace_whitespace_changes ]]; then
+            #     has_changes=1
+            # else
+            #     set +e
+            #     has_changes=$(diff --brief --recursive "$data_dir/expected/$repo" "$data_dir/actual/$repo")
+            #     set -e
+            # fi
+
+            # if [[ $has_changes ]]; then
+            #     if [[ $has_non_whitespace_whitespace_changes ]]; then
+            #         echo "$repo has non-trivial differences"
+            #     else
+            #         echo "$repo differs only in whitespace"
+            #     fi
+            # else
+            #     echo "No changes in $repo"
+            # fi
+        fi
+    done
+}
+
+cmd_status() {
+    for repo in $all_repos; do
+        echo "Status: $repo (expected) is $(get_status "$data_dir/expected/$repo")"
+        echo "Status: $repo (actual)   is $(get_status "$data_dir/actual/$repo")"
+    done
+}
+
+get_status() {
+    set +e
+    logfile_count=$(ls -1 $1/artifacts-single/*.log 2>/dev/null | wc -l)
+    set -e
+
+    if [[ $logfile_count != 0 ]]; then
+        echo "VALIDATION_ERRORS"
+    elif [[ -d $1/_attic/IO_ARTIFACTS ]]; then
+        echo "VALID"
+    elif [[ -d  $1/artifacts-single ]]; then
+        echo "FAILED_TO_BUILD_EPUB"
+    elif [[ ! -d $1/_attic ]]; then
+        echo "NOT_STARTED"
+    elif [[ -d $1/_attic/IO_EPUB ]]; then
+        echo "NO_VALIDATION"
+    else
+        echo "DOES_NOT_MATCH_OTHER_CASES_MAYBE_STILL_RUNNING"
+    fi
+}
+
+
+data_dir=${BAP_DATA_DIR:-./data}
+content_dir=${BAP_CONTENT_DIR:-./babs-content}
+the_command=${BAP_COMMAND:-}
+the_enki_command=${BAP_ENKI_COMMAND:-}
+randomize=${BAP_RANDOM:-}
+while [ -n "${1:-}" ]; do
+    case "$1" in
+        --help)
+            show_help
+            exit 0
+        ;;
+        --data-dir) shift; data_dir=$1 ;;
+        --content-dir) shift; content_dir=$1 ;;
+        --random) randomize=1 ;;
+        update-abl|update-content|build-image-expected|build-image-actual|compare|status) the_command=$1 ;;
+        run-expected|run-actual) 
+            the_command=$1
+            shift
+            the_enki_command=${1:-}
+            if [[ ! $the_enki_command ]]; then
+                die "Missing which command to run. Examples: all-pdf all-web all-epub"
+            fi
+            ;;
+        *)
+            echo -e "Invalid argument '$1'"
+            show_help
+            exit 2
+        ;;
+    esac
+    shift
+done
+
+if [[ ! $the_command ]]; then
+    show_help
+    exit 2
+fi
+
+
+abl_repos_file=$data_dir/bap-abl-repos.txt
+user_repos_file=$data_dir/bap-user-repos.txt
+
+all_repos=""
+if [[ -f "$abl_repos_file" ]]; then
+    all_repos=$(cut --fields=1 --delimiter=# "$abl_repos_file" | sed 's/^ *//; s/ *$//; /^$/d')
+fi
+if [[ -f "$user_repos_file" ]]; then
+    all_repos="$all_repos $(cat "$user_repos_file")"
+fi
+if [[ "$randomize" != '' ]]; then
+    # https://stackoverflow.com/a/42193673
+    all_repos=( "$(shuf -e "${all_repos[@]}")" )
+fi
+
+
+case "$the_command" in
+    update-abl)     cmd_update_abl;;
+    update-content) cmd_update_content;;
+    build-image-expected) cmd_build_image 'expected';;
+    build-image-actual)   cmd_build_image 'actual';;
+    compare)        cmd_compare;;
+    status)         cmd_status;;
+    run-expected)   cmd_run 'expected';;
+    run-actual)     cmd_run 'actual';;
+    *)
+        die "BUG: Unknown command '$the_command'"
+    ;;
+esac
