@@ -53,7 +53,8 @@
                 "IO_BOOK",
                 "IO_LINKED",
                 "IO_BAKED",
-                "IO_FETCH_META"
+                "IO_FETCH_META",
+                "IO_RESOURCES"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"

@@ -33,7 +33,7 @@ set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [I
 set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED], env: {}})
 
 
-set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META], outputs: [IO.ARTIFACTS], env: {}})
+set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'step-pdf-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
 
 // GIT_WEB_STEPS
