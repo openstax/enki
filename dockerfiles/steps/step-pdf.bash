@@ -1,6 +1,5 @@
 # Formerly git-mathify
 parse_book_dir
-js_debug_vars
 
 # Style needed because mathjax will size converted math according to surrounding text
 cp "$IO_BAKED/the-style-pdf.css" "$IO_LINKED"

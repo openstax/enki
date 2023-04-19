@@ -29,25 +29,17 @@
       "port": 7777
     },
     {
-      "name": "Bakery JS: Remote Debug",
+      "name": "JS: Remote Debug",
       "type": "node",
       "sourceMaps": true,
       "address": "localhost",
+      "localRoot": "${workspaceFolder}",
       "port": 9229,
-      "localRoot": "${workspaceFolder}/bakery-js/dist/",
-      "remoteRoot": "/workspace/enki/bakery-js/dist/",
+      "remoteRoot": "/workspace/enki",
       "request": "attach",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      "name": "Mathify: Remote Debug",
-      "type": "node",
-      "address": "localhost",
-      "port": 9229,
-      "localRoot": "${workspaceFolder}/mathify/typeset/",
-      "remoteRoot": "/workspace/enki/mathify/typeset/",
-      "request": "attach",
-      "skipFiles": ["<node_internals>/**"]
+      "continueOnAttach": true,
+      "showAsyncStacks": true,
+      // "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

@@ -1,6 +1,5 @@
 # Formerly git-epub
 parse_book_dir
-js_debug_vars
 
 set -Eeuxo pipefail
 # Ensure $IO_EPUB is empty
