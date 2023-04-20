@@ -1,7 +1,7 @@
 {
     "__note__": "This file is autogenerted. Do not edit it directly",
     "steps": {
-        "git-fetch": {
+        "step-fetch": {
             "inputDirs": [
                 "IO_BOOK"
             ],
@@ -10,7 +10,7 @@
             ],
             "requiredEnv": []
         },
-        "git-fetch-metadata": {
+        "step-prebake": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCHED"
@@ -18,49 +18,13 @@
             "outputDirs": [
                 "IO_FETCH_META",
                 "IO_INITIAL_RESOURCES",
-                "IO_UNUSED_RESOURCES"
-            ],
-            "requiredEnv": []
-        },
-        "git-validate-cnxml": {
-            "inputDirs": [
-                "IO_FETCHED"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "git-assemble": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_FETCH_META",
-                "IO_INITIAL_RESOURCES"
-            ],
-            "outputDirs": [
                 "IO_ASSEMBLED",
-                "IO_RESOURCES"
-            ],
-            "requiredEnv": []
-        },
-        "git-validate-references": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ASSEMBLED",
-                "IO_RESOURCES"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "git-assemble-meta": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_ASSEMBLED"
-            ],
-            "outputDirs": [
+                "IO_RESOURCES",
                 "IO_ASSEMBLE_META"
             ],
             "requiredEnv": []
         },
-        "git-bake": {
+        "step-bake": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCHED",
@@ -71,64 +35,25 @@
             ],
             "requiredEnv": []
         },
-        "git-bake-meta": {
+        "step-postbake": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_ASSEMBLE_META",
                 "IO_BAKED"
             ],
             "outputDirs": [
-                "IO_BAKE_META"
-            ],
-            "requiredEnv": []
-        },
-        "git-validate-xhtml-mathified": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_MATHIFIED"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "git-link": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_BAKED",
                 "IO_BAKE_META",
-                "IO_FETCHED"
-            ],
-            "outputDirs": [
                 "IO_LINKED"
             ],
             "requiredEnv": []
         },
-        "git-mathify": {
+        "step-pdf": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_LINKED",
-                "IO_BAKED"
-            ],
-            "outputDirs": [
-                "IO_MATHIFIED"
-            ],
-            "requiredEnv": []
-        },
-        "git-link-rex": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_MATHIFIED",
-                "IO_FETCHED",
-                "IO_FETCH_META"
-            ],
-            "outputDirs": [
-                "IO_REX_LINKED"
-            ],
-            "requiredEnv": []
-        },
-        "git-pdfify": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_REX_LINKED",
+                "IO_BAKED",
+                "IO_FETCH_META",
                 "IO_RESOURCES"
             ],
             "outputDirs": [
@@ -136,7 +61,7 @@
             ],
             "requiredEnv": []
         },
-        "git-pdfify-meta": {
+        "step-pdf-meta": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_ARTIFACTS"
@@ -148,28 +73,18 @@
                 "CORGI_ARTIFACTS_S3_BUCKET"
             ]
         },
-        "git-disassemble": {
+        "step-disassemble": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_LINKED",
                 "IO_BAKE_META"
             ],
             "outputDirs": [
-                "IO_DISASSEMBLED"
-            ],
-            "requiredEnv": []
-        },
-        "git-patch-disassembled-links": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_DISASSEMBLED"
-            ],
-            "outputDirs": [
                 "IO_DISASSEMBLE_LINKED"
             ],
             "requiredEnv": []
         },
-        "git-jsonify": {
+        "step-jsonify": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCHED",
@@ -181,15 +96,7 @@
             ],
             "requiredEnv": []
         },
-        "git-validate-xhtml-jsonify": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_JSONIFIED"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "git-upload-book": {
+        "step-upload-book": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_JSONIFIED",
@@ -206,17 +113,7 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
-        "git-assemble-epub": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_FETCH_META"
-            ],
-            "outputDirs": [
-                "IO_ASSEMBLED"
-            ],
-            "requiredEnv": []
-        },
-        "git-epub": {
+        "step-epub": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCHED",
@@ -228,17 +125,11 @@
                 "IO_EPUB",
                 "IO_ARTIFACTS"
             ],
-            "requiredEnv": []
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET"
+            ]
         },
-        "git-epub-validate": {
-            "inputDirs": [
-                "IO_EPUB",
-                "IO_ARTIFACTS"
-            ],
-            "outputDirs": [],
-            "requiredEnv": []
-        },
-        "git-gdocify": {
+        "step-docx": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCH_META",
@@ -247,21 +138,12 @@
                 "IO_RESOURCES"
             ],
             "outputDirs": [
-                "IO_GDOCIFIED"
+                "IO_DOCX",
+                "IO_ARTIFACTS"
             ],
             "requiredEnv": []
         },
-        "git-convert-docx": {
-            "inputDirs": [
-                "IO_BOOK",
-                "IO_GDOCIFIED"
-            ],
-            "outputDirs": [
-                "IO_DOCX"
-            ],
-            "requiredEnv": []
-        },
-        "git-docx-meta": {
+        "step-docx-meta": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_DOCX"
@@ -299,63 +181,37 @@
         }
     },
     "pipelines": {
-        "all-git-pdf": [
-            "git-fetch",
-            "git-fetch-metadata",
-            "git-assemble",
-            "git-assemble-meta",
-            "git-validate-references",
-            "git-bake",
-            "git-bake-meta",
-            "git-link",
-            "git-mathify",
-            "git-validate-xhtml-mathified",
-            "git-link-rex",
-            "git-pdfify"
+        "all-pdf": [
+            "step-fetch",
+            "step-prebake",
+            "step-bake",
+            "step-postbake",
+            "step-pdf"
         ],
-        "all-git-web": [
-            "git-fetch",
-            "git-fetch-metadata",
-            "git-assemble",
-            "git-assemble-meta",
-            "git-validate-references",
-            "git-bake",
-            "git-bake-meta",
-            "git-link",
-            "git-disassemble",
-            "git-patch-disassembled-links",
-            "git-jsonify",
-            "git-validate-xhtml-jsonify"
+        "all-web": [
+            "step-fetch",
+            "step-prebake",
+            "step-bake",
+            "step-postbake",
+            "step-disassemble",
+            "step-jsonify"
         ],
-        "all-git-epub": [
-            "git-fetch",
-            "git-fetch-metadata",
-            "git-assemble",
-            "git-assemble-meta",
-            "git-validate-references",
-            "git-bake",
-            "git-bake-meta",
-            "git-link",
-            "git-disassemble",
-            "git-patch-disassembled-links",
-            "git-epub",
-            "git-epub-validate"
+        "all-epub": [
+            "step-fetch",
+            "step-prebake",
+            "step-bake",
+            "step-postbake",
+            "step-disassemble",
+            "step-epub"
         ],
-        "all-git-gdoc": [
-            "git-fetch",
-            "git-fetch-metadata",
-            "git-assemble",
-            "git-assemble-meta",
-            "git-validate-references",
-            "git-bake",
-            "git-bake-meta",
-            "git-link",
-            "git-disassemble",
-            "git-patch-disassembled-links",
-            "git-jsonify",
-            "git-validate-xhtml-jsonify",
-            "git-gdocify",
-            "git-convert-docx"
+        "all-docx": [
+            "step-fetch",
+            "step-prebake",
+            "step-bake",
+            "step-postbake",
+            "step-disassemble",
+            "step-jsonify",
+            "step-docx"
         ]
     }
 }

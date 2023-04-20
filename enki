@@ -85,7 +85,7 @@ show_help() {
 
     Required Arguments:
 
-        --command all-git-pdf       Command/Step to run. Can be a shortcut like all-git-pdf or all-git-web)
+        --command all-pdf       Command/Step to run. Can be a shortcut like all-pdf or all-web)
 
     Optional Arguments:
 
@@ -134,7 +134,7 @@ EOF
 
 
 # Defaults
-image_name=enki
+image_name=${ENKI_IMAGE_NAME:-enki}
 if [[ $XDG_DATA_HOME ]]; then
     data_dir=$XDG_DATA_HOME/enki-data # LCOV_EXCL_LINE
 else
@@ -218,7 +218,7 @@ if [[ $arg_command == 'local-preview' ]]; then
 fi
 
 [[ $data_dir ]] || ( >&2 echo "ERROR: A local cache directory for the book data was not provided" && exit 111)
-[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-git-pdf' or 'all-git-web' or 'rex-preview'" && exit 111)
+[[ $arg_command ]] || ( >&2 echo "ERROR: A command was not provided. Typical examples are 'all-pdf' or 'all-web' or 'rex-preview'" && exit 111)
 
 [[ $clear_cache && -d $data_dir ]] && rm -rf $data_dir
 
