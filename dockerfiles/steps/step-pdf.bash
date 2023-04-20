@@ -71,7 +71,7 @@ else
   while read -r linked_file; do
     slug=$(basename "$linked_file" | awk -F'[.]' '{ print $1; }')
     prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$linked_file"
-  done < <(find "$IO_LINKED" -name '*.rex-linked.xhtml')
+  done < <(find "$IO_LINKED" -name '*.rex-linked.xhtml') # LCOV_EXCL_LINE (https://github.com/SimonKagstrom/kcov/issues/387)
 fi
 
 # Verify the style file exists before building a PDF
