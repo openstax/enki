@@ -59,7 +59,7 @@ JAVA_DEBUG=${JAVA_DEBUG:-}
 JS_DEBUG=${JS_DEBUG:-}
 
 if [[ $JS_DEBUG ]]; then
-    export NODE_OPTIONS="--inspect-brk=0.0.0.0:9229"
+    export NODE_OPTIONS="--inspect-brk=0.0.0.0:9229" # LCOV_EXCL_LINE
 fi
 
 source $PYTHON_VENV_ROOT/bin/activate

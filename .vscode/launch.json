@@ -26,7 +26,8 @@
       "projectName": "xhtml-validator",
       "request": "attach",
       "hostName": "localhost",
-      "port": 7777
+      "port": 7777,
+      "sourcePaths": ["${workspaceFolder}/xhtml-validator/src/main/java"]
     },
     {
       "name": "JS: Remote Debug",
@@ -38,7 +39,7 @@
       "remoteRoot": "/workspace/enki",
       "request": "attach",
       "continueOnAttach": true,
-      "showAsyncStacks": true,
+      "showAsyncStacks": true
       // "skipFiles": ["<node_internals>/**"]
     }
   ]
