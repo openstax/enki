@@ -68,11 +68,10 @@ parse_book_dir
 if [[ $ARG_TARGET_SLUG_NAME ]]; then
   prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
 else
-  rex_linked=("$(ls "$IO_LINKED/"*".rex-linked.xhtml")")
-  for file in "${rex_linked[@]}"; do
-    slug=$(basename "$file" | awk -F'[.]' '{ print $1; }') # from git-jsonify
-    prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$file"
-  done
+  while read -r linked_file; do
+    slug=$(basename "$linked_file" | awk -F'[.]' '{ print $1; }')
+    prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$linked_file"
+  done < <(find "$IO_LINKED" -name '*.rex-linked.xhtml')
 fi
 
 # Verify the style file exists before building a PDF
