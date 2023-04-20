@@ -232,6 +232,13 @@ In order to debug the Java code, you can set the breakpoints in the Java code an
 
 ### Javascript Debugging
 
+Before javascript breakpoints will work, you will need to build the code locally so the sourcemaps can find it.
+
+```bash
+cd bakery-js
+npm install && npm run build
+```
+
 In order to debug the Javascript code, you can set the breakpoints in the Javascript code under `bakery-js/src` and then run the `./enki` command with the `--jsdb` flag. The node program will then suspend till the client is connected to it and stop at the breakpoints and you can step through the code.
 
 # CI Integration
