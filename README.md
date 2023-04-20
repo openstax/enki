@@ -46,12 +46,14 @@ Then try the following to build PDFs and other formats:
 
 ```sh
 # All-in-one Git-based books
-#  CLI             command             repo_name                        book_slug
+#  CLI             command             repo_name                        book_slug (optional)
 ./enki --command all-pdf  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
-./enki --command all-web  --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
+./enki --command all-web  --repo 'philschatz/tiny-book' --ref main
 ./enki --command all-epub --repo 'openstax/osbooks-introduction-anthropology' --book-slug 'introduction-anthropology' --ref main
 # GH_SECRET_CREDS='..' before running enki for private repositories
 ```
+
+Note that if `book_slug` is not provided, all books in the repo will be built by default.
 
 ### REX preview
 

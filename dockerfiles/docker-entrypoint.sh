@@ -178,7 +178,10 @@ function do_step() {
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
-            repo_and_book_slug="$arg_repo/$arg_book_slug"
+            repo_and_book_slug="$arg_repo/"
+            if [ -v arg_book_slug ]; then
+              repo_and_book_slug="$arg_repo/$arg_book_slug"
+            fi
             version=$arg_ref
 
             ensure_arg repo_and_book_slug 'Specify repo name (or archive collection id)'

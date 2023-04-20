@@ -12,8 +12,11 @@ KCOV_DIR=_kcov02-a \
 # Build git PDF and web
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-b \
-../enki --keep-data --data-dir $BOOK_DIR --command all-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main
+../enki --keep-data --data-dir $BOOK_DIR --command all-pdf --repo tiny-book --ref main # without slug
 
+SKIP_DOCKER_BUILD=1 \
+KCOV_DIR=_kcov02-c \
+../enki --keep-data --data-dir $BOOK_DIR --command all-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main # with slug
 
 # ################################
 # Clone a branch, 

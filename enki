@@ -228,8 +228,6 @@ fi
 # Ensure the directory is created with the current user so docker can chown its files to be the same user
 [[ -d $data_dir ]] || mkdir -p "$data_dir"
 
-[[ $arg_repo && ! $arg_book_slug ]] && ( >&2 echo "ERROR: Missing --book-slug commandline argument when using --repo" && exit 111)
-
 repo_slug_ref=""
 [[ $arg_repo ]] && repo_slug_ref="$repo_slug_ref --repo $arg_repo"
 [[ $arg_book_slug ]] && repo_slug_ref="$repo_slug_ref --book-slug $arg_book_slug"

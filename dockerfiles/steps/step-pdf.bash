@@ -65,7 +65,14 @@ shopt -u globstar nullglob
 # Formerly git-pdfify
 parse_book_dir
 
-prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
+if [[ $ARG_TARGET_SLUG_NAME ]]; then
+  prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
+else
+  while read -r linked_file; do
+    slug=$(basename "$linked_file" | awk -F'[.]' '{ print $1; }')
+    prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$linked_file"
+  done < <(find "$IO_LINKED" -name '*.rex-linked.xhtml') # LCOV_EXCL_LINE (https://github.com/SimonKagstrom/kcov/issues/387)
+fi
 
 # Verify the style file exists before building a PDF
 # LCOV_EXCL_START
