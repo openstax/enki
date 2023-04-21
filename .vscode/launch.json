@@ -40,7 +40,6 @@
       "request": "attach",
       "continueOnAttach": true,
       "showAsyncStacks": true
-      // "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
