@@ -143,7 +143,7 @@ export class PageFile extends XmlFile<
 
     doc.forEach('//h:script|//h:style', (n) => n.remove())
 
-    // Delete all iframes that have remote URLs and use the REX link instead
+    // Delete all iframes
     doc.forEach('//h:iframe', (n) => n.remove())
 
     // Fix links to other Pages
