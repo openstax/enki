@@ -11,7 +11,8 @@ from tempfile import TemporaryDirectory
 from PIL import Image, UnidentifiedImageError
 from lxml import etree
 
-from . import utils
+from .utils import get_mime_type
+from .profiler import timed
 
 # folder where all resources are saved in checksum step
 RESOURCES_FOLDER = '../resources/'
@@ -132,6 +133,7 @@ CHARLISTS = {
 }
 
 
+@timed
 def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     """Modify links in doc"""
 
@@ -172,6 +174,7 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
             )
 
 
+@timed
 def patch_math(doc):
     """Patch MathML as needed for the conversion process used for gdocs"""
 
@@ -295,11 +298,12 @@ def _universal_convert_rgb_command(img_filename):
     return f'mogrify -colorspace sRGB -type truecolor "{img_filename}"'  # pragma: no cover
 
 
+@timed
 async def fix_jpeg_colorspace(img_filename):
     """Searches for JPEG image resources which are encoded in colorspace
     other than RGB or Greyscale and convert them to RGB"""
     if img_filename.is_file():
-        mime_type = utils.get_mime_type(str(img_filename))
+        mime_type = get_mime_type(str(img_filename))
 
         # Only check colorspace of JPEGs (GIF, PNG etc. don't have breaking colorspaces)
         if mime_type == 'image/jpeg':
@@ -364,6 +368,7 @@ class AsyncJobQueue:
                       else asyncio.Queue())
         self.workers = []
 
+    @timed
     async def __aenter__(self):
         async def worker(queue):
             while True:
@@ -378,12 +383,14 @@ class AsyncJobQueue:
                         for _ in range(self.worker_count)]
         return self.queue
 
+    @timed
     async def __aexit__(self, *_):
         await self.queue.join()
         for worker in self.workers:
             worker.cancel()
 
 
+@timed
 def get_img_resources(doc, out_dir):
     """Iterates over all image resources--absolute paths--in the document"""
 
@@ -400,6 +407,7 @@ def get_img_resources(doc, out_dir):
         yield img_filename
 
 
+@timed
 async def run_async():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     out_dir = Path(sys.argv[2]).resolve(strict=True)
@@ -443,6 +451,7 @@ async def run_async():
                 doc.write(str(out_dir / xhtml_file.name), encoding="utf8")
 
 
+@timed
 def main():  # pragma: no cover
     asyncio.run(run_async())
 

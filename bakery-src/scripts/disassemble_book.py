@@ -5,13 +5,15 @@ from pathlib import Path
 
 from .html_parser import reconstitute, HTML_DOCUMENT_NAMESPACES
 from .cnx_models import flatten_to_documents, content_to_etree, etree_to_content
-from cnxepub.formatters import DocumentContentFormatter
+from .cnx_formatters import DocumentContentFormatter
 from lxml import etree
 from lxml.builder import ElementMaker, E
 
-from . import utils
+from .utils import model_to_tree
+from .profiler import timed
 
 
+@timed
 def extract_slugs_from_tree(tree, data):
     """Given a tree with slugs create a flattened structure where slug data
     can be retrieved based upon id key
@@ -24,18 +26,20 @@ def extract_slugs_from_tree(tree, data):
             extract_slugs_from_tree(node, data)
 
 
+@timed
 def extract_slugs_from_binder(binder):
     """Given a binder return a dictionary that allows caller to retrieve
     computed slugs using ident_hash values"""
 
     # NOTE: The returned tree has 'id' values which are based upon ident_hash
     # fields in the provided model
-    tree = utils.model_to_tree(binder)
+    tree = model_to_tree(binder)
     slugs = {}
     extract_slugs_from_tree(tree, slugs)
     return slugs
 
 
+@timed
 def main():
     """Main function"""
     xhtml_file = Path(sys.argv[1]).resolve(strict=True)
@@ -76,6 +80,12 @@ def main():
                     namespaces=HTML_DOCUMENT_NAMESPACES
             ):
                 link.attrib['href'] = f'./{id_with_context}.xhtml'
+            elif len([ref for ref in ['page', 'composite-page'] if
+                      link_href[1:].startswith(ref)]) == 0 and link.getparent() is not None:
+                span = etree.Element("span")
+                for child in link.getchildren():
+                    span.append(child)
+                link.getparent().replace(link, span)
 
         # Add metadata to same-book-different-module links.
         # The module in which same-book link targets reside is only fully known

@@ -49,7 +49,7 @@ fi
 set -Eeuo pipefail
 
 pushd "$BAKERY_SCRIPTS_ROOT/scripts/"
-"$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
+"$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm $NODE_OPTIONS" --wait-ready --listen-timeout 8000
 popd
 
 book_slugs_file="$(realpath "$IO_DOCX/book-slugs.json")"

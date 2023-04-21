@@ -48,4 +48,4 @@ for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do
 done
 
 # Formerly git-validate-xhtml-jsonify
-do_xhtml_validate $IO_JSONIFIED "*@*.xhtml" duplicate-id 
+do_xhtml_validate $IO_JSONIFIED "*.xhtml" duplicate-id 

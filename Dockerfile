@@ -325,7 +325,7 @@ RUN set -x \
 RUN mv /root/.nvm $PROJECT_ROOT/nvm
 ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
 
-ENV EPUB_VALIDATOR_VERSION=4.2.6
+ENV EPUB_VALIDATOR_VERSION=5.0.0
 RUN mkdir $PROJECT_ROOT/epub-validator \
     && cd $PROJECT_ROOT/epub-validator \
     && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
@@ -366,8 +366,6 @@ COPY ./dockerfiles/entrypointd.sh \
     /dockerfiles/
 
 COPY ./step-config.json $PROJECT_ROOT
-
-# COPY ./formatters.py /workspace/enki/venv/lib/python3.8/site-packages/cnxepub/formatters.py
 
 WORKDIR /data/
 

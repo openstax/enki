@@ -138,6 +138,12 @@ export class TocFile extends BaseTocFile<
       el.children = children
     })
 
+    // Unwrap the spans inside the list items and replace with a single span
+    doc.forEach('//h:ol/h:li/h:span', (el) => {
+      const children = el.find('h:span//text()')
+      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
+    })
+
     // Rename the hrefs to XHTML files to their new name
     doc.forEach(
       '//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]',

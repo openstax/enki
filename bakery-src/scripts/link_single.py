@@ -12,14 +12,17 @@ from urllib.parse import unquote
 from .html_parser import reconstitute
 from .cnx_models import flatten_to_documents
 from lxml import etree
+from .profiler import timed
 
 
+@timed
 def load_baked_collection(input_dir, book_slug):
     """load assembled collection"""
     baked_collection = f"{input_dir}/{book_slug}.baked.xhtml"
     return etree.parse(baked_collection)
 
 
+@timed
 def parse_collection_binders(input_dir):
     """Create a list of binders from book collections"""
     baked_collections = Path(input_dir).glob("*.baked.xhtml")
@@ -33,6 +36,7 @@ def parse_collection_binders(input_dir):
     return binders
 
 
+@timed
 def create_canonical_map(binders):
     """Create a canonical book map from a set of binders"""
     canonical_map = {}
@@ -44,6 +48,7 @@ def create_canonical_map(binders):
     return canonical_map
 
 
+@timed
 def parse_book_metadata(binders, input_dir):
     """Create a list of book metadata for a set of binders using collection
     metadata files"""
@@ -59,6 +64,7 @@ def parse_book_metadata(binders, input_dir):
     return book_metadata
 
 
+@timed
 def get_target_uuid(link):
     """get target module uuid"""
     parsed = unquote(link)
@@ -68,6 +74,7 @@ def get_target_uuid(link):
         parsed).group(1)
 
 
+@timed
 def gen_page_slug_resolver(book_tree_by_uuid):
     """Generate a page slug resolver function"""
 
@@ -95,6 +102,7 @@ def gen_page_slug_resolver(book_tree_by_uuid):
     return _get_page_slug
 
 
+@timed
 def patch_link(node, source_book_uuid, canonical_book_uuid,
                canonical_book_slug, page_slug, version):
     """replace legacy link"""
@@ -120,12 +128,14 @@ def patch_link(node, source_book_uuid, canonical_book_uuid,
         node.attrib["href"] = f"./{canonical_book_uuid}@{version}:{page_id}.xhtml{page_fragment}"
 
 
+@timed
 def save_linked_collection(output_path, doc):
     """write modified output"""
     with open(output_path, "wb") as f:
         doc.write(f, encoding="utf-8", xml_declaration=True)
 
 
+@timed
 def transform_links(
         baked_content_dir, baked_meta_dir, source_book_slug, output_path, version, mock_otherbook):
     doc = load_baked_collection(baked_content_dir, source_book_slug)
@@ -180,6 +190,7 @@ def transform_links(
     save_linked_collection(output_path, doc)
 
 
+@timed
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("baked_content_dir")

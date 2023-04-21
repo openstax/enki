@@ -5,6 +5,7 @@ from pathlib import Path
 
 import boto3
 import botocore
+from .profiler import timed
 
 
 def is_number(s):  # pragma: no cover
@@ -16,6 +17,7 @@ def is_number(s):  # pragma: no cover
     return False
 
 
+@timed
 def flatten_feed(feed_data, feed_filter, code_version):
     ARCHIVE_BOOK_ID_KEY = "collection_id"
     GIT_BOOK_ID_KEY = "repository_name"
@@ -117,6 +119,7 @@ def flatten_feed(feed_data, feed_filter, code_version):
     return flattened_feed
 
 
+@timed
 def main():
     feed_json = Path(sys.argv[1]).resolve(strict=True)
     code_version = sys.argv[2]

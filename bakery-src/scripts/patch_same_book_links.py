@@ -5,8 +5,10 @@ import sys
 from pathlib import Path
 
 from lxml import etree
+from .profiler import timed
 
 
+@timed
 def update_doc_links(doc, book_uuid, book_version):
     """Modify links in doc"""
 
@@ -27,6 +29,7 @@ def update_doc_links(doc, book_uuid, book_version):
             node.attrib["href"] = _href_builder(page_uuid, page_fragment)
 
 
+@timed
 def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     out_dir = Path(sys.argv[2]).resolve(strict=True)

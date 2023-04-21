@@ -4,6 +4,7 @@ name: Docker build and test
 on:
   pull_request:
   push:
+  workflow_dispatch: #So we can trigger Workflow runs using `gh workflow run "test.yaml" --ref branch
 
 jobs:
   build:

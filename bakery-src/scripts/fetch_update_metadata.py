@@ -7,6 +7,7 @@ from pathlib import Path
 
 from lxml import etree
 from pygit2 import Repository
+from .profiler import timed
 
 NS_MDML = "http://cnx.rice.edu/mdml"
 NS_CNXML = "http://cnx.rice.edu/cnxml"
@@ -14,6 +15,7 @@ NS_COLLXML = "http://cnx.rice.edu/collxml"
 GIT_SHA_PREFIX_LEN = 7
 
 
+@timed
 def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
     metadata = xml_doc.xpath(
         "//x:metadata",
@@ -29,6 +31,7 @@ def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
             metadata.remove(element[0])
 
 
+@timed
 def add_metadata_entries(xml_doc, new_metadata, md_namespace):
     """Insert metadata entries from dictionairy into document"""
     metadata = xml_doc.xpath(
@@ -43,6 +46,7 @@ def add_metadata_entries(xml_doc, new_metadata, md_namespace):
         metadata.append(element)
 
 
+@timed
 def determine_book_version(reference, repo, commit):
     """Determine the book version string given a reference, a git repo, and
     a target a commit"""
@@ -68,6 +72,7 @@ def determine_book_version(reference, repo, commit):
     return str(commit.id)[0:GIT_SHA_PREFIX_LEN]
 
 
+@timed
 def main():
     git_repo = Path(sys.argv[1]).resolve(strict=True)
     modules_dir = Path(sys.argv[2]).resolve(strict=True)

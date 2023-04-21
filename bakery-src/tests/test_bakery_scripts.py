@@ -30,8 +30,6 @@ except ImportError:
 import io
 
 
-from cnxepub.html_parsers import HTML_DOCUMENT_NAMESPACES
-from cnxepub.collation import reconstitute
 from bakery_scripts import (
     jsonify_book,
     disassemble_book,
@@ -51,7 +49,8 @@ from bakery_scripts import (
     link_rex,
     utils,
     html_parser,
-    cnx_models
+    cnx_models,
+    profiler
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -87,6 +86,7 @@ SMALL_JPEG = bytearray([
 ])
 SHA1_SMALL_JPEG = "3f926a37ebed68c971312726a287610cf06135e7"
 
+
 class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     """HTTPServer mock request handler"""
     """extremely simple http server for download exercises test"""
@@ -106,7 +106,7 @@ class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     self.wfile.write(file.read())
             else:
                 self.send_response(404)
-        else: # otherwise just serve the small Jpeg
+        else:  # otherwise just serve the small Jpeg
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
             self.end_headers()
@@ -114,6 +114,7 @@ class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def log_request(self, code=None, size=None):
         """Don't log anything"""
+
 
 def test_link_rex_git(tmp_path, mocker):
     xhtml_file = "collection.mathified.xhtml"
@@ -160,7 +161,8 @@ def test_link_rex_archive(tmp_path, mocker):
     out_dir.mkdir()
     filename = 'osbook.rex-linked.xhtml'
 
-    mocker.patch("sys.argv", ["", input_xhtml_file, book_slugs_file, out_dir, filename])
+    mocker.patch("sys.argv", ["", input_xhtml_file,
+                 book_slugs_file, out_dir, filename])
     link_rex.main()
 
     outfile = os.path.join(out_dir, filename)
@@ -257,10 +259,12 @@ def test_disassemble_book(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in
     # this step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
+        disassembled_output /
+        f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
+        disassembled_output /
+        f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
@@ -290,7 +294,7 @@ def test_disassemble_book(tmp_path, mocker):
     assert toc_output.exists()
     toc_output_tree = etree.parse(open(toc_output))
     nav = toc_output_tree.xpath(
-        "//xhtml:nav", namespaces=HTML_DOCUMENT_NAMESPACES
+        "//xhtml:nav", namespaces=html_parser.HTML_DOCUMENT_NAMESPACES
     )
     assert len(nav) == 1
     toc_metadata_output = disassembled_output / "collection.toc-metadata.json"
@@ -300,10 +304,11 @@ def test_disassemble_book(tmp_path, mocker):
 
     # Ensure same-book-links have additional metadata
     m42119_tree = etree.parse(
-        open(disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
+        open(disassembled_output /
+             f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
     )
     link = m42119_tree.xpath(
-        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=HTML_DOCUMENT_NAMESPACES
+        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=html_parser.HTML_DOCUMENT_NAMESPACES
     )[0]
     link.attrib["data-page-slug"] = "1-1-physics-an-introduction"
     link.attrib["data-page-uuid"] = f"11111111{mock_uuid}"
@@ -341,10 +346,12 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in this
     # step
     json_output_m42119 = (
-        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
+        disassembled_output /
+        f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
+        disassembled_output /
+        f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
@@ -909,7 +916,8 @@ def test_assemble_book_metadata(tmp_path, mocker):
     assembled_metadata_output = tmp_path / "collection.assembed-metadata.json"
 
     mocker.patch(
-        "sys.argv", ["", input_assembled_book, input_uuid_to_revised, assembled_metadata_output]
+        "sys.argv", ["", input_assembled_book,
+                     input_uuid_to_revised, assembled_metadata_output]
     )
     assemble_book_metadata.main()
 
@@ -943,7 +951,8 @@ def test_assemble_book_metadata_empty_revised_json(tmp_path, mocker):
     assembled_metadata_output = tmp_path / "collection.assembed-metadata.json"
 
     mocker.patch(
-        "sys.argv", ["", input_assembled_book, input_uuid_to_revised, assembled_metadata_output]
+        "sys.argv", ["", input_assembled_book,
+                     input_uuid_to_revised, assembled_metadata_output]
     )
     assemble_book_metadata.main()
 
@@ -976,7 +985,7 @@ def test_bake_book_metadata(tmp_path, mocker):
     book_slugs_input.write_text(json.dumps(book_slugs))
 
     with open(input_baked_xhtml, "r") as baked_xhtml:
-        binder = reconstitute(baked_xhtml)
+        binder = html_parser.reconstitute(baked_xhtml)
         book_ident_hash = binder.ident_hash
 
     mocker.patch(
@@ -1022,7 +1031,7 @@ def test_bake_book_metadata_git(tmp_path, mocker):
     input_raw_metadata.write_text(json.dumps({}))
 
     with open(input_baked_xhtml, "r") as baked_xhtml:
-        binder = reconstitute(baked_xhtml)
+        binder = html_parser.reconstitute(baked_xhtml)
         book_ident_hash = binder.ident_hash
 
     mocker.patch(
@@ -1633,7 +1642,8 @@ async def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir, output_dir, book_slugs_input, worker_count])
+    mocker.patch("sys.argv", ["", input_dir,
+                 output_dir, book_slugs_input, worker_count])
     await gdocify_book.run_async()
 
     page_output = output_dir / page_name
@@ -1662,7 +1672,7 @@ async def test_gdocify_book(tmp_path, mocker):
         assert "mi" == node.tag.split("}")[1]
 
     # Was mo converted to mi in this case?
-    assert(
+    assert (
         "mi" == updated_doc.xpath(
             '//*[text() = "–identifier"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
@@ -1670,7 +1680,7 @@ async def test_gdocify_book(tmp_path, mocker):
     )
 
     # Was mo converted to mn in this case?
-    assert(
+    assert (
         "mn" == updated_doc.xpath(
             '//*[text() = "-20"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
@@ -1678,7 +1688,7 @@ async def test_gdocify_book(tmp_path, mocker):
     )
 
     # Was mo converted to mtext in this case?
-    assert(
+    assert (
         "mtext" == updated_doc.xpath(
             '//*[text() = "“UNICODE QUOTES”"]',  # Not an error
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
@@ -1686,14 +1696,14 @@ async def test_gdocify_book(tmp_path, mocker):
     )
 
     # Were mo's containing whitespace converted to mtext?
-    assert(
+    assert (
         "mtext" == updated_doc.xpath(
             '//*[text() = " "]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
     )
 
-    assert(
+    assert (
         "mtext" == updated_doc.xpath(
             '//*[text() = "\xa0"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
@@ -1844,7 +1854,8 @@ async def test_gdocify_book(tmp_path, mocker):
         doc = etree.fromstring(xhtml)
         async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
-                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
+                queue.put_nowait(
+                    gdocify_book.fix_jpeg_colorspace(img_filename))
 
         assert cmp(os.path.join(TEST_JPEG_DIR, rgb),
                    os.path.join(temp_dir, rgb))
@@ -1893,7 +1904,8 @@ async def test_gdocify_book(tmp_path, mocker):
         # should only give warnings but should not break
         async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
-                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
+                queue.put_nowait(
+                    gdocify_book.fix_jpeg_colorspace(img_filename))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
         assert im.mode == 'RGB'
@@ -1931,7 +1943,8 @@ def test_mathmltable2png(tmp_path, mocker):
 
     invalid_svg_parts = '''<svg><g data-semantic-operator="<"/></svg>'''
     supposed_patched_svg_parts = '''<svg><g data-semantic-operator="&lt;"/></svg>'''
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
+        invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # real world svg parts
@@ -1941,7 +1954,8 @@ def test_mathmltable2png(tmp_path, mocker):
     supposed_patched_svg_parts = '''<svg>
     <g data-semantic-operator="relseq,&lt;" data-mml-node="mo" data-semantic-type="relation" data-semantic-role="inequality" data-semantic-id="9" data-semantic-parent="19" transform="translate(3260.3, 0)" />
     </svg>'''  # noqa: E501
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
+        invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # does not happen in real world but test the regEx patching anyway with multiple lines
@@ -1961,7 +1975,8 @@ def test_mathmltable2png(tmp_path, mocker):
     <g data-semantic-operator=">donothingright" />
     <g data-semantic-operator="donothing>inbetween" />
     </svg>'''
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
+        invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # Multiple operators should not happen to my knowledge. (therealmarv)
@@ -2414,7 +2429,8 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     """Test fetch-map-resources script without environment variable set"""
     book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
-    original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+    original_interactive_dir = tmp_path / \
+        "book_slug/fetched-book-group/raw/media/interactive"
     resources_parent_dir = tmp_path / "book_slug"
     initial_resources_dir = resources_parent_dir / "x-initial-resources"
     dom_resources_dir = "resources"
@@ -2492,7 +2508,8 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", book_dir, original_resources_dir, resources_parent_dir, unused_resources_dir]
+        ["", book_dir, original_resources_dir,
+            resources_parent_dir, unused_resources_dir]
     )
     fetch_map_resources.main()
 
@@ -2538,7 +2555,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     )
     assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
 
-    assert(initial_resources_dir.is_dir())
+    assert (initial_resources_dir.is_dir())
 
 
 def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
@@ -2550,7 +2567,8 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
     try:
         book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
         original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
-        original_interactive_dir = tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+        original_interactive_dir = tmp_path / \
+            "book_slug/fetched-book-group/raw/media/interactive"
         resources_parent_dir = tmp_path / "book_slug"
         initial_resources_dir = resources_parent_dir / "initial-resources"
         dom_resources_dir = "myresources"
@@ -2580,22 +2598,22 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
 
         # libmagic yields image/svg without the xml declaration
         image_src1_content = ('<?xml version=1.0 ?>'
-                            '<svg height="30" width="120">'
-                            '<text x="0" y="15" fill="red">'
-                            'checksum me!'
-                            '</text>'
-                            '</svg>')
+                              '<svg height="30" width="120">'
+                              '<text x="0" y="15" fill="red">'
+                              'checksum me!'
+                              '</text>'
+                              '</svg>')
         image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
         image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
         image_src1.write_text(image_src1_content)
         image_src1_meta = f"{image_src1_sha1_expected}.json"
 
         image_src2_content = ('<?xml version=1.0 ?>'
-                            '<svg height="50" width="210">'
-                            '<text x="0" y="40" fill="red">'
-                            'checksum me too!'
-                            '</text>'
-                            '</svg>')
+                              '<svg height="50" width="210">'
+                              '<text x="0" y="40" fill="red">'
+                              'checksum me too!'
+                              '</text>'
+                              '</svg>')
         image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
         image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
         image_src2.write_text(image_src2_content)
@@ -2628,7 +2646,8 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
 
         mocker.patch(
             "sys.argv",
-            ["", book_dir, original_resources_dir, resources_parent_dir, unused_resources_dir]
+            ["", book_dir, original_resources_dir,
+                resources_parent_dir, unused_resources_dir]
         )
         fetch_map_resources.main()
 
@@ -2674,7 +2693,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         )
         assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
 
-        assert(initial_resources_dir.is_dir())
+        assert (initial_resources_dir.is_dir())
     finally:
         del os.environ['IO_INITIAL_RESOURCES']
         del os.environ['IO_RESOURCES']
@@ -2708,8 +2727,8 @@ def test_download_exercise_images(tmp_path, mocker):
 
     # start a local simple http server which emulates serving a JPEG file
     server = http.server.ThreadingHTTPServer(
-            ("127.0.0.1", 9999), MockJpegHTTPRequestHandler
-        )
+        ("127.0.0.1", 9999), MockJpegHTTPRequestHandler
+    )
     with server:
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
@@ -2772,8 +2791,8 @@ def test_download_exercise_images(tmp_path, mocker):
 
     output2 = output_dir / "output2.xhtml"
     server = http.server.ThreadingHTTPServer(
-            ("127.0.0.1", 9998), MockJpegHTTPRequestHandler
-        )
+        ("127.0.0.1", 9998), MockJpegHTTPRequestHandler
+    )
     with server:
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
@@ -2815,7 +2834,8 @@ def test_download_exercise_images(tmp_path, mocker):
     json_metadata_image = resources_dir / (SHA1_CMYK + '.json')
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
+    assert image_data.get(
+        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
     assert image_data.get("mime_type") == "image/jpeg"
     assert image_data.get("s3_md5") == '"227616b605949ee33ede48ca329563bd"'
     assert image_data.get("sha1") == SHA1_CMYK
@@ -2825,7 +2845,8 @@ def test_download_exercise_images(tmp_path, mocker):
     json_metadata_image = resources_dir / (SHA1_ORIGINAL + '.json')
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
+    assert image_data.get(
+        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
     assert image_data.get("mime_type") == "image/png"
     assert image_data.get("s3_md5") == '"aaeb2fd09a2d6762835964291e0448b2"'
     assert image_data.get("sha1") == SHA1_ORIGINAL
@@ -2835,7 +2856,8 @@ def test_download_exercise_images(tmp_path, mocker):
     json_metadata_image = resources_dir / (SHA1_RGB + '.json')
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get("original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
+    assert image_data.get(
+        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
     assert image_data.get("mime_type") == "image/jpeg"
     assert image_data.get("s3_md5") == '"7a60945c5bebe815c25d91baf35dc79f"'
     assert image_data.get("sha1") == SHA1_RGB
@@ -2863,7 +2885,6 @@ def test_download_exercise_images(tmp_path, mocker):
             assert node.get("src") == "../resources/" + SHA1_ORIGINAL
         else:
             assert node.get("src") == "../resources/" + SHA1_RGB
-
 
 
 def test_fetch_update_metadata(tmp_path, mocker):
@@ -2923,7 +2944,8 @@ def test_fetch_update_metadata(tmp_path, mocker):
     repo_mock().references.objects = [ref1_mock]
     mocker.patch(
         "sys.argv",
-        ["", repo_path, modules_dir, collections_dir, ref1_mock.shorthand, canonical_file]
+        ["", repo_path, modules_dir, collections_dir,
+            ref1_mock.shorthand, canonical_file]
     )
     mocker.patch(
         "bakery_scripts.fetch_update_metadata.Repository",
@@ -3044,7 +3066,8 @@ def test_fetch_update_metadata_canonical_ordering(tmp_path, mocker):
     repo_mock().references.objects = [ref1_mock]
     mocker.patch(
         "sys.argv",
-        ["", repo_path, modules_dir, collections_dir, ref1_mock.shorthand, canonical_file]
+        ["", repo_path, modules_dir, collections_dir,
+            ref1_mock.shorthand, canonical_file]
     )
     mocker.patch(
         "bakery_scripts.fetch_update_metadata.Repository",
@@ -3288,7 +3311,8 @@ def test_link_single(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
+        ["", str(baked_dir), str(baked_meta_dir), source_book_slug,
+         str(linked_xhtml), str("testversion")]
     )
     link_single.main()
 
@@ -3478,7 +3502,8 @@ def test_link_single_with_flag(tmp_path, mocker):
     ):
         mocker.patch(
             "sys.argv",
-            ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion")]
+            ["", str(baked_dir), str(baked_meta_dir), source_book_slug,
+             str(linked_xhtml), str("testversion")]
         )
         link_single.main()
 
@@ -3503,8 +3528,16 @@ def test_ensure_isoformat():
     ):
         utils.ensure_isoformat("unexpectedtimeformat")
 
+# Profiler test
 
-#CNX EPUB Tests 
+
+def test_convert_ms():
+    assert profiler.convert_ms(2000) == "2 seconds"
+    assert profiler.convert_ms(1000 * 60) == "1 minute(s)"
+    assert profiler.convert_ms(1000 * 60 * 60) == "1 hour(s)"
+
+
+# CNX EPUB Tests
 
 class HTMLParsingTestCase(unittest.TestCase):
     maxDiff = None
@@ -3514,11 +3547,11 @@ class HTMLParsingTestCase(unittest.TestCase):
         html_doc_filepath = os.path.join(
             TEST_DATA_DIR, 'cnx_test', 'book', 'content',
             'e78d4f90-e078-49d2-beac-e95e8be70667@3.xhtml')
-        
+
         with open(html_doc_filepath, 'r') as fb:
             html = etree.parse(fb)
             metadata = html_parser.parse_metadata(html)
-            
+
         expected_metadata = {
             'summary': None,
             'authors': [
@@ -3556,7 +3589,7 @@ class HTMLParsingTestCase(unittest.TestCase):
             'version': '3',
             'canonical_book_uuid': 'ea4244ce-dd9c-4166-9c97-acae5faf0ba1',
             'slug': None,
-            }
+        }
         self.assertEqual(metadata, expected_metadata)
 
 
@@ -3783,7 +3816,8 @@ class TreeUtilityTestCase(BaseModelTestCase):
             'Part Two',
             'Chapter Three', 'Document Three']
 
-        titles = [m.metadata['title'] for m in cnx_models.flatten_model(binder)]
+        titles = [m.metadata['title']
+                  for m in cnx_models.flatten_model(binder)]
         self.assertEqual(titles, expected_titles)
 
     def test_flatten_to_documents(self):
@@ -3829,7 +3863,8 @@ class TreeUtilityTestCase(BaseModelTestCase):
 
         # Test for default, Document only results.
         expected_titles = ['Document One', 'Document Two', 'Document Three']
-        titles = [d.metadata['title'] for d in cnx_models.flatten_to_documents(binder)]
+        titles = [d.metadata['title']
+                  for d in cnx_models.flatten_to_documents(binder)]
         self.assertEqual(titles, expected_titles)
 
         # Test for included DocumentPointer results.
@@ -3905,7 +3940,7 @@ class ModelBehaviorTestCase(unittest.TestCase):
         expected_uris = [
             resource_uri_tmplt.format(resource_name),
             starting_uris[1],
-            ]
+        ]
         self.assertEqual(expected_uris, [r.uri for r in document.references])
 
         # And change it the resource identifier
@@ -3914,12 +3949,12 @@ class ModelBehaviorTestCase(unittest.TestCase):
         expected_uris = [
             resource_uri_tmplt.format(changed_resource_name),
             starting_uris[1],
-            ]
+        ]
         self.assertEqual(expected_uris, [r.uri for r in document.references])
 
     def test_document_content(self):
         with open(
-            os.path.join(TEST_DATA_DIR,'cnx_test',
+            os.path.join(TEST_DATA_DIR, 'cnx_test',
                          'fb74dc89-47d4-4e46-aac1-b8682f487bd5@1.json'),
                 'r') as f:
             metadata = json.loads(f.read())

@@ -4,16 +4,18 @@ from pathlib import Path
 
 from lxml import etree
 
-from . import utils
+from .utils import unformatted_rex_links
+from .profiler import timed
 
 
+@timed
 def update_doc_links(doc, book_slugs_by_uuid=None):
     """Modify links in doc"""
 
     def _rex_url_builder(book, page):
         return f"http://openstax.org/books/{book}/pages/{page}"
 
-    external_link_elems = utils.unformatted_rex_links(doc)
+    external_link_elems = unformatted_rex_links(doc)
 
     for node in external_link_elems:
         # This an inter-book link defined by data-book-uuid attrib
@@ -32,6 +34,7 @@ def update_doc_links(doc, book_slugs_by_uuid=None):
             print(node.attrib)
 
 
+@timed
 def main():
     """Main function"""
     xhtml_file = Path(sys.argv[1]).resolve(strict=True)

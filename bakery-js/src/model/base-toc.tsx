@@ -1,5 +1,4 @@
-import { basename, resolve, dirname, sep, join } from 'path'
-import { dom, Dom, fromJSX, JSXNode } from '../minidom'
+import { dom, Dom } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory, Opt } from '../model/factory'
@@ -71,11 +70,20 @@ export abstract class BaseTocFile<
     const children = li.find('h:ol/h:li')
     if (children.length > 0) {
       /* istanbul ignore next */
-      const titleNode = li.has('h:a') ? li.findOne('h:a') : li.findOne('h:span')
+      const title = li.has('h:a')
+        ? li.findOne('h:a').text()
+        : li
+            .find('h:span')
+            .map((e) => e.text().trim())
+            .join(' ')
+      /* istanbul ignore next */
+      const titlePosition = li.has('h:a')
+        ? getPos(li.findOne('h:a').node)
+        : getPos(li.find('h:span')[0].node)
       return {
         type: TocTreeType.INNER,
-        title: titleNode.text(), //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
-        titlePos: getPos(titleNode.node),
+        title: title, //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
+        titlePos: titlePosition,
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
       }
     }
