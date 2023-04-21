@@ -145,7 +145,7 @@ export class PageFile extends XmlFile<
 
     // Delete all iframes that have remote URLs and use the REX link instead
     doc.forEach(
-      '//h:*[contains(@class, "os-has-iframe") and contains(@class, "os-has-link")]/h:iframe[contains(@class, "os-is-iframe")][starts-with(@src, "http://") or starts-with(@src, "https://")]',
+      '//h:iframe',
       (n) => n.remove()
     )
 
