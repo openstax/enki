@@ -1,3 +1,11 @@
 #!/usr/bin/env node
 
-require('../dist/index.js')
+if (process.env['JS_DEBUG']) {
+    console.log('Running bakery-js in debugging-mode which converts TypeScript files on the fly so breakpoints work')
+    const path = require('path')
+    const tsconfigFile = path.join(__dirname, '../tsconfig.build.json')
+    require('ts-node').register({project: tsconfigFile})
+    require('../src/index.ts')
+} else {
+    require('../dist/index.js')
+}

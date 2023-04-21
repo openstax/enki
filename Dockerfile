@@ -167,7 +167,7 @@ RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-js.sh
 
 COPY ./bakery-js/bin/ $PROJECT_ROOT/bakery-js/bin/
 COPY ./bakery-js/src/ $PROJECT_ROOT/bakery-js/src/
-COPY ./bakery-js/tsconfig.*.json $PROJECT_ROOT/bakery-js/
+COPY ./bakery-js/tsconfig*.json $PROJECT_ROOT/bakery-js/
 RUN cd $PROJECT_ROOT/bakery-js && npm run build
 
 

@@ -1,4 +1,11 @@
-
 vscode:
   extensions:
     - ritwickdey.liveserver
+    - esbenp.prettier-vscode
+    - mads-hartmann.bash-ide-vscode
+    - vscjava.vscode-java-pack
+    - ms-python.python
+
+tasks:
+  # So Prettier will work
+  - init: npm --prefix ./bakery-js/ install
