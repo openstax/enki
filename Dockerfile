@@ -1,4 +1,4 @@
-FROM buildpack-deps:focal as base
+FROM buildpack-deps:jammy as base
 
 
 # ---------------------------
@@ -18,6 +18,7 @@ RUN set -x \
     build-essential libicu-dev pkg-config libmagic1 \
     mime-support wget curl xsltproc lsb-release git \
     imagemagick icc-profiles-free curl unzip \
+    libgit2-dev \
     # ... for neb:
     python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
     # ... for mathify:
@@ -53,18 +54,18 @@ RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccpr
 # Install princexml
 # ---------------------------
 
-ENV PRINCE_VERSION=14.2-1
-ENV PRINCE_UBUNTU_BUILD=20.04
+ENV PRINCE_VERSION=15-1
+ENV PRINCE_UBUNTU_BUILD=22.04
 
-RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
+RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_$(dpkg --print-architecture).deb
 
-RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_amd64.deb
+RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_$(dpkg --print-architecture).deb
 
 # ---------------------------
 # Install jq and Pandoc
 # ---------------------------
 ENV JQ_VERSION='1.6'
-ENV PANDOC_VERSION='2.11.3.2'
+ENV PANDOC_VERSION='2.12'
 
 RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key \
     && wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc \
@@ -78,7 +79,7 @@ RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/ma
     && rm -f /tmp/jq-linux64 \
     ;
 
-RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb -O /tmp/pandoc.deb \
+RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-$(dpkg --print-architecture).deb -O /tmp/pandoc.deb \
     && dpkg -i /tmp/pandoc.deb \
     && rm -f /tmp/pandoc.deb \
     ;
@@ -95,16 +96,23 @@ RUN apt-get autoremove -y \
 
 ENV RUBY_VERSION=2.6.6
 
+# Ruby 2.6.6 requires an archaic version of openssl
+RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+    && tar zxvf openssl-1.1.1g.tar.gz \
+    && cd openssl-1.1.1g \
+    && ./config --prefix=$HOME/.openssl/openssl-1.1.1g --openssldir=$HOME/.openssl/openssl-1.1.1g \
+    && make \
+    && make install
+
 RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
     && curl -fsSL https://rvm.io/pkuczynski.asc | gpg --import - \
     && curl -fsSL https://get.rvm.io | bash -s stable \
     && bash -lc " \
         rvm requirements \
-        && rvm install ${RUBY_VERSION} \
+        && rvm install ${RUBY_VERSION} --with-openssl-dir=$HOME/.openssl/openssl-1.1.1g \
         && rvm use ${RUBY_VERSION} --default \
         && rvm rubygems current \
-        && gem install bundler --no-document" # \
-    # && echo '[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*' >> /home/gitpod/.bashrc.d/70-ruby
+        && gem install bundler --no-document"
 RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
 ENV PATH=$PATH:/usr/local/rvm/rubies/ruby-${RUBY_VERSION}/bin/
 ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}
