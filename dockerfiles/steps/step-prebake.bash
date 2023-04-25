@@ -117,7 +117,7 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     ## download exercise images and replace internet links with local resource links
     download-exercise-images "$IO_RESOURCES" "temp-assembly/collection.assembled.xhtml" "$assembled_file"
     
-    if grep -E '.*data-math=.+?' "$assembled_file"; then
+    if grep -E '.*data-math=.+?' "$assembled_file" &> /dev/null; then
         mathified="$assembled_file.mathified.xhtml"
         node $MATHIFY_ROOT/typeset/start.js -i "$assembled_file" -o "$mathified" -f mathml
         mv "$mathified" "$assembled_file"
