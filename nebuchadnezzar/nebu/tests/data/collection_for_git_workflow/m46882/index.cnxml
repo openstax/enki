@@ -28,12 +28,10 @@
   </figure>
   <para id="linkexample">
     There are many ways to grill
-    <link document="m10275" version="2.1">a good
-    steak</link>. My favorite can be found
-    <link url="http://en.wikibooks.org/"
-          window="new">on Wikibooks</link>.
-    <link document="m46909" version="1.12">A link to another page with version</link>
+    <link document="m46909">A link to another page without a version</link>
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
+    <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
+    <para id="exercise-1"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para><para id="exercise-2"><link class="os-embed" url="#exercise/Ch01-CI-Intro-RQ01"/></para>
   </para>
 
 </content>

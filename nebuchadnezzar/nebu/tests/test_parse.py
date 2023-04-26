@@ -14,7 +14,7 @@ def git_xml(datadir):
 
 
 def assert_props_match(snapshot, props, snapshot_name="metadata.json"):
-    snapshot.assert_match(json.dumps(props), snapshot_name)
+    snapshot.assert_match(json.dumps(props, indent=2), snapshot_name)
 
 
 def test_git_parse(git_xml, snapshot):

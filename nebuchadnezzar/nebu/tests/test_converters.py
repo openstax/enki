@@ -10,28 +10,21 @@ import sys
 
 from nebu.converters import (
     cnxml_abstract_to_html,
-    cnxml_to_full_html,
+    etree_cnxml_to_full_html,
 )
+from nebu.xml_utils import open_xml
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 
-class BaseTestCase(object):
-
-    def get_file(self, filename):
-        path = os.path.join(HERE, filename)
-        with open(path, 'r') as fp:
-            return fp.read()
-
-
-class TestCnxml2Html(BaseTestCase):
+class TestCnxml2Html:
 
     def test_success(self):
         # Case to test the transformation of cnxml to html.
-        cnxml = self.get_file('m42033-1.3.cnxml')
+        cnxml = open_xml(os.path.join(HERE, 'm42033-1.3.cnxml'))
 
-        content = cnxml_to_full_html(cnxml)
+        content = etree_cnxml_to_full_html(cnxml)
 
         assert '<html' in content
         assert '<body' in content
@@ -53,12 +46,6 @@ def test_cnxml_abstract_to_html():
         expected_abstract = expected_abstract.encode('utf-8')
 
     assert converted_abstract == expected_abstract
-
-
-def get_file(filename):
-    path = os.path.join(HERE, filename)
-    with open(path, 'r') as fp:
-        return fp.read()
 
 
 def test_diffs(snapshot):
@@ -90,6 +77,6 @@ def test_diffs(snapshot):
         'xhtml-characters',
     ]
     for t in conversions:
-        cnxml = get_file(f'./cnxml/{t}.cnxml')
-        html = cnxml_to_full_html(cnxml)
+        cnxml = open_xml(os.path.join(HERE, "cnxml", f"{t}.cnxml"))
+        html = etree_cnxml_to_full_html(cnxml)
         snapshot.assert_match(html, f'{t}.xhtml')

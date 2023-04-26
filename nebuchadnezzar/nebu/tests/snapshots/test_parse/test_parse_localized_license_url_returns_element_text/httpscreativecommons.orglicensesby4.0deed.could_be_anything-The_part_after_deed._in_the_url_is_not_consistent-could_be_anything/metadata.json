@@ -1,1 +1,14 @@
-{"id": "col11406", "uuid": "e1edc39a-14cd-4d61-886f-deadbee7e2d2", "canonical_book_uuid": null, "version": null, "revised": null, "title": "College Physics", "slug": null, "license_url": "https://creativecommons.org/licenses/by/4.0/deed.could_be_anything", "license_text": "The part after '/deed.' in the url is not consistent", "language": "could_be_anything", "abstract": ""}
+{
+  "id": "col11406",
+  "uuid": "e1edc39a-14cd-4d61-886f-deadbee7e2d2",
+  "canonical_book_uuid": null,
+  "version": null,
+  "revised": null,
+  "title": "College Physics",
+  "slug": null,
+  "license_url": "https://creativecommons.org/licenses/by/4.0/deed.could_be_anything",
+  "license_text": "The part after '/deed.' in the url is not consistent",
+  "language": "could_be_anything",
+  "abstract": "",
+  "cnx-archive-uri": "e1edc39a-14cd-4d61-886f-deadbee7e2d2@"
+}

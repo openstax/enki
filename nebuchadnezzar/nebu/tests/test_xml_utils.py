@@ -114,3 +114,31 @@ class TestSquashXMLToText(unittest.TestCase):
 
         result = self.target(etree.fromstring(txt), True)
         assert result == expected
+
+
+def test_fixnamespaces(snapshot):
+    from nebu.xml_utils import fix_namespaces, etree_from_str
+
+    before = etree_from_str(
+        """\
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+    <body xmlns:bib="http://bibtexml.sf.net/">
+        <p>Some text<em><!-- no-selfclose --></em>!</p>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <mtext>H</mtext>
+        </math>
+        <div>
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <mtext>More deeply nested</mtext>
+            </math>
+        </div>
+        <div xmlns:epub="http://www.idpf.org/2007/ops">
+            <aside role="doc-footnote" epub:type="footnote">
+                Something goes inside here
+            </aside>
+        </div>
+    </body>
+</html>"""
+    )
+
+    snapshot.assert_match(fix_namespaces(before).decode(), "after.xml")

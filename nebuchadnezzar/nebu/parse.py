@@ -157,16 +157,18 @@ def parse_metadata(elm_tree):
     """
     xpath = make_cnx_xpath(elm_tree)
 
+    uuid = xpath('//md:uuid/text()')[0]
+    version = _maybe(xpath('//md:version/text()'))
     language = _maybe(xpath('//md:language/text()'))
     license_text, license_url = _parse_license(
         _maybe(xpath('//md:license')), language)
     props = {
         'id': _maybe(xpath('//md:content-id/text()')),
-        'uuid': _maybe(xpath('//md:uuid/text()')),
+        'uuid': uuid,
         'canonical_book_uuid': _maybe(
             xpath('//md:canonical-book-uuid/text()')
         ),
-        'version': _maybe(xpath('//md:version/text()')),
+        'version': version,
         'revised': _maybe(xpath('//md:revised/text()')),
         'title':
             _maybe(xpath('//md:title/text()')) or xpath('//c:title/text()')[0],
@@ -178,5 +180,7 @@ def parse_metadata(elm_tree):
             _maybe(xpath('//md:abstract')),
             remove_namespaces=True,
         ),
+        # cnx-archive-uri is used extensively in enki/bakery-src
+        'cnx-archive-uri': f"{uuid}@{version or ''}"
     }
     return props

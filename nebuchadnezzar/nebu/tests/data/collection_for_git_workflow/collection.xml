@@ -18,48 +18,26 @@
     <col:param name="print-style" value="statistics"/>
   </col:parameters>
   <col:content>
-    <col:module document="m47830" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
-      <md:title>Preface</md:title>
-    </col:module>
+    <col:module document="m46909"/>
     <col:subcollection>
       <md:title>Sampling and Data</md:title>
       <col:content>
-        <col:module document="m46913" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.13">
-          <md:title>Introduction</md:title>
-        </col:module>
-        <col:module document="m46909" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.12">
-          <md:title>Definitions of Statistics, Probability, and Key Terms</md:title>
-        </col:module>
-        <col:module document="m46885" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.21">
-          <md:title>Data, Sampling, and Variation in Data and Sampling</md:title>
-        </col:module>
-        <col:module document="m46882" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
-          <md:title>Frequency, Frequency Tables, and Levels of Measurement</md:title>
-        </col:module>
-        <col:module document="m46919" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.13">
-          <md:title>Experimental Design and Ethics</md:title>
-        </col:module>
+        <col:subcollection>
+          <md:title>A subcol nested inside another</md:title>
+          <col:content>
+            <col:module document="m46857"/>
+          </col:content>
+        </col:subcollection>
+        <col:module document="m46913"/>
+        <col:module document="m46909"/>
       </col:content>
     </col:subcollection>
     <col:subcollection>
       <md:title>Descriptive Statistics</md:title>
       <col:content>
-        <col:module document="m46925" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.7">
-          <md:title>Introduction</md:title>
-        </col:module>
-        <col:module document="m46934" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.10">
-          <md:title>Stem-and-Leaf Graphs (Stemplots), Line Graphs, and Bar Graphs</md:title>
-        </col:module>
+        <col:module document="m46882"/>
       </col:content>
     </col:subcollection>
-    <col:module document="m47864" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.17">
-      <md:title>Review Exercises (Ch 3-13)</md:title>
-    </col:module>
-    <col:module document="m47865" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.16">
-      <md:title>Practice Tests (1-4) and Final Exams</md:title>
-    </col:module>
-    <col:module document="m47873" version="latest" repository="https://legacy.cnx.org/content" cnxorg:version-at-this-collection-version="1.9">
-      <md:title>Data Sets</md:title>
-    </col:module>
+    <col:module document="m46882"/>
   </col:content>
 </col:collection>

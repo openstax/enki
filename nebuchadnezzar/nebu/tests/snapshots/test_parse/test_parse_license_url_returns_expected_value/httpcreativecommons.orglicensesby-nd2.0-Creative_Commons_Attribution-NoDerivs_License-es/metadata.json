@@ -1,1 +1,14 @@
-{"id": "col11406", "uuid": "e1edc39a-14cd-4d61-886f-deadbee7e2d2", "canonical_book_uuid": null, "version": null, "revised": null, "title": "College Physics", "slug": null, "license_url": "http://creativecommons.org/licenses/by-nd/2.0/", "license_text": "Creative Commons Attribution-NoDerivs License", "language": "es", "abstract": ""}
+{
+  "id": "col11406",
+  "uuid": "e1edc39a-14cd-4d61-886f-deadbee7e2d2",
+  "canonical_book_uuid": null,
+  "version": null,
+  "revised": null,
+  "title": "College Physics",
+  "slug": null,
+  "license_url": "http://creativecommons.org/licenses/by-nd/2.0/",
+  "license_text": "Creative Commons Attribution-NoDerivs License",
+  "language": "es",
+  "abstract": "",
+  "cnx-archive-uri": "e1edc39a-14cd-4d61-886f-deadbee7e2d2@"
+}

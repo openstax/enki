@@ -12,11 +12,11 @@ import sys
 from io import BytesIO
 
 from lxml import etree
+from .xml_utils import DEFAULT_XMLPARSER
 
 __all__ = (
-    'DEFAULT_XMLPARSER', 'ensure_bytes',
-    'cnxml_abstract_to_html',
-    'cnxml_to_html', 'cnxml_to_full_html',
+    'ensure_bytes', 'cnxml_abstract_to_html',
+    'cnxml_to_html', 'etree_cnxml_to_full_html'
 )
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -34,14 +34,6 @@ def _gen_xsl(f, d=LOCAL_XSL_DIR):
 CNXML_TO_HTML_XSL = _gen_xsl('cnxml-to-html5.xsl')
 CNXML_TO_HTML_METADATA_XSL = _gen_xsl('cnxml-to-html5-metadata.xsl')
 MATHML_XSL = _gen_xsl(MATHML_XSL_PATH, '.')
-
-XML_PARSER_OPTIONS = {
-    'load_dtd': True,
-    'resolve_entities': True,
-    'no_network': False,   # don't force loading our cnxml/DTD packages
-    'attribute_defaults': False,
-}
-DEFAULT_XMLPARSER = etree.XMLParser(**XML_PARSER_OPTIONS)
 
 
 # ############### #
@@ -85,12 +77,8 @@ def cnxml_to_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
     return str(content)
 
 
-def cnxml_to_full_html(cnxml, xml_parser=DEFAULT_XMLPARSER):
+def etree_cnxml_to_full_html(cnxml):
     """Transform raw cnxml content to a full html."""
-    assert not isinstance(cnxml, (etree._ElementTree, etree._Element,))
-
-    cnxml = etree.parse(BytesIO(ensure_bytes(cnxml)), xml_parser)
-
     # Transform the content to html.
     content = cnxml_to_html(cnxml)
     # Transform the metadata to html.
