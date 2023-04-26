@@ -21,6 +21,7 @@ graph TB
     step-postbake -- linked --> step-pdf
     step-bake -- baked --> step-pdf
     step-prebake -- fetch-meta --> step-pdf
+    step-prebake -- resources --> step-pdf
     step-pdf -- artifacts --> step-pdf-meta
 ```
 
