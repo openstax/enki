@@ -29,7 +29,7 @@ while read -r module_file; do
     awk '{
         if ($0 ~ /<\/content>/) {
             print "<!-- HACK: injected math -->"
-            print "<div id=\"math-element\" data-math=\"\\frac{2}{5}\"></div>"
+            print "<div id=\"math-element\" data-math=\"\\frac{2}{5} + \\frac{10}{5}\"></div>"
         }
         print
     }' "$module_file" > "$module_file.math"
@@ -42,6 +42,14 @@ KCOV_DIR=_kcov02-d \
 ../enki --keep-data --data-dir $BOOK_DIR --command all-pdf --start-at step-prebake --repo tiny-book --book-slug book-slug1 --ref main
 
 find $BOOK_DIR -name "index.cnxml.orig" -exec bash -cxe 'mv $0 $(dirname $0)/index.cnxml' {} \;
+
+# Check that the math was converted
+while read -r assembled_file; do
+    if ! grep '<math xmlns="http://www.w3.org/1998/Math/MathML" alttext="\\frac{2}{5} + \\frac{10}{5}">' "$assembled_file" &> /dev/null; then
+        echo "ERROR: Could not find converted math"
+        exit 1
+    fi
+done < <(find $BOOK_DIR -name '*.assembled.xhtml') 
 
 # ################################
 # Clone a branch, 
