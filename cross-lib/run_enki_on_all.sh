@@ -10,6 +10,9 @@ while [ -n "$1" ]; do
     --command) 
       shift; arg_command=$1
     ;;
+    --data-dir)
+      shift; arg_data_dir=$1
+    ;;
     --echo) do_echo=true ;;
     --continue) do_continue=true ;;
     *)
@@ -21,6 +24,8 @@ while [ -n "$1" ]; do
 done
 
 [[ $arg_command ]] || ( echo "ERROR: A command was not provided. Typical examples are 'all-pdf' or 'all-web' or 'all-epub'" && exit 1 )
+
+[[ $arg_data_dir ]] || arg_data_dir="./data"
 
 root="cross-lib"
 all_books="$root/book-data/AUTO_books.txt"
@@ -47,7 +52,8 @@ format_time() {
 run_and_log_enki () {
   echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  cmd="./enki --data-dir ./data/$3-$1 --command $1 --repo openstax/$2 --book-slug $3 --ref main"
+  book_destination=$arg_data_dir/$3-$1
+  cmd="./enki --data-dir $book_destination --command $1 --repo openstax/$2 --book-slug $3 --ref main"
   log="$root/logs/$repo-$slug.txt"
   if [[ $do_continue && -f "$log" ]]; then
     echo "Skipping because log file exists. To build anyway, unset --continue flag."
@@ -65,6 +71,7 @@ run_and_log_enki () {
   echo "  time to build $elapsed_formatted"
   if [ $exit == 0 ]; then
     echo_green "==> SUCCESS: $2 $3"
+    echo "Book can be found at $book_destination"
   else
     echo_red "==> FAILED with $exit: $2 $3"
     echo "For more information see $root/logs/$repo-$slug.txt"
@@ -89,5 +96,6 @@ elapsed_formatted=$( format_time $(($total_end-$total_start)) )
 # Final report:
 echo "
 Yeehaw! You've built E V E R Y T H I N G. Total runtime was $elapsed_formatted
+You can find the built books in $arg_data_dir
 Successes $success_count failures $failed_count
 "

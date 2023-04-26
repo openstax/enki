@@ -29,6 +29,9 @@ All scripts are meant to be run from Enki root (eg. by calling `./cross-lib/upda
 
 Options:
 - --command: A [step or set of steps](../step-config.json) to run on all books . Example: `all-pdf`
+- --data-dir: A file location where you want your finished books to go. Defaults to `./data` . Example: `./data/v1`
+- --echo: Outputs to the terminal as well as the log the regular output from enki
+- --continue: Skips books that have an associated log file (useful for if a run was interrupted)
 
 ## Logs
 
