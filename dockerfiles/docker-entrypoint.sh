@@ -60,7 +60,8 @@ JS_DEBUG=${JS_DEBUG:-}
 NODE_OPTIONS=${NODE_OPTIONS:-}
 
 if [[ $JS_DEBUG ]]; then
-    export NODE_OPTIONS="--inspect-brk=0.0.0.0:9229" # LCOV_EXCL_LINE
+    export NODE_DEBUG_PORT=9229 # LCOV_EXCL_LINE
+    export NODE_OPTIONS="--inspect-brk=0.0.0.0:$NODE_DEBUG_PORT" # LCOV_EXCL_LINE
 fi
 
 source $PYTHON_VENV_ROOT/bin/activate
