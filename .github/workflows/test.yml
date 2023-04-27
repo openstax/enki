@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # Agressive cache invalidation: https://github.com/satackey/action-docker-layer-caching/issues/55
       # - run: echo "WEEK=$(date +%U)" >> $GITHUB_ENV
       # - uses: satackey/action-docker-layer-caching@v0.0.11
@@ -31,7 +31,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y imagemagick icc-profiles-free ghostscript
       - id: cache-pipenv
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.local/share/virtualenvs
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
