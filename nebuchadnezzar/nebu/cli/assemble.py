@@ -46,15 +46,16 @@ def collection_to_assembled_xhtml(
     includes = create_exercise_factories(exercise_host, token)
     # Use docs_by_uuid.values to ensure each document is only used one time
     for document in docs_by_uuid.values():
-        # Step 1: Fetch any includes from remote sources
-        fetch_insert_includes(document, page_uuids, includes)
-        # Step 2: Rewrite module links
+        # Step 1: Rewrite module links
         resolve_module_links(document, docs_by_id, input_dir)
-        # Step 3: Update ids and links
+        # Step 2: Update ids and links
         update_ids(document)
 
     # Combine all the pieces together into the final assembled document
     assembled_collection = assemble_collection(collection)
+
+    # Finally, fetch and insert any includes from remote sources
+    fetch_insert_includes(assembled_collection, page_uuids, includes)
 
     return fix_namespaces(assembled_collection)
 

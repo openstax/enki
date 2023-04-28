@@ -4,8 +4,7 @@ import re
 
 import pytest
 from nebu.formatters import exercise_callback_factory, fetch_insert_includes
-from nebu.models.book_part import BookPart, PartType
-from nebu.xml_utils import etree_from_str, fix_namespaces
+from nebu.xml_utils import open_xml, fix_namespaces
 
 
 EXERCISE_URL = "https://exercises.openstax.org/api/exercises?q=tag:{itemCode}"
@@ -246,13 +245,7 @@ def mocked_requests_post(*args, **kwargs):
 
 @pytest.fixture
 def fake_doc(datadir):
-    return BookPart(
-        type=PartType.DOCUMENT,
-        metadata={"uuid": ""},
-        content=etree_from_str(
-            (datadir / "desserts-single-page.xhtml").read_bytes()
-        ),
-    )
+    return open_xml(str(datadir / "desserts-single-page.xhtml"))
 
 
 def test_includes_callback(assert_match, fake_doc):
@@ -274,7 +267,7 @@ def test_includes_callback(assert_match, fake_doc):
     ]
 
     fetch_insert_includes(fake_doc, [""], includes)
-    assert_match(fix_namespaces(fake_doc.content), "document.xhtml")
+    assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
 def test_includes_token_callback(assert_match, fake_doc):
@@ -299,7 +292,7 @@ def test_includes_token_callback(assert_match, fake_doc):
     ]
 
     fetch_insert_includes(fake_doc, ["", "123", "456"], includes)
-    assert_match(fix_namespaces(fake_doc.content), "document.xhtml")
+    assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
 def test_no_tags(assert_match, fake_doc, monkeypatch):
@@ -315,7 +308,7 @@ def test_no_tags(assert_match, fake_doc, monkeypatch):
     monkeypatch.setattr("nebu.formatters.requests.get", exercise_no_tags)
 
     fetch_insert_includes(fake_doc, [""], includes)
-    assert_match(fix_namespaces(fake_doc.content), "document.xhtml")
+    assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
 def test_feature(assert_match, fake_doc, monkeypatch):

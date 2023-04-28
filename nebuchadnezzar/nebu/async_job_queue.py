@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 
 class AsyncJobQueue:
@@ -15,9 +16,9 @@ class AsyncJobQueue:
                 job = await queue.get()
                 try:
                     await job
-                except Exception as e:  # pragma: no cover
+                except Exception:  # pragma: no cover
                     # Append errors to the list
-                    self.errors.append(e)
+                    self.errors.append(traceback.format_exc())
                 queue.task_done()
         self.workers = [asyncio.create_task(worker(self.queue))
                         for _ in range(self.worker_count)]
