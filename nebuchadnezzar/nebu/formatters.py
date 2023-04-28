@@ -40,20 +40,20 @@ def etree_to_content(etree_, strip_root_node=False):
     return etree.tostring(etree_)  # pragma: no cover
 
 
-def fetch_insert_includes(document, page_uuids, includes, threads=20):
+def fetch_insert_includes(root_elem, page_uuids, includes, threads=20):
     async def async_exercise_fetching():
         loop = asyncio.get_running_loop()
         for match, proc in includes:
             job_queue = AsyncJobQueue(threads)
             async with job_queue as q:
-                for elem in xpath_html(document.content, match):
+                for elem in xpath_html(root_elem, match):
                     q.put_nowait(
                         loop.run_in_executor(None, proc, elem, page_uuids)
                     )
             if len(job_queue.errors) != 0:
                 raise Exception(
-                    "The following errors occurred: " +
-                    ", ".join(str(e) for e in job_queue.errors)
+                    "The following errors occurred: \n" +
+                    "\n###### NEXT ERROR ######\n".join(job_queue.errors)
                 )
 
     asyncio.run(async_exercise_fetching())
