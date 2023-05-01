@@ -24,17 +24,30 @@ if File.exist?(ubl)
 end
 
 # Write ABL
-abl_hash['approved_books'].each do |book|
-  repo = book['repository_name']
-  book['versions'].sort_by{ |version| 
-    version['commit_metadata']['committed_at'] 
-  }.reverse!.first['commit_metadata']['books'].each do |volume|
-    books.add("#{repo} #{volume['slug']}\n")
+def write_abl_with_slugs(abl_hash:, books:) # TODO: delete this method?
+  abl_hash['approved_books'].each do |book|
+    repo = book['repository_name']
+    book['versions'].sort_by{ |version| 
+      version['commit_metadata']['committed_at'] 
+    }.reverse!.first['commit_metadata']['books'].each do |volume|
+      books.add("#{repo} #{volume['slug']}\n")
+    end
   end
 end
+
+def write_abl_without_slugs(abl_hash:, books:)
+  abl_hash['approved_books'].each do |book|
+    books.add("#{book['repository_name']}\n")
+  end
+end
+
+# Exchange for write_abl_with_slugs if we need slugs in future?
+write_abl_without_slugs(abl_hash: abl_hash, books: books)
 
 # Add files
 File.delete(out_file)
 books.each do |book|
   File.write(out_file, book, mode: 'a')
 end
+
+
