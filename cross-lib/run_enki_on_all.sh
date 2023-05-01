@@ -50,9 +50,8 @@ format_time() {
 
 get_slug_list_for_repo () {
   meta_inf=$(curl -Ss "https://raw.githubusercontent.com/openstax/$1/main/META-INF/books.xml")
-  filtered=$(echo $meta_inf | grep -oE 'slug="([a-zA-Z0-9\-]+)"') # chatGPT generated this line!
-  filtered_again="$(echo $filtered | sed 's/slug=//g' | sed 's/\"//g')"
-  echo $filtered_again
+  filtered=$(echo $meta_inf | grep -oE 'slug="([a-zA-Z0-9\-]+)"' | sed 's/slug=//g' | sed 's/\"//g')
+  echo $filtered
 }
 
 # Nicely handle an enki run
