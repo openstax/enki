@@ -169,15 +169,7 @@ function makePipeline(env: KeyValue) {
                 lookupBookTask,
                 report(Status.PROCESSING),
                 ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*-epub.zip`,
-                        acl: 'public-read',
-                        content_type: 'application/zip'
-                    }
-                }
+                taskOverrideCommonLog(s3UploadFailMessage)
             ],
             on_success: report(Status.SUCCEEDED, {
                 pdf_url: `${IO.ARTIFACTS}/pdf_url`

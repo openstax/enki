@@ -127,6 +127,36 @@ function read_style() {
     echo $style_name
 }
 
+function get_s3_name() {
+    filename="$(basename "$1")"
+    s3_name="$(cat "$IO_BOOK/repo")-$(cat "$IO_BOOK/version")-$(cat "$IO_BOOK/job_id")-$filename"
+    s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
+    printf %s "$s3_name_no_slashes" | jq -sRr @uri
+}
+
+function s3_upload() {
+    acl="$1"
+    content_type="$2"
+    get_slug_name=${3:-'cut -d . -f 1'}
+
+    [[ -z $acl || -z $content_type ]] && {
+        die "acl and content_type are required for s3_upload"
+    }
+
+    book_slug_urls=()
+    while read -r file_to_upload; do
+        s3_name=$(get_s3_name "$file_to_upload")
+        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
+        echo "Uploading $file_to_upload to $url"
+        aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
+            --acl "$acl" \
+            --content-type "$content_type"
+        slug="$(echo "$file_to_upload" | $get_slug_name)"
+        book_slug_urls+=("$(jo url="$url" slug="$slug")")
+    done
+    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
+}
+
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
