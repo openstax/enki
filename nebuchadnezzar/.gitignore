@@ -11,17 +11,6 @@ __pycache__
 .state
 .pytest_cache
 
-# Virtualenv #
-##############
-/venv/
-
-# Build file #
-##############
-build/
-dist/
-.eggs/
-docs/_build
-
 # Coverage #
 ############
 .coverage

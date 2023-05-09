@@ -35,6 +35,17 @@ jobs:
         with:
           path: ~/.local/share/virtualenvs
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+      - name: Install Dependencies
+        run: |
+          pip install -r nebuchadnezzar/requirements/main.txt -r nebuchadnezzar/requirements/lint.txt -r nebuchadnezzar/requirements/test.txt
+      - name: Test
+        run: make --directory=./nebuchadnezzar test
+      - name: Lint
+        run: make --directory=./nebuchadnezzar lint
+      - name: Upload Code Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: nebuchadnezzar/.coverage
       - name: Install submodules
         run: ./install-submodules.sh
       - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file

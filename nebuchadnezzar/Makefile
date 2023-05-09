@@ -1,4 +1,4 @@
-STATEDIR = $(PWD)/.state
+STATEDIR = $(PWD)/.neb-state
 BINDIR = $(STATEDIR)/env/bin
 
 # Short descriptions for commands (var format _SHORT_DESC_<cmd>)
