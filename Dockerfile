@@ -1,72 +1,34 @@
 FROM buildpack-deps:jammy as base
 
-
-# ---------------------------
-# Install OS packages
-# necessary to build the
-# other stages.
-# ---------------------------
-
-RUN set -x \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y \
-    # ... for docker-entrypoint
-    gosu \
-    # ... for princexml:
-    gdebi fonts-stix libcurl4 \
-    # ... for bakery-scripts
-    build-essential libicu-dev pkg-config libmagic1 \
-    mime-support wget curl xsltproc lsb-release git \
-    imagemagick icc-profiles-free curl unzip \
-    libgit2-dev \
-    # ... for neb:
-    python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
-    # ... for mathify:
-    libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
-    libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
-    libxcb-dri3-0 libdrm2 libgbm1 \
-    # ... for cnx-easybake:
-    build-essential libicu-dev pkg-config python3-dev \
-    # ---------------------------
-    # Dependencies that are not needed to prepare
-    # the other steps but are necessary to run the code.
-    # ---------------------------
-    libdw-dev \
-    libxtst6 \
-    # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
-    xmlstarlet \
-    # ... for zipping docx files
-    zip \
-    # For debugging
-    vim \
-    nano \
-    ;
-
 # ---------------------------
 # Install Adobe color mapping files
 # ---------------------------
+FROM base as adobe-colors-stage
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    unzip
 RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccprofiles/win/AdobeICCProfilesCS4Win_end-user.zip \
-    && unzip -o -j "/tmp/AdobeICCProfiles.zip" "Adobe ICC Profiles (end-user)/CMYK/USWebCoatedSWOP.icc" -d /usr/share/color/icc/ \
-    && rm -f /tmp/AdobeICCProfiles.zip \
-    ;
+    && unzip -o -j "/tmp/AdobeICCProfiles.zip" "Adobe ICC Profiles (end-user)/CMYK/USWebCoatedSWOP.icc" -d /adobe-icc/
 
 # ---------------------------
 # Install princexml
 # ---------------------------
-
+FROM base as princexml-stage
 ENV PRINCE_VERSION=15-1
 ENV PRINCE_UBUNTU_BUILD=22.04
-
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    gdebi
 RUN wget --directory-prefix=/tmp/ https://www.princexml.com/download/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_$(dpkg --print-architecture).deb
-
 RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_BUILD}_$(dpkg --print-architecture).deb
 
 # ---------------------------
-# Install jq and Pandoc
+# Install jq
 # ---------------------------
+FROM base as build-jq-stage
 ENV JQ_VERSION='1.6'
-ENV PANDOC_VERSION='3.1.2'
-
 RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key \
     && wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc \
     && wget --no-check-certificate https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -O /tmp/jq-linux64 \
@@ -74,29 +36,20 @@ RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/ma
     && gpg --verify /tmp/jq-linux64.asc /tmp/jq-linux64 \
     && cp /tmp/jq-linux64 /usr/bin/jq \
     && chmod +x /usr/bin/jq \
-    && rm -f /tmp/jq-release.key \
-    && rm -f /tmp/jq-linux64.asc \
-    && rm -f /tmp/jq-linux64 \
     ;
 
+# ---------------------------
+# Install Pandoc
+# ---------------------------
+FROM base as pandoc-stage
+ENV PANDOC_VERSION='3.1.2'
 RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-$(dpkg --print-architecture).deb -O /tmp/pandoc.deb \
     && dpkg -i /tmp/pandoc.deb \
     && rm -f /tmp/pandoc.deb \
     ;
 
-
-# Remove unnecessary apt and temp files
-RUN apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-
-# ---------------------------
-# Install ruby
-# ---------------------------
-
-ENV RUBY_VERSION=2.6.6
-
 # Ruby 2.6.6 requires an archaic version of openssl
+FROM base as build-ruby-openssl-stage
 RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
     && tar zxvf openssl-1.1.1g.tar.gz \
     && cd openssl-1.1.1g \
@@ -104,144 +57,113 @@ RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
     && make \
     && make install
 
-RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
-    && curl -fsSL https://rvm.io/pkuczynski.asc | gpg --import - \
-    && curl -fsSL https://get.rvm.io | bash -s stable \
-    && bash -lc " \
-        rvm requirements \
-        && rvm install ${RUBY_VERSION} --with-openssl-dir=$HOME/.openssl/openssl-1.1.1g \
-        && rvm use ${RUBY_VERSION} --default \
-        && rvm rubygems current \
-        && gem install bundler --no-document"
-RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
-ENV PATH=$PATH:/usr/local/rvm/rubies/ruby-${RUBY_VERSION}/bin/
-ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}
-ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global
+# ---------------------------
+# Install NodeJS
+# ---------------------------
+FROM base as base-with-node
+ENV NODE_VERSION=18
+RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    nodejs
+
+
+FROM base-with-node
 
 
 # Use this so that gitpod directories are the same.
 # TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
 ENV PROJECT_ROOT=/workspace/enki
 
-# ---------------------------
-# Install node
-# ---------------------------
-
-# Source: https://github.com/gitpod-io/workspace-images/blob/master/full/Dockerfile#L139
-ENV NODE_VERSION=18.14.2
-
-COPY                ./dockerfiles/build/build-system-node.env \
-        $PROJECT_ROOT/dockerfiles/build/build-system-node.env
-RUN .   $PROJECT_ROOT/dockerfiles/build/build-system-node.env
-
-ENV PATH=$PATH:/root/.nvm/versions/node/v$NODE_VERSION/bin/
-
-
-# -----------------------
-# Create Virtualenv
-# -----------------------
-
-COPY            ./dockerfiles/build/build-system-venv.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-system-venv.sh
-
 
 # ---------------------------
 # Install mathify
 # ---------------------------
-
-FROM base as build-mathify-stage
-
-COPY ./mathify/package.json ./mathify/package-lock.json $PROJECT_ROOT/mathify/
-
-COPY            ./dockerfiles/build/build-stage-mathify.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-mathify.sh
-
-COPY ./mathify/typeset $PROJECT_ROOT/mathify/typeset
+FROM base-with-node as build-mathify-stage
+COPY ./mathify/package.json ./mathify/package-lock.json /workspace/enki/mathify/
+RUN npm --prefix=/workspace/enki/mathify ci
+COPY ./mathify/typeset /workspace/enki/mathify/typeset
 
 # ---------------------------
 # Install bakery-js
 # ---------------------------
-
-FROM base as build-bakery-js-stage
-
+FROM base-with-node as build-bakery-js-stage
 # Install dependencies first
-COPY ./bakery-js/package.json ./bakery-js/package-lock.json $PROJECT_ROOT/bakery-js/
+COPY ./bakery-js/package.json ./bakery-js/package-lock.json /workspace/enki/bakery-js/
+RUN npm --prefix=/workspace/enki/bakery-js install
 
-COPY            ./dockerfiles/build/build-stage-bakery-js.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-js.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-js.sh
-
-COPY ./bakery-js/bin/ $PROJECT_ROOT/bakery-js/bin/
-COPY ./bakery-js/src/ $PROJECT_ROOT/bakery-js/src/
-COPY ./bakery-js/tsconfig*.json $PROJECT_ROOT/bakery-js/
-RUN cd $PROJECT_ROOT/bakery-js && npm run build
-
+COPY ./bakery-js/bin/ /workspace/enki/bakery-js/bin/
+COPY ./bakery-js/src/ /workspace/enki/bakery-js/src/
+COPY ./bakery-js/tsconfig*.json /workspace/enki/bakery-js/
+RUN npm --prefix=/workspace/enki/bakery-js run build
 
 
 # ===========================
 # Install Python Packages
 # ===========================
 
+# TODO: Decouple node by moving the bakery javascript stuff into bakery-js
+FROM base-with-node AS base-with-python
 
-FROM base AS build-python-stage
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    python3 python3-pip python3-dev libgit2-dev
+# build-essential libicu-dev pkg-config
+
 
 # ---------------------------
 # Install cnxml
 # ---------------------------
-COPY ./cnxml $PROJECT_ROOT/cnxml/
-RUN . $PROJECT_ROOT/venv/bin/activate && \
-    pip install $PROJECT_ROOT/cnxml/
+FROM base-with-python AS build-cnxml-stage
+COPY ./cnxml /workspace/enki/cnxml/
+RUN pip install /workspace/enki/cnxml/
 
 
 # ---------------------------
-# Install neb
+# Install neb and bakery-scripts
 # ---------------------------
-
-COPY ./nebuchadnezzar/requirements $PROJECT_ROOT/nebuchadnezzar/requirements
-
-COPY            ./dockerfiles/build/build-stage-neb-3rdparty.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-3rdparty.bash
-
-COPY ./nebuchadnezzar/ $PROJECT_ROOT/nebuchadnezzar/
-
-COPY            ./dockerfiles/build/build-stage-neb-install.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-neb-install.bash
-
-
-# -----------------------
-# Install bakery-scripts
-# -----------------------
+FROM base-with-python AS build-python-stage
 
 ENV HOST_BAKERY_SRC_ROOT=./bakery-src
-ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
+ENV BAKERY_SRC_ROOT=/workspace/enki/bakery-src
 
+# Install dependencies
+COPY ./nebuchadnezzar/requirements /workspace/enki/nebuchadnezzar/requirements
 COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $BAKERY_SRC_ROOT/scripts/
+RUN pip3 install -r /workspace/enki/nebuchadnezzar/requirements/main.txt -r $BAKERY_SRC_ROOT/scripts/requirements.txt
 
-COPY            ./dockerfiles/build/build-stage-bakery-3rdparty.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-3rdparty.bash
-
+# Install scripts
+COPY ./nebuchadnezzar/ /workspace/enki/nebuchadnezzar/
 COPY $HOST_BAKERY_SRC_ROOT/scripts/*.py $HOST_BAKERY_SRC_ROOT/scripts/*.js $HOST_BAKERY_SRC_ROOT/scripts/*.json $BAKERY_SRC_ROOT/scripts/
 COPY $HOST_BAKERY_SRC_ROOT/scripts/gdoc/ $BAKERY_SRC_ROOT/scripts/gdoc/
+RUN pip3 install /workspace/enki/nebuchadnezzar/ $BAKERY_SRC_ROOT/scripts/.
 
-COPY            ./dockerfiles/build/build-stage-bakery-install.bash \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-install.bash
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-bakery-install.bash
+RUN npm --prefix $BAKERY_SRC_ROOT/scripts install --production $BAKERY_SRC_ROOT/scripts
+
+
+# ================
+# Java
+# ================
+
+FROM base-with-python AS base-with-java
+
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    openjdk-11-jre-headless
 
 
 # ---------------------------
 # Install xhtml-validator jar
 # ---------------------------
-FROM base AS build-xhtml-validator-stage
-COPY ./xhtml-validator/ $PROJECT_ROOT/xhtml-validator/
+FROM base-with-java AS build-xhtml-validator-stage
+COPY ./xhtml-validator/ /workspace/enki/xhtml-validator/
 
-COPY            ./dockerfiles/build/build-stage-xhtmlvalidator.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-xhtmlvalidator.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-xhtmlvalidator.sh
+# Issues with gradle daemon on Apple M1 chips.
+ENV GRADLE_OPTS=-Dorg.gradle.daemon=false
+RUN cd /workspace/enki/xhtml-validator && ./gradlew jar
 
 
 # ---------------------------
@@ -296,32 +218,101 @@ COPY ./corgi-concourse-resource .
 
 RUN poetry build -f sdist
 
+
 # ===========================
 # The Final Stage
 # ===========================
-FROM base as runner
+FROM base-with-java as runner
+
+# ---------------------------
+# Install OS packages
+# necessary to build the
+# other stages.
+# ---------------------------
+
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    # ... for docker-entrypoint
+    gosu \
+    # ... for princexml:
+    fonts-stix libcurl4 \
+    # ... for bakery-scripts
+    build-essential libicu-dev pkg-config libmagic1 \
+    mime-support wget curl xsltproc lsb-release git \
+    imagemagick icc-profiles-free curl unzip \
+    libgit2-dev \
+    # ... for neb:
+    python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
+    # ... for mathify:
+    libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
+    libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
+    libxcb-dri3-0 libdrm2 libgbm1 \
+    # ... for cnx-easybake:
+    build-essential libicu-dev pkg-config python3-dev \
+    # ---------------------------
+    # Dependencies that are not needed to prepare
+    # the other steps but are necessary to run the code.
+    # ---------------------------
+    libdw-dev \
+    libxtst6 \
+    # ... for parsing XML files: https://github.com/openstax/content-synchronizer/pull/7
+    xmlstarlet \
+    # ... for zipping docx files
+    zip \
+    # For debugging
+    vim \
+    nano \
+    ;
+
+# Remove unnecessary apt and temp files
+RUN apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# ---------------------------
+# Install ruby
+# ---------------------------
+ENV RUBY_VERSION=2.6.6
+
+COPY --from=build-ruby-openssl-stage /root/.openssl /root/.openssl
+
+RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
+    && curl -fsSL https://rvm.io/pkuczynski.asc | gpg --import - \
+    && curl -fsSL https://get.rvm.io | bash -s stable \
+    && bash -lc " \
+        rvm requirements \
+        && rvm install ${RUBY_VERSION} --with-openssl-dir=$HOME/.openssl/openssl-1.1.1g \
+        && rvm use ${RUBY_VERSION} --default \
+        && rvm rubygems current \
+        && gem install bundler --no-document"
+RUN echo "rvm_gems_path=/workspace/.rvm" > ~/.rvmrc
+ENV PATH=$PATH:/usr/local/rvm/rubies/ruby-${RUBY_VERSION}/bin/
+ENV GEM_HOME=/usr/local/rvm/gems/ruby-${RUBY_VERSION}
+ENV GEM_PATH=/usr/local/rvm/gems/ruby-${RUBY_VERSION}:/usr/local/rvm/gems/ruby-${RUBY_VERSION}@global
 
 # ---------------------------
 # Install recipes
 # ---------------------------
 
-COPY ./cookbook/ $PROJECT_ROOT/cookbook/
-
-COPY            ./dockerfiles/build/build-stage-recipes.sh \
-    $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
-RUN $PROJECT_ROOT/dockerfiles/build/build-stage-recipes.sh
+COPY ./cookbook/ /workspace/enki/cookbook/
+RUN cd /workspace/enki/cookbook \
+    && gem install bundler --no-document \
+    && gem install byebug --no-document \
+    && bundle install \
+    && bundle config set no-cache 'true' \
+    && bundle config set silence_root_warning 'true'
 
 
 # ---------------------------
 # Install the Concourse Resource
 # ---------------------------
 
-WORKDIR $PROJECT_ROOT/corgi-concourse-resource/
+WORKDIR /workspace/enki/corgi-concourse-resource/
 
 COPY --from=concourse-resource-builder /code/dist .
 
 RUN set -x \
-    && . $PROJECT_ROOT/venv/bin/activate \
     && pip3 install corgi*concourse*resource*.tar.gz \
     && mkdir -p /opt/resource \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
@@ -330,12 +321,9 @@ RUN set -x \
 # Install epub validator
 # ---------------------------
 
-RUN mv /root/.nvm $PROJECT_ROOT/nvm
-ENV PATH=$PATH:$PROJECT_ROOT/nvm/versions/node/v$NODE_VERSION/bin/
-
 ENV EPUB_VALIDATOR_VERSION=5.0.0
-RUN mkdir $PROJECT_ROOT/epub-validator \
-    && cd $PROJECT_ROOT/epub-validator \
+RUN mkdir /workspace/enki/epub-validator \
+    && cd /workspace/enki/epub-validator \
     && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
     && unzip epubvalidator.zip \
     ;
@@ -344,29 +332,59 @@ RUN mkdir $PROJECT_ROOT/epub-validator \
 # Copy the stages over
 # ---------------------------
 
+ENV PROJECT_ROOT=/workspace/enki
+
 # This variable is JUST used for the COPY instructions below
-ENV BAKERY_SRC_ROOT=$PROJECT_ROOT/bakery-src
+ENV BAKERY_SRC_ROOT=/workspace/enki/bakery-src
+
+COPY --from=adobe-colors-stage /adobe-icc/ /usr/share/color/icc/
+COPY --from=princexml-stage /usr/bin/prince /usr/bin/
+COPY --from=princexml-stage /usr/lib/prince /usr/lib/prince
+COPY --from=princexml-stage /usr/lib/x86_64-linux-gnu/lib* /usr/lib/x86_64-linux-gnu/
+COPY --from=build-jq-stage /usr/bin/jq /usr/bin/jq
+COPY --from=pandoc-stage /usr/bin/pandoc /usr/bin
+
 
 COPY --from=build-jo-stage /usr/local/bin/jo /usr/local/bin/jo
 COPY --from=build-kcov-stage /usr/local/bin/kcov* /usr/local/bin/
 COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
-COPY --from=build-xhtml-validator-stage $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar $PROJECT_ROOT/xhtml-validator/build/libs/xhtml-validator.jar
-COPY --from=build-bakery-js-stage $PROJECT_ROOT/bakery-js/ $PROJECT_ROOT/bakery-js/
-COPY --from=build-mathify-stage $PROJECT_ROOT/mathify/ $PROJECT_ROOT/mathify/
+COPY --from=build-xhtml-validator-stage /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar
+COPY --from=build-bakery-js-stage /workspace/enki/bakery-js/ /workspace/enki/bakery-js/
+COPY --from=build-mathify-stage /workspace/enki/mathify/ /workspace/enki/mathify/
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
 COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc
-COPY --from=build-python-stage $PROJECT_ROOT/venv/ $PROJECT_ROOT/venv/
+COPY --from=build-python-stage /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
+COPY --from=build-python-stage \
+    /usr/local/bin/neb \
+    /usr/local/bin/jsonschema \
+    /usr/local/bin/download-exercise-images \
+    /usr/local/bin/assemble-meta \
+    /usr/local/bin/link-extras \
+    /usr/local/bin/link-single \
+    /usr/local/bin/bake-meta \
+    /usr/local/bin/disassemble \
+    /usr/local/bin/jsonify \
+    /usr/local/bin/check-feed \
+    /usr/local/bin/copy-resources-s3 \
+    /usr/local/bin/gdocify \
+    /usr/local/bin/upload-docx \
+    /usr/local/bin/mathmltable2png \
+    /usr/local/bin/fetch-map-resources \
+    /usr/local/bin/fetch-update-meta \
+    /usr/local/bin/patch-same-book-links \
+    /usr/local/bin/link-rex \
+    /usr/local/bin/
+
 
 # Copy ce-styles
-COPY ./ce-styles/styles/output/ $PROJECT_ROOT/ce-styles/styles/output/
+COPY ./ce-styles/styles/output/ /workspace/enki/ce-styles/styles/output/
 
 
 ENV PATH=$PATH:/dockerfiles/
 COPY ./dockerfiles/fix-perms /usr/bin/
 COPY ./dockerfiles/10-fix-perms.sh /etc/entrypoint.d/
 COPY ./dockerfiles/steps /dockerfiles/steps
-COPY ./dockerfiles/build /dockerfiles/build
 COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \
@@ -378,8 +396,8 @@ COPY ./step-config.json $PROJECT_ROOT
 WORKDIR /data/
 
 RUN useradd --create-home -u 5000 app
-
 ENV RUN_AS="app:app"
+
 ENV ORIG_ENTRYPOINT='/dockerfiles/docker-entrypoint-with-kcov.sh'
 ENTRYPOINT ["/dockerfiles/entrypointd.sh"]
 HEALTHCHECK CMD /dockerfiles/healthcheckd.sh
