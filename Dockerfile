@@ -65,7 +65,7 @@ RUN gdebi --non-interactive /tmp/prince_${PRINCE_VERSION}_ubuntu${PRINCE_UBUNTU_
 # Install jq and Pandoc
 # ---------------------------
 ENV JQ_VERSION='1.6'
-ENV PANDOC_VERSION='2.12'
+ENV PANDOC_VERSION='3.1.2'
 
 RUN wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/jq-release.key -O /tmp/jq-release.key \
     && wget --no-check-certificate https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/jq-linux64.asc -O /tmp/jq-linux64.asc \
