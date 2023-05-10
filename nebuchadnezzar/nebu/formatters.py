@@ -98,7 +98,9 @@ def resolve_module_links(document, docs_by_id, input_dir):
     """
     for link in document.content.xpath("//*[@href]"):
         href = link.get("href", "").strip()
-        assert len(href) > 0, f"Empty link in \"{document.metadata['id']}\""
+        if len(href) == 0:  # pragma: no cover
+            logger.warning(f"Empty link in \"{document.metadata['id']}\"")
+            continue
         if not href.startswith("/m"):  # pragma: no cover
             continue
         fragment_idx = href.find("#")
