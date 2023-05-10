@@ -58,29 +58,25 @@ RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
     && make install
 
 # ---------------------------
-# Install NodeJS
+# Install Python, NodeJS, and Java
 # ---------------------------
-FROM base as base-with-node
+FROM base as base-with-langs
 ENV NODE_VERSION=18
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -
 RUN set -x \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-    nodejs
-
-
-FROM base-with-node
-
-
-# Use this so that gitpod directories are the same.
-# TODO: Maybe this ENV should be set in a gitpod-specific Dockerfile (if that's possible)
-ENV PROJECT_ROOT=/workspace/enki
+    openjdk-11-jre-headless \
+    python3 \
+    python3-pip \
+    nodejs \
+    ;
 
 
 # ---------------------------
 # Install mathify
 # ---------------------------
-FROM base-with-node as build-mathify-stage
+FROM base-with-langs as build-mathify-stage
 COPY ./mathify/package.json ./mathify/package-lock.json /workspace/enki/mathify/
 RUN npm --prefix=/workspace/enki/mathify ci
 COPY ./mathify/typeset /workspace/enki/mathify/typeset
@@ -88,7 +84,7 @@ COPY ./mathify/typeset /workspace/enki/mathify/typeset
 # ---------------------------
 # Install bakery-js
 # ---------------------------
-FROM base-with-node as build-bakery-js-stage
+FROM base-with-langs as build-bakery-js-stage
 # Install dependencies first
 COPY ./bakery-js/package.json ./bakery-js/package-lock.json /workspace/enki/bakery-js/
 RUN npm --prefix=/workspace/enki/bakery-js install
@@ -104,61 +100,38 @@ RUN npm --prefix=/workspace/enki/bakery-js run build
 # ===========================
 
 # TODO: Decouple node by moving the bakery javascript stuff into bakery-js
-FROM base-with-node AS base-with-python
-
-RUN set -x \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y \
-    python3 python3-pip python3-dev libgit2-dev
-# build-essential libicu-dev pkg-config
-
-
-# ---------------------------
-# Install cnxml
-# ---------------------------
-FROM base-with-python AS build-cnxml-stage
-COPY ./cnxml /workspace/enki/cnxml/
-RUN pip install /workspace/enki/cnxml/
-
 
 # ---------------------------
 # Install neb and bakery-scripts
 # ---------------------------
-FROM base-with-python AS build-python-stage
-
-ENV HOST_BAKERY_SRC_ROOT=./bakery-src
-ENV BAKERY_SRC_ROOT=/workspace/enki/bakery-src
+FROM base-with-langs AS build-python-stage
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    python3-dev libgit2-dev
 
 # Install dependencies
 COPY ./nebuchadnezzar/requirements /workspace/enki/nebuchadnezzar/requirements
-COPY $HOST_BAKERY_SRC_ROOT/scripts/requirements.txt $BAKERY_SRC_ROOT/scripts/
-RUN pip3 install -r /workspace/enki/nebuchadnezzar/requirements/main.txt -r $BAKERY_SRC_ROOT/scripts/requirements.txt
+COPY ./bakery-src/scripts/requirements.txt /workspace/enki/bakery-src/scripts/
+RUN pip3 install -r /workspace/enki/nebuchadnezzar/requirements/main.txt -r /workspace/enki/bakery-src/scripts/requirements.txt
 
 # Install scripts
 COPY ./nebuchadnezzar/ /workspace/enki/nebuchadnezzar/
-COPY $HOST_BAKERY_SRC_ROOT/scripts/*.py $HOST_BAKERY_SRC_ROOT/scripts/*.js $HOST_BAKERY_SRC_ROOT/scripts/*.json $BAKERY_SRC_ROOT/scripts/
-COPY $HOST_BAKERY_SRC_ROOT/scripts/gdoc/ $BAKERY_SRC_ROOT/scripts/gdoc/
-RUN pip3 install /workspace/enki/nebuchadnezzar/ $BAKERY_SRC_ROOT/scripts/.
+COPY ./bakery-src/scripts/*.py ./bakery-src/scripts/*.js ./bakery-src/scripts/*.json /workspace/enki/bakery-src/scripts/
+COPY ./bakery-src/scripts/gdoc/ /workspace/enki/bakery-src/scripts/gdoc/
+RUN pip3 install /workspace/enki/nebuchadnezzar/ /workspace/enki/bakery-src/scripts/.
 
-RUN npm --prefix $BAKERY_SRC_ROOT/scripts install --production $BAKERY_SRC_ROOT/scripts
+RUN npm --prefix /workspace/enki/bakery-src/scripts install --production /workspace/enki/bakery-src/scripts
 
 
 # ================
 # Java
 # ================
 
-FROM base-with-python AS base-with-java
-
-RUN set -x \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y \
-    openjdk-11-jre-headless
-
-
 # ---------------------------
-# Install xhtml-validator jar
+# Build xhtml-validator jar
 # ---------------------------
-FROM base-with-java AS build-xhtml-validator-stage
+FROM base-with-langs AS build-xhtml-validator-stage
 COPY ./xhtml-validator/ /workspace/enki/xhtml-validator/
 
 # Issues with gradle daemon on Apple M1 chips.
@@ -167,7 +140,7 @@ RUN cd /workspace/enki/xhtml-validator && ./gradlew jar
 
 
 # ---------------------------
-# Install kcov
+# Build kcov
 # ---------------------------
 FROM base AS build-kcov-stage
 
@@ -195,6 +168,9 @@ RUN mkdir /kcov-src/build \
     && cmake --build . --target install \
     ;
 
+# ---------------------------
+# Build jo
+# ---------------------------
 FROM base as build-jo-stage
 
 ENV JO_VERSION=1.4
@@ -222,7 +198,7 @@ RUN poetry build -f sdist
 # ===========================
 # The Final Stage
 # ===========================
-FROM base-with-java as runner
+FROM base-with-langs as runner
 
 # ---------------------------
 # Install OS packages
@@ -238,18 +214,18 @@ RUN set -x \
     # ... for princexml:
     fonts-stix libcurl4 \
     # ... for bakery-scripts
-    build-essential libicu-dev pkg-config libmagic1 \
-    mime-support wget curl xsltproc lsb-release git \
+    pkg-config libmagic1 \
+    mime-support wget xsltproc lsb-release git \
     imagemagick icc-profiles-free curl unzip \
     libgit2-dev \
     # ... for neb:
-    python3 python3-pip python3-venv build-essential wget openjdk-11-jre-headless libmagic1 mime-support \
+    wget libmagic1 mime-support \
     # ... for mathify:
     libpangocairo-1.0-0 libxcomposite1 libxcursor1 libxdamage1 libxi6 libxext6 libcups2 libxrandr2 \
     libatk1.0-0 libgtk-3-0 libx11-xcb1 libnss3 libxss1 libasound2 \
     libxcb-dri3-0 libdrm2 libgbm1 \
     # ... for cnx-easybake:
-    build-essential libicu-dev pkg-config python3-dev \
+    build-essential pkg-config \
     # ---------------------------
     # Dependencies that are not needed to prepare
     # the other steps but are necessary to run the code.
@@ -269,6 +245,28 @@ RUN set -x \
 RUN apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+
+# ---------------------------
+# Install the Concourse Resource
+# ---------------------------
+
+WORKDIR /workspace/enki/corgi-concourse-resource/
+COPY --from=concourse-resource-builder /code/dist .
+RUN set -x \
+    && pip3 install /workspace/enki/corgi-concourse-resource/corgi*concourse*resource*.tar.gz \
+    && mkdir -p /opt/resource \
+    && for script in check in out; do ln -s $(which $script) /opt/resource/; done
+
+# ---------------------------
+# Install epub validator
+# ---------------------------
+
+ENV EPUB_VALIDATOR_VERSION=5.0.0
+RUN mkdir /workspace/enki/epub-validator \
+    && cd /workspace/enki/epub-validator \
+    && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
+    && unzip epubvalidator.zip \
+    ;
 
 # ---------------------------
 # Install ruby
@@ -303,39 +301,13 @@ RUN cd /workspace/enki/cookbook \
     && bundle config set no-cache 'true' \
     && bundle config set silence_root_warning 'true'
 
-
-# ---------------------------
-# Install the Concourse Resource
-# ---------------------------
-
-WORKDIR /workspace/enki/corgi-concourse-resource/
-
-COPY --from=concourse-resource-builder /code/dist .
-
-RUN set -x \
-    && pip3 install corgi*concourse*resource*.tar.gz \
-    && mkdir -p /opt/resource \
-    && for script in check in out; do ln -s $(which $script) /opt/resource/; done
-
-# ---------------------------
-# Install epub validator
-# ---------------------------
-
-ENV EPUB_VALIDATOR_VERSION=5.0.0
-RUN mkdir /workspace/enki/epub-validator \
-    && cd /workspace/enki/epub-validator \
-    && curl --location --output epubvalidator.zip https://github.com/w3c/epubcheck/releases/download/v$EPUB_VALIDATOR_VERSION/epubcheck-$EPUB_VALIDATOR_VERSION.zip \
-    && unzip epubvalidator.zip \
-    ;
+COPY ./cookbook/ /workspace/enki/cookbook/
 
 # ---------------------------
 # Copy the stages over
 # ---------------------------
 
 ENV PROJECT_ROOT=/workspace/enki
-
-# This variable is JUST used for the COPY instructions below
-ENV BAKERY_SRC_ROOT=/workspace/enki/bakery-src
 
 COPY --from=adobe-colors-stage /adobe-icc/ /usr/share/color/icc/
 COPY --from=princexml-stage /usr/bin/prince /usr/bin/
@@ -352,8 +324,8 @@ COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 COPY --from=build-xhtml-validator-stage /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar
 COPY --from=build-bakery-js-stage /workspace/enki/bakery-js/ /workspace/enki/bakery-js/
 COPY --from=build-mathify-stage /workspace/enki/mathify/ /workspace/enki/mathify/
-COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts $BAKERY_SRC_ROOT/scripts
-COPY --from=build-python-stage $BAKERY_SRC_ROOT/scripts/gdoc $BAKERY_SRC_ROOT/scripts/gdoc
+COPY --from=build-python-stage /workspace/enki/bakery-src/scripts /workspace/enki/bakery-src/scripts
+COPY --from=build-python-stage /workspace/enki/bakery-src/scripts/gdoc /workspace/enki/bakery-src/scripts/gdoc
 COPY --from=build-python-stage /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=build-python-stage \
     /usr/local/bin/neb \
