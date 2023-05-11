@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" cnxml-version="0.7" id="id454" module-id="mXXXX">
+  <title>Test Module</title>
+
+<content>
+
+  <figure id="idm45763482823568">
+    <code id="idm45763482823264">Text</code>
+  </figure>
+
+  <figure id="idm45763482822752">
+    <label>Label</label>
+    <title>Title</title>
+    <code id="idm45763482821696">Text</code>
+    <caption>Caption</caption>
+  </figure>
+
+  <figure id="id123" orient="vertical" type="foo">
+    <code id="idm45763482819648">Text</code>
+  </figure>
+
+  <figure id="empty-figure"/>
+  <figure id="no-caption">
+    <caption/>
+  </figure>
+
+  <para id="idm45763482819056">Inside a para (make sure the title is a span, not a div):
+    <figure id="idm45763482818720">
+      <label>Label</label>
+      <title>Title</title>
+      <code id="idm45763482817584">Text</code>
+      <caption>Caption</caption>
+    </figure>
+  </para>
+
+  <figure id="idm45763482816496">
+
+    <subfigure id="idm45763482815776">
+      <code id="idm45763482815520">Text</code>
+      <caption>Subfigure Caption</caption>
+    </subfigure>
+    <subfigure id="idm45763482815888">
+      <code id="idm45763482815999">Text</code>
+      <caption>Subfigure Caption</caption>
+    </subfigure>
+    <caption>Figure Caption</caption>
+
+  </figure>
+
+</content>
+</document>

@@ -1,0 +1,7 @@
+pretend
+pytest>=4.6
+pytest-cov
+pytest-runner
+requests-mock
+aioresponses
+pytest-snapshot

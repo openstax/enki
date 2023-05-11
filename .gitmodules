@@ -2,10 +2,6 @@
 	path = mathify
 	url = https://github.com/openstax/mathify
 	branch = main
-[submodule "nebuchadnezzar"]
-	path = nebuchadnezzar
-	url = https://github.com/openstax/nebuchadnezzar
-	branch = main
 [submodule "cookbook"]
 	path = cookbook
 	url = https://github.com/openstax/cookbook

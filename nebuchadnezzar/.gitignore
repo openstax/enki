@@ -1,0 +1,28 @@
+# Development #
+###############
+__pycache__
+*.pyc
+*.egg-info
+.tox
+*.*~
+.DS_Store
+/*.log
+.cache
+.state
+.pytest_cache
+
+# Virtualenv #
+##############
+/venv/
+
+# Build file #
+##############
+build/
+dist/
+.eggs/
+docs/_build
+
+# Coverage #
+############
+.coverage
+/htmlcov/

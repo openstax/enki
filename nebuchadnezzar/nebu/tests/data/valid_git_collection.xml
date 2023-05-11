@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<col:collection xmlns="http://cnx.rice.edu/collxml"
+                xmlns:cnx="http://cnx.rice.edu/cnxml"
+                xmlns:cnxorg="http://cnx.rice.edu/system-info"
+                xmlns:md="http://cnx.rice.edu/mdml"
+                xmlns:col="http://cnx.rice.edu/collxml"
+                xmlns:cnxml="http://cnx.rice.edu/cnxml"
+                xmlns:m="http://www.w3.org/1998/Math/MathML"
+                xmlns:q="http://cnx.rice.edu/qml/1.0"
+                xmlns:xhtml="http://www.w3.org/1999/xhtml"
+                xmlns:bib="http://bibtexml.sf.net/"
+                xmlns:cc="http://web.resource.org/cc/"
+                xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                xml:lang="en" type="Textbook">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml">
+    <!-- WARNING! The 'metadata' section is read only. Do not edit below.
+         Changes to the metadata section in the source will not be saved. -->
+    <md:content-id>col11406</md:content-id>
+    <md:title>College Physics</md:title>
+    <md:language>en</md:language>
+    <md:license url="http://creativecommons.org/licenses/by/4.0/deed.en">Creative Commons Attribution License 4.0</md:license>
+    <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27e2d2</md:uuid>
+    <md:slug>college-physics</md:slug>
+    <!-- For information on license requirements for use or modification, see license url in the
+         above <md:license> element.
+         For information on formatting required attribution, see the URL:
+         CONTENT_URL/content_info#cnx_cite_header
+         where CONTENT_URL is the value provided above in the <md:content-url> element.
+    -->
+    <!-- WARNING! The 'metadata' section is read only. Do not edit above.
+         Changes to the metadata section in the source will not be saved. -->
+  </metadata>
+
+  <col:content>
+
+    <col:module document="m42955" />
+
+    <col:subcollection>
+      <md:title>Frontiers of Physics</md:title>
+      <col:content>
+        <col:module document="m42683" />
+        <col:module document="m42686" />
+        <col:module document="m42689" />
+        <col:module document="m42691" />
+        <col:module document="m42692" />
+        <col:module document="m42694" />
+        <col:module document="m42696" />
+        <col:module document="m42704" />
+      </col:content>
+    </col:subcollection>
+
+    <col:module document="m42699">
+      <col:featured-links>
+        <cnxml:link-group type="example">
+          <cnxml:link url="http://example.com/exampe1">Example</cnxml:link>
+        </cnxml:link-group>
+        <cnxml:link-group type="supplemental">
+          <cnxml:link url="http://example.com/supplemental1">Supplemental 1</cnxml:link>
+          <cnxml:link url="http://example.com/supplemental2">Supplemental 2</cnxml:link>
+        </cnxml:link-group>
+      </col:featured-links>
+    </col:module>
+
+    <col:module document="m42702" />
+    <col:module document="m42720" />
+    <col:module document="m42709" />
+  </col:content>
+
+</col:collection>

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:m="http://www.w3.org/1998/Math/MathML" id="imported-from-openoffice" module-id="imported-from-openoffice" cnxml-version="0.7">
+    <title>Ohm’s Law: Resistance and Simple Circuits</title>
+
+<content>
+        <para id="import-auto-id1170614047950">...</para>
+
+        <section id="fs-id1828656">
+            <title>Ohm’s Law</title>
+        <para xmlns:q="http://cnx.rice.edu/qml/1.0" id="import-auto-id1170614047620">The current that flows through most substances is directly proportional to the voltage <m:math><m:semantics><m:mrow><m:mrow><m:mi>V</m:mi></m:mrow><m:mrow/></m:mrow><m:annotation encoding="StarMath 5.0"> size 12{V} {}</m:annotation></m:semantics></m:math> applied to it. The German physicist Georg Simon Ohm (1787–1854) was the first to demonstrate experimentally that the current in a metal wire is <emphasis effect="italics">directly proportional to the voltage applied</emphasis>:</para><equation id="eip-103"><m:math><m:semantics><m:mrow><m:mrow><m:mrow><m:mi>I</m:mi><m:mo stretchy="false">∝</m:mo><m:mi>V</m:mi></m:mrow></m:mrow><m:mtext>.</m:mtext><m:mrow/></m:mrow><m:annotation encoding="StarMath 5.0"> size 12{I  prop  V.} {}</m:annotation></m:semantics></m:math></equation><para id="import-auto-id1170614065536">This important relationship is known as <term id="import-auto-id1170614061213">Ohm’s law</term>. It can be viewed as a cause-and-effect relationship, with voltage the cause and current the effect. This is an empirical law like that for friction—an experimentally observed phenomenon. Such a linear relationship doesn’t always occur.</para>
+        </section>
+        
+        <section id="fs-id3088760">
+            <title>Resistance and Simple Circuits</title>
+        <para xmlns:q="http://cnx.rice.edu/qml/1.0" id="import-auto-id1170614065817">If voltage drives current, what impedes it? The electric property that impedes current (crudely similar to friction and air resistance) is called <term id="import-auto-id1170614065376">resistance</term> <m:math><m:semantics><m:mrow><m:mrow><m:mi>R</m:mi></m:mrow><m:mrow/></m:mrow><m:annotation encoding="StarMath 5.0"> size 12{R} {}</m:annotation></m:semantics></m:math>. Collisions of moving charges with atoms and molecules in a substance transfer energy to the substance and limit current. Resistance is defined as inversely proportional to current, or</para><equation id="eip-593"><m:math><m:semantics><m:mrow><m:mrow><m:mrow><m:mi>I</m:mi><m:mo stretchy="false">∝</m:mo><m:mfrac><m:mn>1</m:mn><m:mi>R</m:mi></m:mfrac></m:mrow></m:mrow><m:mtext>.</m:mtext><m:mrow/></m:mrow><m:annotation encoding="StarMath 5.0"> size 12{I  prop   {  {1}  over  {R} } "."} {}</m:annotation></m:semantics></m:math></equation><para id="import-auto-id1170614063309">Thus, for example, current is cut in half if resistance doubles. Combining the relationships of current to voltage and current to resistance gives</para>
+        </section>
+
+        <para id="idm46216949062912">...</para>
+        
+    </content>
+    <glossary class="ost-reading-discard">
+
+        <definition id="import-auto-id1170614029097"><term>Ohm’s law</term> <meaning id="fs-id3177792">an empirical relation stating that the current <emphasis effect="italics">I</emphasis> is proportional to the potential difference <emphasis effect="italics">V</emphasis>, <emphasis effect="italics">∝ V</emphasis>; it is often written as <emphasis effect="italics">I = V/R</emphasis>, where <emphasis effect="italics">R</emphasis> is the resistance</meaning></definition>
+
+        <definition id="import-auto-id1170614028797"><term>resistance</term><meaning id="fs-id3032203"> the electric property that impedes current; for ohmic materials, it is the ratio of voltage to current, <emphasis effect="italics">R = V/I</emphasis></meaning></definition>
+
+        <definition id="import-auto-id1170614028811"><term>ohm</term> <meaning id="fs-id1917197">the unit of resistance, given by 1Ω = 1 V/A</meaning></definition>
+
+<definition id="fs-id1950602"><term>ohmic</term><meaning id="fs-id2065197"> a type of a material for which Ohm's law is valid</meaning></definition>
+
+            <definition id="import-auto-id1170614028884"><term>simple circuit</term> <meaning id="fs-id1254011">a circuit with a single voltage source and a single resistor</meaning></definition>
+    </glossary>
+</document>

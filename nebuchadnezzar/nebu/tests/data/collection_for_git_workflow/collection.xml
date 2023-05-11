@@ -1,0 +1,43 @@
+<col:collection xmlns="http://cnx.rice.edu/collxml" xmlns:cnx="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:md="http://cnx.rice.edu/mdml" xmlns:col="http://cnx.rice.edu/collxml" xml:lang="en">
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+    <!-- WARNING! The 'metadata' section is read only. Do not edit below. Changes to the metadata section in the source will not be saved. -->
+    <md:content-id>col11562</md:content-id>
+    <md:title>Introductory Statistics</md:title>
+    <md:version>af89d35</md:version>
+    <md:revised>2019-02-22T14:15:14.840187-06:00</md:revised>
+    <md:license url="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution License</md:license>
+    <md:uuid>30189442-6998-4686-ac05-ed152b91b9de</md:uuid>
+    <md:slug>introductory-statistics</md:slug>
+    <!-- For information on license requirements for use or modification, see license url in the above <md:license> element.
+           For information on formatting required attribution, see the URL:
+             CONTENT_URL/content_info#cnx_cite_header
+           where CONTENT_URL is the value provided above in the <md:content-url> element.
+      -->
+  </metadata>
+  <col:parameters>
+    <col:param name="print-style" value="statistics"/>
+  </col:parameters>
+  <col:content>
+    <col:module document="m46909"/>
+    <col:subcollection>
+      <md:title>Sampling and Data</md:title>
+      <col:content>
+        <col:subcollection>
+          <md:title>A subcol nested inside another</md:title>
+          <col:content>
+            <col:module document="m46857"/>
+          </col:content>
+        </col:subcollection>
+        <col:module document="m46913"/>
+        <col:module document="m46909"/>
+      </col:content>
+    </col:subcollection>
+    <col:subcollection>
+      <md:title>Descriptive Statistics</md:title>
+      <col:content>
+        <col:module document="m46882"/>
+      </col:content>
+    </col:subcollection>
+    <col:module document="m46882"/>
+  </col:content>
+</col:collection>
