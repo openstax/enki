@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" id="idm45889741455392" cnxml-version="0.7" module-id="m12345">
+  <title>Test Module</title>
+
+<content>
+
+
+  <code id="idc23423423" display="block">[line 1]
+[line 2]          [after 10 spaces]
+[line 3]</code>
+
+
+  <para id="idm45792189928240">...<code>[some text]          [after 10 spaces]</code>...</para>
+
+
+
+  <para id="id2342345"> <code display="inline">Inline code where it would normally be a block</code>
+  </para>
+  <code lang="JavaScript" display="block" id="id34556">with a language attribute</code>
+
+  <code id="id456" display="block"><title>the title</title>with a title</code>
+
+  <code id="id789" display="block"><label>the label</label><title>the title</title>with a title and label</code>
+
+  <!-- Using 1 line because Travis and OSX use a different version libxml -->
+  <code id="id7890" display="block" lang="JavaScript"><label>the label</label><title>the title</title>with a title and label</code>
+
+  <para id="idm45792189920736">Preformat element (much like a block of code but styled differently)</para>
+
+  <preformat id="idm45889741367328">[line 1]
+[line 2]          [after 10 spaces]
+[line 3]</preformat>
+
+  <!-- Using 1 line because Travis and OSX use a different version libxml -->
+  <preformat id="id4560"><title>the title</title>with a title</preformat>
+
+
+  <list id="idm45792189918144">
+    <item><code>inline code; should not be a blockish pre</code></item>
+  </list>
+
+</content>
+</document>

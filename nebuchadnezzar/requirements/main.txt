@@ -1,0 +1,7 @@
+lxml==4.9.2
+click>=7.1.2
+docker>=4.2.2
+pip
+requests>=2.24.0
+setuptools
+jinja2

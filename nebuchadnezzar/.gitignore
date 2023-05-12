@@ -1,0 +1,17 @@
+# Development #
+###############
+__pycache__
+*.pyc
+*.egg-info
+.tox
+*.*~
+.DS_Store
+/*.log
+.cache
+.state
+.pytest_cache
+
+# Coverage #
+############
+cov.xml
+/htmlcov/

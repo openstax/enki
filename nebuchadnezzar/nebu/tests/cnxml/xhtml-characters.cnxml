@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml/0.4" xmlns:bib="http://bibtexml.sf.net/" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:md1="http://cnx.rice.edu/mdml" xmlns:m="http://www.w3.org/1998/Math/MathML" id="id1164845029421" module-id="m12345" cnxml-version="0.7">
+<title>Document testing the use of the title tag</title>
+<content>
+  <para id="id1">XHTML does not render Windows ISO characters at all. See <link url="https://www.cs.tut.fi/~jkorpela/www/windows-chars.html">https://www.cs.tut.fi/~jkorpela/www/windows-chars.html</link> for details and the conversion to UTF-8</para>
+
+  <list id="list">
+  <item>&amp;#130; = &#130;</item>
+  <item>&amp;#131; = &#131;</item>
+  <item>&amp;#132; = &#132;</item>
+  <item>&amp;#133; = &#133;</item>
+  <item>&amp;#134; = &#134;</item>
+  <item>&amp;#135; = &#135;</item>
+  <item>&amp;#136; = &#136;</item>
+  <item>&amp;#137; = &#137;</item>
+  <item>&amp;#138; = &#138;</item>
+  <item>&amp;#139; = &#139;</item>
+  <item>&amp;#140; = &#140;</item>
+  <item>&amp;#145; = &#145;</item>
+  <item>&amp;#146; = &#146;</item>
+  <item>&amp;#147; = &#147;</item>
+  <item>&amp;#148; = &#148;</item>
+  <item>&amp;#149; = &#149;</item>
+  <item>&amp;#150; = &#150;</item>
+  <item>&amp;#151; = &#151;</item>
+  <item>&amp;#152; = &#152;</item>
+  <item>&amp;#153; = &#153;</item>
+  <item>&amp;#154; = &#154;</item>
+  <item>&amp;#155; = &#155;</item>
+  <item>&amp;#156; = &#156;</item>
+  <item>&amp;#159; = &#159;</item>
+  </list>
+</content>
+</document>

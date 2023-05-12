@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml"><title>Test Module</title></head>
+
+<body xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:qml="http://cnx.rice.edu/qml/1.0" xmlns:mod="http://cnx.rice.edu/#moduleIds" xmlns:bib="http://bibtexml.sf.net/" xmlns:data="http://www.w3.org/TR/html5/dom.html#custom-data-attribute" xmlns:epub="http://www.idpf.org/2007/ops"><div data-type="document-title">Test Module</div>
+
+
+  <pre data-type="code" id="idc23423423" data-display="block">[line 1]
+[line 2]          [after 10 spaces]
+[line 3]</pre>
+
+
+  <p id="idm45792189928240">...<code data-type="code">[some text]          [after 10 spaces]</code>...</p>
+
+
+
+  <p id="id2342345"> <code data-type="code" data-display="inline">Inline code where it would normally be a block</code>
+  </p>
+  <pre data-type="code" data-lang="JavaScript" data-display="block" id="id34556">with a language attribute</pre>
+
+  <div data-type="code" id="id456"><div data-type="title">the title</div><pre data-display="block">with a title</pre></div>
+
+  <div data-type="code" id="id789"><div data-type="title">the title</div><pre data-display="block" data-label="the label">with a title and label</pre></div>
+
+  <!-- Using 1 line because Travis and OSX use a different version libxml -->
+  <div data-type="code" id="id7890"><div data-type="title">the title</div><pre data-display="block" data-lang="JavaScript" data-label="the label">with a title and label</pre></div>
+
+  <p id="idm45792189920736">Preformat element (much like a block of code but styled differently)</p>
+
+  <pre data-type="code" id="idm45889741367328">[line 1]
+[line 2]          [after 10 spaces]
+[line 3]</pre>
+
+  <!-- Using 1 line because Travis and OSX use a different version libxml -->
+  <div data-type="code" id="id4560"><div data-type="title">the title</div><pre>with a title</pre></div>
+
+
+  <ul id="idm45792189918144">
+    <li><code data-type="code">inline code; should not be a blockish pre</code></li>
+  </ul>
+
+</body>
+
+</html>
