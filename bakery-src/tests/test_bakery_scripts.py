@@ -38,7 +38,6 @@ from bakery_scripts import (
     gdocify_book,
     mathmltable2png,
     copy_resources_s3,
-    upload_docx,
     fetch_map_resources,
     fetch_update_metadata,
     link_single,
