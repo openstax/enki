@@ -1,4 +1,4 @@
-lxml==4.4.3
+lxml==4.9.2
 click>=7.1.2
 docker>=4.2.2
 pip

@@ -45,7 +45,7 @@ jobs:
       - name: Upload Code Coverage
         uses: codecov/codecov-action@v3
         with:
-          files: nebuchadnezzar/.coverage
+          files: nebuchadnezzar/cov.xml
       - name: Install submodules
         run: ./install-submodules.sh
       - name: update visual dependency graphs and verify typescript code builds concourse files and the step-config.json file

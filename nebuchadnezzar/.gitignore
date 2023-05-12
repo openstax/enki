@@ -13,5 +13,5 @@ __pycache__
 
 # Coverage #
 ############
-.coverage
+cov.xml
 /htmlcov/
