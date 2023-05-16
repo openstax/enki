@@ -15,6 +15,7 @@ graph TB
     step-fetch -- fetched --> step-prebake
     step-fetch -- fetched --> step-bake
     step-prebake -- assembled --> step-bake
+    step-prebake -- resources --> step-bake
     step-fetch -- fetched --> step-postbake
     step-prebake -- assemble-meta --> step-postbake
     step-bake -- baked --> step-postbake
@@ -33,6 +34,7 @@ graph TB
     step-fetch -- fetched --> step-prebake
     step-fetch -- fetched --> step-bake
     step-prebake -- assembled --> step-bake
+    step-prebake -- resources --> step-bake
     step-fetch -- fetched --> step-postbake
     step-prebake -- assemble-meta --> step-postbake
     step-bake -- baked --> step-postbake
@@ -52,6 +54,7 @@ graph TB
     step-fetch -- fetched --> step-prebake
     step-fetch -- fetched --> step-bake
     step-prebake -- assembled --> step-bake
+    step-prebake -- resources --> step-bake
     step-fetch -- fetched --> step-postbake
     step-prebake -- assemble-meta --> step-postbake
     step-bake -- baked --> step-postbake
@@ -70,6 +73,7 @@ graph TB
     step-fetch -- fetched --> step-prebake
     step-fetch -- fetched --> step-bake
     step-prebake -- assembled --> step-bake
+    step-prebake -- resources --> step-bake
     step-fetch -- fetched --> step-postbake
     step-prebake -- assemble-meta --> step-postbake
     step-bake -- baked --> step-postbake

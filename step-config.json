@@ -28,7 +28,8 @@
             "inputDirs": [
                 "IO_BOOK",
                 "IO_FETCHED",
-                "IO_ASSEMBLED"
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
             ],
             "outputDirs": [
                 "IO_BAKED"
