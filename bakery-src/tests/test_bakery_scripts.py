@@ -16,9 +16,6 @@ import threading
 from urllib.parse import urlparse
 from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
-from googleapiclient.discovery import build
-import google.auth
-from googleapiclient.http import RequestMockBuilder
 from PIL import Image
 from pathlib import Path
 from filecmp import cmp
@@ -41,7 +38,6 @@ from bakery_scripts import (
     gdocify_book,
     mathmltable2png,
     copy_resources_s3,
-    upload_docx,
     fetch_map_resources,
     fetch_update_metadata,
     link_single,
@@ -2265,164 +2261,6 @@ def test_s3_existence_404(tmp_path, mocker):
 
     s3_stubber.assert_no_pending_responses()
     s3_stubber.deactivate()
-
-
-def test_upload_docx(tmp_path, mocker):
-    """Test upload-docx script"""
-
-    mock_creds = mocker.Mock(spec=google.auth.credentials.Credentials)
-    parent_google_folder_id = "parentfolderID"
-    book_folder = "How to be awesome"
-    book_folder_id = "bookfolderID"
-
-    # Test find_or_create_folder_by_name when folder does not exist
-    request_builder = RequestMockBuilder(
-        {
-            "drive.files.list": (None, json.dumps({"files": []})),
-            "drive.files.create": (
-                None,
-                json.dumps({"id": book_folder_id}),
-                {
-                    "name": book_folder,
-                    "parents": [parent_google_folder_id],
-                    "mimeType": "application/vnd.google-apps.folder"
-                }
-            )
-        },
-        check_unexpected=True
-    )
-
-    mock_drive_service = build(
-        "drive", "v3", requestBuilder=request_builder, credentials=mock_creds
-    )
-
-    result = upload_docx.find_or_create_folder_by_name(
-        mock_drive_service,
-        parent_google_folder_id,
-        book_folder
-    )
-    assert result == book_folder_id
-
-    # Test find_or_create_folder_by_name when multiple folders returned
-    request_builder = RequestMockBuilder(
-        {
-            "drive.files.list": (
-                None,
-                json.dumps({"files": [{"id": ""}, {"id": ""}]})
-            )
-        },
-        check_unexpected=True
-    )
-
-    mock_drive_service = build(
-        "drive", "v3", requestBuilder=request_builder, credentials=mock_creds
-    )
-
-    with pytest.raises(Exception):
-        upload_docx.find_or_create_folder_by_name(
-            mock_drive_service,
-            parent_google_folder_id,
-            book_folder
-        )
-
-    # Test find_or_create_folder_by_name when folder exists
-    request_builder = RequestMockBuilder(
-        {
-            "drive.files.list": (
-                None,
-                json.dumps({"files": [{"id": book_folder_id}]})
-            )
-        },
-        check_unexpected=True
-    )
-
-    mock_drive_service = build(
-        "drive", "v3", requestBuilder=request_builder, credentials=mock_creds
-    )
-
-    result = upload_docx.find_or_create_folder_by_name(
-        mock_drive_service,
-        parent_google_folder_id,
-        book_folder
-    )
-
-    assert result == book_folder_id
-
-    # Test get_gdocs_in_folder
-    request_builder = RequestMockBuilder(
-        {
-            "drive.files.list": (
-                None,
-                json.dumps({
-                    "files": [
-                        {"id": "gdoc1", "name": "gdoc1"},
-                        {"id": "gdoc2", "name": "gdoc2"}
-                    ]
-                })
-            )
-        },
-        check_unexpected=True
-    )
-
-    mock_drive_service = build(
-        "drive", "v3", requestBuilder=request_builder, credentials=mock_creds
-    )
-
-    result = upload_docx.get_gdocs_in_folder(
-        mock_drive_service,
-        book_folder_id
-    )
-
-    assert result == [
-        {"id": "gdoc1", "name": "gdoc1"},
-        {"id": "gdoc2", "name": "gdoc2"}
-    ]
-
-    # Test upsert_docx_to_folder
-    input_dir = tmp_path / "docx-book" / "col12345" / "docx"
-    input_dir.mkdir(parents=True)
-    input_docx = []
-    for doc_name in ["chapter1", "chapter2"]:
-        docx = input_dir / f"{doc_name}.docx"
-        docx.write_text("Test")
-        input_docx.append(docx)
-
-    request_builder = RequestMockBuilder(
-        {
-            "drive.files.list": (
-                None,
-                json.dumps({
-                    "files": [
-                        {"id": "ch1exists", "name": "chapter1"}
-                    ]
-                })
-            ),
-            "drive.files.create": (
-                None,
-                json.dumps({"id": "ch2new"})
-            ),
-            "drive.files.update": (
-                None,
-                json.dumps({})
-            )
-        },
-        check_unexpected=True
-    )
-
-    mock_drive_service = build(
-        "drive", "v3", requestBuilder=request_builder, credentials=mock_creds
-    )
-
-    results = upload_docx.upsert_docx_to_folder(
-        mock_drive_service,
-        input_docx,
-        book_folder_id
-    )
-
-    assert results == [
-        {"id": "ch1exists", "name": "chapter1"},
-        {"id": "ch2new", "name": "chapter2"},
-    ]
 
 
 def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
