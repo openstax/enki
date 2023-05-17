@@ -48,33 +48,40 @@ format_time() {
   fi
 }
 
+get_slug_list_for_repo () {
+  meta_inf=$(curl -Ss "https://raw.githubusercontent.com/openstax/$1/main/META-INF/books.xml")
+  filtered=$(echo $meta_inf | grep -oE 'slug="([a-zA-Z0-9\-]+)"' | sed 's/slug=//g' | sed 's/\"//g')
+  echo $filtered
+}
+
 # Nicely handle an enki run
 run_and_log_enki () {
-  echo "  running command $1 on $2 $3"
   start_time=$(date +%s)
-  book_destination=$arg_data_dir/$3-$1
-  cmd="./enki --data-dir $book_destination --command $1 --repo openstax/$2 --book-slug $3 --ref main"
-  log="$root/logs/$repo-$slug.txt"
+  book_destination=$arg_data_dir/$2-$1
+  cmd="./enki --data-dir $book_destination --command $1 --repo $2 --ref main"
+  echo "running: $cmd"
+  log="$root/logs/$2-$1.txt"
+  echo "volumes are: $(get_slug_list_for_repo $2)"
   if [[ $do_continue && -f "$log" ]]; then
     echo "Skipping because log file exists. To build anyway, unset --continue flag."
     return 0
   fi
   if [[ $do_echo ]]; then
-    $cmd 2>&1 | tee "$log"
+    SKIP_DOCKER_BUILD=1 $cmd 2>&1 | tee "$log"
     exit=${PIPESTATUS[0]}
   else
-    $cmd &> "$log"
+    SKIP_DOCKER_BUILD=1 $cmd &> "$log"
     exit=$?
   fi
   stop_time=$(date +%s)
   elapsed_formatted=$( format_time $(($stop_time-$start_time)) )
   echo "  time to build $elapsed_formatted"
   if [ $exit == 0 ]; then
-    echo_green "==> SUCCESS: $2 $3"
-    echo "Book can be found at $book_destination"
+    echo_green "  ==> SUCCESS: $2"
+    echo "  Book can be found at $book_destination"
   else
-    echo_red "==> FAILED with $exit: $2 $3"
-    echo "For more information see $root/logs/$repo-$slug.txt"
+    echo_red "  ==> FAILED with $exit: $2"
+    echo "  For more information see $log"
   fi
   return $exit
 }
@@ -83,11 +90,12 @@ run_and_log_enki () {
 total_start=$(date +%s)
 failed_count=0
 success_count=0
+# Build container once
+DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag enki-for-builder --file ./Dockerfile ./.
 while read -r line; do
   repo=${line%%' '*}
-  slug=${line##*' '}
   # https://stackoverflow.com/a/35208546
-  echo "" | run_and_log_enki $arg_command $repo $slug \
+  echo "" | run_and_log_enki $arg_command $repo \
     && success_count=$(($success_count+1)) || failed_count=$(($failed_count+1))
 done < <(cat "$all_books")
 total_end=$(date +%s)

@@ -7,8 +7,8 @@
 
 Format:
 ```
-repo-name-1 book-slug-1
-repo-name-1 book-slug-2
+repo-name-1
+repo-name-1
 ...
 ```
 To ensure data in the UBL is included in `AUTO_books.txt`, be sure to rerun the updater after editing this file.
@@ -25,7 +25,7 @@ All scripts are meant to be run from Enki root (eg. by calling `./cross-lib/upda
 
 `updater.sh` - Runs `update_books.rb` without dependencies installed (bundles Docker `build` and `run`).
 
-`run_enki_on_all.sh` - Iterates over books in `AUTO_books.txt`, running enki to generate each. Outputs status of each run & the time to stdout. Book files are found in `/data/<slug>-<command>`. 
+`run_enki_on_all.sh` - Iterates over books in `AUTO_books.txt`, running enki to generate each. Outputs status of each run & the time to stdout. Book files are found in `/data/<repo>-<command>`. 
 
 Options:
 - --command: A [step or set of steps](../step-config.json) to run on all books . Example: `all-pdf`
@@ -33,6 +33,13 @@ Options:
 - --echo: Outputs to the terminal as well as the log the regular output from enki
 - --continue: Skips books that have an associated log file (useful for if a run was interrupted)
 
+Examples:
+```
+./cross-lib/run_enki_on_all.sh --command all-pdf
+./cross-lib/run_enki_on_all.sh --command all-epub --data-dir ./data/v1 --echo --continue
+STOP_AT_STEP=step-bake ./cross-lib/run_enki_on_all.sh --command all-web
+```
+
 ## Logs
 
-When `run_enki_on_all.sh` is called, it redirects the output from each book's run to a log file. The naming system for log files is `<repo>-<slug>.txt`.
+When `run_enki_on_all.sh` is called, it redirects the output from each book's run to a log file. The naming system for log files is `<repo>-<command>.txt`.
