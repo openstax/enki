@@ -29,7 +29,7 @@ function set(step: Step) {
 // GIT_PDF_STEPS
 set({name: 'step-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
 set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
-set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED], outputs: [IO.BAKED], env: {}})
+set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: {}})
 set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED], env: {}})
 
 
