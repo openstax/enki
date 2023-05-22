@@ -180,17 +180,42 @@ class TestIn(object):
 
 class TestOut(object):
 
+    @pytest.mark.parametrize(
+            "output,result", [
+                ("http://dummy.cops.org/col12345-latest.pdf", None),
+                (
+                    [
+                        {"slug": "test1", "url": "something"},
+                        {"slug": "test2", "url": "other"}
+                    ],
+                    None
+                ),
+                (
+                    [
+                        {"text": "View - Rex Web", "href": "Something"},
+                        {"text": "View - Rex Web Prod", "href": "Something else"}
+                    ],
+                    "Something else"
+                )
+            ]
+    )
     @vcr.use_cassette("tests/cassettes/test_out.yaml", record_mode="new_episode")
-    def test_update_job_status_and_url(self, monkeypatch):
+    def test_update_job_status_and_url(self, output, result, monkeypatch):
         id = "1"
-        pdf_url = "http://dummy.cops.org/col12345-latest.pdf"
         src_path = tempfile.mkdtemp()
+        
+        if result is None:
+            result = output
 
         id_filepath = os.path.join(src_path, "id")
         pdf_url_filepath = os.path.join(src_path, "pdf_url")
 
         write_file(id_filepath, id)
-        write_file(pdf_url_filepath, pdf_url)
+        write_file(
+            pdf_url_filepath,
+            output
+            if isinstance(output, str)
+            else json.dumps(output))
 
         params = {
             "id": "id",
@@ -210,6 +235,7 @@ class TestOut(object):
             assert id
             assert "status_id" in data
             assert "artifact_urls" in data
+            assert data["artifact_urls"] == result
             return update_job(api_root, id, data)
         
         monkeypatch.setattr("corgi_concourse_resource.out.update_job", test_data)
