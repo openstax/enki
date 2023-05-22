@@ -137,21 +137,20 @@ function get_s3_name() {
 function s3_upload() {
     acl="$1"
     content_type="$2"
-    get_slug_name=${3:-'cut -d . -f 1'}
 
-    [[ -z $acl || -z $content_type ]] && {
+    [[ -z "$acl" || -z "$content_type" ]] && {
         die "acl and content_type are required for s3_upload"
     }
 
     book_slug_urls=()
-    while read -r file_to_upload; do
+    while read -r file_slug_pair; do
+        IFS='|' read -r file_to_upload slug <<< "$file_slug_pair"
         s3_name=$(get_s3_name "$file_to_upload")
         url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
         echo "Uploading $file_to_upload to $url"
         aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
             --acl "$acl" \
             --content-type "$content_type"
-        slug="$(echo "$file_to_upload" | $get_slug_name)"
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
     done
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
