@@ -275,7 +275,7 @@ envs=""
     envs+=' --env JAVA_DEBUG=1 '
 }
 
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $ports $interactive $enable_tty \
+docker run $ports $interactive $enable_tty \
     $opt_sideload_book_arg \
     --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \
