@@ -74,16 +74,7 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*.pdf`,
-                        acl: 'public-read',
-                        content_type: 'application/pdf'
-                    }
-                }
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
                 pdf_url: `${IO.ARTIFACTS}/pdf_url`
@@ -168,8 +159,7 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage)
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
                 pdf_url: `${IO.ARTIFACTS}/pdf_url`

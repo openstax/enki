@@ -23,7 +23,7 @@ graph TB
     step-bake -- baked --> step-pdf
     step-prebake -- fetch-meta --> step-pdf
     step-prebake -- resources --> step-pdf
-    step-pdf -- artifacts --> step-pdf-meta
+    step-pdf -- artifacts --> step-upload-pdf
 ```
 
 ## all-web
@@ -64,6 +64,7 @@ graph TB
     step-prebake -- resources --> step-epub
     step-disassemble -- disassemble-linked --> step-epub
     step-bake -- baked --> step-epub
+    step-epub -- artifacts --> step-upload-epub
 ```
 
 ## all-docx

@@ -77,7 +77,4 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
     set -e
 done
 
-{ for f in "$IO_ARTIFACTS/"*.epub; do echo "$f|$(basename "$f" ".epub")"; done } | \
-s3_upload "public-read" "application/epub+zip"
-
 shopt -u globstar nullglob

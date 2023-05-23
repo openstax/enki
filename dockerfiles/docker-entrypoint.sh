@@ -127,32 +127,50 @@ function read_style() {
     echo $style_name
 }
 
+function expect_value() {
+  if [[ -z "$1" ]]; then
+    die "${2:-"Missing required argument"}"
+  fi
+}
+
 function get_s3_name() {
     filename="$(basename "$1")"
-    s3_name="$(cat "$IO_BOOK/repo")-$(cat "$IO_BOOK/version")-$(cat "$IO_BOOK/job_id")-$filename"
+    repo="$(cat "$IO_BOOK/repo")"
+    version="$(cat "$IO_BOOK/version")"
+    job_id="$(cat "$IO_BOOK/job_id")"
+    for varname in repo version job_id filename; do
+        if [[ -z "${!varname}" ]]; then
+            return 1
+        fi
+    done
+    s3_name="$repo-$version-$job_id-$filename"
     s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
     printf %s "$s3_name_no_slashes" | jq -sRr @uri
 }
 
-function s3_upload() {
-    acl="$1"
-    content_type="$2"
-
-    [[ -z "$acl" || -z "$content_type" ]] && {
-        die "acl and content_type are required for s3_upload"
-    }
-
-    book_slug_urls=()
-    while read -r file_slug_pair; do
-        IFS='|' read -r file_to_upload slug <<< "$file_slug_pair"
-        s3_name=$(get_s3_name "$file_to_upload")
-        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
-        echo "Uploading $file_to_upload to $url"
-        aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
-            --acl "$acl" \
-            --content-type "$content_type"
-        book_slug_urls+=("$(jo url="$url" slug="$slug")")
+function upload_book_artifacts() {
+    content_type="$1"
+    for varname in ARG_S3_BUCKET_NAME content_type; do
+        expect_value "${!varname}" "Expected value for \"$varname\""
     done
+    book_slug_urls=()
+    while IFS='|' read -r file_to_upload slug; do
+        for varname in file_to_upload slug; do
+            expect_value "${!varname}" "Expected value for \"$varname\""
+        done
+
+        s3_name=$(set -Eeuxo pipefail && get_s3_name "$file_to_upload")
+
+        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
+        book_slug_urls+=("$(jo url="$url" slug="$slug")")
+
+        aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
+            --acl "public-read" \
+            --content-type "$content_type"
+    done
+    if [[ ${#book_slug_urls[@]} -eq 0 ]]; then
+        die "Did not get any book artifacts to upload."
+    fi
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
 }
 
