@@ -159,7 +159,7 @@ function upload_book_artifacts() {
             expect_value "${!varname}" "Expected value for \"$varname\""
         done
 
-        s3_name=$(set -Eeuxo pipefail && get_s3_name "$file_to_upload")
+        s3_name="$(set -Eeuxo pipefail && get_s3_name "$file_to_upload")"
 
         url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
         book_slug_urls+=("$(jo url="$url" slug="$slug")")

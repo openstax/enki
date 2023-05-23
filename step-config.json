@@ -62,7 +62,7 @@
             ],
             "requiredEnv": []
         },
-        "step-pdf-meta": {
+        "step-upload-pdf": {
             "inputDirs": [
                 "IO_BOOK",
                 "IO_ARTIFACTS"
@@ -71,7 +71,9 @@
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "step-disassemble": {
@@ -124,6 +126,16 @@
             ],
             "outputDirs": [
                 "IO_EPUB",
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": []
+        },
+        "step-upload-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_ARTIFACTS"
+            ],
+            "outputDirs": [
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
