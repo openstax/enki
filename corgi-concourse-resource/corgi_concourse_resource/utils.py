@@ -10,10 +10,6 @@ def get_collection_id(job):
     return f"{owner}/{repo_name}/{book_slug}"
 
 
-def get_style(job):
-    return job["books"][0]["style"]
-
-
 def msg(msg, *args, **kwargs):  # pragma: no cover
     if args or kwargs:
         msg = msg.format(*args, **kwargs)

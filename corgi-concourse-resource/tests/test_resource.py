@@ -170,11 +170,11 @@ class TestIn(object):
         collection_id = read_file(os.path.join(dest_path, "collection_id"))
         assert collection_id == read_file(os.path.join(DATA_DIR, "collection_id"))
 
+        slugs = read_file(os.path.join(dest_path, "slugs"))
+        assert slugs == read_file(os.path.join(DATA_DIR, "slugs"))
+
         collection_version = read_file(os.path.join(dest_path, "version"))
         assert collection_version == read_file(os.path.join(DATA_DIR, "version"))
-
-        collection_style = read_file(os.path.join(dest_path, "collection_style"))
-        assert collection_style == read_file(os.path.join(DATA_DIR, "collection_style"))
 
 
 

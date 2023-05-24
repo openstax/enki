@@ -184,7 +184,7 @@ function parse_book_dir() {
     ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
 
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
-    [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
+    # [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
 }
 
@@ -197,7 +197,7 @@ function unset_book_vars() {
     unset ARG_ARCHIVE_SHORTNAME
     unset ARG_COLLECTION_VERSION
     unset ARG_REPO_NAME
-    unset ARG_TARGET_SLUG_NAME
+    # unset ARG_TARGET_SLUG_NAME
     unset ARG_GIT_REF
 }
 
@@ -265,11 +265,11 @@ function do_step() {
             # Git book
             if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug  # TODO: Remove this because it is only used for web builds?
             else
                 # LCOV_EXCL_START
                 cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
+                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug  # TODO: Remove this because it is only used for web builds?
                 # LCOV_EXCL_STOP
             fi
             # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)

@@ -3,7 +3,7 @@ import os
 import sys
 
 from . import corgi_api as api
-from .utils import msg, write_file, get_collection_id, get_style
+from .utils import msg, write_file, get_collection_id
 
 
 def in_(dest_path, in_stream):
@@ -18,13 +18,15 @@ def in_(dest_path, in_stream):
 
     collection_id = get_collection_id(job)
     collection_version = job["version"] or "latest"
-    collection_style = get_style(job)
 
     # Write out files
     write_file(os.path.join(dest_path, "id"), job_id)
     write_file(os.path.join(dest_path, "collection_id"), collection_id)
+    write_file(
+        os.path.join(dest_path, "slugs"),
+        "\n".join(b["slug"] for b in job["books"])
+    )
     write_file(os.path.join(dest_path, "version"), collection_version)
-    write_file(os.path.join(dest_path, "collection_style"), collection_style)
     write_file(os.path.join(dest_path, "job.json"), job)
 
     return {"version": {"id": job_id}}
