@@ -15,6 +15,7 @@ RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccpr
 # Install princexml
 # ---------------------------
 FROM base as princexml-stage
+# Remember to run `dpkg -I prince_...deb` and add the dependencies above because they are not copied out of this stage
 ENV PRINCE_VERSION=15-1
 ENV PRINCE_UBUNTU_BUILD=22.04
 RUN set -x \
@@ -213,6 +214,7 @@ RUN set -x \
     gosu \
     # ... for princexml:
     fonts-stix libcurl4 \
+    libaom3 libavif13 libc6 libcurl4 libfontconfig1 libfreetype6 libgif7 libjpeg8 liblcms2-2 libpng16-16 libssl3 libtiff5 libwebp7 libwebpdemux2 libxml2 zlib1g \
     # ... for bakery-scripts
     pkg-config libmagic1 \
     mime-support wget xsltproc lsb-release git \
@@ -312,7 +314,6 @@ ENV PROJECT_ROOT=/workspace/enki
 COPY --from=adobe-colors-stage /adobe-icc/ /usr/share/color/icc/
 COPY --from=princexml-stage /usr/bin/prince /usr/bin/
 COPY --from=princexml-stage /usr/lib/prince /usr/lib/prince
-COPY --from=princexml-stage /usr/lib/x86_64-linux-gnu/lib* /usr/lib/x86_64-linux-gnu/
 COPY --from=build-jq-stage /usr/bin/jq /usr/bin/jq
 COPY --from=pandoc-stage /usr/bin/pandoc /usr/bin
 
