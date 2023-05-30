@@ -64,8 +64,6 @@ if [[ $JS_DEBUG ]]; then
     export NODE_OPTIONS="--inspect-brk=0.0.0.0:$NODE_DEBUG_PORT" # LCOV_EXCL_LINE
 fi
 
-source $PYTHON_VENV_ROOT/bin/activate
-
 function ensure_arg() {
     local arg_name
     local pointer

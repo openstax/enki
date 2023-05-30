@@ -257,7 +257,7 @@ repo_slug_ref=""
 }
 
 [[ $SKIP_DOCKER_BUILD ]] || {
-    DOCKER_DEFAULT_PLATFORM=linux/amd64 DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker build --tag $image_name --file $root_dir/Dockerfile $root_dir/.
 }
 
 ports=""
@@ -275,7 +275,7 @@ envs=""
     envs+=' --env JAVA_DEBUG=1 '
 }
 
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker run $ports $interactive $enable_tty \
+docker run $ports $interactive $enable_tty \
     $opt_sideload_book_arg \
     --volume="$(cd "$data_dir"/; pwd):/data/" \
     $opt_mount_recipes \
