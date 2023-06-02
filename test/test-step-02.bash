@@ -44,12 +44,12 @@ KCOV_DIR=_kcov02-d \
 find $BOOK_DIR -name "index.cnxml.orig" -exec bash -cxe 'mv $0 $(dirname $0)/index.cnxml' {} \;
 
 # Check that the math was converted
-while read -r assembled_file; do
-    if ! grep '<math xmlns="http://www.w3.org/1998/Math/MathML" alttext="\\frac{2}{5} + \\frac{10}{5}">' "$assembled_file" &> /dev/null; then
+while read -r collection; do
+    if ! grep '<math xmlns="http://www.w3.org/1998/Math/MathML" alttext="\\frac{2}{5} + \\frac{10}{5}">' "$collection" > /dev/null; then
         echo "ERROR: Could not find converted math"
         exit 1
     fi
-done < <(find $BOOK_DIR -name '*.assembled.xhtml') 
+done < <(find $BOOK_DIR -name '*.baked.xhtml') 
 
 # ################################
 # Clone a branch, 
