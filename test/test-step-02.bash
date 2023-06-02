@@ -49,7 +49,7 @@ while read -r collection; do
         echo "ERROR: Could not find converted math"
         exit 1
     fi
-done < <(find $BOOK_DIR -name '*.baked.xhtml') 
+done < <(find $BOOK_DIR -name '*.linked.xhtml')
 
 # ################################
 # Clone a branch, 
