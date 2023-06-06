@@ -38,6 +38,7 @@
     "@commander-js/extra-typings": "^9.4.1",
     "@xmldom/xmldom": "^0.8.6",
     "commander": "^9.4.1",
+    "glob": "^10.2.6",
     "mock-fs": "^5.2.0",
     "module-alias": "^2.2.2",
     "node-fetch": "^3.3.0",

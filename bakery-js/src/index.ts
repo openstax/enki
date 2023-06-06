@@ -6,20 +6,30 @@ import modulealias from 'module-alias' // From https://github.com/Microsoft/Type
 modulealias.addAlias('myjsx/jsx-dev-runtime', __dirname + '/minidom')
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { basename, resolve } from 'path'
+import { basename, join, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support'
 import { ContainerFile } from './epub/container'
 import { factorio } from './epub/singletons'
 import { ResourceFile } from './model/file'
 import { DIRNAMES } from './env'
-import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
+import {
+  assertTrue,
+  getPos,
+  readXmlWithSourcemap,
+  writeXmlWithSourcemap,
+} from './utils'
 import { dom } from './minidom'
+import { glob } from 'glob'
 sourceMapSupport.install()
 
 const program = new Command()
 
-const sourceDirArg = program
+const checkExists = (destinationFile: string) => {
+  return resolve(destinationFile)
+}
+
+const epubSourceDirArg = program
   .createArgument(
     '<source_dir>',
     'Source Directory. It must contain a few subdirectories like ./IO_RESOURCES/ Example: ../data/astronomy/_attic'
@@ -49,22 +59,20 @@ const sourceDirArg = program
     return sourceDir
   })
 
-const destinationDirArg = program
+const epubDestinationDirArg = program
   .createArgument(
     '<destination_dir>',
     'Destination Directory to write the EPUB files to. Example: ./testing/'
   )
-  .argParser((destinationDir: string) => {
-    return resolve(destinationDir)
-  })
+  .argParser(checkExists)
 
 const epubCommand = program.command('epub')
 epubCommand.description(
   'Build a directory which can be zipped to create an EPUB file'
 )
 epubCommand
-  .addArgument(sourceDirArg)
-  .addArgument(destinationDirArg)
+  .addArgument(epubSourceDirArg)
+  .addArgument(epubDestinationDirArg)
   .action(async (sourceDir: string, destinationDir: string) => {
     mkdirSync(destinationDir, { recursive: true })
 
@@ -172,25 +180,47 @@ epubCommand
     }
   })
 
-const sourceFileArg = program.createArgument(
-  '<source_file>',
-  'Source XML filename (e.g. modules/m123/index.cnxml'
-)
-const destinationFileArg = program.createArgument(
-  '<destination_file>',
-  'Destination XML filename (e.g. modules/m123/index.cnxml'
-)
+const sourceinfoSourceDirArg = program
+  .createArgument(
+    '<source_dir>',
+    'Source Directory. It must contain CNXML and COLLXML files somewhere inside the directory'
+  )
+  .argParser(checkExists)
+const sourceinfoDestinationDirArg = program
+  .createArgument(
+    '<destination_dir>',
+    'Destination Directory to write the CNXML and COLLXML files to. Example: ./testing/'
+  )
+  .argParser(checkExists)
 
 program
   .command('add-sourcemap-info')
-  .addArgument(sourceFileArg)
-  .addArgument(destinationFileArg)
-  .action(async (sourceFile: string, destinationFile: string) => {
-    const $doc = dom(await readXmlWithSourcemap(sourceFile))
-    $doc.forEach('//*[not(@data-sm)]', (el) => {
-      const p = getPos(el.node)
-      el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+  .addArgument(sourceinfoSourceDirArg)
+  .addArgument(sourceinfoDestinationDirArg)
+  .description(
+    'Find CNXML and COLLXML files and add a data-sm attribute on them'
+  )
+  .action(async (sourceDir: string, destinationDir: string) => {
+    const files = await glob('**/*.{cnxml,collxml}', {
+      cwd: sourceDir,
     })
-    await writeXmlWithSourcemap(destinationFile, $doc.node)
+    assertTrue(
+      files.length > 0,
+      'Found 0 CNXML/COLLXML files which is unexpected'
+    )
+    console.log('Annotating files:', files.length)
+    await Promise.all(
+      files.map(async (sourceFile) => {
+        const destinationFile = join(destinationDir, sourceFile)
+        const $doc = dom(
+          await readXmlWithSourcemap(join(sourceDir, sourceFile))
+        )
+        $doc.forEach('//*[not(@data-sm)]', (el) => {
+          const p = getPos(el.node)
+          el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+        })
+        await writeXmlWithSourcemap(destinationFile, $doc.node)
+      })
+    )
   })
 program.parse()
