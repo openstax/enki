@@ -340,7 +340,8 @@ def exercise_callback_factory(match, url_template, token=None):
         RequestException,
         max_time=60 * 15,
         giveup=lambda e: (
-            getattr(e, "response", None) is not None and
+            # Give up if the status code is something like 404, 403, etc.
+            isinstance(e, RequestException) and
             e.response.status_code in range(400, 500)
         ),
         jitter=backoff.full_jitter,
