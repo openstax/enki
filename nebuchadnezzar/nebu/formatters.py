@@ -338,7 +338,7 @@ def exercise_callback_factory(match, url_template, token=None):
     @backoff.on_exception(
         backoff.expo,
         RequestException,
-        max_time=60 * 5,
+        max_time=60 * 15,
         giveup=lambda e: (
             getattr(e, "response", None) is not None and
             e.response.status_code in range(400, 500)
