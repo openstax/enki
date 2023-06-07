@@ -32,7 +32,8 @@ def out(src_path, in_stream):
     if not error_message:
         error_message_file = data.get("error_message_file")
         if error_message_file:  # pragma: no cover
-            with open(os.path.join(src_path, error_message_file), "r") as infile:
+            full_filepath = os.path.join(src_path, error_message_file)
+            with open(full_filepath, "r", errors="replace") as infile:
                 error_message_file_data = infile.read()
                 data["error_message"] = error_message_file_data
             del data["error_message_file"]
