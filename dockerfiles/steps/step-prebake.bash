@@ -80,16 +80,8 @@ cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 
 repo_root=$IO_FETCH_META
 
-# TODO: Pass file name pattern to node command and avoid the loop below
-if [[ $LOCAL_ATTIC_DIR != '' ]]; then
-    echo 'Annotating XML files with source map information (data-sm="...")'
-    pushd $IO_FETCH_META > /dev/null
-    files=$(find . -name '*.cnxml' -or -name '*.collection.xml')
-    for file in $files; do
-        node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}"  "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
-    done
-    popd > /dev/null
-fi
+say "Annotating XML files with source map information (data-sm=\"...\")"
+node --unhandled-rejections=strict $BAKERY_SCRIPTS_ROOT/scripts/annotate.js $repo_root '^index.cnxml$'
 
 col_sep='|'
 # https://stackoverflow.com/a/31838754
@@ -111,6 +103,8 @@ while read -r line; do # Loop over each <book> entry in the META-INF/books.xml m
     if [[ -f temp-assembly/collection.assembled.xhtml ]]; then
         rm temp-assembly/collection.assembled.xhtml # LCOV_EXCL_LINE
     fi
+
+    say "Assembling $slug"
 
     neb assemble "$IO_FETCH_META/modules" temp-assembly/
 
