@@ -15,6 +15,8 @@ import lxml.html
 from lxml import etree
 
 import requests
+from requests.exceptions import RequestException
+import backoff
 
 from .converters import cnxml_abstract_to_html
 from .xml_utils import (
@@ -333,6 +335,18 @@ def exercise_callback_factory(match, url_template, token=None):
         exercise["items"][0]["required_context"]["feature"] = feature
         exercise["items"][0]["required_context"]["ref"] = target_ref
 
+    @backoff.on_exception(
+        backoff.expo,
+        RequestException,
+        max_time=60 * 15,
+        giveup=lambda e: (
+            # Give up if the status code is something like 404, 403, etc.
+            isinstance(e, RequestException) and
+            e.response.status_code in range(400, 500)
+        ),
+        jitter=backoff.full_jitter,
+        raise_on_giveup=True
+    )
     def _replace_exercises(elem, page_uuids):
         item_code = elem.get("href")[len(match):]
         url = url_template.format(itemCode=item_code)

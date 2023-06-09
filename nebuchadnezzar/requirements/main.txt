@@ -5,3 +5,4 @@ pip
 requests>=2.24.0
 setuptools
 jinja2
+backoff==2.2.1
