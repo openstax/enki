@@ -36,9 +36,7 @@ class ThreadPoolExecutorStackTraced(concurrent.futures.ThreadPoolExecutor):
         try:
             return fn(*args, **kwargs)
         except Exception:  # pragma: no cover
-            # Creates an exception of the same type with the traceback as
-            # message
-            raise sys.exc_info()[0](traceback.format_exc())
+            raise
 
 
 def slash_join(*args):
