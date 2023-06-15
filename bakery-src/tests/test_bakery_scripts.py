@@ -2322,6 +2322,144 @@ def test_s3_existence_async_error(tmp_path, mocker):
     s3_stubber.deactivate()
 
 
+def test_s3_upload_async_error(tmp_path, mocker):
+    """Test copy_resource_s3.test_s3_existence
+    function errors with wrong file name"""
+
+    book_dir = tmp_path / "col11762"
+    book_dir.mkdir()
+    resources_dir = book_dir / "resources"
+    resources_dir.mkdir()
+
+    # Create a fake resource with a name that looks like sha1_filepattern
+    (resources_dir / ("a" * 40)).touch()
+    (resources_dir / ("a" * 40)).with_suffix(".json").touch()
+
+    dist_bucket = 'distribution-bucket-1234'
+    dist_bucket_prefix = 'master/resources'
+
+    s3_client = boto3.client('s3')
+    s3_stubber = botocore.stub.Stubber(s3_client)
+    s3_stubber.add_response(
+        'list_objects',
+        {},
+        expected_params={
+            'Bucket': dist_bucket,
+            'Prefix': dist_bucket_prefix + '/',
+            'Delimiter': '/'
+        }
+    )
+    s3_stubber.activate()
+
+    mocked_session = boto3.session.Session
+    mocked_session.client = mocker.MagicMock(return_value=s3_client)
+
+    mocker.patch(
+        'boto3.session.Session',
+        mocked_session
+    )
+
+    mocker.patch(
+        'sys.argv',
+        ['',
+         resources_dir,
+         dist_bucket,
+         dist_bucket_prefix]
+    )
+
+    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+
+    class MySuperSpecificTestException(Exception):
+        pass
+
+    def raise_exception(*args, **kwargs):
+        raise MySuperSpecificTestException()
+    
+    def mock_exists(*args, **kwargs):
+        from collections import defaultdict
+        return defaultdict(str)
+    
+    copy_resources_s3.check_s3_existence = mock_exists
+    copy_resources_s3.upload_s3 = raise_exception
+
+    with pytest.raises(MySuperSpecificTestException):
+        copy_resources_s3.main()
+
+    del os.environ['AWS_ACCESS_KEY_ID']
+    del os.environ['AWS_SECRET_ACCESS_KEY']
+
+    s3_stubber.assert_no_pending_responses()
+    s3_stubber.deactivate()
+
+
+def test_async_feeder_error(tmp_path, mocker):
+    """Test copy_resource_s3.test_s3_existence
+    function errors with wrong file name"""
+
+    book_dir = tmp_path / "col11762"
+    book_dir.mkdir()
+    resources_dir = book_dir / "resources"
+    resources_dir.mkdir()
+
+    # Create a fake resource with a name that looks like sha1_filepattern
+    (resources_dir / ("a" * 40)).touch()
+    (resources_dir / ("a" * 40)).with_suffix(".json").touch()
+
+    dist_bucket = 'distribution-bucket-1234'
+    dist_bucket_prefix = 'master/resources'
+
+    s3_client = boto3.client('s3')
+    s3_stubber = botocore.stub.Stubber(s3_client)
+    s3_stubber.add_response(
+        'list_objects',
+        {},
+        expected_params={
+            'Bucket': dist_bucket,
+            'Prefix': dist_bucket_prefix + '/',
+            'Delimiter': '/'
+        }
+    )
+    s3_stubber.activate()
+
+    mocked_session = boto3.session.Session
+    mocked_session.client = mocker.MagicMock(return_value=s3_client)
+
+    mocker.patch(
+        'boto3.session.Session',
+        mocked_session
+    )
+
+    mocker.patch(
+        'sys.argv',
+        ['',
+         resources_dir,
+         dist_bucket,
+         dist_bucket_prefix]
+    )
+
+    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+
+    def mock_exists(*args, **kwargs):
+        # Return an empty dict to cause a key error
+        return {}
+    
+    copy_resources_s3.check_s3_existence = mock_exists
+
+    # The feeder should surface the key error that will happen in the
+    # upload_arg_gen
+    with pytest.raises(KeyError) as e:
+        copy_resources_s3.main()
+    assert "input_metadata_file" in str(e)
+
+    del os.environ['AWS_ACCESS_KEY_ID']
+    del os.environ['AWS_SECRET_ACCESS_KEY']
+
+    s3_stubber.assert_no_pending_responses()
+    s3_stubber.deactivate()
+
+
 def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     """Test fetch-map-resources script without environment variable set"""
     book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"

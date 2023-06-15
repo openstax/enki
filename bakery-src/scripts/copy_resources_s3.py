@@ -28,10 +28,14 @@ async def map_async(func, it, worker_count, qsize=None):
     in_queue, out_queue = asyncio.Queue(qsize), asyncio.Queue(qsize)
 
     async def feeder():
-        for item in it:
-            await in_queue.put((item, None))
-        for _ in range(worker_count):
-            await in_queue.put((None, EndOfStreamError()))
+        try:
+            for item in it:
+                await in_queue.put((item, None))
+        except Exception as e:
+            await in_queue.put((None, e))
+        finally:
+            for _ in range(worker_count):
+                await in_queue.put((None, EndOfStreamError()))
 
     async def worker():
         while True:
@@ -223,7 +227,7 @@ async def upload(in_dir, bucket, bucket_folder):
             raise err
         if resource is not None:
             upload_resources.append(resource)
-            if not disable_deep_folder_check:
+            if not disable_deep_folder_check:  # pragma: no cover
                 print(".", end="", flush=True)
         else:
             if not disable_deep_folder_check:  # pragma: no cover
@@ -291,7 +295,7 @@ async def upload(in_dir, bucket, bucket_folder):
     print('{} resources uploaded.'.format(upload_count))
     elapsed = (timer() - start)
     print('Time it took to upload: {}s'.format(elapsed))
-    if (upload_count) != len(upload_resources):
+    if (upload_count) != len(upload_resources):  # pragma: no cover
         print('ERROR: Uploaded counted and needed to upload mismatch: {} != {}'.format(upload_count,
                                                                                        len(upload_resources)))
         sys.exit(1)
