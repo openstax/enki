@@ -16,6 +16,8 @@ import botocore
 # trade-offs.
 MAX_THREAD_CHECK_S3 = 32
 MAX_THREAD_UPLOAD_S3 = 32
+CHUNK_SIZE_CHECK_S3 = 100
+CHUNK_SIZE_UPLOAD_S3 = 200
 
 
 class EndOfStreamError(Exception):
@@ -66,11 +68,16 @@ async def map_async(func, it, worker_count, qsize=None):
         yield (result, err)
 
 
-def to_chunks(arr, chunk_size):
-    return [
-        arr[n * chunk_size : n * chunk_size + chunk_size]
-        for n in range(math.ceil(len(arr) / chunk_size))
-    ]
+def to_chunks(it, chunk_size):
+    a = []
+    for item in it:
+        a.append(item)
+        if len(a) == chunk_size:
+            yield a
+            a = []
+    if a and len(a) < chunk_size:
+        yield a
+
 
 
 def slash_join(*args):
@@ -157,8 +164,7 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
 
 
 @timed
-def upload_s3(aws_key, aws_secret, aws_session_token,
-              filename, bucket, key, content_type, metadata=None):
+def upload_s3(aws_key, aws_secret, aws_session_token, bucket, resources):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-multiprocessing
@@ -169,19 +175,25 @@ def upload_s3(aws_key, aws_secret, aws_session_token,
         aws_secret_access_key=aws_secret,
         aws_session_token=aws_session_token)
 
-    extra_args = {
-        "ContentType": content_type
-    }
-    if metadata is not None:
-        extra_args['Metadata'] = metadata
+    keys = []
+    for resource in resources:
+        key = resource["key"]
+        metadata = resource.get("metadata", None)
+        extra_args = {
+            "ContentType": resource["content_type"]
+        }
 
-    s3_client.upload_file(
-        Filename=filename,
-        Bucket=bucket,
-        Key=key,
-        ExtraArgs=extra_args
-    )
-    return key
+        if metadata is not None:
+            extra_args['Metadata'] = metadata
+
+        s3_client.upload_file(
+            Filename=resource["filename"],
+            Bucket=bucket,
+            Key=key,
+            ExtraArgs=extra_args
+        )
+        keys.append(key)
+    return keys
 
 
 async def upload(in_dir, bucket, bucket_folder):
@@ -237,7 +249,7 @@ async def upload(in_dir, bucket, bucket_folder):
 
     async for checked_resources, err in map_async(
         check_s3_existence_worker,
-        to_chunks(all_resources, 100),
+        to_chunks(all_resources, CHUNK_SIZE_CHECK_S3),
         MAX_THREAD_CHECK_S3
     ):
         if err is not None:
@@ -264,14 +276,14 @@ async def upload(in_dir, bucket, bucket_folder):
     start = timer()
     upload_count = 0
 
-    async def upload_s3_worker(kwargs):
+    async def upload_s3_worker(resources):
         return await asyncio.to_thread(
             upload_s3,
             aws_key=aws_key,
             aws_secret=aws_secret,
             aws_session_token=aws_session_token,
             bucket=bucket,
-            **kwargs
+            resources=resources
         )
 
     def upload_arg_gen():
@@ -299,13 +311,16 @@ async def upload(in_dir, bucket, bucket_folder):
             }
 
     async for result, err in map_async(
-        upload_s3_worker, upload_arg_gen(), MAX_THREAD_UPLOAD_S3
+        upload_s3_worker,
+        to_chunks(upload_arg_gen(), CHUNK_SIZE_UPLOAD_S3),
+        MAX_THREAD_UPLOAD_S3
     ):
         if err is not None:
             raise err
-        if result is not None:
-            upload_count += 1
-            print('.', end='', flush=True)
+        for maybe_key in result:
+            if maybe_key is not None:
+                upload_count += 1
+                print('.', end='', flush=True)
 
     # divide by 2, don't count json metadata
     upload_count = int(upload_count / 2)
