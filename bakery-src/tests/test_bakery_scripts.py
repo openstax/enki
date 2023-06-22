@@ -2214,9 +2214,9 @@ def test_s3_existence(tmp_path, mocker):
 
     upload_resource = copy_resources_s3.check_s3_existence(
         aws_key, aws_secret, aws_token,
-        bucket, test_resource,
+        bucket, [test_resource],
         disable_check=False
-    )
+    )[0]
 
     test_input_metadata = test_resource['input_metadata_file']
     test_output_s3 = test_resource['output_s3']
@@ -2255,7 +2255,7 @@ def test_s3_existence_404(tmp_path, mocker):
     with pytest.raises(FileNotFoundError):
         copy_resources_s3.check_s3_existence(
             aws_key, aws_secret, aws_token,
-            bucket, resource_for_test,
+            bucket, [resource_for_test],
             disable_check=False
         )
 
@@ -2375,11 +2375,11 @@ def test_s3_upload_async_error(tmp_path, mocker):
 
     def raise_exception(*args, **kwargs):
         raise MySuperSpecificTestException()
-    
+
     def mock_exists(*args, **kwargs):
         from collections import defaultdict
-        return defaultdict(str)
-    
+        return [defaultdict(str)] * len(kwargs["resources"])
+
     copy_resources_s3.check_s3_existence = mock_exists
     copy_resources_s3.upload_s3 = raise_exception
 
@@ -2443,8 +2443,8 @@ def test_async_feeder_error(tmp_path, mocker):
 
     def mock_exists(*args, **kwargs):
         # Return an empty dict to cause a key error
-        return {}
-    
+        return [{}]
+
     copy_resources_s3.check_s3_existence = mock_exists
 
     # The feeder should surface the key error that will happen in the

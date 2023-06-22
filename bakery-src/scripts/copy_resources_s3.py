@@ -3,7 +3,6 @@ import json
 import os
 import sys
 from pathlib import Path
-import math
 from .profiler import timed
 
 from timeit import default_timer as timer
@@ -79,7 +78,6 @@ def to_chunks(it, chunk_size):
         yield a
 
 
-
 def slash_join(*args):
     """ join url parts safely """
     return "/".join(arg.strip("/") for arg in args)
@@ -125,7 +123,7 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
         except botocore.exceptions.ClientError:  # pragma: no cover
             md5sum = None
         return md5sum
-    
+
     def update_resource(resource, data):
         resource['mime_type'] = data['mime_type']
         resource['width'] = data['width']
@@ -235,6 +233,11 @@ async def upload(in_dir, bucket, bucket_folder):
     # Check which resources are missing
     start = timer()
     upload_resources = []
+    chunk_size = max(
+        len(all_resources) // MAX_THREAD_CHECK_S3,
+        MIN_CHUNK_SIZE_CHECK_S3
+    )
+    print(f'Checking resources in chunks of {chunk_size}')
 
     async def check_s3_existence_worker(resources):
         return await asyncio.to_thread(
@@ -247,10 +250,6 @@ async def upload(in_dir, bucket, bucket_folder):
             disable_check=disable_deep_folder_check
         )
 
-    chunk_size = max(
-        len(all_resources) // MAX_THREAD_CHECK_S3,
-        MIN_CHUNK_SIZE_CHECK_S3
-    )
     async for checked_resources, err in map_async(
         check_s3_existence_worker,
         to_chunks(all_resources, chunk_size),
@@ -276,9 +275,13 @@ async def upload(in_dir, bucket, bucket_folder):
     print('Time it took to check: {}s'.format(elapsed))
 
     # Upload to s3
-    print('Uploading to S3 ', end='', flush=True)
+    chunk_size = max(
+        len(upload_resources) * 2 // MAX_THREAD_UPLOAD_S3,
+        MIN_CHUNK_SIZE_UPLOAD_S3
+    )
     start = timer()
     upload_count = 0
+    print(f'Uploading to S3 in chunks of {chunk_size}', end='', flush=True)
 
     async def upload_s3_worker(resources):
         return await asyncio.to_thread(
@@ -314,10 +317,6 @@ async def upload(in_dir, bucket, bucket_folder):
                 ),
             }
 
-    chunk_size = max(
-        len(upload_resources) * 2 // MAX_THREAD_UPLOAD_S3,
-        MIN_CHUNK_SIZE_UPLOAD_S3
-    )
     async for result, err in map_async(
         upload_s3_worker,
         to_chunks(upload_arg_gen(), chunk_size),
