@@ -23,10 +23,7 @@ class EndOfStreamError(Exception):
     pass
 
 
-async def map_async(func, it, worker_count, qsize=None):
-    if qsize is None:
-        qsize = worker_count
-
+async def map_async(func, it, worker_count, qsize=0):
     in_queue, out_queue = asyncio.Queue(qsize), asyncio.Queue(qsize)
 
     async def feeder():
