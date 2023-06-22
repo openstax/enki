@@ -1,8 +1,7 @@
-import concurrent.futures
+import asyncio
 import json
 import os
 import sys
-import traceback
 from pathlib import Path
 from .profiler import timed
 
@@ -18,27 +17,52 @@ MAX_THREAD_CHECK_S3 = 64
 MAX_THREAD_UPLOAD_S3 = 64
 
 
-class ThreadPoolExecutorStackTraced(concurrent.futures.ThreadPoolExecutor):
-    # Stack traced ThreadPoolExecutor for better error messages on exceptions
-    # on threads https://stackoverflow.com/a/24457608/756056
+class EndOfStreamError(Exception):
+    pass
 
-    def submit(self, fn, *args, **kwargs):
-        """Submits the wrapped function instead of `fn`"""
 
-        return super(ThreadPoolExecutorStackTraced, self).submit(
-            self._function_wrapper, fn, *args, **kwargs)
+async def map_async(func, it, worker_count, qsize=None):
+    if qsize is None:
+        qsize = worker_count
 
-    def _function_wrapper(self, fn, *args, **kwargs):
-        """Wraps `fn` in order to preserve the traceback of any kind of
-        raised exception
+    in_queue, out_queue = asyncio.Queue(qsize), asyncio.Queue(qsize)
 
-        """
+    async def feeder():
         try:
-            return fn(*args, **kwargs)
-        except Exception:  # pragma: no cover
-            # Creates an exception of the same type with the traceback as
-            # message
-            raise sys.exc_info()[0](traceback.format_exc())
+            for item in it:
+                await in_queue.put((item, None))
+        except Exception as e:
+            await in_queue.put((None, e))
+        finally:
+            for _ in range(worker_count):
+                await in_queue.put((None, EndOfStreamError()))
+
+    async def worker():
+        while True:
+            work, err = await in_queue.get()
+            if err is not None:
+                await out_queue.put((None, err))
+                if isinstance(err, EndOfStreamError):
+                    break
+            else:
+                result = None
+                try:
+                    result = await func(work)
+                except Exception as e:
+                    err = e
+                finally:
+                    await out_queue.put((result, err))
+
+    workers_complete = 0
+    for _ in range(worker_count):
+        asyncio.create_task(worker())
+    asyncio.create_task(feeder())
+    while workers_complete < worker_count:
+        result, err = await out_queue.get()
+        if isinstance(err, EndOfStreamError):
+            workers_complete += 1
+            continue
+        yield (result, err)
 
 
 def slash_join(*args):
@@ -145,14 +169,8 @@ def upload_s3(aws_key, aws_secret, aws_session_token,
     return key
 
 
-@timed
-def upload(in_dir, bucket, bucket_folder):
+async def upload(in_dir, bucket, bucket_folder):
     """ upload resource and resource json to S3 """
-
-    def halt_all_threads(executor):  # pragma: no cover
-        """ halt all threads from executor """
-        executor._threads.clear()
-        concurrent.futures.thread._threads_queues.clear()
 
     aws_key = os.getenv('AWS_ACCESS_KEY_ID')
     aws_secret = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -187,46 +205,34 @@ def upload(in_dir, bucket, bucket_folder):
             os.path.basename(resource['input_file']) + '-unused.json')
         all_resources.append(resource)
 
-    # check which resources are missing (with ThreadPoolExecutor)
+    # Check which resources are missing
     start = timer()
     upload_resources = []
-    check_futures = []
-    with ThreadPoolExecutorStackTraced(max_workers=MAX_THREAD_CHECK_S3) \
-            as executor:
-        print('Checking which files to upload ', end='', flush=True)
-        for resource in all_resources:
-            check_futures.append(
-                executor.submit(
-                    check_s3_existence,
-                    aws_key=aws_key,
-                    aws_secret=aws_secret,
-                    aws_session_token=aws_session_token,
-                    bucket=bucket,
-                    resource=resource,
-                    disable_check=disable_deep_folder_check)
-            )
-        for future in concurrent.futures.as_completed(check_futures):
-            try:
-                resource = future.result()
-            except Exception as e:  # pragma: no cover
-                print(e)  # print error from ThreadPoolExecutorStackTraced
-                halt_all_threads(executor)
-                sys.exit(1)
-            try:  # pragma: no cover
-                # free memory of threads
-                check_futures.remove(future)
-                del future
-                # process thread results
-                if resource is not None:
-                    upload_resources.append(resource)
-                    if not disable_deep_folder_check:
-                        print('.', end='', flush=True)
-                else:
-                    if not disable_deep_folder_check:
-                        print('x', end='', flush=True)
-            except Exception:  # pragma: no cover
-                halt_all_threads(executor)
-                raise
+
+    async def check_s3_existence_worker(resource):
+        return await asyncio.to_thread(
+            check_s3_existence,
+            aws_key=aws_key,
+            aws_secret=aws_secret,
+            aws_session_token=aws_session_token,
+            bucket=bucket,
+            resource=resource,
+            disable_check=disable_deep_folder_check
+        )
+
+    async for resource, err in map_async(
+        check_s3_existence_worker, all_resources, MAX_THREAD_CHECK_S3
+    ):
+        if err is not None:
+            raise err
+        if resource is not None:
+            upload_resources.append(resource)
+            if not disable_deep_folder_check:  # pragma: no cover
+                print(".", end="", flush=True)
+        else:
+            if not disable_deep_folder_check:  # pragma: no cover
+                print("x", end="", flush=True)
+
     if disable_deep_folder_check:
         print('- quick checked (destination S3 folder empty or non existing)',
               end='', flush=True)
@@ -235,61 +241,54 @@ def upload(in_dir, bucket, bucket_folder):
     elapsed = (timer() - start)
     print('Time it took to check: {}s'.format(elapsed))
 
-    # upload to s3 (with ThreadPoolExecutor)
+    # Upload to s3
+    print('Uploading to S3 ', end='', flush=True)
     start = timer()
     upload_count = 0
-    upload_futures = []
-    with ThreadPoolExecutorStackTraced(max_workers=MAX_THREAD_UPLOAD_S3) \
-            as executor:
-        print('Uploading to S3 ', end='', flush=True)
+
+    async def upload_s3_worker(kwargs):
+        return await asyncio.to_thread(
+            upload_s3,
+            aws_key=aws_key,
+            aws_secret=aws_secret,
+            aws_session_token=aws_session_token,
+            bucket=bucket,
+            **kwargs
+        )
+
+    def upload_arg_gen():
         for resource in upload_resources:
             # upload metadata first (because this is not checked)
-            upload_futures.append(
-                executor.submit(
-                    upload_s3,
-                    aws_key=aws_key,
-                    aws_secret=aws_secret,
-                    aws_session_token=aws_session_token,
-                    filename=resource['input_metadata_file'],
-                    bucket=bucket,
-                    key=resource['output_s3_metadata'],
-                    content_type='application/json')
-            )
+            yield {
+                "filename": resource["input_metadata_file"],
+                "key": resource["output_s3_metadata"],
+                "content_type": "application/json",
+            }
 
             # upload resource file last (existence/md5 is checked)
-            metadata = None if resource['width'] == -1 or resource['height'] == -1 \
-                else {'width': str(resource['width']), 'height': str(resource['height'])}
+            yield {
+                "filename": resource["input_file"],
+                "key": resource["output_s3"],
+                "content_type": resource["mime_type"],
+                "metadata": (
+                    None
+                    if resource["width"] == -1 or resource["height"] == -1
+                    else {
+                        "width": str(resource["width"]),
+                        "height": str(resource["height"]),
+                    }
+                ),
+            }
 
-            upload_futures.append(
-                executor.submit(
-                    upload_s3,
-                    aws_key=aws_key,
-                    aws_secret=aws_secret,
-                    aws_session_token=aws_session_token,
-                    filename=resource['input_file'],
-                    bucket=bucket,
-                    key=resource['output_s3'],
-                    content_type=resource['mime_type'],
-                    metadata=metadata)
-            )
-        for future in concurrent.futures.as_completed(upload_futures):
-            try:
-                result = future.result()
-            except Exception as e:  # pragma: no cover
-                print(e)  # print error from ThreadPoolExecutorStackTraced
-                halt_all_threads(executor)
-                sys.exit(1)
-            try:
-                # free memory of threads
-                upload_futures.remove(future)
-                del future
-                # process thread results
-                if result is not None:
-                    upload_count = upload_count + 1
-                    print('.', end='', flush=True)
-            except Exception:  # pragma: no cover
-                halt_all_threads(executor)
-                raise
+    async for result, err in map_async(
+        upload_s3_worker, upload_arg_gen(), MAX_THREAD_UPLOAD_S3
+    ):
+        if err is not None:
+            raise err
+        if result is not None:
+            upload_count += 1
+            print('.', end='', flush=True)
+
     # divide by 2, don't count json metadata
     upload_count = int(upload_count / 2)
     print()
@@ -303,12 +302,15 @@ def upload(in_dir, bucket, bucket_folder):
     print('FINISHED uploading resources.')
 
 
-@timed
-def main():  # pragma: no cover
+async def async_main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     bucket = sys.argv[2]
     bucket_folder = sys.argv[3]
-    upload(in_dir, bucket, bucket_folder)
+    await upload(in_dir, bucket, bucket_folder)
+
+
+def main():
+    asyncio.run(async_main())
 
 
 if __name__ == "__main__":  # pragma: no cover
