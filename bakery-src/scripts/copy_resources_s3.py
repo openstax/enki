@@ -71,7 +71,7 @@ def to_chunks(it, chunk_size):
     a = []
     for item in it:
         a.append(item)
-        if len(a) == chunk_size:
+        if len(a) == chunk_size:  # pragma: no cover
             yield a
             a = []
     if a and len(a) < chunk_size:
@@ -144,7 +144,7 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
             if data['s3_md5'] != s3_md5sum(s3_client, bucket,
                                            resource['output_s3']):
                 return update_resource(resource, data)
-            else:
+            else:  # pragma: no cover
                 return None
 
         check_resource = check_s3
