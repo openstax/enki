@@ -16,8 +16,8 @@ import botocore
 # trade-offs.
 MAX_THREAD_CHECK_S3 = 32
 MAX_THREAD_UPLOAD_S3 = 32
-CHUNK_SIZE_CHECK_S3 = 100
-CHUNK_SIZE_UPLOAD_S3 = 200
+MIN_CHUNK_SIZE_CHECK_S3 = 100
+MIN_CHUNK_SIZE_UPLOAD_S3 = 200
 
 
 class EndOfStreamError(Exception):
@@ -247,9 +247,13 @@ async def upload(in_dir, bucket, bucket_folder):
             disable_check=disable_deep_folder_check
         )
 
+    chunk_size = max(
+        len(all_resources) // MAX_THREAD_CHECK_S3,
+        MIN_CHUNK_SIZE_CHECK_S3
+    )
     async for checked_resources, err in map_async(
         check_s3_existence_worker,
-        to_chunks(all_resources, CHUNK_SIZE_CHECK_S3),
+        to_chunks(all_resources, chunk_size),
         MAX_THREAD_CHECK_S3
     ):
         if err is not None:
@@ -310,9 +314,13 @@ async def upload(in_dir, bucket, bucket_folder):
                 ),
             }
 
+    chunk_size = max(
+        len(upload_resources) * 2 // MAX_THREAD_UPLOAD_S3,
+        MIN_CHUNK_SIZE_UPLOAD_S3
+    )
     async for result, err in map_async(
         upload_s3_worker,
-        to_chunks(upload_arg_gen(), CHUNK_SIZE_UPLOAD_S3),
+        to_chunks(upload_arg_gen(), chunk_size),
         MAX_THREAD_UPLOAD_S3
     ):
         if err is not None:
