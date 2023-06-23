@@ -71,7 +71,7 @@ def to_chunks(it, chunk_size):
         if len(a) == chunk_size:  # pragma: no cover
             yield a
             a = []
-    if a and len(a) < chunk_size:
+    if 0 < len(a) < chunk_size:
         yield a
 
 
@@ -105,7 +105,6 @@ def is_s3_folder_empty(aws_key, aws_secret, aws_session_token, bucket, key):
     return result
 
 
-@timed
 def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
                        resources, disable_check=False):
     """ check if resource is already existing or needs uploading """
@@ -158,7 +157,6 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
     return checked_resources
 
 
-@timed
 def upload_s3(aws_key, aws_secret, aws_session_token, bucket, resources):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
