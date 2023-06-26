@@ -1,4 +1,5 @@
 import { basename, resolve, dirname, sep, join } from 'path'
+import { existsSync } from 'fs'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
@@ -38,6 +39,7 @@ type TocData = {
   licenseUrl: string
   language: string
   authors: string
+  coverFile: string
 }
 
 export class TocFile extends BaseTocFile<
@@ -79,6 +81,16 @@ export class TocFile extends BaseTocFile<
       ? (collectionXml.findOne('//col:collection').attr('authors') as string)
       : 'OpenStax Authors'
 
+    // Check for cover JPEG file
+    const checkCoverFilePath = join(
+      dirname(this.readPath),
+      '..',
+      DIRNAMES.IO_RESOURCES,
+      'cover',
+      slug + '-cover.jpg'
+    ) as string
+    const coverFile = existsSync(checkCoverFilePath) ? checkCoverFilePath : ''
+
     const { toc, allPages } = await super.baseParse(factorio)
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
@@ -113,6 +125,7 @@ export class TocFile extends BaseTocFile<
       licenseUrl,
       language,
       authors,
+      coverFile
     }
   }
   protected async convert(): Promise<Node> {
