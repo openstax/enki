@@ -207,6 +207,25 @@ export class OpfFile extends TocFile {
       })
     }
 
+    // cover
+    if (this.parsed.coverFile) {
+      manifestItems.push(
+        <opf:item
+          id="cover"
+          media-type="image/jpeg"
+          href="cover.jpg"
+          properties="cover-image"
+        />
+      )
+      manifestItems.push(
+        <opf:item
+          id="cover_page"
+          href="cover.xhtml"
+          media-type="application/xhtml+xml"
+        />
+      )
+    }
+
     for (const page of pagesInOrder) {
       const p = page.parsed
       const props: string[] = []
@@ -233,6 +252,13 @@ export class OpfFile extends TocFile {
     }
 
     const spineItems: JSXNode[] = []
+    // cover
+    if (this.parsed.coverFile) {
+      spineItems.push(<opf:itemref linear="no" idref="cover_page" />)
+    }
+    // nav
+    spineItems.push(<opf:itemref linear="yes" idref="nav" />)
+    // all other pages in the right order
     pagesInOrder.forEach((page) =>
       spineItems.push(
         <opf:itemref linear="yes" idref={`idxhtml_${basename(page.newPath)}`} />
@@ -290,10 +316,7 @@ export class OpfFile extends TocFile {
           />
           {...manifestItems}
         </opf:manifest>
-        <opf:spine toc="the-ncx-file">
-          <opf:itemref linear="yes" idref="nav" />
-          {...spineItems}
-        </opf:spine>
+        <opf:spine toc="the-ncx-file">{...spineItems}</opf:spine>
       </opf:package>
     ).node
   }
