@@ -13,7 +13,7 @@ And some minor features:
 # Run Locally
 
 ```
-./bin/epub ../data/astronomy/_attic ./testing
+npm start epub ../data/astronomy/_attic ./testing
 ```
 
 # Tests
