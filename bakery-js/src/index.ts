@@ -5,7 +5,14 @@
 import modulealias from 'module-alias' // From https://github.com/Microsoft/TypeScript/issues/10866#issuecomment-246929461
 modulealias.addAlias('myjsx/jsx-dev-runtime', __dirname + '/minidom')
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  copyFileSync,
+  constants,
+} from 'fs'
 import { basename, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support'
@@ -16,6 +23,36 @@ import { DIRNAMES } from './env'
 import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
 import { dom } from './minidom'
 sourceMapSupport.install()
+
+const coverPage = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head>
+  <title>Cover</title>
+  <style type="text/css">
+  body.fullpage {
+      margin: 0;
+      padding: 0;
+  }
+  section.cover {
+      display: block;
+      text-align: center;
+      height: 95%;
+  }
+  img#coverimage {
+      height: 95%;
+  }
+  img#coverimage:only-of-type { /*overrides the previous setting, but only in newer systems that support CSS3 */
+      height: 95vh;
+  }
+  </style>
+</head>
+<body class="fullpage">
+   <section class="cover" epub:type="cover">
+      <img id="coverimage" src="cover.jpg" alt="cover image" />
+   </section>
+</body>
+</html>`
 
 const program = new Command()
 
@@ -165,6 +202,28 @@ epubCommand
       for (const f of allFiles) {
         console.log(`Writing out ${f.newPath}`)
         await f.write()
+      }
+
+      // cover
+      if (opfFile.parsed.coverFile) {
+        const newCoverFile = `${destinationDir}/${opfFile.parsed.slug}/cover.jpg`
+        console.log(`Writing out ${newCoverFile}`)
+        try {
+          copyFileSync(
+            opfFile.parsed.coverFile,
+            newCoverFile,
+            constants.COPYFILE_EXCL
+          )
+        } catch (error: any) {
+          /* istanbul ignore next */
+          if (error.code == 'EEXIST')
+            console.warn(`File already exists! ${newCoverFile}`)
+          else throw error
+        }
+        writeFileSync(
+          `${destinationDir}/${opfFile.parsed.slug}/cover_page.xhtml`,
+          coverPage
+        )
       }
 
       factorio.pages.clear()
