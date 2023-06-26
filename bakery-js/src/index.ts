@@ -24,33 +24,35 @@ import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
 import { dom } from './minidom'
 sourceMapSupport.install()
 
-const coverPage = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Cover</title>
-  <style type="text/css">
-  body.fullpage {
-      margin: 0;
-      padding: 0;
-  }
-  section.cover {
-      display: block;
-      text-align: center;
-      height: 95%;
-  }
-  img#coverimage {
-      height: 95%;
-  }
-  img#coverimage:only-of-type { /*overrides the previous setting, but only in newer systems that support CSS3 */
-      height: 95vh;
-  }
-  </style>
+    <title>Cover</title>
+    <style type="text/css">
+        body.fullpage {
+            margin: 0;
+            padding: 0;
+        }
+
+        section.cover {
+            display: block;
+            text-align: center;
+            height: 95%;
+        }
+
+        img#coverimage {
+            height: 95%;
+        }
+
+        img#coverimage:only-of-type {
+            /*overrides the previous setting, but only in newer systems that support CSS3 */
+            height: 95vh;
+        }
+    </style>
 </head>
 <body class="fullpage">
-   <section class="cover" epub:type="cover">
-      <img id="coverimage" src="cover.jpg" alt="cover image" />
-   </section>
+    <section class="cover" epub:type="cover">
+        <img id="coverimage" src="cover.jpg" alt="cover image" />
+    </section>
 </body>
 </html>`
 
