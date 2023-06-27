@@ -223,7 +223,7 @@ epubCommand
           else throw error
         }
         writeFileSync(
-          `${destinationDir}/${opfFile.parsed.slug}/cover_page.xhtml`,
+          `${destinationDir}/${opfFile.parsed.slug}/cover.xhtml`,
           coverPage
         )
       }
