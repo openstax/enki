@@ -125,7 +125,7 @@ export class TocFile extends BaseTocFile<
       licenseUrl,
       language,
       authors,
-      coverFile
+      coverFile,
     }
   }
   protected async convert(): Promise<Node> {
