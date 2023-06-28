@@ -226,5 +226,4 @@ describe('TocFile and Friends', () => {
       await writeAndCheckSnapshot(f, destPath)
     })
   })
-
 })
