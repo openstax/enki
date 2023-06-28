@@ -85,7 +85,7 @@ export class TocFile extends BaseTocFile<
     const checkCoverFilePath = join(
       dirname(this.readPath),
       '..',
-      DIRNAMES.IO_RESOURCES,
+      DIRNAMES.IO_FETCHED,
       'cover',
       slug + '-cover.jpg'
     ) as string
