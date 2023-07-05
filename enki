@@ -109,6 +109,7 @@ show_help() {
         --pdb                       Enable Python debugging
         --jdb                       Enable Java debugging
         --jsdb                      Enable Javascript debugging
+        --skip-source-info          Skip adding source file/line/column to CNXML elements
 
     Status:
 
@@ -170,6 +171,7 @@ while [ -n "$1" ]; do
         --pdb) PYTHON_DEBUG=1 ;;
         --jdb) JAVA_DEBUG=1 ;;
         --jsdb) JS_DEBUG=1 ;;
+        --skip-source-info) export SKIP_SOURCE_INFO=1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -296,6 +298,7 @@ docker run $ports $interactive $enable_tty \
     --env START_AT_STEP \
     --env STOP_AT_STEP \
     --env LOCAL_SIDELOAD_REPO_PATH \
+    --env SKIP_SOURCE_INFO \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__\
     $envs \

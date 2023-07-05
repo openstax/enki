@@ -81,7 +81,7 @@ cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 repo_root=$IO_FETCH_META
 
 # TODO: Pass file name pattern to node command and avoid the loop below
-if [[ $LOCAL_ATTIC_DIR != '' ]]; then
+if [[ $LOCAL_ATTIC_DIR != '' && -z $SKIP_SOURCE_INFO ]]; then
     echo 'Annotating XML files with source map information (data-sm="...")'
     pushd $IO_FETCH_META > /dev/null
     files=$(find . -name '*.cnxml' -or -name '*.collection.xml')
