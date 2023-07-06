@@ -1,4 +1,5 @@
 import { basename, resolve, dirname, sep, join } from 'path'
+import { existsSync } from 'fs'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
@@ -38,6 +39,7 @@ type TocData = {
   licenseUrl: string
   language: string
   authors: string
+  coverFile: string
 }
 
 export class TocFile extends BaseTocFile<
@@ -79,6 +81,16 @@ export class TocFile extends BaseTocFile<
       ? (collectionXml.findOne('//col:collection').attr('authors') as string)
       : 'OpenStax Authors'
 
+    // Check for cover JPEG file
+    const checkCoverFilePath = join(
+      dirname(this.readPath),
+      '..',
+      DIRNAMES.IO_FETCHED,
+      'cover',
+      slug + '-cover.jpg'
+    ) as string
+    const coverFile = existsSync(checkCoverFilePath) ? checkCoverFilePath : ''
+
     const { toc, allPages } = await super.baseParse(factorio)
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
@@ -113,6 +125,7 @@ export class TocFile extends BaseTocFile<
       licenseUrl,
       language,
       authors,
+      coverFile,
     }
   }
   protected async convert(): Promise<Node> {
@@ -194,6 +207,25 @@ export class OpfFile extends TocFile {
       })
     }
 
+    // cover
+    if (this.parsed.coverFile) {
+      manifestItems.push(
+        <opf:item
+          id="cover"
+          media-type="image/jpeg"
+          href="cover.jpg"
+          properties="cover-image"
+        />
+      )
+      manifestItems.push(
+        <opf:item
+          id="cover_page"
+          href="cover.xhtml"
+          media-type="application/xhtml+xml"
+        />
+      )
+    }
+
     for (const page of pagesInOrder) {
       const p = page.parsed
       const props: string[] = []
@@ -220,6 +252,13 @@ export class OpfFile extends TocFile {
     }
 
     const spineItems: JSXNode[] = []
+    // cover
+    if (this.parsed.coverFile) {
+      spineItems.push(<opf:itemref linear="no" idref="cover_page" />)
+    }
+    // nav
+    spineItems.push(<opf:itemref linear="yes" idref="nav" />)
+    // all other pages in the right order
     pagesInOrder.forEach((page) =>
       spineItems.push(
         <opf:itemref linear="yes" idref={`idxhtml_${basename(page.newPath)}`} />
@@ -277,10 +316,7 @@ export class OpfFile extends TocFile {
           />
           {...manifestItems}
         </opf:manifest>
-        <opf:spine toc="the-ncx-file">
-          <opf:itemref linear="yes" idref="nav" />
-          {...spineItems}
-        </opf:spine>
+        <opf:spine toc="the-ncx-file">{...spineItems}</opf:spine>
       </opf:package>
     ).node
   }

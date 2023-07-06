@@ -19,7 +19,6 @@ describe('TocFile and Friends', () => {
   const destPath = '/output/thebooktoc.xhtml'
   const metadataPath = '/foo/thebook.toc-metadata.json'
   const collxmlPath = '/IO_FETCHED/collections/bookslug.collection.xml'
-
   const metadataJSON = {
     title: 'booktitle',
     revised: '2022-12-13',
@@ -72,6 +71,66 @@ describe('TocFile and Friends', () => {
     })
   })
 
+  describe('Cover image with TocFile and Friends', () => {
+    const tocPath = '/foo/thebook.toc.xhtml'
+    const destPath = '/output/thebooktoc.xhtml'
+    const metadataPath = '/foo/thebook.toc-metadata.json'
+    const collxmlPath = '/IO_FETCHED/collections/bookslug.collection.xml'
+    const coverImagePath = '/IO_FETCHED/cover/bookslug-cover.jpg'
+    const metadataJSON = {
+      title: 'booktitle',
+      revised: '2022-12-13',
+      slug: 'bookslug',
+      license: { url: 'http://licenseurl' },
+      language: 'language',
+    }
+
+    const collxmlContent =
+      '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
+
+    describe('with an empty book', () => {
+      const emptyToc = `<html xmlns="http://www.w3.org/1999/xhtml">
+              <body>
+                  <nav/>
+              </body>
+          </html>`
+
+      beforeEach(() => {
+        const fs: any = {}
+        fs[tocPath] = emptyToc
+        fs[metadataPath] = JSON.stringify(metadataJSON)
+        fs[collxmlPath] = collxmlContent
+        fs[coverImagePath] = 'here should be cover image JPEG data'
+        mockfs(fs)
+      })
+      afterEach(() => {
+        mockfs.restore()
+      })
+
+      it('parses an empty ToC file', async () => {
+        const f = new TocFile(tocPath)
+        await f.parse(factorio)
+        await f.parse(factorio) // just for code coverage reasons to verify we only parse once
+        expect(f.parsed.title).toBe(metadataJSON.title)
+        await writeAndCheckSnapshot(f, destPath)
+      })
+
+      it('generates an OPF file from an empty ToC file', async () => {
+        const r = new OpfFile(tocPath)
+        await r.parse(factorio)
+        expect(r.parsed.title).toBe(metadataJSON.title)
+        await writeAndCheckSnapshot(r, destPath)
+      })
+
+      it('generates an NCX file from an empty ToC file', async () => {
+        const r = new NcxFile(tocPath)
+        await r.parse(factorio)
+        expect(r.parsed.title).toBe(metadataJSON.title)
+        await writeAndCheckSnapshot(r, destPath)
+      })
+    })
+  })
+
   describe('with a small book', () => {
     const chapterTitle = 'ChapterTitle'
     const pageTitle = 'PageTitle'
@@ -101,7 +160,7 @@ describe('TocFile and Friends', () => {
             <!-- Has MathML and remote resources -->
             <math xmlns="http://www.w3.org/1998/Math/MathML" />
             <iframe />
-            
+
             <a href="${pageNotInTocName}" />
         </body>
     </html>`
