@@ -13,18 +13,17 @@ import botocore
 
 # After research and benchmarking 64 seems to be the best speed without big
 # trade-offs.
-MAX_THREAD_CHECK_S3 = 64
-MAX_THREAD_UPLOAD_S3 = 64
+MAX_THREAD_CHECK_S3 = 32
+MAX_THREAD_UPLOAD_S3 = 32
+MIN_CHUNK_SIZE_CHECK_S3 = 100
+MIN_CHUNK_SIZE_UPLOAD_S3 = 200
 
 
 class EndOfStreamError(Exception):
     pass
 
 
-async def map_async(func, it, worker_count, qsize=None):
-    if qsize is None:
-        qsize = worker_count
-
+async def map_async(func, it, worker_count, qsize=0):
     in_queue, out_queue = asyncio.Queue(qsize), asyncio.Queue(qsize)
 
     async def feeder():
@@ -65,6 +64,17 @@ async def map_async(func, it, worker_count, qsize=None):
         yield (result, err)
 
 
+def to_chunks(it, chunk_size):
+    a = []
+    for item in it:
+        a.append(item)
+        if len(a) == chunk_size:  # pragma: no cover
+            yield a
+            a = []
+    if 0 < len(a) < chunk_size:
+        yield a
+
+
 def slash_join(*args):
     """ join url parts safely """
     return "/".join(arg.strip("/") for arg in args)
@@ -95,9 +105,8 @@ def is_s3_folder_empty(aws_key, aws_secret, aws_session_token, bucket, key):
     return result
 
 
-@timed
-def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
-                       disable_check=False):
+def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket,
+                       resources, disable_check=False):
     """ check if resource is already existing or needs uploading """
 
     def s3_md5sum(s3_client, bucket_name, resource_name):
@@ -111,39 +120,44 @@ def check_s3_existence(aws_key, aws_secret, aws_session_token, bucket, resource,
             md5sum = None
         return md5sum
 
-    try:
-        upload_resource = None
-        with open(resource['input_metadata_file']) as json_file:
-            data = json.load(json_file)
-        if disable_check:
-            # empty or non existing s3 folder
-            # skip individual s3 file check
-            upload_resource = resource
-        else:
-            session = boto3.session.Session()
-            s3_client = session.client(
-                's3',
-                aws_access_key_id=aws_key,
-                aws_secret_access_key=aws_secret,
-                aws_session_token=aws_session_token)
+    def update_resource(resource, data):
+        resource['mime_type'] = data['mime_type']
+        resource['width'] = data['width']
+        resource['height'] = data['height']
+        return resource
+
+    if disable_check:
+        check_resource = update_resource
+    else:
+        session = boto3.session.Session()
+        s3_client = session.client(
+            's3',
+            aws_access_key_id=aws_key,
+            aws_secret_access_key=aws_secret,
+            aws_session_token=aws_session_token)
+
+        def check_s3(resource, data):
             if data['s3_md5'] != s3_md5sum(s3_client, bucket,
                                            resource['output_s3']):
-                upload_resource = resource
+                return update_resource(resource, data)
+            else:  # pragma: no cover
+                return None
 
-        if upload_resource is not None:
-            upload_resource['mime_type'] = data['mime_type']
-            upload_resource['width'] = data['width']
-            upload_resource['height'] = data['height']
+        check_resource = check_s3
 
-        return upload_resource
-    except FileNotFoundError as e:
-        print('Error: No metadata json found!')
-        raise (e)
+    checked_resources = []
+    for resource in resources:
+        try:
+            with open(resource['input_metadata_file']) as json_file:
+                data = json.load(json_file)
+            checked_resources.append(check_resource(resource, data))
+        except FileNotFoundError as e:
+            print('Error: No metadata json found!')
+            raise (e)
+    return checked_resources
 
 
-@timed
-def upload_s3(aws_key, aws_secret, aws_session_token,
-              filename, bucket, key, content_type, metadata=None):
+def upload_s3(aws_key, aws_secret, aws_session_token, bucket, resources):
     """ upload s3 process for ThreadPoolExecutor """
     # use session for multithreading according to
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/resources.html?highlight=multithreading#multithreading-multiprocessing
@@ -154,19 +168,25 @@ def upload_s3(aws_key, aws_secret, aws_session_token,
         aws_secret_access_key=aws_secret,
         aws_session_token=aws_session_token)
 
-    extra_args = {
-        "ContentType": content_type
-    }
-    if metadata is not None:
-        extra_args['Metadata'] = metadata
+    keys = []
+    for resource in resources:
+        key = resource["key"]
+        metadata = resource.get("metadata", None)
+        extra_args = {
+            "ContentType": resource["content_type"]
+        }
 
-    s3_client.upload_file(
-        Filename=filename,
-        Bucket=bucket,
-        Key=key,
-        ExtraArgs=extra_args
-    )
-    return key
+        if metadata is not None:
+            extra_args['Metadata'] = metadata
+
+        s3_client.upload_file(
+            Filename=resource["filename"],
+            Bucket=bucket,
+            Key=key,
+            ExtraArgs=extra_args
+        )
+        keys.append(key)
+    return keys
 
 
 async def upload(in_dir, bucket, bucket_folder):
@@ -208,30 +228,38 @@ async def upload(in_dir, bucket, bucket_folder):
     # Check which resources are missing
     start = timer()
     upload_resources = []
+    chunk_size = max(
+        len(all_resources) // MAX_THREAD_CHECK_S3,
+        MIN_CHUNK_SIZE_CHECK_S3
+    )
+    print(f'Checking resources in chunks of {chunk_size}')
 
-    async def check_s3_existence_worker(resource):
+    async def check_s3_existence_worker(resources):
         return await asyncio.to_thread(
             check_s3_existence,
             aws_key=aws_key,
             aws_secret=aws_secret,
             aws_session_token=aws_session_token,
             bucket=bucket,
-            resource=resource,
+            resources=resources,
             disable_check=disable_deep_folder_check
         )
 
-    async for resource, err in map_async(
-        check_s3_existence_worker, all_resources, MAX_THREAD_CHECK_S3
+    async for checked_resources, err in map_async(
+        check_s3_existence_worker,
+        to_chunks(all_resources, chunk_size),
+        MAX_THREAD_CHECK_S3
     ):
         if err is not None:
             raise err
-        if resource is not None:
-            upload_resources.append(resource)
-            if not disable_deep_folder_check:  # pragma: no cover
-                print(".", end="", flush=True)
-        else:
-            if not disable_deep_folder_check:  # pragma: no cover
-                print("x", end="", flush=True)
+        for maybe_resource in checked_resources:
+            if maybe_resource is not None:
+                upload_resources.append(maybe_resource)
+                if not disable_deep_folder_check:  # pragma: no cover
+                    print(".", end="", flush=True)
+            else:
+                if not disable_deep_folder_check:  # pragma: no cover
+                    print("x", end="", flush=True)
 
     if disable_deep_folder_check:
         print('- quick checked (destination S3 folder empty or non existing)',
@@ -242,18 +270,22 @@ async def upload(in_dir, bucket, bucket_folder):
     print('Time it took to check: {}s'.format(elapsed))
 
     # Upload to s3
-    print('Uploading to S3 ', end='', flush=True)
+    chunk_size = max(
+        len(upload_resources) * 2 // MAX_THREAD_UPLOAD_S3,
+        MIN_CHUNK_SIZE_UPLOAD_S3
+    )
     start = timer()
     upload_count = 0
+    print(f'Uploading to S3 in chunks of {chunk_size}', end='', flush=True)
 
-    async def upload_s3_worker(kwargs):
+    async def upload_s3_worker(resources):
         return await asyncio.to_thread(
             upload_s3,
             aws_key=aws_key,
             aws_secret=aws_secret,
             aws_session_token=aws_session_token,
             bucket=bucket,
-            **kwargs
+            resources=resources
         )
 
     def upload_arg_gen():
@@ -281,13 +313,16 @@ async def upload(in_dir, bucket, bucket_folder):
             }
 
     async for result, err in map_async(
-        upload_s3_worker, upload_arg_gen(), MAX_THREAD_UPLOAD_S3
+        upload_s3_worker,
+        to_chunks(upload_arg_gen(), chunk_size),
+        MAX_THREAD_UPLOAD_S3
     ):
         if err is not None:
             raise err
-        if result is not None:
-            upload_count += 1
-            print('.', end='', flush=True)
+        for maybe_key in result:
+            if maybe_key is not None:
+                upload_count += 1
+                print('.', end='', flush=True)
 
     # divide by 2, don't count json metadata
     upload_count = int(upload_count / 2)
