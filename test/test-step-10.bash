@@ -8,7 +8,11 @@ if [[ $CI = '' && $VIRTUAL_ENV = '' ]]; then
    exit 1
 fi
 
-pip install "../bakery-src/scripts/.[test]"
+
+# More details: https://github.com/aws/aws-cli/issues/8036#issuecomment-1638544754
+# and: https://github.com/yaml/pyyaml/issues/601
+# PyYAML installed as dependency here [awscli](https://github.com/aws/aws-cli/blob/dbbf1ce01acec0116710968bbe5a96680e791c1b/setup.py#L30)
+pip install "PyYAML==5.3.1" "../bakery-src/scripts/.[test]"
 flake8 "../bakery-src/scripts" --max-line-length=110
 
 pytest --asyncio-mode=strict --cov=bakery_scripts --cov-append --cov-report=xml:cov.xml --cov-report=html:cov.html --cov-report=term-missing  ../bakery-src -vvv

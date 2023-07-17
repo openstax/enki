@@ -114,7 +114,13 @@ RUN set -x \
 # Install dependencies
 COPY ./nebuchadnezzar/requirements /workspace/enki/nebuchadnezzar/requirements
 COPY ./bakery-src/scripts/requirements.txt /workspace/enki/bakery-src/scripts/
-RUN pip3 install -r /workspace/enki/nebuchadnezzar/requirements/main.txt -r /workspace/enki/bakery-src/scripts/requirements.txt
+
+# More details: https://github.com/aws/aws-cli/issues/8036#issuecomment-1638544754
+# and: https://github.com/yaml/pyyaml/issues/601
+# PyYAML installed as dependency here [awscli](https://github.com/aws/aws-cli/blob/dbbf1ce01acec0116710968bbe5a96680e791c1b/setup.py#L30)
+RUN pip3 install "PyYAML==5.3.1" \
+    -r /workspace/enki/nebuchadnezzar/requirements/main.txt \
+    -r /workspace/enki/bakery-src/scripts/requirements.txt
 
 # Install scripts
 COPY ./nebuchadnezzar/ /workspace/enki/nebuchadnezzar/
