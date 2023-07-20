@@ -81,6 +81,11 @@ The rex-preview command will first open an error page for all collections built 
 
 `Ctrl+C` will stop rex-preview.
 
+A note on caching: if your browser is not displaying local HTML changes properly, it may be caching the orignal version. To prevent this, 1) make sure caching is disabled when developer tools are opened, 2) open dev tools.
+
+Disable for Firefox: https://stackoverflow.com/a/39869243/756056
+Disable for Chrome: https://stackoverflow.com/a/7000899
+
 ### local preview of HTML files
 
 For local preview of HTML files with working image resources you need to build a `all-web` book and run `local-preview` command.
