@@ -167,8 +167,8 @@ class TestIn(object):
             job_json[key] = None
         assert job_json == expected_json
 
-        collection_id = read_file(os.path.join(dest_path, "collection_id"))
-        assert collection_id == read_file(os.path.join(DATA_DIR, "collection_id"))
+        repository = read_file(os.path.join(dest_path, "repo"))
+        assert repository == read_file(os.path.join(DATA_DIR, "repo"))
 
         slugs = read_file(os.path.join(dest_path, "slugs"))
         assert slugs == read_file(os.path.join(DATA_DIR, "slugs"))

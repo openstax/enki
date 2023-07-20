@@ -2,12 +2,11 @@ import json
 import sys
 
 
-def get_collection_id(job):
+def get_repo_path(job):
     repo = job["repository"]
-    book_slug = job["books"][0]["slug"]
-    owner = repo["owner"]
     repo_name = repo["name"]
-    return f"{owner}/{repo_name}/{book_slug}"
+    owner = repo["owner"]
+    return f"{owner}/{repo_name}"
 
 
 def msg(msg, *args, **kwargs):  # pragma: no cover
