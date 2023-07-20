@@ -177,27 +177,14 @@ function upload_book_artifacts() {
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
-    [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
-    [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
-    [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
-    ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
-
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
-    # [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
 }
 
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
 # reset between each step
 function unset_book_vars() {
-    unset ARG_TARGET_PDF_FILENAME
-    unset ARG_COLLECTION_ID
-    unset ARG_ARCHIVE_SERVER
-    unset ARG_ARCHIVE_SHORTNAME
-    unset ARG_COLLECTION_VERSION
     unset ARG_REPO_NAME
-    # unset ARG_TARGET_SLUG_NAME
     unset ARG_GIT_REF
 }
 
@@ -277,9 +264,6 @@ function do_step() {
                 rm $IO_BOOK/slug # LCOV_EXCL_LINE
             fi
 
-            pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
-            echo "$pdf_filename" > $IO_BOOK/pdf_filename
-            
             return
         ;;
     esac
