@@ -103,6 +103,7 @@
         "step-upload-book": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_JSONIFIED",
                 "IO_RESOURCES"
             ],
@@ -114,7 +115,8 @@
                 "CORGI_ARTIFACTS_S3_BUCKET",
                 "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
+                "AWS_SECRET_ACCESS_KEY",
+                "REX_PROD_PREVIEW_URL"
             ]
         },
         "step-epub": {

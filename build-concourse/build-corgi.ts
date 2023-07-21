@@ -60,9 +60,6 @@ function makePipeline(env: KeyValue) {
         }
     ]
 
-    const taskOverrideCommonLog = (message: string) => toConcourseTask(env, 'override-common-log', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/override_common_log.sh'))
-    const taskGenPreviewUrls = () => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
-
     const buildPdfJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
@@ -98,11 +95,10 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskGenPreviewUrls()
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.PREVIEW_URLS}/content_urls`
+                pdf_url: `${IO.ARTIFACTS}/pdf_url`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -125,16 +121,7 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*-docx.zip`,
-                        acl: 'public-read',
-                        content_type: 'application/zip'
-                    }
-                }
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
                 pdf_url: `${IO.ARTIFACTS}/pdf_url`

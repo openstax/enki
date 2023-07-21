@@ -83,7 +83,6 @@ export enum RESOURCES {
 export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
-    PREVIEW_URLS = 'preview-urls',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
