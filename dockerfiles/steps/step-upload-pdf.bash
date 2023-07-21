@@ -1,13 +1,11 @@
-# LCOV_EXCL_START
 parse_book_dir
 
 set -Eeuo pipefail
 
 {
-    for file_to_upload in "$IO_ARTIFACTS/"*.pdf; do
-        slug="$(basename "$file_to_upload" ".pdf")"
-        echo "$file_to_upload|$slug"
-    done
+    while read -r book_slug; do
+        pdf_file="$IO_ARTIFACTS/$book_slug.pdf"
+        [[ -f "$pdf_file" ]] || die "Could not find \"$pdf_file\""
+        echo "$pdf_file|$book_slug"
+    done < <(read_book_slugs)  # LCOV_EXCL_LINE
 } | sort | upload_book_artifacts "application/pdf"
-
-# LCOV_EXCL_END
