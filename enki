@@ -298,6 +298,7 @@ docker run $ports $interactive $enable_tty \
     --env LOCAL_SIDELOAD_REPO_PATH \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__\
+    --env STUB_AWS_CLI \
     $envs \
     --rm $image_name "$arg_command" $repo_slug_ref
 

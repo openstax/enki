@@ -65,6 +65,7 @@
         "step-upload-pdf": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_ARTIFACTS"
             ],
             "outputDirs": [
@@ -133,6 +134,7 @@
         "step-upload-epub": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_ARTIFACTS"
             ],
             "outputDirs": [
@@ -158,9 +160,10 @@
             ],
             "requiredEnv": []
         },
-        "step-docx-meta": {
+        "step-upload-docx": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_DOCX"
             ],
             "outputDirs": [

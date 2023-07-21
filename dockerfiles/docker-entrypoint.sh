@@ -58,10 +58,21 @@ LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
 JAVA_DEBUG=${JAVA_DEBUG:-}
 JS_DEBUG=${JS_DEBUG:-}
 NODE_OPTIONS=${NODE_OPTIONS:-}
+STUB_AWS_CLI=${STUB_AWS_CLI:-}
 
 if [[ $JS_DEBUG ]]; then
     export NODE_DEBUG_PORT=9229 # LCOV_EXCL_LINE
     export NODE_OPTIONS="--inspect-brk=0.0.0.0:$NODE_DEBUG_PORT" # LCOV_EXCL_LINE
+fi
+
+if [[ $STUB_AWS_CLI ]]; then
+    say "STUBBING AWS CLI"
+    export AWS_ACCESS_KEY_ID="test"
+    export AWS_SECRET_ACCESS_KEY="test"
+
+    function aws() {
+        echo "$@" > $IO_ARTIFACTS/aws_args
+    }
 fi
 
 function ensure_arg() {
@@ -127,9 +138,25 @@ function read_style() {
     echo $style_name
 }
 
+function read_book_slugs() {
+    if [[ -f "$IO_BOOK/slugs" ]]; then
+        # Exclude blanks lines
+        awk '$0 { print }' "$IO_BOOK/slugs"
+    else
+        fetched="$IO_FETCHED"
+        if [[ ! -d "$fetched" ]]; then
+            fetched="$IO_FETCH_META"
+        fi
+        if [[ ! -d "$fetched" ]]; then
+            die "read_book_slugs: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
+        fi
+        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$fetched/META-INF/books.xml"
+    fi
+}
+
 function expect_value() {
   if [[ -z "$1" ]]; then
-    die "${2:-"Missing required argument"}"
+    die "${2:-"Missing required argument"}"  # LCOV_EXCL_LINE
   fi
 }
 
@@ -139,11 +166,9 @@ function get_s3_name() {
     version="$(cat "$IO_BOOK/version")"
     job_id="$(cat "$IO_BOOK/job_id")"
     for varname in repo version job_id filename; do
-        if [[ -z "${!varname}" ]]; then
-            return 1
-        fi
+        expect_value "${!varname}" "get_s3_name: Expected value for \"$varname\""
     done
-    s3_name="$repo-$version-$job_id-$filename"
+    s3_name="${repo%%/}-$version-$job_id-$filename"
     s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
     printf %s "$s3_name_no_slashes" | jq -sRr @uri
 }
@@ -151,15 +176,15 @@ function get_s3_name() {
 function upload_book_artifacts() {
     content_type="$1"
     for varname in ARG_S3_BUCKET_NAME content_type; do
-        expect_value "${!varname}" "Expected value for \"$varname\""
+        expect_value "${!varname}" "upload_book_artifacts: Expected value for \"$varname\""
     done
     book_slug_urls=()
     while IFS='|' read -r file_to_upload slug; do
         for varname in file_to_upload slug; do
-            expect_value "${!varname}" "Expected value for \"$varname\""
+            expect_value "${!varname}" "upload_book_artifacts: Expected value for \"$varname\""
         done
 
-        s3_name="$(set -Eeuxo pipefail && get_s3_name "$file_to_upload")"
+        s3_name="$(set -Eeuo pipefail && get_s3_name "$file_to_upload")"
 
         url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
@@ -169,7 +194,7 @@ function upload_book_artifacts() {
             --content-type "$content_type"
     done
     if [[ ${#book_slug_urls[@]} -eq 0 ]]; then
-        die "Did not get any book artifacts to upload."
+        die "Did not get any book artifacts to upload."  # LCOV_EXCL_LINE
     fi
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
 }
