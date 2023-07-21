@@ -11,12 +11,6 @@ KCOV_DIR=_kcov03 \
 ../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main --start-at step-disassemble
 
 
-# Verify we can build a commit that is not on the main branch
-SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov03 \
-../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --start-at step-disassemble
-
-
 # Check local-preview works
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov03 \

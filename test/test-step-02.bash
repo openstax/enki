@@ -53,19 +53,39 @@ done < <(find $BOOK_DIR -name '*.assembled.xhtml')
 
 # ################################
 # Clone a branch, 
-# build the PDF URL,
-# and verify it is URL-encoded
+# 'upload' the PDF,
+# and verify the awscli arguments
 # ################################
 
 SKIP_DOCKER_BUILD=1 \
 ../enki --keep-data --data-dir $BOOK_DIR --command all-pdf --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref long-lived-branch-for-testing-with-#-char
 
 SKIP_DOCKER_BUILD=1 \
-../enki --keep-data --data-dir $BOOK_DIR --command step-pdf-meta
+KCOV_DIR=_kcov02-e \
+STUB_AWS_CLI=1 \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf
 
-expected_pdf_filename='book-slug1-long-lived-branch-for-testing-with-%23-char-git--123456.pdf'
-actual_pdf_url=$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/pdf_url)
-actual_pdf_filename=$(basename "$actual_pdf_url")
-[[ $expected_pdf_filename == $actual_pdf_filename ]] || {
-    echo "PDF URL was not escaped. Expected '$expected_pdf_filename' but got '$actual_pdf_filename'"
-}
+expected_repo="philschatz-tiny-book"
+expected_version="long-lived-branch-for-testing-with-%23-char"
+expected_job_id="-123456"
+expected_book_slug="book-slug1"
+expected_extension="pdf"
+expected_mime_type="application/pdf"
+expected_filename="$expected_repo-$expected_version-$expected_job_id-$expected_book_slug.$expected_extension"
+expected_contents='[{"url":"https://openstax-sandbox-cops-artifacts.s3.amazonaws.com/'"$expected_filename"'","slug":"'"$expected_book_slug"'"}]'
+actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/pdf_url)"
+if [[ "$actual_contents" != "$expected_contents" ]]; then
+    echo "Bad artifact urls."
+    echo "Expected value: $expected_contents"
+    echo "Actual value:   $actual_contents"
+    exit 1
+fi
+
+expected_contents="s3 cp /data/artifacts-single/$expected_book_slug.$expected_extension s3://openstax-sandbox-cops-artifacts/$expected_filename --acl public-read --content-type $expected_mime_type"
+actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args)"
+if [[ "$actual_contents" != "$expected_contents" ]]; then
+    echo "Bad AWS CLI args."
+    echo "Expected value: $expected_contents"
+    echo "Actual value:   $actual_contents"
+    exit 1
+fi
