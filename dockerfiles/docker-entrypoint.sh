@@ -58,20 +58,31 @@ LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
 JAVA_DEBUG=${JAVA_DEBUG:-}
 JS_DEBUG=${JS_DEBUG:-}
 NODE_OPTIONS=${NODE_OPTIONS:-}
-STUB_AWS_CLI=${STUB_AWS_CLI:-}
+STUB_UPLOAD=${STUB_UPLOAD:-}
 
 if [[ $JS_DEBUG ]]; then
     export NODE_DEBUG_PORT=9229 # LCOV_EXCL_LINE
     export NODE_OPTIONS="--inspect-brk=0.0.0.0:$NODE_DEBUG_PORT" # LCOV_EXCL_LINE
 fi
 
-if [[ $STUB_AWS_CLI ]]; then
-    say "STUBBING AWS CLI"
+if [[ $STUB_UPLOAD ]]; then
+    say "STUBBING UPLOAD FUNCTIONS"
     export AWS_ACCESS_KEY_ID="test"
     export AWS_SECRET_ACCESS_KEY="test"
+    export CORGI_CLOUDFRONT_URL="https://test-cloudfront-url"
+    export CODE_VERSION="test"
+    export REX_PROD_PREVIEW_URL="https://rex-test"
+    aws_calls=0
+    copy_resouce_s3_calls=0
 
     function aws() {
-        echo "$@" > $IO_ARTIFACTS/aws_args
+        aws_calls=$((aws_calls+1))
+        echo "$@" > "$IO_ARTIFACTS/aws_args_$aws_calls"
+    }
+
+    function copy-resources-s3() {
+        copy_resouce_s3_calls=$((copy_resouce_s3_calls+1))
+        echo "$@" > "$IO_ARTIFACTS/copy_resources_s3_args_$copy_resouce_s3_calls"
     }
 fi
 
@@ -215,7 +226,6 @@ function unset_book_vars() {
 
 function do_step() {
     step_name=$1
-    arg_book_slug=''
 
     # Parse the commandline args (runs in concourse and locally though only some args are used locally)
     shift 1
@@ -255,7 +265,7 @@ function do_step() {
 
             # Write out the files
             echo "$repo" > "$INPUT_SOURCE_DIR/repo"
-            if [[ -n "$arg_book_slug" ]]; then
+            if [[ -n "${arg_book_slug-}" ]]; then
                 # CORGI does not include a new line after the slug. Simulate that with echo -n
                 echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
             fi

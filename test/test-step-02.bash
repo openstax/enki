@@ -62,7 +62,7 @@ SKIP_DOCKER_BUILD=1 \
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-e \
-STUB_AWS_CLI=1 \
+STUB_UPLOAD=1 \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf
 
 expected_repo="philschatz-tiny-book"
@@ -82,10 +82,20 @@ if [[ "$actual_contents" != "$expected_contents" ]]; then
 fi
 
 expected_contents="s3 cp /data/artifacts-single/$expected_book_slug.$expected_extension s3://openstax-sandbox-cops-artifacts/$expected_filename --acl public-read --content-type $expected_mime_type"
-actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args)"
+actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args_1)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad AWS CLI args."
     echo "Expected value: $expected_contents"
     echo "Actual value:   $actual_contents"
     exit 1
 fi
+
+
+# Test without book slug
+rm $BOOK_DIR/_attic/IO_BOOK/slugs
+SKIP_DOCKER_BUILD=1 \
+../enki --data-dir $BOOK_DIR --command step-pdf --repo 'philschatz/tiny-book' --ref long-lived-branch-for-testing-with-#-char
+
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD=1 \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf

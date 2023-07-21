@@ -10,7 +10,7 @@ KCOV_DIR=_kcov11-a \
 ../enki --clear-data --data-dir $BUSI_DIR --command all-epub --repo 'openstax/osbooks-business-law' --book-slug business-law-i-essentials --ref main
 
 SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
-STUB_AWS_CLI=1 \
+STUB_UPLOAD=1 \
 KCOV_DIR=_kcov11-b \
 ../enki --keep-data --data-dir $BUSI_DIR --command step-upload-epub
 
@@ -32,10 +32,20 @@ if [[ "$actual_contents" != "$expected_contents" ]]; then
 fi
 
 expected_contents="s3 cp /data/artifacts-single/$expected_book_slug.$expected_extension s3://openstax-sandbox-cops-artifacts/$expected_filename --acl public-read --content-type $expected_mime_type"
-actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args)"
+actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args_1)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad AWS CLI args."
     echo "Expected value: $expected_contents"
     echo "Actual value:   $actual_contents"
     exit 1
 fi
+
+
+# Try it without the book slug
+rm $BOOK_DIR/_attic/IO_BOOK/slugs
+SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
+../enki --data-dir $BUSI_DIR --command all-epub --start-at step-disassemble --repo 'openstax/osbooks-business-law' --ref main
+
+SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
+STUB_UPLOAD=1 \
+../enki --keep-data --data-dir $BUSI_DIR --command step-upload-epub
