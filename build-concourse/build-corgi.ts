@@ -46,17 +46,6 @@ function makePipeline(env: KeyValue) {
                 job_type_id: JobType.GIT_EPUB,
                 status_id: 1
             }
-        },
-        {
-            name: 's3-file',
-            type: 's3',
-            source: {
-                bucket: env.CORGI_ARTIFACTS_S3_BUCKET,
-                access_key_id: env.AWS_ACCESS_KEY_ID,
-                secret_access_key: env.AWS_SECRET_ACCESS_KEY,
-                session_token: env.AWS_SESSION_TOKEN,
-                skip_download: true
-            }
         }
     ]
 

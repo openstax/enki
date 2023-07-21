@@ -27,14 +27,13 @@ while IFS=$'\n' read -r expected_contents; do
         echo "Actual value:   $actual_contents"
         exit 1
     fi
-done < <(cat <<EOF
+done <<EOF
 s3 cp --recursive /data/artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
 s3 cp --recursive /data/resources/interactives-thisnamedoesnotmatter/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/interactives-thisnamedoesnotmatter
 s3 cp --recursive /data/resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
 s3 cp /data/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.json
 s3 cp /data/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.xhtml
 EOF
-)
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/aws_args_*` and copy/paste :)
 
 
@@ -48,10 +47,9 @@ while IFS=$'\n' read -r expected_contents; do
         echo "Actual value:   $actual_contents"
         exit 1
     fi
-done < <(cat <<EOF
+done <<EOF
 /data/resources openstax-sandbox-cops-artifacts apps/archive-localdev/test/resources
 EOF
-)
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/copy_resources_s3_args_*` and copy/paste :)
 
 
