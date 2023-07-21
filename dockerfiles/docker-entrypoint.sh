@@ -256,7 +256,8 @@ function do_step() {
             # Write out the files
             echo "$repo" > "$INPUT_SOURCE_DIR/repo"
             if [[ -n "$arg_book_slug" ]]; then
-                echo "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
+                # CORGI does not include a new line after the slug. Simulate that with echo -n
+                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
             fi
             echo "$version" > "$INPUT_SOURCE_DIR/version"
             # Dummy files
