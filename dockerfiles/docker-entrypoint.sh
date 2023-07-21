@@ -215,6 +215,7 @@ function unset_book_vars() {
 
 function do_step() {
     step_name=$1
+    arg_book_slug=''
 
     # Parse the commandline args (runs in concourse and locally though only some args are used locally)
     shift 1
@@ -242,25 +243,25 @@ function do_step() {
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
-            repo_and_book_slug="$arg_repo/"
-            if [ -v arg_book_slug ]; then
-              repo_and_book_slug="$arg_repo/$arg_book_slug"
-            fi
-            version=$arg_ref
+            repo="$arg_repo"
+            version="$arg_ref"
 
-            ensure_arg repo_and_book_slug 'Specify repo name (or archive collection id)'
+            ensure_arg repo 'Specify repo name'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
 
-            [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
+            [[ -d $INPUT_SOURCE_DIR ]] || mkdir "$INPUT_SOURCE_DIR"
 
             check_output_dir INPUT_SOURCE_DIR
 
             # Write out the files
-            echo "$repo_and_book_slug" > $INPUT_SOURCE_DIR/collection_id
-            echo "$version" > $INPUT_SOURCE_DIR/version
+            echo "$repo" > "$INPUT_SOURCE_DIR/repo"
+            if [[ -n "$arg_book_slug" ]]; then
+                echo "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
+            fi
+            echo "$version" > "$INPUT_SOURCE_DIR/version"
             # Dummy files
-            echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
-            echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
+            echo '-123456' > "$INPUT_SOURCE_DIR/id" # job_id
+            echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > "$INPUT_SOURCE_DIR/job.json"
 
             return
         ;;
@@ -270,23 +271,13 @@ function do_step() {
             check_input_dir INPUT_SOURCE_DIR
             check_output_dir IO_BOOK
             
-            tail $INPUT_SOURCE_DIR/*
-            cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
-            cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-
-            # Git book
-            if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug  # TODO: Remove this because it is only used for web builds?
-            else
-                # LCOV_EXCL_START
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug  # TODO: Remove this because it is only used for web builds?
-                # LCOV_EXCL_STOP
-            fi
-            # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
-            if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
-                rm $IO_BOOK/slug # LCOV_EXCL_LINE
+            tail "$INPUT_SOURCE_DIR"/*
+            cp "$INPUT_SOURCE_DIR/id" "$IO_BOOK/job_id"
+            cp "$INPUT_SOURCE_DIR/version" "$IO_BOOK/version"
+            cp "$INPUT_SOURCE_DIR/repo" "$IO_BOOK/repo"
+            # CORGI should always provide slugs, but that is not true on local
+            if [[ -f "$INPUT_SOURCE_DIR/slugs" ]]; then
+                cp "$INPUT_SOURCE_DIR/slugs" "$IO_BOOK/slugs"
             fi
 
             return
@@ -338,6 +329,12 @@ function do_step_named() {
         exit 0
     fi
 
+    # FIXME: Cannot select a book slug during local development when --start-at
+    #        is used. The slugs file is written during local-create-book-directory
+    #        and look-up-book. These steps are skipped when START_AT_STEP is defined.
+    # POSSIBLE FIX: Stop skipping these two steps
+    # PROBLEM: many steps, like step-fetch, assume these steps will be skipped
+    #          and that the values in IO_BOOK will not change once written
     if [[ ! $START_AT_STEP ]]; then
         [[ $LOCAL_ATTIC_DIR ]] && simulate_dirs_before $step_name
         say "==> Starting: $*"
