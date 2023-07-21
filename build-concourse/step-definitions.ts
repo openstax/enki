@@ -47,7 +47,7 @@ set({name: 'step-upload-epub', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outp
 
 // GIT_GDOC_STEPS
 set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
-set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
+set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
 set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})

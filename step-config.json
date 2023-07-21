@@ -170,7 +170,9 @@
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "git-dequeue-book": {
