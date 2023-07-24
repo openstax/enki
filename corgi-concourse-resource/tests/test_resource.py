@@ -208,18 +208,18 @@ class TestOut(object):
             result = output
 
         id_filepath = os.path.join(src_path, "id")
-        pdf_url_filepath = os.path.join(src_path, "pdf_url")
+        artifcat_urls_filepath = os.path.join(src_path, "artifact_urls")
 
         write_file(id_filepath, id)
         write_file(
-            pdf_url_filepath,
+            artifcat_urls_filepath,
             output
             if isinstance(output, str)
             else json.dumps(output))
 
         params = {
             "id": "id",
-            "pdf_url": "pdf_url",
+            "artifact_urls": "artifact_urls",
             "status_id": "5"
         }
 

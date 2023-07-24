@@ -207,7 +207,7 @@ function upload_book_artifacts() {
     if [[ ${#book_slug_urls[@]} -eq 0 ]]; then
         die "Did not get any book artifacts to upload."  # LCOV_EXCL_LINE
     fi
-    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
+    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 }
 
 function parse_book_dir() {

@@ -19,9 +19,9 @@ def out(src_path, in_stream):
     with open(os.path.join(src_path, id_path), "r") as infile:
         id = infile.read()
 
-    pdf_url = data.get("pdf_url")
-    if pdf_url:
-        with open(os.path.join(src_path, pdf_url), "r") as infile:
+    artifact_urls = data.get("artifact_urls")
+    if artifact_urls:
+        with open(os.path.join(src_path, artifact_urls), "r") as infile:
             artifact_url = payload = infile.read()
             try:
                 json_payload = json.loads(payload)

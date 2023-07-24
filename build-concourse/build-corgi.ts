@@ -63,7 +63,7 @@ function makePipeline(env: KeyValue) {
                 ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -87,7 +87,7 @@ function makePipeline(env: KeyValue) {
                 ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -113,7 +113,7 @@ function makePipeline(env: KeyValue) {
                 ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -138,7 +138,7 @@ function makePipeline(env: KeyValue) {
                 ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile

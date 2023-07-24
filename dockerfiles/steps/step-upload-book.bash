@@ -64,7 +64,7 @@ if [[ -n "${CORGI_CLOUDFRONT_URL-}" ]]; then
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
 
-    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/pdf_url"
+    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
     echo "View web preview here: $rex_prod_url"
 fi

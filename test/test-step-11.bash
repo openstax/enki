@@ -23,7 +23,7 @@ expected_extension="epub"
 expected_mime_type="application/epub+zip"
 expected_filename="$expected_repo-$expected_version-$expected_job_id-$expected_book_slug.$expected_extension"
 expected_contents='[{"url":"https://openstax-sandbox-cops-artifacts.s3.amazonaws.com/'"$expected_filename"'","slug":"'"$expected_book_slug"'"}]'
-actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/pdf_url)"
+actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/artifact_urls.json)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad artifact urls."
     echo "Expected value: $expected_contents"
