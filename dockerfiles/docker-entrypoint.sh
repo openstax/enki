@@ -74,17 +74,30 @@ if [[ $STUB_UPLOAD ]]; then
         export REX_PROD_PREVIEW_URL="https://rex-test"
     fi
     export CODE_VERSION="test"
-    aws_calls=0
-    copy_resouce_s3_calls=0
+
+    function get_stub_output_dir() {
+        output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
+        to_return=''
+        for output_dir in $output_dirs; do
+            # Prefer IO_ARTIFACTS, fallback to using first output directory in the list
+            if [[ $to_return == '' || $output_dir == "'IO_ARTIFACTS'" ]]; then
+                to_return="$output_dir"
+            fi
+        done
+        expect_value "$to_return" "get_stub_output_dir: Expected to find output directory."
+        echo "$to_return" | tr -d "'"
+    }
 
     function aws() {
-        aws_calls=$((aws_calls+1))
-        echo "$@" > "$IO_ARTIFACTS/aws_args_$aws_calls"
+        pointer=$(get_stub_output_dir)
+        aws_calls=$(find "${!pointer}" -name 'aws_args_*' | wc -l)
+        echo "$@" > "${!pointer}/aws_args_$((aws_calls+1))"
     }
 
     function copy-resources-s3() {
-        copy_resouce_s3_calls=$((copy_resouce_s3_calls+1))
-        echo "$@" > "$IO_ARTIFACTS/copy_resources_s3_args_$copy_resouce_s3_calls"
+        pointer=$(get_stub_output_dir)
+        copy_resouce_s3_calls=$(find "${!pointer}" -name 'copy_resources_s3_args_*' | wc -l)
+        echo "$@" > "${!pointer}/copy_resources_s3_args_$((copy_resouce_s3_calls+1))"
     }
 fi
 
