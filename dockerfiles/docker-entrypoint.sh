@@ -186,7 +186,7 @@ function get_s3_name() {
 
 function upload_book_artifacts() {
     content_type="$1"
-    for varname in ARG_S3_BUCKET_NAME content_type; do
+    for varname in ARG_S3_BUCKET_NAME IO_ARTIFACTS content_type; do
         expect_value "${!varname}" "upload_book_artifacts: Expected value for \"$varname\""
     done
     book_slug_urls=()
