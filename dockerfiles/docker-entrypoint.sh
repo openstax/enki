@@ -69,9 +69,11 @@ if [[ $STUB_UPLOAD ]]; then
     say "STUBBING UPLOAD FUNCTIONS"
     export AWS_ACCESS_KEY_ID="test"
     export AWS_SECRET_ACCESS_KEY="test"
-    export CORGI_CLOUDFRONT_URL="https://test-cloudfront-url"
+    if [[ $STUB_UPLOAD == "corgi" ]]; then
+        export CORGI_CLOUDFRONT_URL="https://test-cloudfront-url"
+        export REX_PROD_PREVIEW_URL="https://rex-test"
+    fi
     export CODE_VERSION="test"
-    export REX_PROD_PREVIEW_URL="https://rex-test"
     aws_calls=0
     copy_resouce_s3_calls=0
 
@@ -177,7 +179,7 @@ function get_s3_name() {
     version="$(cat "$IO_BOOK/version")"
     job_id="$(cat "$IO_BOOK/job_id")"
     for varname in repo version job_id filename; do
-        expect_value "${!varname}" "get_s3_name: Expected value for \"$varname\""
+        expect_value "${!varname-}" "get_s3_name: Expected value for \"$varname\""
     done
     s3_name="${repo%%/}-$version-$job_id-$filename"
     s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
@@ -187,12 +189,12 @@ function get_s3_name() {
 function upload_book_artifacts() {
     content_type="$1"
     for varname in ARG_S3_BUCKET_NAME IO_ARTIFACTS content_type; do
-        expect_value "${!varname}" "upload_book_artifacts: Expected value for \"$varname\""
+        expect_value "${!varname-}" "upload_book_artifacts: Expected value for \"$varname\""
     done
     book_slug_urls=()
     while IFS='|' read -r file_to_upload slug; do
         for varname in file_to_upload slug; do
-            expect_value "${!varname}" "upload_book_artifacts: Expected value for \"$varname\""
+            expect_value "${!varname-}" "upload_book_artifacts: Expected value for \"$varname\""
         done
 
         s3_name="$(set -Eeuo pipefail && get_s3_name "$file_to_upload")"

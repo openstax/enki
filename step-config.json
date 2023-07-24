@@ -115,8 +115,7 @@
                 "CORGI_ARTIFACTS_S3_BUCKET",
                 "PREVIEW_APP_URL_PREFIX",
                 "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY",
-                "REX_PROD_PREVIEW_URL"
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "step-epub": {

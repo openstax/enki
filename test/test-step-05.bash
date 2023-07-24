@@ -12,7 +12,7 @@ KCOV_DIR=_kcov05-a \
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov05-b \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-docx
 
 expected_repo="philschatz-tiny-book"
@@ -47,7 +47,7 @@ SKIP_DOCKER_BUILD=1 \
 ../enki --data-dir $BOOK_DIR --command all-docx --start-at step-disassemble --repo 'philschatz/tiny-book' --ref main
 
 SKIP_DOCKER_BUILD=1 \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-docx
 
 

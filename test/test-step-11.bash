@@ -10,7 +10,7 @@ KCOV_DIR=_kcov11-a \
 ../enki --clear-data --data-dir $BUSI_DIR --command all-epub --repo 'openstax/osbooks-business-law' --book-slug business-law-i-essentials --ref main
 
 SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 KCOV_DIR=_kcov11-b \
 ../enki --keep-data --data-dir $BUSI_DIR --command step-upload-epub
 
@@ -47,5 +47,5 @@ SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
 ../enki --data-dir $BUSI_DIR --command all-epub --start-at step-disassemble --repo 'openstax/osbooks-business-law' --ref main
 
 SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BUSI_DIR --command step-upload-epub

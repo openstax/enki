@@ -5,6 +5,7 @@ set -e
 
 
 BOOK_DIR=../data/test-book
+ARTIFACTS_URL_PATH="$BOOK_DIR/_attic/IO_ARTIFACTS/artifact_urls.json"
 
 # Test from the start with book slug
 SKIP_DOCKER_BUILD=1 \
@@ -12,7 +13,7 @@ KCOV_DIR=_kcov03-a \
 ../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
 SKIP_DOCKER_BUILD=1 \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 KCOV_DIR=_kcov03-b \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
@@ -53,15 +54,42 @@ EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/copy_resources_s3_args_*` and copy/paste :)
 
 
+expected_book_slug="book-slug1"
+expected_url="https://rex-test/books/00000000-0000-0000-0000-000000000000@9044eef/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
+expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"}]'
+actual_contents="$(cat $ARTIFACTS_URL_PATH)"
+if [[ "$actual_contents" != "$expected_contents" ]]; then
+    echo "Bad artifact urls."
+    echo "Expected value: $expected_contents"
+    echo "Actual value:   $actual_contents"
+    exit 1
+fi
+
 # Test without book slug
 rm $BOOK_DIR/_attic/IO_BOOK/slugs
 SKIP_DOCKER_BUILD=1 \
 ../enki --data-dir $BOOK_DIR --command all-web --start-at step-disassemble --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
 SKIP_DOCKER_BUILD=1 \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
+[[ -f "$ARTIFACTS_URL_PATH" ]] || {
+    echo "Expected $ARTIFACTS_URL_PATH to exist"
+    exit 1
+}
+
+# This is here to ensure that webhosting pipeline works
+# Remove the job_id (this file would not exist in webhosting pipeline)
+rm "$BOOK_DIR/_attic/IO_BOOK/job_id"
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD="webhosting" \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
+
+[[ ! -f "$ARTIFACTS_URL_PATH" ]] || {
+    echo "Did not expect $ARTIFACTS_URL_PATH to exist"
+    exit 1
+}
 
 # Check local-preview works
 SKIP_DOCKER_BUILD=1 \

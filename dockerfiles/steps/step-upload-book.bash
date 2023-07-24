@@ -48,7 +48,10 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 done
 
 # Only do this when we are running a CORGI job
-if [[ -n "${CORGI_CLOUDFRONT_URL-}" ]]; then
+if [[ -f "$IO_BOOK/job_id" ]]; then
+    for varname in CORGI_CLOUDFRONT_URL REX_PROD_PREVIEW_URL; do
+        expect_value "${!varname-}" "step-upload-book: Expected value for \"$varname\""
+    done
     book_slug_urls=()
     while read -r book_slug; do
         book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"

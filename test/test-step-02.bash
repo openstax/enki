@@ -62,7 +62,7 @@ SKIP_DOCKER_BUILD=1 \
 
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov02-e \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf
 
 expected_repo="philschatz-tiny-book"
@@ -97,5 +97,5 @@ SKIP_DOCKER_BUILD=1 \
 ../enki --data-dir $BOOK_DIR --command step-pdf --repo 'philschatz/tiny-book' --ref long-lived-branch-for-testing-with-#-char
 
 SKIP_DOCKER_BUILD=1 \
-STUB_UPLOAD=1 \
+STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf
