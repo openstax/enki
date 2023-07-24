@@ -132,6 +132,7 @@ describe('TocFile and Friends', () => {
   })
 
   describe('with a small book', () => {
+    const unitTitle = 'UnitTitle'
     const chapterTitle = 'ChapterTitle'
     const pageTitle = 'PageTitle'
     const pageName = 'iamthepage.xhtml'
@@ -142,10 +143,15 @@ describe('TocFile and Friends', () => {
                 <nav>
                     <ol>
                         <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
-                            <a href="#chapunused"><span>${chapterTitle}</span></a>
+                            <span>${unitTitle}</span>
                             <ol>
-                                <li>
-                                    <a href="${pageName}"><span>${pageTitle}</span></a>
+                                <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
+                                    <span>${chapterTitle}</span>
+                                    <ol>
+                                        <li>
+                                            <a href="${pageName}"><span>${pageTitle}</span></a>
+                                        </li>
+                                    </ol>
                                 </li>
                             </ol>
                         </li>

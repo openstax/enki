@@ -60,7 +60,7 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
 "<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
     <meta name="dtb:uid" content="dummy-openstax.org-id.bookslug"/>
-    <meta name="dtb:depth" content="2"/>
+    <meta name="dtb:depth" content="3"/>
     <meta name="dtb:generator" content="OpenStax EPUB Maker 2022-08"/>
     <meta name="dtb:pagecount" content="2"/>
     <meta name="dtb:maxPageNumber" content="2"/>
@@ -72,16 +72,23 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
   <navMap>
     <navPoint id="idm1">
       <navLabel>
-        <text>ChapterTitle
+        <text>UnitTitle
         </text>
       </navLabel>
       <content src="../foo/iamthepage.xhtml"/>
       <navPoint id="idm2">
         <navLabel>
-          <text>PageTitle
+          <text>ChapterTitle
           </text>
         </navLabel>
-        <content src="./../foo/iamthepage.xhtml"/>
+        <content src="../foo/iamthepage.xhtml"/>
+        <navPoint id="idm3">
+          <navLabel>
+            <text>PageTitle
+            </text>
+          </navLabel>
+          <content src="./../foo/iamthepage.xhtml"/>
+        </navPoint>
       </navPoint>
     </navPoint>
   </navMap></ncx>
@@ -126,10 +133,15 @@ exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = 
                 <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc">
                     <ol>
                         <li>
-                            <span/>
+                            <a href="../foo/iamthepage.xhtml">UnitTitle</a>
                             <ol>
                                 <li>
-                                    <a href="../foo/iamthepage.xhtml">PageTitle</a>
+                                    <a href="../foo/iamthepage.xhtml">ChapterTitle</a>
+                                    <ol>
+                                        <li>
+                                            <a href="../foo/iamthepage.xhtml">PageTitle</a>
+                                        </li>
+                                    </ol>
                                 </li>
                             </ol>
                         </li>

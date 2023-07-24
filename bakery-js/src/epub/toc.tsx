@@ -140,10 +140,22 @@ export class TocFile extends BaseTocFile<
       /* istanbul ignore next */ (e) => e.remove()
     )
 
-    // Unwrap chapter links and combine titles into a single span
-    doc.forEach('//h:a[starts-with(@href, "#")]', (el) => {
-      const children = el.find('h:span//text()')
-      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
+    // Replace chapter links to point to the first page in the chapter (for VitalSource)
+    doc.forEach('//h:li[h:span]', (el) => {
+      const link = el.findOne('h:span')
+      const children = link.find('.//text()')
+      const firstPage = assertValue(
+        el.find('.//h:li/h:a[@href]')[0],
+        'BUG: Expected to find at least one Page inside a ToC Chapter/Unit'
+      )
+      link.replaceWith(
+        doc.create(
+          'h:a',
+          { href: assertValue(firstPage.attr('href')) },
+          children,
+          getPos(el.node)
+        )
+      )
     })
 
     doc.forEach('//h:a[not(starts-with(@href, "#")) and h:span]', (el) => {
