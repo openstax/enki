@@ -22,15 +22,7 @@ def out(src_path, in_stream):
     artifact_urls = data.get("artifact_urls")
     if artifact_urls:
         with open(os.path.join(src_path, artifact_urls), "r") as infile:
-            artifact_url = payload = infile.read()
-            try:
-                json_payload = json.loads(payload)
-                if "View - Rex Web" in payload:
-                    data["artifact_urls"] = json_payload[1]["href"] # View - Rex Web Prod
-                else:
-                    data["artifact_urls"] = json_payload
-            except json.JSONDecodeError:
-                data["artifact_urls"] = artifact_url
+            data["artifact_urls"] = json.load(infile)
 
     error_message = data.get("error_message")
     if not error_message:

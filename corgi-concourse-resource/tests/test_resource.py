@@ -182,7 +182,6 @@ class TestOut(object):
 
     @pytest.mark.parametrize(
             "output,result", [
-                ("http://dummy.cops.org/col12345-latest.pdf", None),
                 (
                     [
                         {"slug": "test1", "url": "something"},
@@ -190,13 +189,6 @@ class TestOut(object):
                     ],
                     None
                 ),
-                (
-                    [
-                        {"text": "View - Rex Web", "href": "Something"},
-                        {"text": "View - Rex Web Prod", "href": "Something else"}
-                    ],
-                    "Something else"
-                )
             ]
     )
     @vcr.use_cassette("tests/cassettes/test_out.yaml", record_mode="new_episode")
@@ -240,9 +232,7 @@ class TestOut(object):
         
         monkeypatch.setattr("corgi_concourse_resource.out.update_job", test_data)
 
-        result = out.out(src_path, in_stream)
-
-        assert result == {
+        assert out.out(src_path, in_stream) == {
             "version": {
                 "id": "1"
             }
