@@ -1,5 +1,5 @@
-import { basename, resolve, dirname, sep, join } from 'path'
-import { existsSync } from 'fs'
+import { basename, resolve, dirname, sep, join, extname } from 'path'
+import { existsSync, readdirSync } from 'fs'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
 import { assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
@@ -31,6 +31,7 @@ type TocData = {
   toc: TocTree[]
   allPages: Set<PageFile>
   allResources: Set<ResourceFile>
+  allFonts: Set<ResourceFile>
 
   // From the metadata.json file
   title: string
@@ -94,6 +95,7 @@ export class TocFile extends BaseTocFile<
     const { toc, allPages } = await super.baseParse(factorio)
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
+    const allFonts = new Set<ResourceFile>()
 
     // keep looking through XHTML file links and add those to the set of allPages
     async function recPages(page: PageFile) {
@@ -115,10 +117,21 @@ export class TocFile extends BaseTocFile<
       await recPages(page)
     }
 
+    const fontFilesDir = resolve(
+      dirname(this.readPath),
+      join('..', DIRNAMES.IO_BAKED, 'downloaded-fonts')
+    )
+    const fontFiles = readdirSync(fontFilesDir)
+    fontFiles.forEach((fontFilename) => {
+      const p = `${fontFilesDir}/${fontFilename}`
+      allFonts.add(factorio.resources.getOrAdd(p, undefined))
+    })
+
     this._parsed = {
       toc,
       allPages,
       allResources,
+      allFonts,
       title,
       revised,
       slug,
@@ -278,7 +291,7 @@ export class OpfFile extends TocFile {
     )
 
     let i = 0
-    for (const resource of allResources) {
+    for (const resource of [...allResources, ...this.parsed.allFonts]) {
       const { mimeType } = resource.parsed
 
       manifestItems.push(

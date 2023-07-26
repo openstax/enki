@@ -6,7 +6,7 @@ import {
   readFileSync,
   statSync,
 } from 'fs'
-import { resolve, relative, join, dirname } from 'path'
+import { resolve, relative, join, dirname, extname } from 'path'
 import { DIRNAMES } from '../env'
 import {
   assertTrue,
@@ -123,6 +123,12 @@ export class ResourceFile
     'application/x-shockwave-flash': 'swf',
     // 'application/octet-stream':
   }
+
+  private static extensionMimetypes: { [k: string]: string } = {
+    ttf: 'font/ttf',
+    woff2: 'font/woff2',
+    css: 'text/css',
+  }
   private realReadPath() {
     return this.readPath.replace('/resources/', `/${DIRNAMES.IO_RESOURCES}/`)
   }
@@ -136,10 +142,21 @@ export class ResourceFile
 
   async parse(_: Factorio<any, any, any>): Promise<void> {
     const metadataFile = `${this.realReadPath()}.json`
-    const json = await this.readJson<any>(metadataFile)
-    this._data = {
-      mimeType: json.mime_type as string,
-      originalExtension: json.original_name.split('.').reverse()[0] as string,
+    if (existsSync(metadataFile)) {
+      const json = await this.readJson<any>(metadataFile)
+      this._data = {
+        mimeType: json.mime_type,
+        originalExtension: json.original_name.split('.').reverse()[0] as string,
+      }
+    } else {
+      const originalExtension = extname(this.realReadPath()).substring(1) // remove the leading '.'
+      this._data = {
+        originalExtension,
+        mimeType: assertValue(
+          ResourceFile.extensionMimetypes[originalExtension],
+          `BUG: Could not find mimetype for file '${this.realReadPath()}' with extension '${originalExtension}'`
+        ),
+      }
     }
   }
 
