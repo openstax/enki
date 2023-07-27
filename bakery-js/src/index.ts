@@ -230,7 +230,7 @@ epubCommand
         // patch the ToC file to include a hidden reference to the cover page
         // so that EPUB validator/specification is happy
         const doc = await readXmlWithSourcemap(tocFile.newPath)
-        const nav = doc.getElementsByTagName('nav')[0]
+        const firstLi = doc.getElementsByTagName('li')[0]
         const ol = doc.createElement('ol')
         ol.setAttribute('hidden', 'hidden')
         const li = doc.createElement('li')
@@ -239,7 +239,7 @@ epubCommand
         a.textContent = 'Cover'
         li.appendChild(a)
         ol.appendChild(li)
-        nav.insertBefore(ol, nav.firstChild)
+        firstLi.insertBefore(ol, firstLi.firstChild)
         await writeXmlWithSourcemap(tocFile.newPath, doc)
       }
 
