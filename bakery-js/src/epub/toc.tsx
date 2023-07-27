@@ -186,8 +186,9 @@ export class TocFile extends BaseTocFile<
 
     // create extra elements when cover existing
     if (this.parsed.coverFile) {
-      const firstLi = doc.find('//h:ol/h:li')[0]
+      const firstOl = doc.find('//h:ol')[0]
       const xmldoc = await this.readXml()
+      const coverLi = xmldoc.createElement('li')
       const ol = xmldoc.createElement('ol')
       ol.setAttribute('hidden', 'hidden')
       const li = xmldoc.createElement('li')
@@ -196,7 +197,8 @@ export class TocFile extends BaseTocFile<
       a.textContent = 'Cover'
       li.appendChild(a)
       ol.appendChild(li)
-      firstLi.node.insertBefore(ol, firstLi.node.firstChild)
+      coverLi.appendChild(ol)
+      firstOl.node.insertBefore(coverLi, firstOl.node.firstChild)
     }
 
     return doc.node
