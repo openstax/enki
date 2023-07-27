@@ -143,11 +143,7 @@ export class TocFile extends BaseTocFile<
     // Unwrap chapter links and combine titles into a single span
     doc.forEach('//h:a[starts-with(@href, "#")]', (el) => {
       const children = el.find('h:span//text()')
-      if (children.toString().length === 0) {
-        el.remove()
-      } else {
-        el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
-      }
+      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
     })
 
     doc.forEach('//h:a[not(starts-with(@href, "#")) and h:span]', (el) => {
@@ -158,11 +154,7 @@ export class TocFile extends BaseTocFile<
     // Unwrap the spans inside the list items and replace with a single span
     doc.forEach('//h:ol/h:li/h:span', (el) => {
       const children = el.find('h:span//text()')
-      if (children.toString().length === 0) {
-        el.remove()
-      } else {
-        el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
-      }
+      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
     })
 
     // Rename the hrefs to XHTML files to their new name
