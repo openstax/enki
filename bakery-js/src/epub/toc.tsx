@@ -176,6 +176,21 @@ export class TocFile extends BaseTocFile<
     // Add the epub:type="nav" attribute
     doc.findOne('//h:nav').attr('epub:type', 'toc')
 
+    // create extra elements when cover existing
+    if (this.parsed.coverFile) {
+      const firstLi = doc.find('//h:ol/h:li')[0]
+      const xmldoc = await this.readXml()
+      const ol = xmldoc.createElement('ol')
+      ol.setAttribute('hidden', 'hidden')
+      const li = xmldoc.createElement('li')
+      const a = xmldoc.createElement('a')
+      a.setAttribute('href', 'cover.xhtml')
+      a.textContent = 'Cover'
+      li.appendChild(a)
+      ol.appendChild(li)
+      firstLi.node.insertBefore(ol, firstLi.node.firstChild)
+    }
+
     return doc.node
   }
 }

@@ -226,21 +226,6 @@ epubCommand
           `${destinationDir}/${opfFile.parsed.slug}/cover.xhtml`,
           coverPage
         )
-
-        // patch the ToC file to include a hidden reference to the cover page
-        // so that EPUB validator/specification is happy
-        const doc = await tocFile.readXml()
-        const firstLi = doc.getElementsByTagName('li')[0]
-        const ol = doc.createElement('ol')
-        ol.setAttribute('hidden', 'hidden')
-        const li = doc.createElement('li')
-        const a = doc.createElement('a')
-        a.setAttribute('href', 'cover.xhtml')
-        a.textContent = 'Cover'
-        li.appendChild(a)
-        ol.appendChild(li)
-        firstLi.insertBefore(ol, firstLi.firstChild)
-        await writeXmlWithSourcemap(tocFile.newPath, doc)
       }
 
       factorio.pages.clear()
