@@ -121,7 +121,7 @@ export class TocFile extends BaseTocFile<
       dirname(this.readPath),
       join('..', DIRNAMES.IO_BAKED, 'downloaded-fonts')
     )
-    const fontFiles = readdirSync(fontFilesDir)
+    const fontFiles = existsSync(fontFilesDir) ? readdirSync(fontFilesDir) : []
     fontFiles.forEach((fontFilename) => {
       const p = `${fontFilesDir}/${fontFilename}`
       allFonts.add(factorio.resources.getOrAdd(p, undefined))
