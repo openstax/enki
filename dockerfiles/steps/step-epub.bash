@@ -16,7 +16,7 @@ for book_dir in "$IO_EPUB/"*; do
     pushd "$book_dir"
     zip "$epub_file_path" -DX0 mimetype
     zip "$epub_file_path" -DX9 META-INF/container.xml
-    zip "$epub_file_path" -DX9 ./*
+    zip "$epub_file_path" -DX9 -R ./*
     popd
 
 done
