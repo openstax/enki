@@ -1,7 +1,7 @@
 import { basename, resolve, dirname, sep, join, extname } from 'path'
 import { existsSync, readdirSync } from 'fs'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
-import { assertValue, getPos, Pos } from '../utils'
+import { assertTrue, assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory, Opt } from '../model/factory'
 import { ResourceFile, XmlFile } from '../model/file'
@@ -174,12 +174,6 @@ export class TocFile extends BaseTocFile<
     doc.forEach('//h:a[not(starts-with(@href, "#")) and h:span]', (el) => {
       const children = el.find('h:span//text()')
       el.children = children
-    })
-
-    // Unwrap the spans inside the list items and replace with a single span
-    doc.forEach('//h:ol/h:li/h:span', (el) => {
-      const children = el.find('h:span//text()')
-      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
     })
 
     // Rename the hrefs to XHTML files to their new name

@@ -189,6 +189,7 @@ describe('TocFile and Friends', () => {
       fs[`/foo/${imageName}.json`] = JSON.stringify(imageMetadata)
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
+      fs['/IO_BAKED/downloaded-fonts/hi.ttf'] = 'not-real-TTF-bits'
       mockfs(fs)
     })
     afterEach(() => {
@@ -213,6 +214,9 @@ describe('TocFile and Friends', () => {
         for (const f of [...page.parsed.pageLinks, ...page.parsed.resources]) {
           await f.parse(factorio)
         }
+      }
+      for (const resource of factorio.resources.all) {
+        await resource.parse(factorio)
       }
 
       await writeAndCheckSnapshot(f, destPath)

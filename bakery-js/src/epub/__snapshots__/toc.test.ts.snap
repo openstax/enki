@@ -118,6 +118,7 @@ exports[`TocFile and Friends with a small book generates an OPF file 1`] = `
     <item media-type="application/xhtml+xml" id="idxhtml_iamthepage.xhtml" properties="mathml remote-resources" href="../foo/iamthepage.xhtml"/>
     <item media-type="application/xhtml+xml" id="idxhtml_anorphanpage.xhtml" href="../foo/anorphanpage.xhtml"/>
     <item media-type="image/jpeg" id="idresource_0" href="../foo/some-image-name.jpeg"/>
+    <item media-type="font/ttf" id="idresource_1" href="../IO_BAKED/downloaded-fonts/hi.ttf"/>
   </manifest>
   <spine toc="the-ncx-file">
     <itemref linear="yes" idref="nav"/>
