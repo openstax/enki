@@ -132,6 +132,7 @@ describe('TocFile and Friends', () => {
   })
 
   describe('with a small book', () => {
+    const unitTitle = 'UnitTitle'
     const chapterTitle = 'ChapterTitle'
     const pageTitle = 'PageTitle'
     const pageName = 'iamthepage.xhtml'
@@ -142,10 +143,15 @@ describe('TocFile and Friends', () => {
                 <nav>
                     <ol>
                         <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
-                            <a href="#chapunused"><span>${chapterTitle}</span></a>
+                            <span>${unitTitle}</span>
                             <ol>
-                                <li>
-                                    <a href="${pageName}"><span>${pageTitle}</span></a>
+                                <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
+                                    <span>${chapterTitle}</span>
+                                    <ol>
+                                        <li>
+                                            <a href="${pageName}"><span>${pageTitle}</span></a>
+                                        </li>
+                                    </ol>
                                 </li>
                             </ol>
                         </li>
@@ -183,6 +189,7 @@ describe('TocFile and Friends', () => {
       fs[`/foo/${imageName}.json`] = JSON.stringify(imageMetadata)
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
+      fs['/IO_BAKED/downloaded-fonts/hi.ttf'] = 'not-real-TTF-bits'
       mockfs(fs)
     })
     afterEach(() => {
@@ -207,6 +214,9 @@ describe('TocFile and Friends', () => {
         for (const f of [...page.parsed.pageLinks, ...page.parsed.resources]) {
           await f.parse(factorio)
         }
+      }
+      for (const resource of factorio.resources.all) {
+        await resource.parse(factorio)
       }
 
       await writeAndCheckSnapshot(f, destPath)

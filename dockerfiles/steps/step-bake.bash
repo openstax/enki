@@ -11,6 +11,7 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     if [[ -f "$style_file" ]]
         then
             cp "$style_file" "$IO_BAKED/the-style-pdf.css"
+            cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$IO_BAKED"
         else
             die "Warning: Style Not Found in '$style_file'" # LCOV_EXCL_LINE
     fi
