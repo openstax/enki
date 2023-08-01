@@ -279,6 +279,10 @@ declare global {
 
       'h:title': {}
       'h:link': { rel: 'stylesheet'; type: 'text/css'; href: string }
+      'h:nav': { 'epub:type': 'landmarks'; hidden: 'hidden' }
+      'h:ol': {}
+      'h:li': {}
+      'h:a': { 'epub:type': 'cover' | 'toc'; href: string }
     }
   }
 }
