@@ -178,19 +178,39 @@ export class TocFile extends BaseTocFile<
 
     // create extra elements when cover existing
     if (this.parsed.coverFile) {
-      const firstOl = doc.find('//h:ol')[0]
+      const body = doc.find('//h:body')[0]
       const xmldoc = await this.readXml()
-      const coverLi = xmldoc.createElement('li')
+
+      // Create the new nav, ol, li, and a elements
+      const nav = xmldoc.createElement('nav')
+      nav.setAttribute('xmlns:epub', 'http://www.idpf.org/2007/ops')
+      nav.setAttribute('epub:type', 'landmarks')
+      nav.setAttribute('hidden', 'hidden')
+
       const ol = xmldoc.createElement('ol')
-      ol.setAttribute('hidden', 'hidden')
-      const li = xmldoc.createElement('li')
-      const a = xmldoc.createElement('a')
-      a.setAttribute('href', 'cover.xhtml')
-      a.textContent = 'Cover'
-      li.appendChild(a)
-      ol.appendChild(li)
-      coverLi.appendChild(ol)
-      firstOl.node.insertBefore(coverLi, firstOl.node.firstChild)
+
+      const li1 = xmldoc.createElement('li')
+      const a1 = xmldoc.createElement('a')
+      a1.setAttribute('epub:type', 'cover')
+      a1.setAttribute('href', 'cover.xhtml')
+      a1.textContent = 'Cover'
+      li1.appendChild(a1)
+
+      const li2 = xmldoc.createElement('li')
+      const a2 = xmldoc.createElement('a')
+      a2.setAttribute('epub:type', 'toc')
+      a2.setAttribute('href', '#toc')
+      a2.textContent = 'Table of Contents'
+      li2.appendChild(a2)
+
+      // Append the a to li, and li to ol
+      ol.appendChild(li1)
+      ol.appendChild(li2)
+
+      // Append the ol to nav
+      nav.appendChild(ol)
+
+      body.node.insertBefore(nav, body.node.firstChild)
     }
 
     return doc.node
