@@ -49,7 +49,7 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 
 exports[`TocFile and Friends Cover image with TocFile and Friends with an empty book parses an empty ToC file 1`] = `
 "<html xmlns="http://www.w3.org/1999/xhtml">
-              <body><nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="landmarks" hidden="hidden"><ol><li><a epub:type="cover" href="cover.xhtml">Cover</a></li><li><a epub:type="toc" href="#toc">Table of Contents</a></li></ol></nav>
+              <body><nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="landmarks" hidden="hidden"><ol><li><a xmlns:epub="http://www.idpf.org/2007/ops" epub:type="cover" href="cover.xhtml">Cover</a></li><li><a xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc" href="#toc">Table of Contents</a></li></ol></nav>
                   <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc"/>
               </body>
           </html>
