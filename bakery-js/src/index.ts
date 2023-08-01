@@ -50,7 +50,7 @@ const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml">
     </style>
 </head>
 <body class="fullpage">
-    <section class="cover" epub:type="cover">
+    <section xmlns:epub="http://www.idpf.org/2007/ops" class="cover" epub:type="cover">
         <img id="coverimage" src="cover.jpg" alt="cover image" />
     </section>
 </body>
