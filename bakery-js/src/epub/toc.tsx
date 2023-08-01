@@ -176,6 +176,29 @@ export class TocFile extends BaseTocFile<
     // Add the epub:type="nav" attribute
     doc.findOne('//h:nav').attr('epub:type', 'toc')
 
+    // create extra elements when cover existing
+    if (this.parsed.coverFile) {
+      const body = doc.findOne('//h:body')
+      // Create the EPUB hidden nav landmarks for the cover and ToC
+      const nav = fromJSX(
+        <h:nav epub:type="landmarks" hidden="hidden">
+          <h:ol>
+            <h:li>
+              <h:a epub:type="cover" href="cover.xhtml">
+                Cover
+              </h:a>
+            </h:li>
+            <h:li>
+              <h:a epub:type="toc" href="#toc">
+                Table of Contents
+              </h:a>
+            </h:li>
+          </h:ol>
+        </h:nav>
+      )
+      body.node.insertBefore(nav.node, body.node.firstChild)
+    }
+
     return doc.node
   }
 }
