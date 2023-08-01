@@ -178,30 +178,25 @@ export class TocFile extends BaseTocFile<
 
     // create extra elements when cover existing
     if (this.parsed.coverFile) {
-      const body = doc.find('//h:body')[0]
-      const xmldoc = await this.readXml()
+      const body = doc.findOne('//h:body')
       // Create the EPUB hidden nav landmarks for the cover and ToC
-      const nav = xmldoc.createElement('nav')
-      nav.setAttribute('xmlns:epub', 'http://www.idpf.org/2007/ops')
-      nav.setAttribute('epub:type', 'landmarks')
-      nav.setAttribute('hidden', 'hidden')
-      const ol = xmldoc.createElement('ol')
-      const li1 = xmldoc.createElement('li')
-      const a1 = xmldoc.createElement('a')
-      a1.setAttribute('epub:type', 'cover')
-      a1.setAttribute('href', 'cover.xhtml')
-      a1.textContent = 'Cover'
-      li1.appendChild(a1)
-      const li2 = xmldoc.createElement('li')
-      const a2 = xmldoc.createElement('a')
-      a2.setAttribute('epub:type', 'toc')
-      a2.setAttribute('href', '#toc')
-      a2.textContent = 'Table of Contents'
-      li2.appendChild(a2)
-      ol.appendChild(li1)
-      ol.appendChild(li2)
-      nav.appendChild(ol)
-      body.node.insertBefore(nav, body.node.firstChild)
+      const nav = fromJSX(
+        <h:nav epub:type="landmarks" hidden="hidden">
+          <h:ol>
+            <h:li>
+              <h:a epub:type="cover" href="cover.xhtml">
+                Cover
+              </h:a>
+            </h:li>
+            <h:li>
+              <h:a epub:type="toc" href="#toc">
+                Table of Contents
+              </h:a>
+            </h:li>
+          </h:ol>
+        </h:nav>
+      )
+      body.node.insertBefore(nav.node, body.node.firstChild)
     }
 
     return doc.node
