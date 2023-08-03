@@ -1,7 +1,7 @@
-import { basename, resolve, dirname, sep, join } from 'path'
-import { existsSync } from 'fs'
+import { basename, resolve, dirname, sep, join, extname } from 'path'
+import { existsSync, readdirSync } from 'fs'
 import { dom, Dom, fromJSX, JSXNode } from '../minidom'
-import { assertValue, getPos, Pos } from '../utils'
+import { assertTrue, assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory, Opt } from '../model/factory'
 import { ResourceFile, XmlFile } from '../model/file'
@@ -31,6 +31,7 @@ type TocData = {
   toc: TocTree[]
   allPages: Set<PageFile>
   allResources: Set<ResourceFile>
+  allFonts: Set<ResourceFile>
 
   // From the metadata.json file
   title: string
@@ -94,6 +95,7 @@ export class TocFile extends BaseTocFile<
     const { toc, allPages } = await super.baseParse(factorio)
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
+    const allFonts = new Set<ResourceFile>()
 
     // keep looking through XHTML file links and add those to the set of allPages
     async function recPages(page: PageFile) {
@@ -115,10 +117,21 @@ export class TocFile extends BaseTocFile<
       await recPages(page)
     }
 
+    const fontFilesDir = resolve(
+      dirname(this.readPath),
+      join('..', DIRNAMES.IO_BAKED, 'downloaded-fonts')
+    )
+    const fontFiles = existsSync(fontFilesDir) ? readdirSync(fontFilesDir) : []
+    fontFiles.forEach((fontFilename) => {
+      const p = `${fontFilesDir}/${fontFilename}`
+      allFonts.add(factorio.resources.getOrAdd(p, undefined))
+    })
+
     this._parsed = {
       toc,
       allPages,
       allResources,
+      allFonts,
       title,
       revised,
       slug,
@@ -140,21 +153,27 @@ export class TocFile extends BaseTocFile<
       /* istanbul ignore next */ (e) => e.remove()
     )
 
-    // Unwrap chapter links and combine titles into a single span
-    doc.forEach('//h:a[starts-with(@href, "#")]', (el) => {
-      const children = el.find('h:span//text()')
-      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
+    // Replace chapter links to point to the first page in the chapter (for VitalSource)
+    doc.forEach('//h:li[h:span]', (el) => {
+      const link = el.findOne('h:span')
+      const children = link.find('.//text()')
+      const firstPage = assertValue(
+        el.find('.//h:li/h:a[@href]')[0],
+        'BUG: Expected to find at least one Page inside a ToC Chapter/Unit'
+      )
+      link.replaceWith(
+        doc.create(
+          'h:a',
+          { href: assertValue(firstPage.attr('href')) },
+          children,
+          getPos(el.node)
+        )
+      )
     })
 
     doc.forEach('//h:a[not(starts-with(@href, "#")) and h:span]', (el) => {
       const children = el.find('h:span//text()')
       el.children = children
-    })
-
-    // Unwrap the spans inside the list items and replace with a single span
-    doc.forEach('//h:ol/h:li/h:span', (el) => {
-      const children = el.find('h:span//text()')
-      el.replaceWith(doc.create('h:span', {}, children, getPos(el.node)))
     })
 
     // Rename the hrefs to XHTML files to their new name
@@ -175,6 +194,29 @@ export class TocFile extends BaseTocFile<
 
     // Add the epub:type="nav" attribute
     doc.findOne('//h:nav').attr('epub:type', 'toc')
+
+    // create extra elements when cover existing
+    if (this.parsed.coverFile) {
+      const body = doc.findOne('//h:body')
+      // Create the EPUB hidden nav landmarks for the cover and ToC
+      const nav = fromJSX(
+        <h:nav epub:type="landmarks" hidden="hidden">
+          <h:ol>
+            <h:li>
+              <h:a epub:type="cover" href="cover.xhtml">
+                Cover
+              </h:a>
+            </h:li>
+            <h:li>
+              <h:a epub:type="toc" href="#toc">
+                Table of Contents
+              </h:a>
+            </h:li>
+          </h:ol>
+        </h:nav>
+      )
+      body.node.insertBefore(nav.node, body.node.firstChild)
+    }
 
     return doc.node
   }
@@ -266,7 +308,7 @@ export class OpfFile extends TocFile {
     )
 
     let i = 0
-    for (const resource of allResources) {
+    for (const resource of [...allResources, ...this.parsed.allFonts]) {
       const { mimeType } = resource.parsed
 
       manifestItems.push(

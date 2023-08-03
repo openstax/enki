@@ -13,7 +13,7 @@ import {
   copyFileSync,
   constants,
 } from 'fs'
-import { basename, resolve } from 'path'
+import { basename, dirname, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
 import * as sourceMapSupport from 'source-map-support'
 import { ContainerFile } from './epub/container'
@@ -50,7 +50,7 @@ const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml">
     </style>
 </head>
 <body class="fullpage">
-    <section class="cover" epub:type="cover">
+    <section xmlns:epub="http://www.idpf.org/2007/ops" class="cover" epub:type="cover">
         <img id="coverimage" src="cover.jpg" alt="cover image" />
     </section>
 </body>
@@ -159,10 +159,12 @@ epubCommand
         const { mimeType, originalExtension } = r.parsed
         const newExtension =
           ResourceFile.mimetypeExtensions[mimeType] || originalExtension
-        r.rename(`${r.newPath}.${newExtension}`, undefined)
+        if (!r.newPath.endsWith(`.${newExtension}`)) {
+          r.rename(`${r.newPath}.${newExtension}`, undefined)
+        }
       })
 
-      // Specify that we will want to write all the files to a testing directory
+      // Ignore the directory that the files were in and instead put al lthe files in a single directory named {destinationDir}/{slug}
       for (const f of allFiles) {
         f.rename(
           `${destinationDir}/${opfFile.parsed.slug}/${basename(f.newPath)}`,
@@ -174,21 +176,23 @@ epubCommand
         undefined
       )
 
+      opfFile.parsed.allFonts.forEach((f) => {
+        f.rename(
+          `${dirname(f.newPath)}/downloaded-fonts/${basename(f.newPath)}`
+        )
+      })
+
       const dir = `${destinationDir}/${opfFile.parsed.slug}`
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
 
       // Copy the CSS file to the destination
-      // Comment out any @import URLs though
       const cssContents = readFileSync(
         `${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`,
         'utf-8'
       )
       writeFileSync(
         `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`,
-        cssContents.replace(
-          /@import ([^\n]+)\n/g,
-          '/* commented_for_epub @import $1 */\n'
-        )
+        cssContents
       )
 
       writeFileSync(

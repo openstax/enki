@@ -332,7 +332,6 @@ class TranslucentBinder(MutableSequence):
     without being a persistent piece of data.
     """
     id = None
-    ident_hash = None
 
     def __init__(self, nodes=None, metadata=None,
                  title_overrides=None):
