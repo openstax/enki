@@ -10,4 +10,4 @@ set -Eeuo pipefail
         popd > /dev/null
         echo "$zip_path|$book_slug"
     done < <(read_book_slugs) # LCOV_EXCL_LINE
-} | sort | upload_book_artifacts "application/zip"
+} | sort | upload_book_artifacts "application/zip" "$IO_ARTIFACTS"

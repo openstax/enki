@@ -25,7 +25,6 @@ set -Eeuo pipefail
 
 validator_jar=$PROJECT_ROOT/epub-validator/epubcheck-$EPUB_VALIDATOR_VERSION/epubcheck.jar
 
-# shopt -s globstar nullglob
 for epub_file in "$IO_ARTIFACTS/"*.epub; do
 
     echo "Validating $epub_file"

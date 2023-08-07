@@ -8,4 +8,4 @@ set -Eeuo pipefail
         [[ -f "$epub_file" ]] || die "Could not find \"$epub_file\""
         echo "$epub_file|$book_slug"
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
-} | sort | upload_book_artifacts "application/epub+zip"
+} | sort | upload_book_artifacts "application/epub+zip" "$IO_ARTIFACTS"

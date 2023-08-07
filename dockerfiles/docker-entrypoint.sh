@@ -201,8 +201,9 @@ function get_s3_name() {
 }
 
 function upload_book_artifacts() {
-    content_type="$1"
-    for varname in ARG_S3_BUCKET_NAME IO_ARTIFACTS content_type; do
+    content_type="${1:-}"
+    output_path="${2:-}"
+    for varname in ARG_S3_BUCKET_NAME output_path content_type; do
         expect_value "${!varname-}" "upload_book_artifacts: Expected value for \"$varname\""
     done
     book_slug_urls=()
@@ -224,7 +225,7 @@ function upload_book_artifacts() {
     if [[ ${#book_slug_urls[@]} == 0 ]]; then
         die "Did not get any book artifacts to upload."  # LCOV_EXCL_LINE
     fi
-    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
+    jo -a "${book_slug_urls[@]}" > "$output_path/artifact_urls.json"
 }
 
 function parse_book_dir() {

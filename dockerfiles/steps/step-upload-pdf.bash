@@ -8,4 +8,4 @@ set -Eeuo pipefail
         [[ -f "$pdf_file" ]] || die "Could not find \"$pdf_file\""
         echo "$pdf_file|$book_slug"
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
-} | sort | upload_book_artifacts "application/pdf"
+} | sort | upload_book_artifacts "application/pdf" "$IO_ARTIFACTS"
