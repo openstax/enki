@@ -66,13 +66,16 @@ STUB_UPLOAD="corgi" \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-pdf
 
 expected_repo="philschatz-tiny-book"
-expected_version="long-lived-branch-for-testing-with-%23-char"
+expected_version="long-lived-branch-for-testing-with-#-char"
+expected_version_url_encd="long-lived-branch-for-testing-with-%23-char"
 expected_job_id="-123456"
 expected_book_slug="book-slug1"
 expected_extension="pdf"
 expected_mime_type="application/pdf"
 expected_filename="$expected_repo-$expected_version-$expected_job_id-$expected_book_slug.$expected_extension"
-expected_contents='[{"url":"https://openstax-sandbox-cops-artifacts.s3.amazonaws.com/'"$expected_filename"'","slug":"'"$expected_book_slug"'"}]'
+expected_filename_url_encd="$expected_repo-$expected_version_url_encd-$expected_job_id-$expected_book_slug.$expected_extension"
+# CORGI should get a url encoded file name; aws cli should get a raw file name
+expected_contents='[{"url":"https://openstax-sandbox-cops-artifacts.s3.amazonaws.com/'"$expected_filename_url_encd"'","slug":"'"$expected_book_slug"'"}]'
 actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/artifact_urls.json)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad artifact urls."
