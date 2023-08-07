@@ -196,7 +196,8 @@ function get_s3_name() {
     done
     s3_name="${repo%%/}-$version-$job_id-$filename"
     s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
-    printf %s "$s3_name_no_slashes" | jq -sRr @uri
+    # AWS CLI url encodes urls, no need to do it manually here
+    echo "$s3_name_no_slashes"
 }
 
 function upload_book_artifacts() {
@@ -211,15 +212,16 @@ function upload_book_artifacts() {
         done
 
         s3_name="$(set -Eeuo pipefail && get_s3_name "$file_to_upload")"
+        s3_name_url_encd="$(printf %s "$s3_name" | jq -sRr @uri)"
 
-        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name"
+        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name_url_encd"
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
 
         aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
             --acl "public-read" \
             --content-type "$content_type"
     done
-    if [[ ${#book_slug_urls[@]} -eq 0 ]]; then
+    if [[ ${#book_slug_urls[@]} == 0 ]]; then
         die "Did not get any book artifacts to upload."  # LCOV_EXCL_LINE
     fi
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
