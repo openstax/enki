@@ -195,6 +195,14 @@ export class TocFile extends BaseTocFile<
     // Add the epub:type="nav" attribute
     doc.findOne('//h:nav').attr('epub:type', 'toc')
 
+    // Add epub namespace to root html element to fix some EPUB reader quirks
+    const htmlNode = doc.findOne('//h:html').node as Element
+    htmlNode.setAttributeNS(
+      'http://www.w3.org/2000/xmlns/',
+      'xmlns:epub',
+      'http://www.idpf.org/2007/ops'
+    )
+
     // create extra elements when cover existing
     if (this.parsed.coverFile) {
       const body = doc.findOne('//h:body')
