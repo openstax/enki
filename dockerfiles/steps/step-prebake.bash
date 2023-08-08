@@ -43,18 +43,20 @@ while read -r slug_name; do
     style_src="$BOOK_STYLES_ROOT/$web_style"
     style_dst="$style_resource_root/$web_style"
     if [[ ! -f "$style_dst" ]]; then
+        # LCOV_EXCL_START
         while read -r dependency; do
             expected_path="$style_resource_root/$dependency"
             if [[ ! -f "$expected_path" || ! "$(dirname "$expected_path")" =~ ^$IO_INITIAL_RESOURCES/[^/]+/.+$ ]]; then
                 die "$expected_path, referenced in $style_src, does not exist or will not be uploaded." # LCOV_EXCL_LINE
             fi
-        # LCOV_EXCL_START (Coverage broken for process substitution)
         done < <(
             awk '$0 ~ /^.*url\(/ && $2 !~ /https?|data/ {
-                # Remove optional " and ;
-                gsub(/[";]/, "", $2);
-                # print what is inside url( )
-                print substr($2, 5, length($2) - 5);
+                # Get value of url()
+                split($0, arr, /[()]/);
+                dependency=arr[2]
+                # Trim and remove double quotes
+                gsub(/^ *|["]| *$/, "", dependency);
+                print dependency;
             }' "$style_src"
         )
         # LCOV_EXCL_STOP
