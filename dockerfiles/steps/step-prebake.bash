@@ -30,9 +30,10 @@ fi
 
 
 # Copy web styles to the resources directory created by fetch-map-resources
-style_resource_root="initial-resources/styles"
+style_resource_root="$IO_INITIAL_RESOURCES/styles"
 generic_style="webview-generic.css"
 [[ ! -e "$style_resource_root" ]] && mkdir -p "$style_resource_root"
+cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$style_resource_root"
 while read -r slug_name; do
     style_name=$(read_style "$slug_name")
     web_style="$style_name-web.css"
@@ -42,12 +43,23 @@ while read -r slug_name; do
     style_src="$BOOK_STYLES_ROOT/$web_style"
     style_dst="$style_resource_root/$web_style"
     if [[ ! -f "$style_dst" ]]; then
-        # Check for resources that are not (1) online, or (2) encoded with data uri
-        # Right now we assume no dependencies, but this may need to be revisited
-        deps="$(awk '$0 ~ /^.*url\(/ && $2 !~ /http|data/ { print }' "$style_src")"
-        if [[ $deps ]]; then
-            die "Found unexpected dependencies in $style_src" # LCOV_EXCL_LINE
-        fi
+        # LCOV_EXCL_START
+        while read -r dependency; do
+            expected_path="$style_resource_root/$dependency"
+            if [[ ! -f "$expected_path" || ! "$(dirname "$expected_path")" =~ ^$IO_INITIAL_RESOURCES/[^/]+/.+$ ]]; then
+                die "$expected_path, referenced in $style_src, does not exist or will not be uploaded." # LCOV_EXCL_LINE
+            fi
+        done < <(
+            awk '$0 ~ /^.*url\(/ && $2 !~ /https?|data/ {
+                # Get value of url()
+                split($0, arr, /[()]/);
+                dependency=arr[2]
+                # Trim and remove double quotes
+                gsub(/^ *|["]| *$/, "", dependency);
+                print dependency;
+            }' "$style_src"
+        )
+        # LCOV_EXCL_STOP
         cp "$style_src" "$style_dst"
 
         # Extract the sourcemap path from the file
