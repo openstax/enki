@@ -7,5 +7,6 @@
   "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",
   "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
   "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
-  "GH_SECRET_CREDS": "git:((github-api-token))"
+  "GH_SECRET_CREDS": "git:((github-api-token))",
+  "REX_PROD_PREVIEW_URL": "https://rex-web-production.herokuapp.com"
 }

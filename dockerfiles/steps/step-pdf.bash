@@ -53,26 +53,12 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 jo -a $jo_args > $book_slugs_file
 
 shopt -s globstar nullglob
-for collection in "$IO_LINKED/"*.mathified.xhtml; do
-    slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-
-    link-rex "$IO_LINKED/$slug_name.mathified.xhtml" "$book_slugs_file" "$target_dir" "$slug_name.rex-linked.xhtml"
-
-done
+while read -r book_slug; do
+    link-rex "$IO_LINKED/$book_slug.mathified.xhtml" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
+    prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.rex-linked.xhtml"
+done < <(read_book_slugs)
 shopt -u globstar nullglob
 
-
-# Formerly git-pdfify
-parse_book_dir
-
-if [[ $ARG_TARGET_SLUG_NAME ]]; then
-  prince -v --output="$IO_ARTIFACTS/$ARG_TARGET_PDF_FILENAME" "$IO_LINKED/$ARG_TARGET_SLUG_NAME.rex-linked.xhtml"
-else
-  while read -r linked_file; do
-    slug=$(basename "$linked_file" | awk -F'[.]' '{ print $1; }')
-    prince -v --output="$IO_ARTIFACTS/$slug.pdf" "$linked_file"
-  done < <(find "$IO_LINKED" -name '*.rex-linked.xhtml') # LCOV_EXCL_LINE (https://github.com/SimonKagstrom/kcov/issues/387)
-fi
 
 # Verify the style file exists before building a PDF
 # LCOV_EXCL_START

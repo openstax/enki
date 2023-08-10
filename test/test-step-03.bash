@@ -5,21 +5,94 @@ set -e
 
 
 BOOK_DIR=../data/test-book
+ARTIFACTS_URL_PATH="$BOOK_DIR/_attic/IO_ARTIFACTS/artifact_urls.json"
+
+# Test from the start with book slug
+SKIP_DOCKER_BUILD=1 \
+KCOV_DIR=_kcov03-a \
+../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
 SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov03 \
-../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref main --start-at step-disassemble
+STUB_UPLOAD="corgi" \
+KCOV_DIR=_kcov03-b \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
+
+# Check that upload was called with expected values
+counter=0
+while IFS=$'\n' read -r expected_contents; do
+    counter=$((counter+1))
+    actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args_$counter)"
+    if [[ "$expected_contents" != "$actual_contents" ]]; then
+        echo "Bad AWS CLI args."
+        echo "Expected value: $expected_contents"
+        echo "Actual value:   $actual_contents"
+        exit 1
+    fi
+done <<EOF
+s3 cp --recursive /data/artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
+s3 cp --recursive /data/resources/interactives-thisnamedoesnotmatter/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/interactives-thisnamedoesnotmatter
+s3 cp --recursive /data/resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
+s3 cp /data/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.json
+s3 cp /data/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.xhtml
+EOF
+# If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/aws_args_*` and copy/paste :)
 
 
-# Verify we can build a commit that is not on the main branch
+counter=0
+while IFS=$'\n' read -r expected_contents; do
+    counter=$((counter+1))
+    actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/copy_resources_s3_args_$counter)"
+    if [[ "$expected_contents" != "$actual_contents" ]]; then
+        echo "copy-resource-s3 args."
+        echo "Expected value: $expected_contents"
+        echo "Actual value:   $actual_contents"
+        exit 1
+    fi
+done <<EOF
+/data/resources openstax-sandbox-cops-artifacts apps/archive-localdev/test/resources
+EOF
+# If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/copy_resources_s3_args_*` and copy/paste :)
+
+
+expected_book_slug="book-slug1"
+expected_url="https://rex-test/books/00000000-0000-0000-0000-000000000000@9044eef/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
+expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"}]'
+actual_contents="$(cat $ARTIFACTS_URL_PATH)"
+if [[ "$actual_contents" != "$expected_contents" ]]; then
+    echo "Bad artifact urls."
+    echo "Expected value: $expected_contents"
+    echo "Actual value:   $actual_contents"
+    exit 1
+fi
+
+# Test without book slug
+rm $BOOK_DIR/_attic/IO_BOOK/slugs
 SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov03 \
-../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --start-at step-disassemble
+../enki --data-dir $BOOK_DIR --command all-web --start-at step-disassemble --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
 
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD="corgi" \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
+
+[[ -f "$ARTIFACTS_URL_PATH" ]] || {
+    echo "Expected $ARTIFACTS_URL_PATH to exist"
+    exit 1
+}
+
+# This is here to ensure that webhosting pipeline works
+# Remove the job_id (this file would not exist in webhosting pipeline)
+rm "$BOOK_DIR/_attic/IO_BOOK/job_id"
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD="webhosting" \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '9044eef59f74f425d017ca574f40cce7350a9918'
+
+[[ ! -f "$ARTIFACTS_URL_PATH" ]] || {
+    echo "Did not expect $ARTIFACTS_URL_PATH to exist"
+    exit 1
+}
 
 # Check local-preview works
 SKIP_DOCKER_BUILD=1 \
-KCOV_DIR=_kcov03 \
 ../enki --keep-data --data-dir $BOOK_DIR --command local-preview 
 
 # Check local-preview directories / files existing
@@ -34,6 +107,6 @@ LOCAL_PREVIEW="$BOOK_DIR/local-preview"
 [ -d "$LOCAL_PREVIEW/contents" ] || local_preview_data_missing_halt "Directory $LOCAL_PREVIEW/contents missing"
 [[ -L "$LOCAL_PREVIEW/resources" && -d "$LOCAL_PREVIEW/resources" ]] || local_preview_data_missing_halt "Symlink and/or directory $LOCAL_PREVIEW/resources missing"
 [ -e "$LOCAL_PREVIEW/resources/4e88fcaf0d07298343a7cb933926c4c0c6b5b017" ] || local_preview_data_missing_halt "Duck wearing hat photo missing"
-CONTENT_SAMPLE_FILE="$(realpath $LOCAL_PREVIEW/contents/00000000-0000-0000-0000-000000000000@*:11111111-1111-1111-1111-111111111111.xhtml)"
+CONTENT_SAMPLE_FILE="$(realpath $LOCAL_PREVIEW/contents/00000000-0000-0000-0000-000000000000@*:11111111-1111-4111-8111-111111111111.xhtml)"
 [ -e "$CONTENT_SAMPLE_FILE" ] || local_preview_data_missing_halt "$CONTENT_SAMPLE_FILE content file missing"
 grep -q "\<img src=\"..\/resources\/4e88fcaf0d07298343a7cb933926c4c0c6b5b017\"" "$CONTENT_SAMPLE_FILE" || local_preview_data_missing_halt "image content not found in content file"

@@ -23,7 +23,8 @@ graph TB
     step-bake -- baked --> step-pdf
     step-prebake -- fetch-meta --> step-pdf
     step-prebake -- resources --> step-pdf
-    step-pdf -- artifacts --> step-pdf-meta
+    step-fetch -- fetched --> step-upload-pdf
+    step-pdf -- artifacts --> step-upload-pdf
 ```
 
 ## all-web
@@ -43,6 +44,7 @@ graph TB
     step-fetch -- fetched --> step-jsonify
     step-prebake -- resources --> step-jsonify
     step-disassemble -- disassemble-linked --> step-jsonify
+    step-fetch -- fetched --> step-upload-book
     step-jsonify -- jsonified --> step-upload-book
     step-prebake -- resources --> step-upload-book
 ```
@@ -64,6 +66,8 @@ graph TB
     step-prebake -- resources --> step-epub
     step-disassemble -- disassemble-linked --> step-epub
     step-bake -- baked --> step-epub
+    step-fetch -- fetched --> step-upload-epub
+    step-epub -- artifacts --> step-upload-epub
 ```
 
 ## all-docx
@@ -86,5 +90,6 @@ graph TB
     step-jsonify -- jsonified --> step-docx
     step-disassemble -- disassemble-linked --> step-docx
     step-prebake -- resources --> step-docx
-    step-docx -- docx --> step-docx-meta
+    step-fetch -- fetched --> step-upload-docx
+    step-docx -- docx --> step-upload-docx
 ```

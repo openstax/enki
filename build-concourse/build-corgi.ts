@@ -46,22 +46,8 @@ function makePipeline(env: KeyValue) {
                 job_type_id: JobType.GIT_EPUB,
                 status_id: 1
             }
-        },
-        {
-            name: 's3-file',
-            type: 's3',
-            source: {
-                bucket: env.CORGI_ARTIFACTS_S3_BUCKET,
-                access_key_id: env.AWS_ACCESS_KEY_ID,
-                secret_access_key: env.AWS_SECRET_ACCESS_KEY,
-                session_token: env.AWS_SESSION_TOKEN,
-                skip_download: true
-            }
         }
     ]
-
-    const taskOverrideCommonLog = (message: string) => toConcourseTask(env, 'override-common-log', [], [IO.COMMON_LOG], { MESSAGE: message }, readScript('script/override_common_log.sh'))
-    const taskGenPreviewUrls = () => toConcourseTask(env, 'generate-preview-urls', [IO.COMMON_LOG, IO.BOOK, IO.ARTIFACTS], [IO.PREVIEW_URLS], { CORGI_CLOUDFRONT_URL: true, REX_PREVIEW_URL: 'https://rex-web.herokuapp.com', REX_PROD_PREVIEW_URL: 'https://rex-web-production.herokuapp.com', PREVIEW_APP_URL_PREFIX: true, CODE_VERSION: true }, readScript('script/generate_preview_urls.sh'))
 
     const buildPdfJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
@@ -74,19 +60,10 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*.pdf`,
-                        acl: 'public-read',
-                        content_type: 'application/pdf'
-                    }
-                }
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -107,11 +84,10 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskGenPreviewUrls()
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.PREVIEW_URLS}/content_urls`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -134,19 +110,10 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*-docx.zip`,
-                        acl: 'public-read',
-                        content_type: 'application/zip'
-                    }
-                }
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile
@@ -168,19 +135,10 @@ function makePipeline(env: KeyValue) {
                 }),
                 lookupBookTask,
                 report(Status.PROCESSING),
-                ...tasks,
-                taskOverrideCommonLog(s3UploadFailMessage),
-                {
-                    put: 's3-file',
-                    params: {
-                        file: `${IO.ARTIFACTS}/*-epub.zip`,
-                        acl: 'public-read',
-                        content_type: 'application/zip'
-                    }
-                }
+                ...tasks
             ],
             on_success: report(Status.SUCCEEDED, {
-                pdf_url: `${IO.ARTIFACTS}/pdf_url`
+                artifact_urls: `${IO.ARTIFACTS}/artifact_urls.json`
             }),
             on_failure: report(Status.FAILED, {
                 error_message_file: commonLogFile

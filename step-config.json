@@ -62,16 +62,19 @@
             ],
             "requiredEnv": []
         },
-        "step-pdf-meta": {
+        "step-upload-pdf": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_ARTIFACTS"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "step-disassemble": {
@@ -100,6 +103,7 @@
         "step-upload-book": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_JSONIFIED",
                 "IO_RESOURCES"
             ],
@@ -126,8 +130,21 @@
                 "IO_EPUB",
                 "IO_ARTIFACTS"
             ],
+            "requiredEnv": []
+        },
+        "step-upload-epub": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED",
+                "IO_ARTIFACTS"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
             "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "step-docx": {
@@ -144,16 +161,19 @@
             ],
             "requiredEnv": []
         },
-        "step-docx-meta": {
+        "step-upload-docx": {
             "inputDirs": [
                 "IO_BOOK",
+                "IO_FETCHED",
                 "IO_DOCX"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"
             ],
             "requiredEnv": [
-                "CORGI_ARTIFACTS_S3_BUCKET"
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
             ]
         },
         "git-dequeue-book": {

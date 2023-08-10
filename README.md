@@ -134,7 +134,8 @@ graph TB
     step-bake -- baked --> step-pdf
     step-prebake -- fetch-meta --> step-pdf
     step-prebake -- resources --> step-pdf
-    step-pdf -- artifacts --> step-pdf-meta
+    step-fetch -- fetched --> step-upload-pdf
+    step-pdf -- artifacts --> step-upload-pdf
 ```
 <!-- AUTOGEN-GRAPH-END:all-pdf -->
 

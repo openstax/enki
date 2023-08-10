@@ -1,4 +1,3 @@
-# LCOV_EXCL_START
 parse_book_dir
 
 s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
@@ -47,6 +46,30 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 
 
 done
-shopt -u globstar nullglob
 
-# LCOV_EXCL_STOP
+# Only do this when we are running a CORGI job
+if [[ -f "$IO_BOOK/job_id" ]]; then
+    for varname in CORGI_CLOUDFRONT_URL REX_PROD_PREVIEW_URL; do
+        expect_value "${!varname-}" "step-upload-book: Expected value for \"$varname\""
+    done
+    book_slug_urls=()
+    while read -r book_slug; do
+        book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
+
+        book_uuid=$(jq -r '.id' "$book_metadata")
+        book_version=$(jq -r '.version' "$book_metadata")
+
+        rex_archive_param="?archive=$CORGI_CLOUDFRONT_URL/$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
+
+        first_page_slug=$(jq -r '.tree.contents[0].slug' "$book_metadata")
+        rex_prod_url="$REX_PROD_PREVIEW_URL/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
+
+        book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
+    done < <(read_book_slugs)  # LCOV_EXCL_LINE
+
+    jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
+
+    echo "View web preview here: $rex_prod_url"
+fi
+
+shopt -u globstar nullglob

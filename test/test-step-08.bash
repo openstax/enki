@@ -16,7 +16,7 @@ SKIP_DOCKER_BUILD=1 \
     --keep-data \
     --data-dir $DATA_ROOT \
     --command __CI_KCOV_MERGE_ALL__ \
-    --repo "./kcov-destination $BOOK_DIR_NAME/_kcov02-a $BOOK_DIR_NAME/_kcov02-b $BOOK_DIR_NAME/_kcov02-c $BOOK_DIR_NAME/_kcov02-d $BOOK_DIR_NAME/_kcov03 $BOOK_DIR_NAME/_kcov05 $BUSI_DIR_NAME/_kcov11" --book-slug "doesnotmatter" \
+    --repo "./kcov-destination $BOOK_DIR_NAME/_kcov02-a $BOOK_DIR_NAME/_kcov02-b $BOOK_DIR_NAME/_kcov02-c $BOOK_DIR_NAME/_kcov02-d $BOOK_DIR_NAME/_kcov02-e $BOOK_DIR_NAME/_kcov03-a $BOOK_DIR_NAME/_kcov03-b $BOOK_DIR_NAME/_kcov05-a $BOOK_DIR_NAME/_kcov05-b $BUSI_DIR_NAME/_kcov11-a $BUSI_DIR_NAME/_kcov11-b" --book-slug "doesnotmatter" \
     ;
 
 # Move coverage data out of the mounted volume the container used

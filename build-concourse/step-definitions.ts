@@ -34,19 +34,20 @@ set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.B
 
 
 set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
-set({name: 'step-pdf-meta', inputs: [IO.BOOK, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
+set({name: 'step-upload-pdf', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_WEB_STEPS
 set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
 set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
-set({name: 'step-upload-book', inputs: [IO.BOOK, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'step-upload-book', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CORGI_CLOUDFRONT_URL: false, REX_PROD_PREVIEW_URL: false}})
 
 // GIT_EPUB_STEPS
-set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: { CORGI_ARTIFACTS_S3_BUCKET: true }})
+set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: {}})
+set({name: 'step-upload-epub', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_GDOC_STEPS
 set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
-set({name: 'step-docx-meta', inputs: [IO.BOOK, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true}})
+set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
 set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
@@ -61,7 +62,7 @@ export const CLI_GIT_PDF_STEPS = [
 ]
 export const GIT_PDF_STEPS = [
     ...CLI_GIT_PDF_STEPS,
-    get('step-pdf-meta'),
+    get('step-upload-pdf'),
 ]
 
 export const CLI_GIT_WEB_STEPS = [
@@ -88,6 +89,7 @@ export const CLI_GIT_EPUB_STEPS = [
 
 export const GIT_EPUB_STEPS = [
     ...CLI_GIT_EPUB_STEPS,
+    get('step-upload-epub')
 ]
 
 export const CLI_GIT_GDOC_STEPS = [
@@ -97,7 +99,7 @@ export const CLI_GIT_GDOC_STEPS = [
 
 export const GIT_GDOC_STEPS = [
     ...CLI_GIT_GDOC_STEPS,
-    get('step-docx-meta'),
+    get('step-upload-docx'),
 ]
 
 export function buildLookUpBook(inputSource: RESOURCES): Step {

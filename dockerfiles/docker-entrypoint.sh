@@ -58,10 +58,47 @@ LOCAL_ATTIC_DIR=${LOCAL_ATTIC_DIR:-}
 JAVA_DEBUG=${JAVA_DEBUG:-}
 JS_DEBUG=${JS_DEBUG:-}
 NODE_OPTIONS=${NODE_OPTIONS:-}
+STUB_UPLOAD=${STUB_UPLOAD:-}
 
 if [[ $JS_DEBUG ]]; then
     export NODE_DEBUG_PORT=9229 # LCOV_EXCL_LINE
     export NODE_OPTIONS="--inspect-brk=0.0.0.0:$NODE_DEBUG_PORT" # LCOV_EXCL_LINE
+fi
+
+if [[ $STUB_UPLOAD ]]; then
+    say "STUBBING UPLOAD FUNCTIONS"
+    export AWS_ACCESS_KEY_ID="test"
+    export AWS_SECRET_ACCESS_KEY="test"
+    if [[ $STUB_UPLOAD == "corgi" ]]; then
+        export CORGI_CLOUDFRONT_URL="https://test-cloudfront-url"
+        export REX_PROD_PREVIEW_URL="https://rex-test"
+    fi
+    export CODE_VERSION="test"
+
+    function get_stub_output_dir() {
+        output_dirs=$(jq -r ".steps.\"$step_name\".outputDirs|@sh" < $STEP_CONFIG_FILE)
+        to_return=''
+        for output_dir in $output_dirs; do
+            # Prefer IO_ARTIFACTS, fallback to using first output directory in the list
+            if [[ $to_return == '' || $output_dir == "'IO_ARTIFACTS'" ]]; then
+                to_return="$output_dir"
+            fi
+        done
+        expect_value "$to_return" "get_stub_output_dir: Expected to find output directory."
+        echo "$to_return" | tr -d "'"
+    }
+
+    function aws() {
+        pointer=$(get_stub_output_dir)
+        aws_calls=$(find "${!pointer}" -name 'aws_args_*' | wc -l)
+        echo "$@" > "${!pointer}/aws_args_$((aws_calls+1))"
+    }
+
+    function copy-resources-s3() {
+        pointer=$(get_stub_output_dir)
+        copy_resouce_s3_calls=$(find "${!pointer}" -name 'copy_resources_s3_args_*' | wc -l)
+        echo "$@" > "${!pointer}/copy_resources_s3_args_$((copy_resouce_s3_calls+1))"
+    }
 fi
 
 function ensure_arg() {
@@ -127,30 +164,81 @@ function read_style() {
     echo $style_name
 }
 
+function read_book_slugs() {
+    if [[ -f "$IO_BOOK/slugs" ]]; then
+        # Exclude blanks lines
+        awk '$0 { print }' "$IO_BOOK/slugs"
+    else
+        fetched="$IO_FETCHED"
+        if [[ ! -d "$fetched" ]]; then
+            fetched="$IO_FETCH_META"
+        fi
+        if [[ ! -d "$fetched" ]]; then
+            die "read_book_slugs: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
+        fi
+        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$fetched/META-INF/books.xml"
+    fi
+}
+
+function expect_value() {
+  if [[ -z "$1" ]]; then
+    die "${2:-"Missing required argument"}"  # LCOV_EXCL_LINE
+  fi
+}
+
+function get_s3_name() {
+    filename="$(basename "$1")"
+    repo="$(cat "$IO_BOOK/repo")"
+    version="$(cat "$IO_BOOK/version")"
+    job_id="$(cat "$IO_BOOK/job_id")"
+    for varname in repo version job_id filename; do
+        expect_value "${!varname-}" "get_s3_name: Expected value for \"$varname\""
+    done
+    s3_name="${repo%%/}-$version-$job_id-$filename"
+    s3_name_no_slashes="$(echo "$s3_name" | sed 's/\//-/g')"
+    # AWS CLI url encodes urls, no need to do it manually here
+    echo "$s3_name_no_slashes"
+}
+
+function upload_book_artifacts() {
+    content_type="${1:-}"
+    output_path="${2:-}"
+    for varname in ARG_S3_BUCKET_NAME output_path content_type; do
+        expect_value "${!varname-}" "upload_book_artifacts: Expected value for \"$varname\""
+    done
+    book_slug_urls=()
+    while IFS='|' read -r file_to_upload slug; do
+        for varname in file_to_upload slug; do
+            expect_value "${!varname-}" "upload_book_artifacts: Expected value for \"$varname\""
+        done
+
+        s3_name="$(set -Eeuo pipefail && get_s3_name "$file_to_upload")"
+        s3_name_url_encd="$(printf %s "$s3_name" | jq -sRr @uri)"
+
+        url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name_url_encd"
+        book_slug_urls+=("$(jo url="$url" slug="$slug")")
+
+        aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
+            --acl "public-read" \
+            --content-type "$content_type"
+    done
+    if [[ ${#book_slug_urls[@]} == 0 ]]; then
+        die "Did not get any book artifacts to upload."  # LCOV_EXCL_LINE
+    fi
+    jo -a "${book_slug_urls[@]}" > "$output_path/artifact_urls.json"
+}
+
 function parse_book_dir() {
     check_input_dir IO_BOOK
 
-    [[ -f $IO_BOOK/pdf_filename ]] && ARG_TARGET_PDF_FILENAME="$(cat $IO_BOOK/pdf_filename)"
-    [[ -f $IO_BOOK/collection_id ]] && ARG_COLLECTION_ID="$(cat $IO_BOOK/collection_id)"
-    [[ -f $IO_BOOK/server ]] && ARG_ARCHIVE_SERVER="$(cat $IO_BOOK/server)"
-    [[ -f $IO_BOOK/server_shortname ]] && ARG_ARCHIVE_SHORTNAME="$(cat $IO_BOOK/server_shortname)"
-    ARG_COLLECTION_VERSION="$(cat $IO_BOOK/version)"
-
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
-    [[ -f $IO_BOOK/slug ]] && ARG_TARGET_SLUG_NAME="$(cat $IO_BOOK/slug)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
 }
 
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
 # reset between each step
 function unset_book_vars() {
-    unset ARG_TARGET_PDF_FILENAME
-    unset ARG_COLLECTION_ID
-    unset ARG_ARCHIVE_SERVER
-    unset ARG_ARCHIVE_SHORTNAME
-    unset ARG_COLLECTION_VERSION
     unset ARG_REPO_NAME
-    unset ARG_TARGET_SLUG_NAME
     unset ARG_GIT_REF
 }
 
@@ -183,25 +271,26 @@ function do_step() {
         local-create-book-directory)
             # This step is normally done by the concourse resource but for local development it is done here
 
-            repo_and_book_slug="$arg_repo/"
-            if [ -v arg_book_slug ]; then
-              repo_and_book_slug="$arg_repo/$arg_book_slug"
-            fi
-            version=$arg_ref
+            repo="$arg_repo"
+            version="$arg_ref"
 
-            ensure_arg repo_and_book_slug 'Specify repo name (or archive collection id)'
+            ensure_arg repo 'Specify repo name'
             ensure_arg version 'Specify repo/branch/tag/commit or archive collection version (e.g. latest)'
 
-            [[ -d $INPUT_SOURCE_DIR ]] || mkdir $INPUT_SOURCE_DIR
+            [[ -d $INPUT_SOURCE_DIR ]] || mkdir "$INPUT_SOURCE_DIR"
 
             check_output_dir INPUT_SOURCE_DIR
 
             # Write out the files
-            echo "$repo_and_book_slug" > $INPUT_SOURCE_DIR/collection_id
-            echo "$version" > $INPUT_SOURCE_DIR/version
+            echo "$repo" > "$INPUT_SOURCE_DIR/repo"
+            if [[ -n "${arg_book_slug-}" ]]; then
+                # CORGI does not include a new line after the slug. Simulate that with echo -n
+                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
+            fi
+            echo "$version" > "$INPUT_SOURCE_DIR/version"
             # Dummy files
-            echo '-123456' > $INPUT_SOURCE_DIR/id # job_id
-            echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > $INPUT_SOURCE_DIR/job.json
+            echo '-123456' > "$INPUT_SOURCE_DIR/id" # job_id
+            echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > "$INPUT_SOURCE_DIR/job.json"
 
             return
         ;;
@@ -211,28 +300,15 @@ function do_step() {
             check_input_dir INPUT_SOURCE_DIR
             check_output_dir IO_BOOK
             
-            tail $INPUT_SOURCE_DIR/*
-            cp $INPUT_SOURCE_DIR/id $IO_BOOK/job_id
-            cp $INPUT_SOURCE_DIR/version $IO_BOOK/version
-
-            # Git book
-            if [[ $(cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }') ]]; then
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 "/" $2 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $3 }' | sed 's/ *$//' > $IO_BOOK/slug
-            else
-                # LCOV_EXCL_START
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $1 }' > $IO_BOOK/repo
-                cat $INPUT_SOURCE_DIR/collection_id | awk -F'/' '{ print $2 }' | sed 's/ *$//' > $IO_BOOK/slug
-                # LCOV_EXCL_STOP
-            fi
-            # Local development can skip specifying a slug by setting the slug to '*' (to test webhosting pipelines)
-            if [[ "$(cat $IO_BOOK/slug)" == "*" ]]; then
-                rm $IO_BOOK/slug # LCOV_EXCL_LINE
+            tail "$INPUT_SOURCE_DIR"/*
+            cp "$INPUT_SOURCE_DIR/id" "$IO_BOOK/job_id"
+            cp "$INPUT_SOURCE_DIR/version" "$IO_BOOK/version"
+            cp "$INPUT_SOURCE_DIR/repo" "$IO_BOOK/repo"
+            # CORGI should always provide slugs, but that is not true on local
+            if [[ -f "$INPUT_SOURCE_DIR/slugs" ]]; then
+                cp "$INPUT_SOURCE_DIR/slugs" "$IO_BOOK/slugs"
             fi
 
-            pdf_filename="$(cat $IO_BOOK/slug)-$(cat $IO_BOOK/version)-git-$(cat $IO_BOOK/job_id).pdf"
-            echo "$pdf_filename" > $IO_BOOK/pdf_filename
-            
             return
         ;;
     esac
@@ -282,6 +358,12 @@ function do_step_named() {
         exit 0
     fi
 
+    # FIXME: Cannot select a book slug during local development when --start-at
+    #        is used. The slugs file is written during local-create-book-directory
+    #        and look-up-book. These steps are skipped when START_AT_STEP is defined.
+    # POSSIBLE FIX: Stop skipping these two steps
+    # PROBLEM: many steps, like step-fetch, assume these steps will be skipped
+    #          and that the values in IO_BOOK will not change once written
     if [[ ! $START_AT_STEP ]]; then
         [[ $LOCAL_ATTIC_DIR ]] && simulate_dirs_before $step_name
         say "==> Starting: $*"

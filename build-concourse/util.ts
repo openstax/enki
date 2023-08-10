@@ -83,7 +83,6 @@ export enum RESOURCES {
 export enum IO {
     BOOK = 'book',
     COMMON_LOG = 'common-log',
-    PREVIEW_URLS = 'preview-urls',
 
     // Git directories
     FETCHED = 'fetched', // 'fetched-book-group'
@@ -310,9 +309,6 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
     defaultEnv(env, 'GDOC_GOOGLE_FOLDER_ID', true)
     defaultEnv(env, 'GOOGLE_SERVICE_ACCOUNT_CREDENTIALS', true)
-
-    env.REX_PREVIEW_URL = 'https://rex-web.herokuapp.com'
-    env.REX_PROD_PREVIEW_URL = 'https://rex-web-production.herokuapp.com'
 
     return env
 }

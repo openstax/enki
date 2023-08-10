@@ -167,34 +167,51 @@ class TestIn(object):
             job_json[key] = None
         assert job_json == expected_json
 
-        collection_id = read_file(os.path.join(dest_path, "collection_id"))
-        assert collection_id == read_file(os.path.join(DATA_DIR, "collection_id"))
+        repository = read_file(os.path.join(dest_path, "repo"))
+        assert repository == read_file(os.path.join(DATA_DIR, "repo"))
+
+        slugs = read_file(os.path.join(dest_path, "slugs"))
+        assert slugs == read_file(os.path.join(DATA_DIR, "slugs"))
 
         collection_version = read_file(os.path.join(dest_path, "version"))
         assert collection_version == read_file(os.path.join(DATA_DIR, "version"))
-
-        collection_style = read_file(os.path.join(dest_path, "collection_style"))
-        assert collection_style == read_file(os.path.join(DATA_DIR, "collection_style"))
 
 
 
 class TestOut(object):
 
+    @pytest.mark.parametrize(
+            "output,result", [
+                (
+                    [
+                        {"slug": "test1", "url": "something"},
+                        {"slug": "test2", "url": "other"}
+                    ],
+                    None
+                ),
+            ]
+    )
     @vcr.use_cassette("tests/cassettes/test_out.yaml", record_mode="new_episode")
-    def test_update_job_status_and_url(self, monkeypatch):
+    def test_update_job_status_and_url(self, output, result, monkeypatch):
         id = "1"
-        pdf_url = "http://dummy.cops.org/col12345-latest.pdf"
         src_path = tempfile.mkdtemp()
+        
+        if result is None:
+            result = output
 
         id_filepath = os.path.join(src_path, "id")
-        pdf_url_filepath = os.path.join(src_path, "pdf_url")
+        artifcat_urls_filepath = os.path.join(src_path, "artifact_urls")
 
         write_file(id_filepath, id)
-        write_file(pdf_url_filepath, pdf_url)
+        write_file(
+            artifcat_urls_filepath,
+            output
+            if isinstance(output, str)
+            else json.dumps(output))
 
         params = {
             "id": "id",
-            "pdf_url": "pdf_url",
+            "artifact_urls": "artifact_urls",
             "status_id": "5"
         }
 
@@ -210,13 +227,12 @@ class TestOut(object):
             assert id
             assert "status_id" in data
             assert "artifact_urls" in data
+            assert data["artifact_urls"] == result
             return update_job(api_root, id, data)
         
         monkeypatch.setattr("corgi_concourse_resource.out.update_job", test_data)
 
-        result = out.out(src_path, in_stream)
-
-        assert result == {
+        assert out.out(src_path, in_stream) == {
             "version": {
                 "id": "1"
             }
