@@ -279,7 +279,7 @@ RUN mkdir /workspace/enki/epub-validator \
 # ---------------------------
 # Install ruby
 # ---------------------------
-ENV RUBY_VERSION=2.6.6
+ENV RUBY_VERSION=3.2.2
 
 COPY --from=build-ruby-openssl-stage /root/.openssl /root/.openssl
 
