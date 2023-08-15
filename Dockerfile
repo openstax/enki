@@ -49,15 +49,6 @@ RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pando
     && rm -f /tmp/pandoc.deb \
     ;
 
-# Ruby 2.6.6 requires an archaic version of openssl
-FROM base as build-ruby-openssl-stage
-RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
-    && tar zxvf openssl-1.1.1g.tar.gz \
-    && cd openssl-1.1.1g \
-    && ./config --prefix=$HOME/.openssl/openssl-1.1.1g --openssldir=$HOME/.openssl/openssl-1.1.1g \
-    && make \
-    && make install
-
 # ---------------------------
 # Install Python, NodeJS, and Java
 # ---------------------------
@@ -281,14 +272,12 @@ RUN mkdir /workspace/enki/epub-validator \
 # ---------------------------
 ENV RUBY_VERSION=3.2.2
 
-COPY --from=build-ruby-openssl-stage /root/.openssl /root/.openssl
-
 RUN curl -fsSL https://rvm.io/mpapis.asc | gpg --import - \
     && curl -fsSL https://rvm.io/pkuczynski.asc | gpg --import - \
     && curl -fsSL https://get.rvm.io | bash -s stable \
     && bash -lc " \
         rvm requirements \
-        && rvm install ${RUBY_VERSION} --with-openssl-dir=$HOME/.openssl/openssl-1.1.1g \
+        && rvm install ${RUBY_VERSION} \
         && rvm use ${RUBY_VERSION} --default \
         && rvm rubygems current \
         && gem install bundler --no-document"
