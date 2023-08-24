@@ -31,7 +31,7 @@ function filterNulls<T>(l: Array<T | null>): Array<T> {
 }
 
 const pageLinkXpath =
-  '//h:a[not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]'
+  '//h:a[@href and not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]'
 
 export class PageFile extends XmlFile<
   PageData,
