@@ -192,7 +192,10 @@ epubCommand
       )
       writeFileSync(
         `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`,
-        cssContents
+        cssContents.replace(
+          /@import ([^\n]+)\n/g,
+          '/* commented_for_epub @import $1 */\n'
+        )
       )
 
       writeFileSync(
