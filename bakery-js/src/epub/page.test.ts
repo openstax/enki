@@ -42,6 +42,7 @@ describe('Pages', () => {
         <math xmlns="http://www.w3.org/1998/Math/MathML" />
         <iframe/>
         <a href="./${otherPageFilename}"/>
+        <a id="this-is-valid-html"/>
       </body>
     </html>`
 
