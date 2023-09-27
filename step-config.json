@@ -77,6 +77,18 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "step-bake-web": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED",
+                "IO_ASSEMBLED",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_BAKED"
+            ],
+            "requiredEnv": []
+        },
         "step-disassemble": {
             "inputDirs": [
                 "IO_BOOK",
@@ -212,7 +224,7 @@
         "all-web": [
             "step-fetch",
             "step-prebake",
-            "step-bake",
+            "step-bake-web",
             "step-postbake",
             "step-disassemble",
             "step-jsonify"
@@ -228,7 +240,7 @@
         "all-docx": [
             "step-fetch",
             "step-prebake",
-            "step-bake",
+            "step-bake-web",
             "step-postbake",
             "step-disassemble",
             "step-jsonify",
