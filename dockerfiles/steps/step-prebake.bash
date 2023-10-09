@@ -99,6 +99,7 @@ if [[ $LOCAL_ATTIC_DIR != '' ]]; then
     for file in $files; do
         node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}"  "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info "$file" "$file"
     done
+    echo "XML files annotated successfully!"
     popd > /dev/null
 fi
 
