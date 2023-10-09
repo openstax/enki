@@ -5,28 +5,22 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
+import os
 import asyncio
 import logging
 from copy import copy
 from functools import lru_cache
+import json
 
 import jinja2
 import lxml.html
 from lxml import etree
 
-import requests
-from requests.exceptions import RequestException
-import backoff
-
-from .converters import cnxml_abstract_to_html
-from .xml_utils import (
-    HTML_DOCUMENT_NAMESPACES,
-    xpath_html,
-    etree_from_str,
-    squash_xml_to_text,
-)
-from .templates.exercise_template import EXERCISE_TEMPLATE
 from .async_job_queue import AsyncJobQueue
+from .converters import cnxml_abstract_to_html
+from .templates.exercise_template import EXERCISE_TEMPLATE
+from .xml_utils import (HTML_DOCUMENT_NAMESPACES, etree_from_str,
+                        squash_xml_to_text, xpath_html)
 
 logger = logging.getLogger("nebuchadnezzar")
 
@@ -43,7 +37,7 @@ def etree_to_content(etree_, strip_root_node=False):
 
 
 def fetch_insert_includes(root_elem, page_uuids, includes, threads=20):
-    async def async_exercise_fetching():
+    async def async_interactive_fetching():
         loop = asyncio.get_running_loop()
         for match, proc in includes:
             job_queue = AsyncJobQueue(threads)
@@ -58,7 +52,7 @@ def fetch_insert_includes(root_elem, page_uuids, includes, threads=20):
                     "\n###### NEXT ERROR ######\n".join(job_queue.errors)
                 )
 
-    asyncio.run(async_exercise_fetching())
+    asyncio.run(async_interactive_fetching())
 
 
 def update_ids(document):
@@ -247,13 +241,13 @@ def assemble_collection(collection):
     return root
 
 
-def exercise_callback_factory(match, url_template, token=None):
+def interactive_callback_factory(match, url_template):
     """Create a callback function to replace an exercise by fetching from
     a server."""
 
     def _annotate_exercise(elem, exercise, page_uuids):
         """Annotate exercise based upon tag data"""
-        tags = exercise["items"][0].get("tags")
+        tags = exercise["metadata"]["tags"]
         if not tags:
             return
 
@@ -332,40 +326,95 @@ def exercise_callback_factory(match, url_template, token=None):
         )
         assert feature_element is not None, assert_msg
 
-        exercise["items"][0]["required_context"] = {}
-        exercise["items"][0]["required_context"]["module"] = target_module
-        exercise["items"][0]["required_context"]["feature"] = feature
-        exercise["items"][0]["required_context"]["ref"] = target_ref
+        exercise["required_context"] = {}
+        exercise["required_context"]["module"] = target_module
+        exercise["required_context"]["feature"] = feature
+        exercise["required_context"]["ref"] = target_ref
 
-    @backoff.on_exception(
-        backoff.expo,
-        RequestException,
-        max_time=60 * 15,
-        giveup=lambda e: (
-            # Give up if the status code is something like 404, 403, etc.
-            isinstance(e, RequestException) and
-            e.response.status_code in range(400, 500)
-        ),
-        jitter=backoff.full_jitter,
-        raise_on_giveup=True
-    )
+    def _recursive_merge(interactive, private):
+        if private is None or len(private) == 0:
+            return interactive
+        merged = interactive.copy()
+        for key, value in private.items():
+            if key in merged:
+                if isinstance(merged[key], dict) and isinstance(value, dict):
+                    merged[key] = _recursive_merge(merged[key], value)
+                elif isinstance(merged[key], list) and isinstance(value, list) and len(merged[key]) == len(value):
+                    merged[key] = [_recursive_merge(
+                        merged_item, value_item) for merged_item, value_item in zip(merged[key], value)]
+            else:
+                merged[key] = value
+        return merged
+
+    def _load_interactive_data(interactive_path, private_path):
+        metadata_path= os.path.join(interactive_path, "metadata.json")
+        content_path= os.path.join(interactive_path, "content.json")
+        h5p_path =os.path.join(interactive_path, "h5p.json")
+        private_metadata_path= os.path.join(private_path, "metadata.json")
+        private_content_path= os.path.join(private_path, "content.json")
+        if not os.path.exists(metadata_path) or not os.path.exists(content_path) or not os.path.exists(h5p_path):
+            logging.error("MISSING INTERACTIVE DATA: {}".format(interactive_path))
+            return None
+        exercise ={}
+        exercise['h5p'] = json.loads(open(h5p_path).read())
+        exercise['content'] = _recursive_merge(json.loads(open(content_path).read()), json.loads(open(private_content_path).read()) if os.path.exists(private_content_path) else None )
+        exercise['metadata'] = _recursive_merge(json.loads(open(metadata_path).read()), json.loads(open(private_metadata_path).read()) if os.path.exists(private_metadata_path) else None )
+        return _parse_exercise_content(exercise)
+    
+    def _format_exercise_content(exercise):
+        formats = []
+        library = exercise["h5p"]["mainLibrary"]
+        if exercise['metadata']['is_free_response_supported']:
+            formats.append("free-response")
+        
+        if library == "H5P.MultiChoice":
+            formats.append("multiple-choice")
+            question ={
+                "id": 1,
+                "html": exercise["content"]["question"],
+                "stimulus": exercise["metadata"]["questions"][0]['stimulus'],
+                "answers" : [],
+                "formats": formats,
+                "is_answer_order_important": not exercise['content']['behaviour']['randomAnswers'],
+                "collaborator_solutions": []
+            }
+            for i, a in enumerate(exercise['content']['answers']):
+                question['answers'].append({
+                    "id": i,
+                    "html": a['text'],
+                    "correctness": a['correct'],
+                    "feedback": a['tipsAndFeedback']['chosenFeedback']
+                    
+                })
+            
+            for a in exercise['metadata']['collaborator_solutions'][0]:
+                question['collaborator_solutions'].append({
+                        "html": a["content"],
+                        "type": a["solution_type"]
+                })
+            exercise['questions'] = [question]
+        else:
+            logging.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
+        return exercise
+    
+    def _parse_exercise_content(exercise):
+        assert exercise["content"] is not None, "Exercise content is None"
+        assert exercise["h5p"] is not None and exercise["h5p"]["mainLibrary"] is not None, "Exercise h5p library undefined"
+        _format_exercise_content(exercise)
+        return exercise
+
     def _replace_exercises(elem, page_uuids):
         item_code = elem.get("href")[len(match):]
-        url = url_template.format(itemCode=item_code)
+        interactive_path = f"{os.getenv('IO_FETCHED')}/{url_template.format(itemCode=item_code)}"
+        private_path = f"{os.getenv('IO_FETCHED')}/private/{url_template.format(itemCode=item_code)}"
         exercise_class = elem.get("class")
-        if token:
-            headers = {"Authorization": "Bearer {}".format(token)}
-            res = requests.get(url, headers=headers)
-        else:
-            res = requests.get(url)
 
-        assert res
         # grab the json exercise, run it through Jinja2 template,
         # replace element w/ it
-        exercise = res.json()
+        exercise = _load_interactive_data(interactive_path, private_path)
 
-        if exercise["total_count"] == 0:
-            logger.warning("MISSING EXERCISE: {}".format(url))
+        if exercise is None:
+            logger.warning("MISSING EXERCISE: {}".format(interactive_path))
 
             XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
             missing = etree.Element(
@@ -376,8 +425,8 @@ def exercise_callback_factory(match, url_template, token=None):
             missing.text = "MISSING EXERCISE: tag:{}".format(item_code)
             nodes = [missing]
         else:
-            exercise["items"][0]["url"] = url
-            exercise["items"][0]["class"] = exercise_class
+            exercise["url"] = interactive_path
+            exercise["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
 
             html = render_exercise(exercise)
@@ -396,10 +445,8 @@ def exercise_callback_factory(match, url_template, token=None):
 
 
 def render_exercise(exercise):
-    assert len(exercise["items"]) == 1, 'Exercise "items" array is nonsingular'
-    exercise_content = exercise["items"][0]
-
-    return EXERCISE_TEMPLATE.render(data=exercise_content)
+    assert len(exercise["questions"]) > 0, 'No exercise found!'
+    return EXERCISE_TEMPLATE.render(data=exercise)
 
 
 HTML_DOCUMENT = """\

@@ -9,7 +9,7 @@ from ..formatters import (
     resolve_module_links,
     update_ids,
     assemble_collection,
-    exercise_callback_factory,
+    interactive_callback_factory,
 )
 from ..xml_utils import fix_namespaces
 from ..utils import re_first_or_default, unknown_progress
@@ -17,35 +17,26 @@ from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 
 
-DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
-
-
-def create_exercise_factories(exercise_host, token):
-    exercise_match_urls = (
+def create_interactive_factories(interactives_root):
+    exercise_match_paths = (
         (
-            "#ost/api/ex/",
-            "https://{}/api/exercises?q=tag:{{itemCode}}".format(
-                exercise_host
-            ),
-        ),
-        (
-            "#exercise/",
-            "https://{}/api/exercises?q=nickname:{{itemCode}}".format(
-                exercise_host
+            "{INTERACTIVES_ROOT}",
+            "{}{{itemCode}}".format(
+                interactives_root
             ),
         ),
     )
     return [
-        exercise_callback_factory(exercise_match, exercise_url, token=token)
-        for exercise_match, exercise_url in exercise_match_urls
+        interactive_callback_factory(exercise_match, exercise_path)
+        for exercise_match, exercise_path in exercise_match_paths
     ]
 
 
 def collection_to_assembled_xhtml(
-    collection, docs_by_id, docs_by_uuid, path_resolver, token, exercise_host
+    collection, docs_by_id, docs_by_uuid, path_resolver, interactives_path
 ):
     page_uuids = list(docs_by_uuid.keys())
-    includes = create_exercise_factories(exercise_host, token)
+    includes = create_interactive_factories(interactives_path)
     # Use docs_by_uuid.values to ensure each document is only used one time
     with unknown_progress("Resolving document references"):
         for document in docs_by_uuid.values():
@@ -69,16 +60,8 @@ def collection_to_assembled_xhtml(
 @common_params
 @click.argument("input-dir", type=click.Path(exists=True))
 @click.argument("output-dir", type=click.Path())
-@click.option(
-    "--exercise-token", help="Token for including answers in exercises"
-)
-@click.option(
-    "--exercise-host",
-    default=DEFAULT_EXERCISES_HOST,
-    help="Default {}".format(DEFAULT_EXERCISES_HOST),
-)
 @click.pass_context
-def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
+def assemble(ctx, input_dir, output_dir, interactives_path):
     """Assembles litezip structure data into a single-page-html file.
 
     This also stores the intermediary results alongside the resulting
@@ -115,8 +98,7 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
                 docs_by_id,
                 docs_by_uuid,
                 path_resolver,
-                exercise_token,
-                exercise_host,
+                container.public_root
             )
             output_assembled_xhtml.write_bytes(assembled_xhtml)
 
