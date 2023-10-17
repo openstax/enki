@@ -59,20 +59,23 @@ def book_container_factory(
         public_root: str = default_public_root
 
         def __post_init__(self):
+            # NOTE: Using os.path.join here will create invalid paths.
+            # The paths in the book vars are absolute relative to the repo root
+            # but joining with os.path.join will make it absolute relative to /
             self.books_root = os.path.realpath(
-                f"{self.root_dir}/{self.books_root}"
+                os.sep.join((self.root_dir, self.books_root))
             )
             self.pages_root = os.path.realpath(
-                f"{self.root_dir}/{self.pages_root}"
+                os.sep.join((self.root_dir, self.pages_root))
             )
             self.media_root = os.path.realpath(
-                f"{self.root_dir}/{self.media_root}"
+                os.sep.join((self.root_dir, self.media_root))
             )
             self.private_root = os.path.realpath(
-                f"{self.root_dir}/{self.private_root}"
+                os.sep.join((self.root_dir, self.private_root))
             )
             self.public_root = os.path.realpath(
-                f"{self.root_dir}/{self.public_root}"
+                os.sep.join((self.root_dir, self.public_root))
             )
 
         @classmethod
