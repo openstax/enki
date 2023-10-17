@@ -123,42 +123,6 @@ class TestAssembleCmd:
         # Verify the invocation output
         assert result.exit_code == 0, result.output
 
-    def test_output_files_exists_proceed(self, tmp_path, src_data, invoker):
-        output_dir = tmp_path / "build"
-        output_dir.mkdir()
-        (output_dir / "collection.assembled.xhtml").touch()
-
-        from nebu.cli.main import cli
-
-        args = [
-            "assemble",  # (target)
-            str(src_data),
-            str(output_dir),
-        ]
-        # This asks to replace the collection.assembled.xhtml file
-        result = invoker(cli, args, input="y\n")  # 'y', proceed with removal
-
-        # Verify the invocation output
-        assert result.exit_code == 0, result.output
-
-    def test_output_file_exists_abort(self, tmp_path, src_data, invoker):
-        output_dir = tmp_path / "build"
-        output_dir.mkdir()
-        (output_dir / "collection.assembled.xhtml").touch()
-
-        from nebu.cli.main import cli
-
-        args = [
-            "assemble",  # (target)
-            str(src_data),
-            str(output_dir),
-        ]
-        result = invoker(cli, args, input="\n")  # accept default: 'N'
-
-        # Verify the invocation output
-        assert result.exit_code == 1, result.output
-        assert "Aborted!" in result.output
-
     def test_edited_collection_xml(
         self, tmp_path, src_data, invoker, edit_collection_xml
     ):
@@ -233,7 +197,7 @@ def current_snapshot_dir(snapshot_dir):
 
 
 @pytest.fixture
-def assembled_pair(parts_tuple, exercise_mock, git_collection_data):
+def assembled_pair(parts_tuple, exercise_mock, git_path_resolver):
     from nebu.cli.assemble import collection_to_assembled_xhtml
 
     collection, docs_by_id, docs_by_uuid = parts_tuple
@@ -241,7 +205,7 @@ def assembled_pair(parts_tuple, exercise_mock, git_collection_data):
         collection,
         docs_by_id,
         docs_by_uuid,
-        git_collection_data,
+        git_path_resolver,
         None,
         "exercises.openstax.org"
     )

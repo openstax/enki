@@ -1,0 +1,5 @@
+<container xmlns="https://openstax.org/namespaces/book-container" version="1">
+    <book slug="collection" style="dummy" href="collection.xml" />
+    <var name="BOOKS_ROOT" value="/" />
+    <var name="PAGES_ROOT" value="/" />
+</container>
