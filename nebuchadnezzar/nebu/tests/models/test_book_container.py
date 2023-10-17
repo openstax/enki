@@ -1,6 +1,5 @@
 import os
 
-import pytest
 from nebu.models.book_container import (
     book_container_factory,
     parse_book_vars,
@@ -97,16 +96,16 @@ def test_partial_container():
 """
     container = BookContainer.from_str(books_xml, ".")
     # Updated
-    assert container.books_root.endswith("/books") 
+    assert container.books_root.endswith("/books")
     assert os.path.isabs(container.books_root)
     # Stay the same
-    assert container.pages_root.endswith("/modules") 
+    assert container.pages_root.endswith("/modules")
     assert os.path.isabs(container.pages_root)
-    assert container.media_root.endswith("/media") 
+    assert container.media_root.endswith("/media")
     assert os.path.isabs(container.media_root)
-    assert container.private_root.endswith("/private") 
+    assert container.private_root.endswith("/private")
     assert os.path.isabs(container.private_root)
-    assert container.public_root.endswith("/interactives") 
+    assert container.public_root.endswith("/interactives")
     assert os.path.isabs(container.public_root)
 
 
@@ -121,5 +120,5 @@ def test_invalid_var_name():
         _ = BookContainer.from_str(books_xml, ".")
     except Exception as e:
         exc = str(e)
-    assert "unexpected keyword argument" in exc 
+    assert "unexpected keyword argument" in exc
     assert "test_invalid_name" in exc

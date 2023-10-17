@@ -19,7 +19,7 @@ def git_collection_data(datadir):
 @pytest.fixture
 def git_collection_container(git_collection_data):
     from nebu.models.book_container import BookContainer
-    
+
     return BookContainer.from_str(
         (git_collection_data / "META-INF" / "books.xml").read_text(),
         str(git_collection_data)
@@ -29,7 +29,7 @@ def git_collection_container(git_collection_data):
 @pytest.fixture
 def git_path_resolver(git_collection_container):
     from nebu.models.path_resolver import PathResolver
-    
+
     return PathResolver(git_collection_container)
 
 

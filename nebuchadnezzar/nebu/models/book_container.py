@@ -34,8 +34,9 @@ def parse_books(etree):
             )
             if v is not None
         }
-        assert all(v != "" for v in kwargs.values()), \
-            "Missing required value for book"
+        assert all(
+            v != "" for v in kwargs.values()
+        ), "Missing required value for book"
         books.append(Book(**kwargs))
     return books
 
@@ -82,7 +83,7 @@ def book_container_factory(
                 books=parse_books(etree),
                 **parse_book_vars(etree)
             )
-    
+
     return BookContainer
 
 

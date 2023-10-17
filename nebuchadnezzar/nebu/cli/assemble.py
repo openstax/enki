@@ -88,7 +88,7 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
     output_dir = Path(output_dir)
     if not output_dir.exists():
         output_dir.mkdir()
-    
+
     for book in container.books:
         output_assembled_xhtml = output_dir / f"{book.slug}.assembled.xhtml"
 

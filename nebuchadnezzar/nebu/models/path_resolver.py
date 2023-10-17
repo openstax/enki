@@ -13,7 +13,7 @@ def _search_path(p, pattern):
 
 
 def path_resolver_factory(
-    module_path_getter: Callable[[BookContainer], Iterable[Union[Path, str]]], 
+    module_path_getter: Callable[[BookContainer], Iterable[Union[Path, str]]],
     module_id_pattern: str
 ):
     class PathResolver:
@@ -35,10 +35,10 @@ def path_resolver_factory(
                 _search_path(p, module_id_pattern).group(0): str(p)
                 for p in module_path_getter(book_container)
             }
-        
+
         def get_collection_path(self, book_slug: str) -> str:
             return self._collection_paths_by_book[book_slug]
-        
+
         def get_module_path(self, module_id: str) -> str:
             return self._module_paths_by_id[module_id]
 

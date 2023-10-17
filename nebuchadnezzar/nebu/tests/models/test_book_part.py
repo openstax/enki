@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from nebu.models.book_part import BookPart
 from nebu.xml_utils import etree_to_str
 
 
