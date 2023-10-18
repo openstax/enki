@@ -240,7 +240,7 @@
         "all-docx": [
             "step-fetch",
             "step-prebake",
-            "step-bake-web",
+            "step-bake",
             "step-postbake",
             "step-disassemble",
             "step-jsonify",
