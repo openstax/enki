@@ -1,1 +1,1 @@
-source $PWD/../dockerfiles/steps/bake-util.bash default
+source $DOCKERFILES_ROOT/steps/bake-util.bash default
