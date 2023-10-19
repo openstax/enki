@@ -917,7 +917,14 @@
      link, emphasis, term, sub, sup, quote, foreign, footnote,
      note, item, code, caption, commentary, meaning, entry -->
 <xsl:template match="c:footnote">
-  <a href="#{@id}" role="doc-noteref" epub:type="noteref">[footnote]</a>
+  <a href="#{@id}" role="doc-noteref" epub:type="noteref">
+    <xsl:if test="@class">
+      <xsl:attribute name="class">
+        <xsl:value-of select="@class"/>
+      </xsl:attribute>
+    </xsl:if>
+    <xsl:text>[footnote]</xsl:text>
+  </a>
 </xsl:template>
 
 <!-- footnote dump points -->
