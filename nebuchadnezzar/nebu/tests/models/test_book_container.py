@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from nebu.models.book_container import (
     book_container_factory,
     parse_book_vars,
@@ -79,12 +80,10 @@ def test_parse_books_missing_required():
 </container>
 """
     etree = etree_from_str(books_xml)
-    exc = ""
-    try:
+    with pytest.raises(Exception) as exc:
         _ = parse_books(etree)
-    except Exception as e:
-        exc = str(e)
-    assert "missing 1 required positional argument" in exc and "style" in exc
+    assert "missing 1 required positional argument" in str(exc)
+    assert "style" in str(exc)
 
 
 def test_partial_container():
@@ -115,10 +114,7 @@ def test_invalid_var_name():
     <var name="TEST_INVALID_NAME" value="..." />
 </container>
 """
-    exc = ""
-    try:
+    with pytest.raises(Exception) as exc:
         _ = BookContainer.from_str(books_xml, ".")
-    except Exception as e:
-        exc = str(e)
-    assert "unexpected keyword argument" in exc
-    assert "test_invalid_name" in exc
+    assert "unexpected keyword argument" in str(exc)
+    assert "test_invalid_name" in str(exc)
