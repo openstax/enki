@@ -14,19 +14,14 @@ def _search_path(p, pattern):
 
 def path_resolver_factory(
     module_path_getter: Callable[[BookContainer], Iterable[Union[Path, str]]],
-    module_id_pattern: str
+    module_id_pattern: str,
 ):
     class PathResolver:
         def __init__(self, book_container: BookContainer):
             self._collection_paths_by_book = {
                 book.slug: os.path.realpath(
                     os.path.join(
-                        book_container.root_dir,
-                        os.path.relpath(
-                            book_container.books_root,
-                            book_container.root_dir
-                        ),
-                        os.path.basename(book.href),
+                        book_container.books_root, os.path.basename(book.href)
                     )
                 )
                 for book in book_container.books
@@ -46,5 +41,5 @@ def path_resolver_factory(
 
 
 PathResolver = path_resolver_factory(
-    lambda container: Path(container.pages_root).glob('**/*.cnxml'), r'm[0-9]+'
+    lambda container: Path(container.pages_root).glob("**/*.cnxml"), r"m[0-9]+"
 )
