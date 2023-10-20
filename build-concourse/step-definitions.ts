@@ -94,7 +94,12 @@ export const GIT_EPUB_STEPS = [
 ]
 
 export const CLI_GIT_GDOC_STEPS = [
-    ...CLI_GIT_WEB_STEPS,
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-disassemble'),
+    get('step-jsonify'),
     get('step-docx'),
 ]
 
