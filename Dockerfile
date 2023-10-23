@@ -365,7 +365,7 @@ COPY ./dockerfiles/entrypointd.sh \
 
 COPY ./step-config.json $PROJECT_ROOT
 
-WORKDIR /data/
+WORKDIR /data/build/data/
 
 RUN useradd --create-home -u 5000 app
 ENV RUN_AS="app:app"
