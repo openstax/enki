@@ -2,48 +2,37 @@ from pathlib import Path
 
 import click
 
-from ._common import common_params
+from ..formatters import (assemble_collection, fetch_insert_includes,
+                          interactive_callback_factory, resolve_module_links,
+                          update_ids)
 from ..models.book_part import BookPart
-from ..formatters import (
-    fetch_insert_includes,
-    resolve_module_links,
-    update_ids,
-    assemble_collection,
-    exercise_callback_factory,
-)
 from ..xml_utils import fix_namespaces
-
+from ._common import common_params
 
 ASSEMBLED_FILENAME = "collection.assembled.xhtml"
-DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
+DEFAULT_INTERACTIVES_PATH = "interactives"
 
 
-def create_exercise_factories(exercise_host, token):
-    exercise_match_urls = (
+def create_interactive_factories(interactives_root):
+    exercise_match_paths = (
         (
-            "#ost/api/ex/",
-            "https://{}/api/exercises?q=tag:{{itemCode}}".format(
-                exercise_host
-            ),
-        ),
-        (
-            "#exercise/",
-            "https://{}/api/exercises?q=nickname:{{itemCode}}".format(
-                exercise_host
+            "{INTERACTIVES_ROOT}",
+            "{}{{itemCode}}".format(
+                interactives_root
             ),
         ),
     )
     return [
-        exercise_callback_factory(exercise_match, exercise_url, token=token)
-        for exercise_match, exercise_url in exercise_match_urls
+        interactive_callback_factory(exercise_match, exercise_path)
+        for exercise_match, exercise_path in exercise_match_paths
     ]
 
 
 def collection_to_assembled_xhtml(
-    collection, docs_by_id, docs_by_uuid, input_dir, token, exercise_host
+    collection, docs_by_id, docs_by_uuid, input_dir, interactives_path
 ):
     page_uuids = list(docs_by_uuid.keys())
-    includes = create_exercise_factories(exercise_host, token)
+    includes = create_interactive_factories(interactives_path)
     # Use docs_by_uuid.values to ensure each document is only used one time
     for document in docs_by_uuid.values():
         # Step 1: Rewrite module links
@@ -65,15 +54,12 @@ def collection_to_assembled_xhtml(
 @click.argument("input-dir", type=click.Path(exists=True))
 @click.argument("output-dir", type=click.Path())
 @click.option(
-    "--exercise-token", help="Token for including answers in exercises"
-)
-@click.option(
-    "--exercise-host",
-    default=DEFAULT_EXERCISES_HOST,
-    help="Default {}".format(DEFAULT_EXERCISES_HOST),
+    "--interactives-path",
+    default=DEFAULT_INTERACTIVES_PATH,
+    help="Default {}".format(DEFAULT_INTERACTIVES_PATH),
 )
 @click.pass_context
-def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
+def assemble(ctx, input_dir, output_dir, interactives_path):
     """Assembles litezip structure data into a single-page-html file.
 
     This also stores the intermediary results alongside the resulting
@@ -103,8 +89,7 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
         docs_by_id,
         docs_by_uuid,
         input_dir,
-        exercise_token,
-        exercise_host,
+        interactives_path
     )
     output_assembled_xhtml.write_bytes(assembled_xhtml)
 
