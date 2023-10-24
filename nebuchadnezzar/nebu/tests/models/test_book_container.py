@@ -90,7 +90,7 @@ def test_partial_container():
     books_xml = """\
 <container xmlns="https://openstax.org/namespaces/book-container" version="1">
     <var name="BOOKS_ROOT" value="/books" />
-    <book slug="slug_name" href="href_path" style="dummy" />
+    <book slug="slug_name" href="href_path" style="dummy" test-ignored-attributes="true" />
 </container>
 """
     container = BookContainer.from_str(books_xml, ".")
