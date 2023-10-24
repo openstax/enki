@@ -1,13 +1,9 @@
 import os
-import re
-from functools import partial
-from typing import Optional
 
 from nebu.utils import re_first_or_default
 from nebu.models.path_resolver import PathResolver
 from nebu.models.book_container import book_container_factory, Book
 import pytest
-
 
 
 BookContainer = book_container_factory(
@@ -23,6 +19,7 @@ module_id_map = {
     "m4567": "a/b/c/m4567",
     "m8910": "a/b/c/m8910",
 }
+
 
 @pytest.fixture
 def test_collection_href():

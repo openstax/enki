@@ -1,8 +1,6 @@
 import os
-import re
 from pathlib import Path
 from typing import Callable, Union, Iterable, Optional
-from functools import partial
 
 from .book_container import BookContainer
 
