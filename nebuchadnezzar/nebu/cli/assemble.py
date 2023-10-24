@@ -12,6 +12,7 @@ from ..formatters import (
     exercise_callback_factory,
 )
 from ..xml_utils import fix_namespaces
+from ..utils import re_first_or_default
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 
@@ -84,7 +85,11 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
     """
     books_xml = Path(input_dir) / "META-INF" / "books.xml"
     container = BookContainer.from_str(books_xml.read_text(), input_dir)
-    path_resolver = PathResolver(container)
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r'm[0-9]+', s)
+    )
     output_dir = Path(output_dir)
     if not output_dir.exists():
         output_dir.mkdir()

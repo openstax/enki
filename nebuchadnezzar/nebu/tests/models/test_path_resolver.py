@@ -3,14 +3,11 @@ import re
 from functools import partial
 from typing import Optional
 
-from nebu.models.path_resolver import path_resolver_factory
+from nebu.utils import re_first_or_default
+from nebu.models.path_resolver import PathResolver
 from nebu.models.book_container import book_container_factory, Book
 import pytest
 
-
-def _first_or_none(pattern: str, s: str) -> Optional[str]:
-    match = re.search(pattern, str(s))
-    return match.group(0) if match is not None else None
 
 
 BookContainer = book_container_factory(
@@ -26,12 +23,6 @@ module_id_map = {
     "m4567": "a/b/c/m4567",
     "m8910": "a/b/c/m8910",
 }
-
-PathResolver = path_resolver_factory(
-    lambda _: ["a/b/c/m1234", "a/b/c/m4567", "a/b/c/m8910"],
-    partial(_first_or_none, r"m[0-9]+")
-)
-
 
 @pytest.fixture
 def test_collection_href():
@@ -52,7 +43,11 @@ def test_container(test_collection_href):
 
 @pytest.fixture
 def test_resolver(test_container):
-    return PathResolver(test_container)
+    return PathResolver(
+        test_container,
+        lambda _: list(module_id_map.values()),
+        lambda s: re_first_or_default(r'm[0-9]+', s)
+    )
 
 
 def test_resolve_module_id(test_resolver):
