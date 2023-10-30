@@ -2,6 +2,7 @@ import json
 
 from lxml import etree
 import pytest
+from pathlib import Path
 
 from nebu.cli import assemble
 from nebu.cli.main import cli
@@ -124,12 +125,19 @@ class TestAssembleCmd:
         assert result.exit_code == 0, result.output
 
     def test_edited_collection_xml(
-        self, tmp_path, src_data, invoker, edit_collection_xml
+        self,
+        tmp_path,
+        src_data,
+        invoker,
+        edit_collection_xml,
+        git_path_resolver
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
-        edit_collection_xml(src_data / "collection.xml")
+        edit_collection_xml(
+            Path(git_path_resolver.get_collection_path("collection"))
+        )
 
         from nebu.cli.main import cli
 
@@ -163,12 +171,18 @@ def exercise_mock(datadir, requests_mock):
 
 class TestAssembleIntegration:
     def test_exercises(
-        self, tmp_path, src_data, add_exercises, exercise_mock, invoker
+        self,
+        tmp_path,
+        src_data,
+        add_exercises,
+        exercise_mock,
+        invoker,
+        git_path_resolver
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
-        add_exercises(src_data / "m46882" / "index.cnxml")
+        add_exercises(Path(git_path_resolver.get_module_path("m46882")))
 
         from nebu.cli.main import cli
 
