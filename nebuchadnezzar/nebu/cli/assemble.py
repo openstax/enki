@@ -12,6 +12,9 @@ from ..formatters import (
     exercise_callback_factory,
 )
 from ..xml_utils import fix_namespaces
+from ..utils import re_first_or_default
+from ..models.book_container import BookContainer
+from ..models.path_resolver import PathResolver
 
 
 ASSEMBLED_FILENAME = "collection.assembled.xhtml"
@@ -40,14 +43,14 @@ def create_exercise_factories(exercise_host, token):
 
 
 def collection_to_assembled_xhtml(
-    collection, docs_by_id, docs_by_uuid, input_dir, token, exercise_host
+    collection, docs_by_id, docs_by_uuid, path_resolver, token, exercise_host
 ):
     page_uuids = list(docs_by_uuid.keys())
     includes = create_exercise_factories(exercise_host, token)
     # Use docs_by_uuid.values to ensure each document is only used one time
     for document in docs_by_uuid.values():
         # Step 1: Rewrite module links
-        resolve_module_links(document, docs_by_id, input_dir)
+        resolve_module_links(document, docs_by_id, path_resolver)
         # Step 2: Update ids and links
         update_ids(document)
 
@@ -80,32 +83,35 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
     assembled single-page-html.
 
     """
-    input_dir = Path(input_dir)
+    books_xml = Path(input_dir) / "META-INF" / "books.xml"
+    container = BookContainer.from_str(books_xml.read_text(), input_dir)
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r'm[0-9]+', s)
+    )
     output_dir = Path(output_dir)
-    output_assembled_xhtml = output_dir / ASSEMBLED_FILENAME
-
-    if output_assembled_xhtml.exists():
-        confirm_msg = (
-            "File '{}' already exists. Would you like to replace it?".format(
-                output_assembled_xhtml
-            )
-        )
-        click.confirm(confirm_msg, abort=True, err=True)
-        output_assembled_xhtml.unlink()
     if not output_dir.exists():
         output_dir.mkdir()
 
-    collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
-        input_dir / "collection.xml"
-    )
-    assembled_xhtml = collection_to_assembled_xhtml(
-        collection,
-        docs_by_id,
-        docs_by_uuid,
-        input_dir,
-        exercise_token,
-        exercise_host,
-    )
-    output_assembled_xhtml.write_bytes(assembled_xhtml)
+    for book in container.books:
+        output_assembled_xhtml = output_dir / f"{book.slug}.assembled.xhtml"
+
+        assert not output_assembled_xhtml.exists(), \
+            f'File "{output_assembled_xhtml}" already exists.'
+
+        collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
+            path_resolver.get_collection_path(book.slug),
+            path_resolver
+        )
+        assembled_xhtml = collection_to_assembled_xhtml(
+            collection,
+            docs_by_id,
+            docs_by_uuid,
+            path_resolver,
+            exercise_token,
+            exercise_host,
+        )
+        output_assembled_xhtml.write_bytes(assembled_xhtml)
 
     return 0

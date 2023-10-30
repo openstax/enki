@@ -2,6 +2,7 @@ import json
 
 from lxml import etree
 import pytest
+from pathlib import Path
 
 from nebu.cli import assemble
 from nebu.cli.main import cli
@@ -123,49 +124,20 @@ class TestAssembleCmd:
         # Verify the invocation output
         assert result.exit_code == 0, result.output
 
-    def test_output_files_exists_proceed(self, tmp_path, src_data, invoker):
-        output_dir = tmp_path / "build"
-        output_dir.mkdir()
-        (output_dir / "collection.assembled.xhtml").touch()
-
-        from nebu.cli.main import cli
-
-        args = [
-            "assemble",  # (target)
-            str(src_data),
-            str(output_dir),
-        ]
-        # This asks to replace the collection.assembled.xhtml file
-        result = invoker(cli, args, input="y\n")  # 'y', proceed with removal
-
-        # Verify the invocation output
-        assert result.exit_code == 0, result.output
-
-    def test_output_file_exists_abort(self, tmp_path, src_data, invoker):
-        output_dir = tmp_path / "build"
-        output_dir.mkdir()
-        (output_dir / "collection.assembled.xhtml").touch()
-
-        from nebu.cli.main import cli
-
-        args = [
-            "assemble",  # (target)
-            str(src_data),
-            str(output_dir),
-        ]
-        result = invoker(cli, args, input="\n")  # accept default: 'N'
-
-        # Verify the invocation output
-        assert result.exit_code == 1, result.output
-        assert "Aborted!" in result.output
-
     def test_edited_collection_xml(
-        self, tmp_path, src_data, invoker, edit_collection_xml
+        self,
+        tmp_path,
+        src_data,
+        invoker,
+        edit_collection_xml,
+        git_path_resolver
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
-        edit_collection_xml(src_data / "collection.xml")
+        edit_collection_xml(
+            Path(git_path_resolver.get_collection_path("collection"))
+        )
 
         from nebu.cli.main import cli
 
@@ -199,12 +171,18 @@ def exercise_mock(datadir, requests_mock):
 
 class TestAssembleIntegration:
     def test_exercises(
-        self, tmp_path, src_data, add_exercises, exercise_mock, invoker
+        self,
+        tmp_path,
+        src_data,
+        add_exercises,
+        exercise_mock,
+        invoker,
+        git_path_resolver
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
-        add_exercises(src_data / "m46882" / "index.cnxml")
+        add_exercises(Path(git_path_resolver.get_module_path("m46882")))
 
         from nebu.cli.main import cli
 
@@ -233,7 +211,7 @@ def current_snapshot_dir(snapshot_dir):
 
 
 @pytest.fixture
-def assembled_pair(parts_tuple, exercise_mock, git_collection_data):
+def assembled_pair(parts_tuple, exercise_mock, git_path_resolver):
     from nebu.cli.assemble import collection_to_assembled_xhtml
 
     collection, docs_by_id, docs_by_uuid = parts_tuple
@@ -241,7 +219,7 @@ def assembled_pair(parts_tuple, exercise_mock, git_collection_data):
         collection,
         docs_by_id,
         docs_by_uuid,
-        git_collection_data,
+        git_path_resolver,
         None,
         "exercises.openstax.org"
     )
