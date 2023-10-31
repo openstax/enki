@@ -28,12 +28,12 @@ elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
     fi
     kcov --merge $dirs_to_merge
 elif [[ $KCOV_DIR != '' ]]; then
-    [[ -d /data/build/data/$KCOV_DIR ]] || mkdir /data/build/data/$KCOV_DIR
+    [[ -d /tmp/build/0000000/$KCOV_DIR ]] || mkdir /tmp/build/0000000/$KCOV_DIR
     kcov \
         --skip-solibs \
         --exit-first-process \
         --include-path=/dockerfiles/docker-entrypoint.sh,/dockerfiles/steps/ \
-        /data/build/data/$KCOV_DIR \
+        /tmp/build/0000000/$KCOV_DIR \
         docker-entrypoint.sh $@
     sleep 1 # Wait for files to flush?
 else
