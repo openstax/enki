@@ -125,7 +125,7 @@ function check_output_dir() {
     dir_name="${!pointer}"
     [[ $dir_name ]] || die "This output directory environment variable is not set ($1='$dir_name')"
     # Auto-create directories only in local dev mode. In Concourse Pip}elines these directories should already exist.
-    if [[ $dir_name =~ \/data\/ && ! -d $dir_name ]]; then
+    if [[ $LOCAL_ATTIC_DIR != '' && ! -d $dir_name ]]; then
         mkdir -p $dir_name
     fi
     [[ -d $dir_name ]] || die "Expected output directory to exist but it was missing ($1='$dir_name'). it needs to be added to the concourse job"

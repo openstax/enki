@@ -277,7 +277,7 @@ envs=""
 
 docker run $ports $interactive $enable_tty \
     $opt_sideload_book_arg \
-    --volume="$(cd "$data_dir"/; pwd):/data/" \
+    --volume="$(cd "$data_dir"/; pwd):/tmp/build/0000000/" \
     $opt_mount_recipes \
     --env-file $root_dir/cli.env \
     --env TRACE_ON \
