@@ -37,6 +37,7 @@ set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META, IO.
 set({name: 'step-upload-pdf', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_WEB_STEPS
+set({name: 'step-bake-web', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: {}})
 set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
 set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
 set({name: 'step-upload-book', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CORGI_CLOUDFRONT_URL: false, REX_PROD_PREVIEW_URL: false}})
@@ -68,7 +69,7 @@ export const GIT_PDF_STEPS = [
 export const CLI_GIT_WEB_STEPS = [
     get('step-fetch'),
     get('step-prebake'),
-    get('step-bake'),
+    get('step-bake-web'),
     get('step-postbake'),
     get('step-disassemble'),
     get('step-jsonify'),
@@ -93,7 +94,12 @@ export const GIT_EPUB_STEPS = [
 ]
 
 export const CLI_GIT_GDOC_STEPS = [
-    ...CLI_GIT_WEB_STEPS,
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-disassemble'),
+    get('step-jsonify'),
     get('step-docx'),
 ]
 
