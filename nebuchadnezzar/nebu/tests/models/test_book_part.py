@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from nebu.models.book_part import BookPart
 from nebu.xml_utils import etree_to_str
 
 
@@ -10,10 +9,8 @@ def current_snapshot_dir(snapshot_dir):
     return snapshot_dir / "test_book_part"
 
 
-def test_collection_from_file(assert_match, git_collection_data):
-    collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
-        git_collection_data / "collection.xml"
-    )
+def test_collection_from_file(assert_match, parts_tuple):
+    collection, docs_by_id, docs_by_uuid = parts_tuple
 
     def part_to_dict(book_part):
         return dict(

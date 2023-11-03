@@ -86,13 +86,13 @@ def update_ids(document):
 
 
 @lru_cache(maxsize=None)
-def _get_external_document(input_dir, module_id):
+def _get_external_document(p):
     from .models.book_part import BookPart
 
-    return BookPart.doc_from_file(input_dir, module_id)
+    return BookPart.doc_from_file(p)
 
 
-def resolve_module_links(document, docs_by_id, input_dir):
+def resolve_module_links(document, docs_by_id, path_resolver):
     """Resolve module links
     <a href="/contents/{PAGE_ID} (and maybe fragment?)"> (other-book link)
     <a href="#page_{PAGE_ID}"> (same-book link)
@@ -117,7 +117,9 @@ def resolve_module_links(document, docs_by_id, input_dir):
         if target_document is not None:
             new_href = fmt_str.format(target_document.metadata["uuid"])
         else:
-            target_document = _get_external_document(input_dir, module_id)
+            target_document = _get_external_document(
+                path_resolver.get_module_path(module_id)
+            )
             uuid = target_document.metadata["uuid"]
             new_href = f"/contents{href.replace(module_id, uuid)}"
         link.set("href", new_href)

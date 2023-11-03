@@ -17,10 +17,34 @@ def git_collection_data(datadir):
 
 
 @pytest.fixture
-def parts_tuple(git_collection_data):
+def git_collection_container(git_collection_data):
+    from nebu.models.book_container import BookContainer
+
+    return BookContainer.from_str(
+        (git_collection_data / "META-INF" / "books.xml").read_text(),
+        str(git_collection_data)
+    )
+
+
+@pytest.fixture
+def git_path_resolver(git_collection_container):
+    from nebu.models.path_resolver import PathResolver
+    from nebu.utils import re_first_or_default
+
+    return PathResolver(
+        git_collection_container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r'm[0-9]+', s)
+    )
+
+
+@pytest.fixture
+def parts_tuple(git_collection_data, git_path_resolver):
     from nebu.models.book_part import BookPart
+
     collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
-        git_collection_data / "collection.xml"
+        git_path_resolver.get_collection_path("collection"),
+        git_path_resolver
     )
     return (collection, docs_by_id, docs_by_uuid)
 

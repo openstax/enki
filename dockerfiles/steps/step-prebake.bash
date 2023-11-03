@@ -102,45 +102,23 @@ if [[ $LOCAL_ATTIC_DIR != '' ]]; then
     popd > /dev/null
 fi
 
-col_sep='|'
+neb assemble "$repo_root" "$IO_ASSEMBLED"
+
 # https://stackoverflow.com/a/31838754
 xpath_sel="//*[@slug]" # All the book entries
-while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
-    IFS=$col_sep read -r slug href _ <<< "$line"
-    path="$repo_root/META-INF/$href"
+while read -r slug; do # Loop over each <book> entry in the META-INF/books.xml manifest
     assembled_file="$IO_ASSEMBLED/$slug.assembled.xhtml"
 
-    # ------------------------------------------
-    # Available Variables: slug href style path
-    # ------------------------------------------
-    # --------- Code starts here
-
-
-
-    cp "$path" "$IO_FETCH_META/modules/collection.xml"
-
-    if [[ -f temp-assembly/collection.assembled.xhtml ]]; then
-        rm temp-assembly/collection.assembled.xhtml # LCOV_EXCL_LINE
-    fi
-
-    neb assemble "$IO_FETCH_META/modules" temp-assembly/
-
     ## download exercise images and replace internet links with local resource links
-    download-exercise-images "$IO_RESOURCES" "temp-assembly/collection.assembled.xhtml" "$assembled_file"
+    download-exercise-images "$IO_RESOURCES" "$assembled_file" "$assembled_file"
     
+    # If there is any TeX math, replace it with mathml
     if grep -E '.*data-math=.+?' "$assembled_file" &> /dev/null; then
         mathified="$assembled_file.mathified.xhtml"
         node "${JS_EXTRA_VARS[@]}" $MATHIFY_ROOT/typeset/start.js -i "$assembled_file" -o "$mathified" -f mathml
         mv "$mathified" "$assembled_file"
     fi
-
-    rm -rf temp-assembly
-    rm "$IO_FETCH_META/modules/collection.xml"
-
-
-
-    # --------- Code ends here
-done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
+done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --nl < "$repo_root/META-INF/books.xml")
 
 # Formerly git-validate-references
 check_input_dir IO_RESOURCES

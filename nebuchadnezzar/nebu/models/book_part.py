@@ -58,15 +58,15 @@ class BookPart:
                 yield book_part
 
     @staticmethod
-    def doc_from_file(input_dir, id):
-        cnxml = open_xml(str(input_dir / id / "index.cnxml"))
+    def doc_from_file(p):
+        cnxml = open_xml(p)
         metadata = parse_metadata(cnxml)
         html = etree_from_str(etree_cnxml_to_full_html(cnxml).encode())
         doc = BookPart(PartType.DOCUMENT, metadata, html)
         return doc
 
     @staticmethod
-    def collection_from_file(filepath):
+    def collection_from_file(filepath, path_resolver):
         """\
         Given a ``collection.xml`` as ``filepath``.
 
@@ -89,12 +89,12 @@ class BookPart:
             return BookPart(PartType.SUBCOL, {})
 
         def new_doc(id):
-            doc = BookPart.doc_from_file(filepath.parent, id)
+            doc = BookPart.doc_from_file(path_resolver.get_module_path(id))
             doc_by_id[id] = doc_by_uuid[doc.metadata["uuid"]] = doc
             return doc
 
         # Obtain metadata about the collection
-        with filepath.open("rb") as fb:
+        with open(filepath, "rb") as fb:
             xml = open_xml(fb)
 
         root_part = parent_part = current_part = new_col()
