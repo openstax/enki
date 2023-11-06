@@ -3,6 +3,7 @@ import sys
 import unittest
 
 from lxml import etree
+import pytest
 
 
 IS_PY2 = sys.version_info.major == 2
@@ -142,3 +143,35 @@ def test_fixnamespaces(snapshot):
     )
 
     snapshot.assert_match(fix_namespaces(before).decode(), "after.xml")
+
+
+@pytest.mark.parametrize(
+    "xml_doc,type",
+    [
+        (
+            b'\xef\xbb\xbf<?xml version="1.0"?>\n<a><b></b></a>',
+            "bom without encoding"
+        ),
+        (
+            b'\xef\xbb\xbf<?xml version="1.0" encoding="utf-8"?>\n<a><b></b></a>',
+            "bom with encoding"
+        ),
+        (
+            b'<?xml version="1.0" encoding="utf-8"?>\n<a><b></b></a>',
+            "no bom"
+        ),
+        (
+            b'<?xml version="1.0"?>\n<a><b></b></a>',
+            "no encoding"
+        ),
+        (
+            b'<?xml version="1.0" encoding="ascii"?>\n<a><b></b></a>',
+            "ascii encoding"
+        ),
+    ]
+)
+def test_fromstring(xml_doc, type):
+    from nebu.xml_utils import etree_from_str
+    tree = etree_from_str(xml_doc)
+    assert tree, f"{type}: failed to parse"
+    assert len(tree.xpath('//a')) > 0, f"{type}: bad parsing result"
