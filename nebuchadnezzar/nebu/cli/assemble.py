@@ -17,7 +17,6 @@ from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 
 
-ASSEMBLED_FILENAME = "collection.assembled.xhtml"
 DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
 
 
@@ -84,7 +83,7 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
 
     """
     books_xml = Path(input_dir) / "META-INF" / "books.xml"
-    container = BookContainer.from_str(books_xml.read_text(), input_dir)
+    container = BookContainer.from_str(books_xml.read_bytes(), input_dir)
     path_resolver = PathResolver(
         container,
         lambda container: Path(container.pages_root).glob("**/*.cnxml"),

@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from ..xml_utils import etree_from_str
 
@@ -79,7 +79,7 @@ def book_container_factory(
             )
 
         @classmethod
-        def from_str(cls, xml_str: str, root_dir: str):
+        def from_str(cls, xml_str: Union[str, bytes], root_dir: str):
             etree = etree_from_str(xml_str)
             return cls(
                 root_dir=root_dir,
