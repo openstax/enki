@@ -2,6 +2,7 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from datetime import datetime, timezone
 import json
+from itertools import chain
 
 import pytest
 
@@ -27,6 +28,21 @@ def src_data(datadir):
 def tmp_book_dir(src_data, tmp_path):
     output_dir = Path(tmp_path) / "pre-assemble"
     copytree(src_data, output_dir)
+    # Remove existing metadata from this copy of the test data
+    # This metadata is required for other tests, but it causes problems here
+    for f in chain(*map(output_dir.glob, ("**/*.cnxml", "**/*.xml"))):
+        tree = open_xml(f)
+        metadata = tree.xpath('//*[local-name() = "metadata"]')
+        if len(metadata) == 0:
+            continue
+        metadata_el = metadata[0]
+        for el in metadata_el.xpath(
+            "//md:revised | //md:version | //md:canonical-book-uuid",
+            namespaces=CNXML_NSMAP,
+        ):
+            metadata_el.remove(el)
+        with open(f, "wb") as fout:
+            tree.write(fout, encoding="utf-8", xml_declaration=False)
     return output_dir
 
 

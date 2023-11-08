@@ -22,13 +22,13 @@ NS_CNXML = CNXML_NSMAP["c"]
 GIT_SHA_PREFIX_LEN = 7
 
 
-def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
-    metadata = xml_doc.xpath("//x:metadata", namespaces={"x": md_namespace})[0]
-
-    for tag in old_metadata:
-        element = metadata.xpath(f"./md:{tag}", namespaces=CNXML_NSMAP)
-        if element:
-            metadata.remove(element[0])
+def check_for_existing_metadata(xml_doc, tags, sourcefile):
+    existing = xml_doc.xpath(
+        "|".join(f"//md:{tag}" for tag in tags), namespaces={"md": NS_MDML}
+    )
+    assert (
+        len(existing) == 0
+    ), f"Unexpectedly found one of ({', '.join(tags)}) in {sourcefile}"
 
 
 def add_metadata_entries(xml_doc, new_metadata, md_namespace):
@@ -98,7 +98,9 @@ def fetch_update_metadata(
     for module_file in module_files:
         cnxml_doc = open_xml(module_file)
 
-        remove_metadata_entries(cnxml_doc, ["canonical-book-uuid"], NS_CNXML)
+        check_for_existing_metadata(
+            cnxml_doc, ["revised", "canonical-book-uuid"], module_file
+        )
 
         new_metadata = {
             "revised": revised_time,
@@ -113,6 +115,9 @@ def fetch_update_metadata(
 
     for collection_file in collection_files:
         collection_doc = open_xml(collection_file)
+        check_for_existing_metadata(
+            collection_doc, ["revised", "version"], collection_file
+        )
         new_metadata = {"revised": revised_time, "version": book_version}
         add_metadata_entries(collection_doc, new_metadata, NS_COLLXML)
 
