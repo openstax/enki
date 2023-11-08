@@ -142,4 +142,3 @@ def test_pre_assemble_cmd_with_tags(
         )
 
     rmtree(tmp_book_dir)
-
