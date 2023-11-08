@@ -9,6 +9,7 @@ from collections import defaultdict
 from nebu import __version__
 
 from .assemble import assemble
+from .pre_assemble import pre_assemble
 
 
 __all__ = ('cli',)
@@ -139,6 +140,7 @@ def cli():
     pass
 
 
+cli.add_command(pre_assemble, help_section='Stock')
 cli.add_command(assemble, help_section='Stock')
 
 for entry_point in pkg_resources.iter_entry_points('neb.extension'):
