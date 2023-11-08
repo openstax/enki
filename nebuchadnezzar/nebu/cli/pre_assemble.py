@@ -1,43 +1,39 @@
 """Inject / modify metadata for book CNXML from git"""
 
-import json
-import sys
-from datetime import datetime, timezone
 from pathlib import Path
+from datetime import datetime, timezone
+from typing import Optional
 
+import click
 from lxml import etree
 from pygit2 import Repository
-from .profiler import timed
 
-NS_MDML = "http://cnx.rice.edu/mdml"
-NS_CNXML = "http://cnx.rice.edu/cnxml"
-NS_COLLXML = "http://cnx.rice.edu/collxml"
+from ._common import common_params
+from ..utils import re_first_or_default
+from ..models.book_container import BookContainer
+from ..models.path_resolver import PathResolver
+from ..parse import NSMAP as CNXML_NSMAP
+from ..xml_utils import open_xml
+
+
+NS_MDML = CNXML_NSMAP["md"]
+NS_COLLXML = CNXML_NSMAP["col"]
+NS_CNXML = CNXML_NSMAP["c"]
 GIT_SHA_PREFIX_LEN = 7
 
 
-@timed
 def remove_metadata_entries(xml_doc, old_metadata, md_namespace):
-    metadata = xml_doc.xpath(
-        "//x:metadata",
-        namespaces={"x": md_namespace}
-    )[0]
+    metadata = xml_doc.xpath("//x:metadata", namespaces={"x": md_namespace})[0]
 
     for tag in old_metadata:
-        element = metadata.xpath(
-            f"./md:{tag}",
-            namespaces={"md": NS_MDML}
-        )
+        element = metadata.xpath(f"./md:{tag}", namespaces=CNXML_NSMAP)
         if element:
             metadata.remove(element[0])
 
 
-@timed
 def add_metadata_entries(xml_doc, new_metadata, md_namespace):
     """Insert metadata entries from dictionairy into document"""
-    metadata = xml_doc.xpath(
-        "//x:metadata",
-        namespaces={"x": md_namespace}
-    )[0]
+    metadata = xml_doc.xpath("//x:metadata", namespaces={"x": md_namespace})[0]
 
     for tag, value in new_metadata.items():
         element = etree.Element(f"{{{NS_MDML}}}{tag}")
@@ -46,7 +42,6 @@ def add_metadata_entries(xml_doc, new_metadata, md_namespace):
         metadata.append(element)
 
 
-@timed
 def determine_book_version(reference, repo, commit):
     """Determine the book version string given a reference, a git repo, and
     a target a commit"""
@@ -55,7 +50,8 @@ def determine_book_version(reference, repo, commit):
     # or if all else fails fallback to the first few characters of the commit
     # sha
     matching_tags = [
-        ref.shorthand for ref in repo.references.objects
+        ref.shorthand
+        for ref in repo.references.objects
         if ref.name.startswith("refs/tags") and ref.target == commit.id
     ]
 
@@ -72,56 +68,59 @@ def determine_book_version(reference, repo, commit):
     return str(commit.id)[0:GIT_SHA_PREFIX_LEN]
 
 
-@timed
-def main():
-    git_repo = Path(sys.argv[1]).resolve(strict=True)
-    modules_dir = Path(sys.argv[2]).resolve(strict=True)
-    collections_dir = Path(sys.argv[3]).resolve(strict=True)
-    reference = sys.argv[4]
-    canonical_file = Path(sys.argv[5]).resolve(strict=True)
+def fetch_update_metadata(
+    container,
+    path_resolver,
+    canonical_mapping,
+    git_repo,
+    reference,
+):
     repo = Repository(git_repo)
-
-    canonical_list = json.load(canonical_file.open())
-
     canonical_mapping = {}
 
-    for bookslug in reversed(canonical_list):
-        collection = collections_dir / f'{bookslug}.collection.xml'
-        col_tree = etree.parse(str(collection))
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
         col_modules = col_tree.xpath(
-            "//col:module/@document", namespaces={"col": NS_COLLXML})
-        col_uuid = col_tree.xpath(
-            "//md:uuid", namespaces={"md": NS_MDML})[0].text
+            "//col:module/@document", namespaces={"col": NS_COLLXML}
+        )
+        col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[
+            0
+        ].text
         for module in col_modules:
             canonical_mapping[module] = col_uuid
 
     # For the time being, we're going to parse the timestamp of the HEAD
     # commit and use that as the revised time for all module pages.
-    commit = repo.revparse_single('HEAD')
+    commit = repo.revparse_single("HEAD")
     revised_time = datetime.fromtimestamp(
-        commit.commit_time,
-        timezone.utc
+        commit.commit_time, timezone.utc
     ).isoformat()
     book_version = determine_book_version(reference, repo, commit)
 
+    module_ids_by_path = {
+        v: k for k, v in path_resolver.module_paths_by_id.items()
+    }
+
     # Get list of module files while filtering orphans using canonical_mapping
     module_files = [
-        mf.resolve(strict=True) for mf in modules_dir.glob("**/*")
-        if mf.is_file() and mf.name == "index.cnxml" and mf.parent.name in canonical_mapping
+        module_file
+        for module_id, module_file in path_resolver.module_paths_by_id.items()
+        if module_id in canonical_mapping
     ]
 
-    collection_files = [
-        cf.resolve(strict=True) for cf in collections_dir.glob("*.xml")
-    ]
+    collection_files = list(path_resolver.collection_paths_by_book.values())
 
     for module_file in module_files:
-        cnxml_doc = etree.parse(str(module_file))
+        cnxml_doc = open_xml(module_file)
 
         remove_metadata_entries(cnxml_doc, ["canonical-book-uuid"], NS_CNXML)
 
         new_metadata = {
             "revised": revised_time,
-            "canonical-book-uuid": canonical_mapping[module_file.parent.name]
+            "canonical-book-uuid": canonical_mapping[
+                module_ids_by_path[module_file]
+            ],
         }
         add_metadata_entries(cnxml_doc, new_metadata, NS_CNXML)
 
@@ -129,16 +128,53 @@ def main():
             cnxml_doc.write(f, encoding="utf-8", xml_declaration=False)
 
     for collection_file in collection_files:
-        collection_doc = etree.parse(str(collection_file))
-        new_metadata = {
-            "revised": revised_time,
-            "version": book_version
-        }
+        collection_doc = open_xml(collection_file)
+        new_metadata = {"revised": revised_time, "version": book_version}
         add_metadata_entries(collection_doc, new_metadata, NS_COLLXML)
 
         with open(collection_file, "wb") as f:
             collection_doc.write(f, encoding="utf-8", xml_declaration=False)
 
 
-if __name__ == "__main__":  # pragma: no cover
-    main()
+@click.command(name="pre-assemble")
+@common_params
+@click.argument("input-dir", type=click.Path(exists=True))
+@click.argument("reference", type=str)
+@click.option("--repo-dir", default=None, type=Optional[str])
+def pre_assemble(input_dir, reference, repo_dir):
+    """Prepares litezip structure data for single-page-html file conversion."""
+
+    books_xml = Path(input_dir) / "META-INF" / "books.xml"
+    container = BookContainer.from_str(books_xml.read_bytes(), input_dir)
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+
+    canonical_mapping = {}
+
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
+        col_modules = col_tree.xpath(
+            "//col:module/@document", namespaces={"col": NS_COLLXML}
+        )
+        col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[
+            0
+        ].text
+        for module in col_modules:
+            canonical_mapping[module] = col_uuid
+
+    git_repo = (
+        Path(repo_dir).resolve(strict=True)
+        if repo_dir is not None
+        else input_dir
+    )
+    fetch_update_metadata(
+        container,
+        path_resolver,
+        canonical_mapping,
+        git_repo,
+        reference,
+    )
