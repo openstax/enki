@@ -1,12 +1,12 @@
 """Inject / modify metadata for book CNXML from git"""
 
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import timezone
 from typing import Optional
 
 import click
 from lxml import etree
-from pygit2 import Repository
+from git import Repo
 
 from ._common import common_params
 from ..utils import re_first_or_default
@@ -50,9 +50,7 @@ def determine_book_version(reference, repo, commit):
     # or if all else fails fallback to the first few characters of the commit
     # sha
     matching_tags = [
-        ref.shorthand
-        for ref in repo.references.objects
-        if ref.name.startswith("refs/tags") and ref.target == commit.id
+        tag.name for tag in repo.tags if tag.commit.hexsha == commit.hexsha
     ]
 
     if reference in matching_tags:
@@ -65,7 +63,7 @@ def determine_book_version(reference, repo, commit):
         return matching_tags[0]
 
     # Fallback to returning a version based on commit sha in all other cases
-    return str(commit.id)[0:GIT_SHA_PREFIX_LEN]
+    return str(commit.hexsha)[0:GIT_SHA_PREFIX_LEN]
 
 
 def fetch_update_metadata(
@@ -75,7 +73,7 @@ def fetch_update_metadata(
     git_repo,
     reference,
 ):
-    repo = Repository(git_repo)
+    repo = Repo(git_repo)
     canonical_mapping = {}
 
     for book in container.books:
@@ -92,9 +90,9 @@ def fetch_update_metadata(
 
     # For the time being, we're going to parse the timestamp of the HEAD
     # commit and use that as the revised time for all module pages.
-    commit = repo.revparse_single("HEAD")
-    revised_time = datetime.fromtimestamp(
-        commit.commit_time, timezone.utc
+    commit = repo.head.commit
+    revised_time = commit.committed_datetime.astimezone(
+        timezone.utc
     ).isoformat()
     book_version = determine_book_version(reference, repo, commit)
 
