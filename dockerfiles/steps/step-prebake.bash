@@ -4,20 +4,7 @@ parse_book_dir
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 
 cp -R "$IO_FETCHED/." "$IO_FETCH_META"
-
-# Based on https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
-if [ ! -f $IO_FETCH_META/canonical.json ]; then
-    slugs=()
-    while IFS=$'\n' read -r line; do
-        slugs+=("$line")
-    done < <(xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' -n < "$IO_FETCH_META/META-INF/books.xml") # LCOV_EXCL_LINE
-    if [[ ${#slugs[@]} == 0 ]]; then
-        die "Could not find slugs in $IO_FETCH_META/META-INF/books.xml" # LCOV_EXCL_LINE
-    fi
-    jo -p -a "${slugs[@]}" > "$IO_FETCH_META/canonical.json"
-fi
-
-fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
+neb pre-assemble "$IO_FETCH_META" "$ARG_GIT_REF"
 rm -rf "$IO_FETCH_META/.git"
 
 export HACK_CNX_LOOSENESS=1
