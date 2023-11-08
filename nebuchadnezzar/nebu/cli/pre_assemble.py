@@ -67,26 +67,12 @@ def determine_book_version(reference, repo, commit):
 
 
 def fetch_update_metadata(
-    container,
     path_resolver,
     canonical_mapping,
     git_repo,
     reference,
 ):
     repo = Repo(git_repo)
-    canonical_mapping = {}
-
-    for book in container.books:
-        collection = path_resolver.get_collection_path(book.slug)
-        col_tree = open_xml(collection)
-        col_modules = col_tree.xpath(
-            "//col:module/@document", namespaces={"col": NS_COLLXML}
-        )
-        col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[
-            0
-        ].text
-        for module in col_modules:
-            canonical_mapping[module] = col_uuid
 
     # For the time being, we're going to parse the timestamp of the HEAD
     # commit and use that as the revised time for all module pages.
@@ -170,7 +156,6 @@ def pre_assemble(input_dir, reference, repo_dir):
         else input_dir
     )
     fetch_update_metadata(
-        container,
         path_resolver,
         canonical_mapping,
         git_repo,
