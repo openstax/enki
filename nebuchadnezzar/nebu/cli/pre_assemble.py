@@ -9,7 +9,7 @@ from lxml import etree
 from git import Repo
 
 from ._common import common_params
-from ..utils import re_first_or_default
+from ..utils import re_first_or_default, unknown_progress
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 from ..parse import NSMAP as CNXML_NSMAP
@@ -143,26 +143,28 @@ def pre_assemble(input_dir, reference, repo_dir):
 
     canonical_mapping = {}
 
-    for book in container.books:
-        collection = path_resolver.get_collection_path(book.slug)
-        col_tree = open_xml(collection)
-        col_modules = col_tree.xpath(
-            "//col:module/@document", namespaces={"col": NS_COLLXML}
-        )
-        col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[
-            0
-        ].text
-        for module in col_modules:
-            canonical_mapping[module] = col_uuid
+    with unknown_progress("Mapping documents"):
+        for book in container.books:
+            collection = path_resolver.get_collection_path(book.slug)
+            col_tree = open_xml(collection)
+            col_modules = col_tree.xpath(
+                "//col:module/@document", namespaces={"col": NS_COLLXML}
+            )
+            col_uuid = col_tree.xpath("//md:uuid", namespaces={"md": NS_MDML})[
+                0
+            ].text
+            for module in col_modules:
+                canonical_mapping[module] = col_uuid
 
     git_repo = (
         Path(repo_dir).resolve(strict=True)
         if repo_dir is not None
         else input_dir
     )
-    fetch_update_metadata(
-        path_resolver,
-        canonical_mapping,
-        git_repo,
-        reference,
-    )
+    with unknown_progress("Updating metadata"):
+        fetch_update_metadata(
+            path_resolver,
+            canonical_mapping,
+            git_repo,
+            reference,
+        )

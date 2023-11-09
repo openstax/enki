@@ -28,7 +28,7 @@ from .xml_utils import (
 from .templates.exercise_template import EXERCISE_TEMPLATE
 from .async_job_queue import AsyncJobQueue
 
-logger = logging.getLogger("nebu")
+logger = logging.getLogger("nebuchadnezzar")
 
 
 def etree_to_content(etree_, strip_root_node=False):

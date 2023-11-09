@@ -23,19 +23,9 @@ console_logging_config = {
     },
     'loggers': {
         'nebuchadnezzar': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'handlers': ['console'],
             'propagate': 0,
-        },
-        'litezip': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagate': 0,
-        },
-        'cnxepub': {
-            'level': 'ERROR',
-            'handlers': ['console'],
-            'propagte': 0,
         },
     },
     'root': {
