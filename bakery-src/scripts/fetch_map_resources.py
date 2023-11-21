@@ -130,21 +130,16 @@ def main():
                                 False)
 
         for node in doc.xpath(
-                '//c:iframe',
+                '//c:iframe[not(starts-with(@src, "http://") or starts-with(@src, "https://"))]',
                 namespaces={"c": "http://cnx.rice.edu/cnxml"}
         ):
             resource_original_src = node.attrib["src"]
 
-            abs_path_pattern = re.compile("^https?://")
-            if abs_path_pattern.match(resource_original_src):
-                continue  # pragma: no cover
-
             resource_original_filepath = \
                 (cnxml_file.parent / resource_original_src).resolve()
 
-            foopath = (cnxml_file.parent / "../../media").resolve()
             new_resource_child_path = resource_original_filepath.relative_to(
-                foopath)
+                original_resources_dir)
 
             new_resource_src = f"../{dom_resources_dir_name}/{new_resource_child_path}"
 

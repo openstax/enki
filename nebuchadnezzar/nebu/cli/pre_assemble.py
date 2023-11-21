@@ -3,6 +3,8 @@
 from pathlib import Path
 from datetime import timezone
 from typing import Optional
+import os
+import logging
 
 import click
 from lxml import etree
@@ -20,6 +22,9 @@ NS_MDML = CNXML_NSMAP["md"]
 NS_COLLXML = CNXML_NSMAP["col"]
 NS_CNXML = CNXML_NSMAP["c"]
 GIT_SHA_PREFIX_LEN = 7
+
+
+logger = logging.getLogger("nebuchadnezzar")
 
 
 def check_for_existing_metadata(xml_doc, tags, sourcefile):
@@ -125,6 +130,43 @@ def fetch_update_metadata(
             collection_doc.write(f, encoding="utf-8", xml_declaration=False)
 
 
+def patch_paths(container, path_resolver, canonical_mapping):
+    media_dir_name = os.path.basename(container.media_root)
+    base_query = (
+        "//c:{tag_name}["
+        '   not(starts-with(@src, "http://") or starts-with(@src, "https://"))'
+        "]"
+    )
+    iframe_query = base_query.format(tag_name="iframe")
+    image_query = base_query.format(tag_name="image")
+    src_patch_query = "|".join((image_query, iframe_query))
+    for module_id, module_file in path_resolver.module_paths_by_id.items():
+        if module_id not in canonical_mapping:
+            continue
+        cnxml_doc = open_xml(module_file)
+        for node in cnxml_doc.xpath(
+            src_patch_query, namespaces=CNXML_NSMAP
+        ):
+            src = node.attrib["src"]
+            parts = Path(src).parts
+            if media_dir_name not in parts:
+                logger.info(f"Skipping {src}")
+                continue
+            media_dir_name_idx = parts.index(media_dir_name)
+            new_src = os.path.relpath(
+                os.path.join(
+                    container.media_root,
+                    *parts[media_dir_name_idx + 1:],
+                ),
+                os.path.dirname(module_file),
+            )
+            if new_src != src:
+                logger.info(f'Patching src "{src}" -> "{new_src}"')
+                node.attrib["src"] = new_src
+        with open(module_file, "wb") as f:
+            cnxml_doc.write(f, encoding="utf-8", xml_declaration=False)
+
+
 @click.command(name="pre-assemble")
 @common_params
 @click.argument("input-dir", type=click.Path(exists=True))
@@ -168,3 +210,9 @@ def pre_assemble(input_dir, reference, repo_dir):
             git_repo,
             reference,
         )
+
+    # NOTE: For now we are patching image links incase modules are moved up
+    #       a directory and their links are not updated to match the new path.
+    #       Hopefully this is temporary.
+    with unknown_progress("Patching resource paths"):
+        patch_paths(container, path_resolver, canonical_mapping)
