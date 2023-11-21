@@ -157,4 +157,47 @@ def test_pre_assemble_cmd_with_tags(
             use_func_name=thing_type != MD_MODULE,
         )
 
+    books_xml = tmp_book_dir / "META-INF" / "books.xml"
+
+    container = BookContainer.from_str(
+        books_xml.read_bytes(), str(tmp_book_dir)
+    )
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+    module_path = path_resolver.module_paths_by_id["m46857"]
+    tree = open_xml(module_path)
+    media_dir_name = Path(container.media_root).name
+    # GIVEN: media elements
+    selectors = (
+        # These two image have paths that should be updated
+        '//c:image[../@id = "image-src-patch-test"]',
+        '//c:iframe[../@id = "iframe-src-patch-test"]',
+        # This image has a path that was already updated
+        '//c:image[../@id = "image-src-no-patch-test"]',
+    )
+    elements = tree.xpath("|".join(selectors), namespaces=CNXML_NSMAP)
+    # WHEN: We find our test elements
+    assert len(elements) == len(selectors), "Could not find test elements"
+    for elm in elements:
+        src = elm.attrib["src"]
+        parts = Path(src).parts
+        assert (
+            media_dir_name in parts
+        ), f"{src} link should include the media folder, but it does not"
+        media_dir_name_idx = parts.index(media_dir_name) + 1
+        media_dir_from_src = (
+            Path(module_path).parent / Path(*parts[:media_dir_name_idx])
+        ).resolve()
+        # THEN: Path in src should point to media folder
+        assert media_dir_from_src.exists() and media_dir_from_src == Path(
+            container.media_root
+        ), f"{src} link should point to the media folder"
+        # THEN: Path should still include file name
+        assert (
+            "index.html" in parts or "foobar.png" in parts
+        ), f"Part of the file path was lost in translation, {src}"
+
     rmtree(tmp_book_dir)
