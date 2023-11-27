@@ -183,7 +183,7 @@ def test_pre_assemble_cmd_with_tags(
     # WHEN: We find our test elements
     assert len(elements) == len(selectors), "Could not find test elements"
     for elm in elements:
-        src = elm.attrib["src" if "src" in elm.attrib else "resource"] 
+        src = elm.attrib["src" if "src" in elm.attrib else "resource"]
         parts = Path(src).parts
         assert (
             media_dir_name in parts
