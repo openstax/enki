@@ -1,5 +1,4 @@
 """Map resource files used in CNXML to provided path"""
-import re
 import shutil
 import sys
 import os
