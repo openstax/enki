@@ -132,37 +132,43 @@ def fetch_update_metadata(
 
 def patch_paths(container, path_resolver, canonical_mapping):
     media_dir_name = os.path.basename(container.media_root)
-    base_query = (
+    base_src_query = (
         "//c:{tag_name}["
         '   not(starts-with(@src, "http://") or starts-with(@src, "https://"))'
         "]"
     )
-    iframe_query = base_query.format(tag_name="iframe")
-    image_query = base_query.format(tag_name="image")
-    src_patch_query = "|".join((image_query, iframe_query))
+    res_query = "//c:link[@resource]"
+    src_query = "|".join(
+        (
+            base_src_query.format(tag_name="iframe"),
+            base_src_query.format(tag_name="image"),
+            base_src_query.format(tag_name="flash"),
+            base_src_query.format(tag_name="object"),
+        )
+    )
+
     for module_id, module_file in path_resolver.module_paths_by_id.items():
         if module_id not in canonical_mapping:
             continue
         cnxml_doc = open_xml(module_file)
-        for node in cnxml_doc.xpath(
-            src_patch_query, namespaces=CNXML_NSMAP
-        ):
-            src = node.attrib["src"]
-            parts = Path(src).parts
-            if media_dir_name not in parts:
-                logger.info(f"Skipping {src}")
-                continue
-            media_dir_name_idx = parts.index(media_dir_name)
-            new_src = os.path.relpath(
-                os.path.join(
-                    container.media_root,
-                    *parts[media_dir_name_idx + 1:],
-                ),
-                os.path.dirname(module_file),
-            )
-            if new_src != src:
-                logger.info(f'Patching src "{src}" -> "{new_src}"')
-                node.attrib["src"] = new_src
+        for query, attr_name in ((src_query, "src"), (res_query, "resource")):
+            for node in cnxml_doc.xpath(query, namespaces=CNXML_NSMAP):
+                src = node.attrib[attr_name]
+                parts = Path(src).parts
+                if media_dir_name not in parts:
+                    logger.info(f"Skipping {src}")
+                    continue
+                media_dir_name_idx = parts.index(media_dir_name) + 1
+                new_src = os.path.relpath(
+                    os.path.join(
+                        container.media_root,
+                        *parts[media_dir_name_idx:],
+                    ),
+                    os.path.dirname(module_file),
+                )
+                if new_src != src:
+                    logger.info(f'Patching src "{src}" -> "{new_src}"')
+                    node.attrib[attr_name] = new_src
         with open(module_file, "wb") as f:
             cnxml_doc.write(f, encoding="utf-8", xml_declaration=False)
 

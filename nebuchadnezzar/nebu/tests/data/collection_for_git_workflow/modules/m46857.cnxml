@@ -43,6 +43,7 @@
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
     <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
     <para><link url="#fs-id1164354595396"/></para>
+    <para id="link-resource-patch-test"><link resource="../../media/foobar.png">Test link patching</link></para>
   </para>
 
 </content>

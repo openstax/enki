@@ -177,12 +177,13 @@ def test_pre_assemble_cmd_with_tags(
         '//c:iframe[../@id = "iframe-src-patch-test"]',
         # This image has a path that was already updated
         '//c:image[../@id = "image-src-no-patch-test"]',
+        '//c:link[../@id = "link-resource-patch-test"]'
     )
     elements = tree.xpath("|".join(selectors), namespaces=CNXML_NSMAP)
     # WHEN: We find our test elements
     assert len(elements) == len(selectors), "Could not find test elements"
     for elm in elements:
-        src = elm.attrib["src"]
+        src = elm.attrib["src" if "src" in elm.attrib else "resource"] 
         parts = Path(src).parts
         assert (
             media_dir_name in parts
@@ -205,6 +206,7 @@ def test_pre_assemble_cmd_with_tags(
             "image-src-patch-test": "foobar.png",
             "iframe-src-patch-test": "index.html",
             "image-src-no-patch-test": "foobar.png",
+            "link-resource-patch-test": "foobar.png",
         }
         assert (
             name_by_parent_id[parent_id] in src
