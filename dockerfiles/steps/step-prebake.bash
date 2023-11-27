@@ -7,12 +7,16 @@ cp -R "$IO_FETCHED/." "$IO_FETCH_META"
 neb pre-assemble "$IO_FETCH_META" "$ARG_GIT_REF"
 rm -rf "$IO_FETCH_META/.git"
 
+repo_info="$(neb parse-repo "$IO_FETCH_META")"
+pages_root="$(echo "$repo_info" | jq -r '.container.pages_root')"
+media_root="$(echo "$repo_info" | jq -r '.container.media_root')"
+
 export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
-if [[ -d "$IO_FETCH_META/media" ]]; then
-    fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_INITIAL_RESOURCES)"
-    rm -rf "${IO_FETCH_META:?}/media"
+if [[ -d "${media_root:?}" ]]; then
+    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)"
+    rm -rf "$media_root"
 fi
 
 

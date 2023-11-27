@@ -10,6 +10,7 @@ from nebu import __version__
 
 from .assemble import assemble
 from .pre_assemble import pre_assemble
+from .parse_repo import parse_repo
 
 
 __all__ = ('cli',)
@@ -142,6 +143,7 @@ def cli():
 
 cli.add_command(pre_assemble, help_section='Stock')
 cli.add_command(assemble, help_section='Stock')
+cli.add_command(parse_repo, help_section='Stock')
 
 for entry_point in pkg_resources.iter_entry_points('neb.extension'):
     entry_point.load()(cli)  # pragma: no cover
