@@ -7,9 +7,9 @@ cp -R "$IO_FETCHED/." "$IO_FETCH_META"
 neb pre-assemble "$IO_FETCH_META" "$ARG_GIT_REF"
 rm -rf "$IO_FETCH_META/.git"
 
-repo_info="$(neb parse-repo "$IO_FETCH_META")"
-pages_root="$(echo "$repo_info" | jq -r '.container.pages_root')"
-media_root="$(echo "$repo_info" | jq -r '.container.media_root')"
+repo_info="$(set +x && neb parse-repo "$IO_FETCH_META")"
+pages_root="$(set +x && echo "$repo_info" | jq -r '.container.pages_root')"
+media_root="$(set +x && echo "$repo_info" | jq -r '.container.media_root')"
 
 export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
