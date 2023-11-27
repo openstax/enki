@@ -170,7 +170,7 @@ def test_pre_assemble_cmd_with_tags(
     module_path = path_resolver.module_paths_by_id["m46857"]
     tree = open_xml(module_path)
     media_dir_name = Path(container.media_root).name
-    # GIVEN: media elements
+    # GIVEN: media elements that were patched during pre-assemble step
     selectors = (
         # These two image have paths that should be updated
         '//c:image[../@id = "image-src-patch-test"]',
@@ -192,12 +192,22 @@ def test_pre_assemble_cmd_with_tags(
             Path(module_path).parent / Path(*parts[:media_dir_name_idx])
         ).resolve()
         # THEN: Path in src should point to media folder
-        assert media_dir_from_src.exists() and media_dir_from_src == Path(
+        assert media_dir_from_src == Path(
             container.media_root
         ), f"{src} link should point to the media folder"
+        assert media_dir_from_src.exists(), (
+            f"Path pointed to by {src} does not exist; "
+            f"directory contents: {[e.name for e in tmp_book_dir.iterdir()]}"
+        )
         # THEN: Path should still include file name
+        parent_id = elm.getparent().attrib["id"]
+        name_by_parent_id = {
+            "image-src-patch-test": "foobar.png",
+            "iframe-src-patch-test": "index.html",
+            "image-src-no-patch-test": "foobar.png",
+        }
         assert (
-            "index.html" in parts or "foobar.png" in parts
+            name_by_parent_id[parent_id] in src
         ), f"Part of the file path was lost in translation, {src}"
 
     rmtree(tmp_book_dir)
