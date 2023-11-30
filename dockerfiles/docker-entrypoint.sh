@@ -149,6 +149,11 @@ function do_xhtml_validate() {
     fi
 }
 
+function do_json_validate() {
+    schema_file="${1:?}"
+    node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
+}
+
 # FIXME: We assume that every book in the group uses the same style
 # This assumption will not hold true forever, and book style + recipe name should
 # be pulled from fetched-book-group (while still allowing injection w/ CLI)

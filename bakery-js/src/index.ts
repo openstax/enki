@@ -12,6 +12,7 @@ import {
   writeFileSync,
   copyFileSync,
   constants,
+  promises,
 } from 'fs'
 import { basename, dirname, resolve } from 'path'
 import { Command, InvalidArgumentError } from '@commander-js/extra-typings'
@@ -22,6 +23,8 @@ import { ResourceFile } from './model/file'
 import { DIRNAMES } from './env'
 import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
 import { dom } from './minidom'
+import Ajv from 'ajv'
+import { createInterface } from 'readline'
 sourceMapSupport.install()
 
 const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -261,4 +264,33 @@ program
     })
     await writeXmlWithSourcemap(destinationFile, $doc.node)
   })
+
+const schemaArg = program.createArgument(
+  '<schema_file>',
+  'The schema file to use'
+)
+
+program
+  .command('jsonschema')
+  .addArgument(schemaArg)
+  .action(async (schemaFile: string) => {
+    const ajv = new Ajv({ allErrors: true, verbose: true })
+    const schema = JSON.parse(readFileSync(schemaFile, { encoding: 'utf-8' }))
+    const validate = ajv.compile(schema)
+    const readline = createInterface({ input: process.stdin })
+    for await (const line of readline) {
+      process.stderr.write(`Validating ${line}\n`)
+      promises.readFile(line, { encoding: 'utf-8' }).then((data) => {
+        if (!validate(JSON.parse(data))) {
+          const output = {
+            file: line,
+            errors: validate.errors,
+          }
+          process.stdout.write(JSON.stringify(output, null, 2))
+          process.exitCode = 1
+        }
+      })
+    }
+  })
+
 program.parse()
