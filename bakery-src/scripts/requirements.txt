@@ -3,7 +3,6 @@ awscli==1.29.25
 boto3>=1.12.48
 urllib3<1.27,>=1.25.4
 imagesize==1.4.1
-jsonschema==3.2.0
 python-magic==0.4.15
 pygit2==1.4.0
 Pillow==8.1.1
