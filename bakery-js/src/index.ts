@@ -280,16 +280,21 @@ program
     const readline = createInterface({ input: process.stdin })
     for await (const line of readline) {
       process.stderr.write(`Validating ${line}\n`)
-      promises.readFile(line, { encoding: 'utf-8' }).then((data) => {
-        if (!validate(JSON.parse(data))) {
-          const output = {
-            file: line,
-            errors: validate.errors,
+      promises
+        .readFile(line, { encoding: 'utf-8' })
+        .then((data) => {
+          if (!validate(JSON.parse(data))) {
+            const output = {
+              file: line,
+              errors: validate.errors,
+            }
+            process.stdout.write(JSON.stringify(output, null, 2))
+            process.exitCode = 1
           }
-          process.stdout.write(JSON.stringify(output, null, 2))
-          process.exitCode = 1
-        }
-      })
+        })
+        .catch((err) => {
+          throw err
+        })
     }
   })
 
