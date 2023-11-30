@@ -103,6 +103,18 @@
     }
   },
   "additionalProperties": false,
-  "required": ["title", "id", "version", "repo_schema_version", "revised", "language", "license", "slug",
-               "tree", "content", "style_name", "style_href"]
+  "required": [
+    "title",
+    "id",
+    "version",
+    "repo_schema_version",
+    "revised",
+    "language",
+    "license",
+    "slug",
+    "tree",
+    "content",
+    "style_name",
+    "style_href"
+  ]
 }
