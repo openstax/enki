@@ -3,7 +3,7 @@
   "title": "book-schema",
   "description": "Schema for JSON book data",
   "$defs": {
-    "tree": {
+    "contents": {
       "type": "object",
       "properties": {
         "id": {
@@ -13,7 +13,7 @@
         },
         "title": {
           "type": "string",
-          "description": "The title of the book"
+          "description": "The title of the page"
         },
         "toc_type": {
           "type": "string"
@@ -23,16 +23,16 @@
         },
         "slug": {
           "type": "string",
-          "description": "The slug for the book"
+          "description": "The slug for the page"
         },
         "contents": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/tree"
-          }
+            "$ref": "#/$defs/contents"
+          },
+          "description": "Child contents"
         }
       },
-      "description": "The tree data for the book",
       "required": ["id", "title", "slug"],
       "additionalProperties": false
     }
@@ -87,7 +87,8 @@
     },
     "tree": {
       "type": "object",
-      "$ref": "#/$defs/tree"
+      "$ref": "#/$defs/contents",
+      "description": "The tree data for the book"
     },
     "content": {
       "type": "string",

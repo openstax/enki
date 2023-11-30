@@ -267,11 +267,14 @@ program
 
 const schemaArg = program.createArgument(
   '<schema_file>',
-  'The schema file to use'
+  'The schema file to validate against (e.g. schemas/book-schema.json)'
 )
 
 program
   .command('jsonschema')
+  .description(
+    'Validate a list of files piped in on stdin against a json schema'
+  )
   .addArgument(schemaArg)
   .action(async (schemaFile: string) => {
     const ajv = new Ajv({ allErrors: true, verbose: true })
