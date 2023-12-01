@@ -27,8 +27,6 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
     # Add our new information to the books json file, then overwrite the books json file
     jq '. + '"$book_json_append" <<< "$(cat "$book_json_file")" > "$book_json_file"
 
-    jsonschema -i "$IO_JSONIFIED/$slug_name.toc.json" $BAKERY_SCRIPTS_ROOT/scripts/book-schema-git.json
-
     # Parse the UUID and versions from the book metadata since it will be accessible
     # for any pipeline (web-hosting or web-preview) and to be self-consistent
     # metadata and values used.
@@ -42,10 +40,8 @@ for collection in "$IO_JSONIFIED/"*.toc.json; do
 done
 shopt -u globstar nullglob
 
-
-for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do
-    jsonschema -i "$jsonfile" $BAKERY_SCRIPTS_ROOT/scripts/page-schema.json
-done
+find "$IO_JSONIFIED" -name '*.toc.json' | do_json_validate "$JS_UTILS_STUFF_ROOT/schemas/book-schema.json"
+find "$IO_JSONIFIED" -name '*@*:*.json' | do_json_validate "$JS_UTILS_STUFF_ROOT/schemas/page-schema.json"
 
 # Formerly git-validate-xhtml-jsonify
 do_xhtml_validate $IO_JSONIFIED "*.xhtml" duplicate-id 

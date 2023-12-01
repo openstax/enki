@@ -2,6 +2,41 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "book-schema",
   "description": "Schema for JSON book data",
+  "$defs": {
+    "contents": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The ID for a page",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}@.*$"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the page"
+        },
+        "toc_type": {
+          "type": "string"
+        },
+        "toc_target_type": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string",
+          "description": "The slug for the page"
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contents"
+          },
+          "description": "Child contents"
+        }
+      },
+      "required": ["id", "title", "slug"],
+      "additionalProperties": false
+    }
+  },
   "type": "object",
   "properties": {
     "title": {
@@ -11,7 +46,7 @@
     "id": {
       "type": "string",
       "description": "The UUID ID for a book",
-      "pattern": "^[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}$"
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
     },
     "version": {
       "type": "string",
@@ -52,6 +87,7 @@
     },
     "tree": {
       "type": "object",
+      "$ref": "#/$defs/contents",
       "description": "The tree data for the book"
     },
     "content": {
@@ -68,6 +104,18 @@
     }
   },
   "additionalProperties": false,
-  "required": ["title", "id", "version", "repo_schema_version", "revised", "language", "license", "slug",
-               "tree", "content", "style_name", "style_href"]
+  "required": [
+    "title",
+    "id",
+    "version",
+    "repo_schema_version",
+    "revised",
+    "language",
+    "license",
+    "slug",
+    "tree",
+    "content",
+    "style_name",
+    "style_href"
+  ]
 }

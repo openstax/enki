@@ -89,6 +89,7 @@ RUN npm --prefix=/workspace/enki/bakery-js install
 
 COPY ./bakery-js/bin/ /workspace/enki/bakery-js/bin/
 COPY ./bakery-js/src/ /workspace/enki/bakery-js/src/
+COPY ./bakery-js/schemas/ /workspace/enki/bakery-js/schemas/
 COPY ./bakery-js/tsconfig*.json /workspace/enki/bakery-js/
 RUN npm --prefix=/workspace/enki/bakery-js run build
 
@@ -328,7 +329,6 @@ COPY --from=build-python-stage /workspace/enki/bakery-src/scripts/gdoc /workspac
 COPY --from=build-python-stage /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=build-python-stage \
     /usr/local/bin/neb \
-    /usr/local/bin/jsonschema \
     /usr/local/bin/download-exercise-images \
     /usr/local/bin/assemble-meta \
     /usr/local/bin/link-extras \
