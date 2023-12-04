@@ -4,7 +4,7 @@ parse_book_dir
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 
 cp -R "$IO_FETCHED/." "$IO_FETCH_META"
-neb pre-assemble "$IO_FETCH_META" "$ARG_GIT_REF"
+neb pre-assemble "$IO_FETCH_META"
 rm -rf "$IO_FETCH_META/.git"
 
 repo_info="$(set +x && neb parse-repo "$IO_FETCH_META")"

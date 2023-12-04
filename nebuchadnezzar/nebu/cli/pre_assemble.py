@@ -47,35 +47,10 @@ def add_metadata_entries(xml_doc, new_metadata, md_namespace):
         metadata.append(element)
 
 
-def determine_book_version(reference, repo, commit):
-    """Determine the book version string given a reference, a git repo, and
-    a target a commit"""
-    # We want to check if the provided reference is a tag that matches the
-    # target commit. Otherwise, we will either select a unique associated tag,
-    # or if all else fails fallback to the first few characters of the commit
-    # sha
-    matching_tags = [
-        tag.name for tag in repo.tags if tag.commit.hexsha == commit.hexsha
-    ]
-
-    if reference in matching_tags:
-        # The provided reference matches a tag for the commit
-        return reference
-
-    # If the provided reference isn't a matching tag, but a single matching tag
-    # was identified, return it.
-    if len(matching_tags) == 1:
-        return matching_tags[0]
-
-    # Fallback to returning a version based on commit sha in all other cases
-    return str(commit.hexsha)[0:GIT_SHA_PREFIX_LEN]
-
-
 def fetch_update_metadata(
     path_resolver,
     canonical_mapping,
     git_repo,
-    reference,
 ):
     repo = Repo(git_repo)
 
@@ -85,7 +60,7 @@ def fetch_update_metadata(
     revised_time = commit.committed_datetime.astimezone(
         timezone.utc
     ).isoformat()
-    book_version = determine_book_version(reference, repo, commit)
+    book_version = str(commit.hexsha)[0:GIT_SHA_PREFIX_LEN]
 
     module_ids_by_path = {
         v: k for k, v in path_resolver.module_paths_by_id.items()
@@ -176,9 +151,8 @@ def patch_paths(container, path_resolver, canonical_mapping):
 @click.command(name="pre-assemble")
 @common_params
 @click.argument("input-dir", type=click.Path(exists=True))
-@click.argument("reference", type=str)
 @click.option("--repo-dir", default=None, type=Optional[str])
-def pre_assemble(input_dir, reference, repo_dir):
+def pre_assemble(input_dir, repo_dir):
     """Prepares litezip structure data for single-page-html file conversion."""
 
     books_xml = Path(input_dir) / "META-INF" / "books.xml"
@@ -214,7 +188,6 @@ def pre_assemble(input_dir, reference, repo_dir):
             path_resolver,
             canonical_mapping,
             git_repo,
-            reference,
         )
 
     # NOTE: For now we are patching image links incase modules are moved up

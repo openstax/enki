@@ -100,10 +100,10 @@ def parse_metadata(book_dir):
 def test_pre_assemble_cmd_no_tags(
     repo_mock, mocker, assert_match, invoker, tmp_book_dir
 ):
-    # GIVEN: A valid repository without any tags (or a mock of one)
+    # GIVEN: A valid repository
 
     # WHEN: pre-assemble is called with a ref
-    args = ["pre-assemble", str(tmp_book_dir), "main"]
+    args = ["pre-assemble", str(tmp_book_dir)]
     mocker.patch("nebu.cli.pre_assemble.Repo", repo_mock)
     result = invoker(cli, args)
 
@@ -123,32 +123,19 @@ def test_pre_assemble_cmd_no_tags(
     rmtree(tmp_book_dir)
 
 
-@pytest.mark.parametrize("git_ref", ("main", MOCK_TAG_NAME))
-def test_pre_assemble_cmd_with_tags(
-    mocker,
-    assert_match,
-    invoker,
-    tmp_book_dir,
-    repo_mock,
-    git_ref,
+def test_pre_assemble_patch_paths(
+    repo_mock, mocker, assert_match, invoker, tmp_book_dir
 ):
-    # GIVEN: Exactly one tag that points to the same commit as main
-    commit_mock = repo_mock().head.commit
-    tag_mock = mocker.MagicMock()
-    tag_mock.name = MOCK_TAG_NAME
-    tag_mock.commit = commit_mock
-    repo_mock().tags = [tag_mock]
+    # GIVEN: A valid repository
 
-    # WHEN: pre-assemble is called with a git ref that is tagged in the
-    #       repository.
-    args = ["pre-assemble", str(tmp_book_dir), git_ref]
+    # WHEN: pre-assemble is called
+    args = ["pre-assemble", str(tmp_book_dir)]
     mocker.patch("nebu.cli.pre_assemble.Repo", repo_mock)
     result = invoker(cli, args)
 
     # THEN:
     #   The exit code is 0 (success)
     #   The module metadata remains unchanged
-    #   The tag name is used instead of the commit sha
     assert result.exit_code == 0, result.output
     for thing_type, metadata, thing_id in parse_metadata(tmp_book_dir):
         assert_match(
