@@ -108,7 +108,7 @@ def fetch_update_metadata(
 def patch_paths(container, path_resolver, canonical_mapping):
     media_dir_name = os.path.basename(container.media_root)
     base_src_query = (
-        "//c:{tag_name}["
+        "//c:{tag_name}[@src]["
         '   not(starts-with(@src, "http://") or starts-with(@src, "https://"))'
         "]"
     )
