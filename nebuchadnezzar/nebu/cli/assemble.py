@@ -12,7 +12,7 @@ from ..formatters import (
     exercise_callback_factory,
 )
 from ..xml_utils import fix_namespaces
-from ..utils import re_first_or_default
+from ..utils import re_first_or_default, unknown_progress
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 
@@ -47,17 +47,20 @@ def collection_to_assembled_xhtml(
     page_uuids = list(docs_by_uuid.keys())
     includes = create_exercise_factories(exercise_host, token)
     # Use docs_by_uuid.values to ensure each document is only used one time
-    for document in docs_by_uuid.values():
-        # Step 1: Rewrite module links
-        resolve_module_links(document, docs_by_id, path_resolver)
-        # Step 2: Update ids and links
-        update_ids(document)
+    with unknown_progress("Resolving document references"):
+        for document in docs_by_uuid.values():
+            # Step 1: Rewrite module links
+            resolve_module_links(document, docs_by_id, path_resolver)
+            # Step 2: Update ids and links
+            update_ids(document)
 
-    # Combine all the pieces together into the final assembled document
-    assembled_collection = assemble_collection(collection)
+    with unknown_progress("Combining documents"):
+        # Combine all the pieces together into the final assembled document
+        assembled_collection = assemble_collection(collection)
 
-    # Finally, fetch and insert any includes from remote sources
-    fetch_insert_includes(assembled_collection, page_uuids, includes)
+    with unknown_progress("Fetching and inserting exercises"):
+        # Finally, fetch and insert any includes from remote sources
+        fetch_insert_includes(assembled_collection, page_uuids, includes)
 
     return fix_namespaces(assembled_collection)
 
@@ -99,18 +102,22 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
         assert not output_assembled_xhtml.exists(), \
             f'File "{output_assembled_xhtml}" already exists.'
 
-        collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
-            path_resolver.get_collection_path(book.slug),
-            path_resolver
-        )
-        assembled_xhtml = collection_to_assembled_xhtml(
-            collection,
-            docs_by_id,
-            docs_by_uuid,
-            path_resolver,
-            exercise_token,
-            exercise_host,
-        )
-        output_assembled_xhtml.write_bytes(assembled_xhtml)
+        with unknown_progress(f"Assembling {book.slug}"):
+            (
+                collection,
+                docs_by_id,
+                docs_by_uuid,
+            ) = BookPart.collection_from_file(
+                path_resolver.get_collection_path(book.slug), path_resolver
+            )
+            assembled_xhtml = collection_to_assembled_xhtml(
+                collection,
+                docs_by_id,
+                docs_by_uuid,
+                path_resolver,
+                exercise_token,
+                exercise_host,
+            )
+            output_assembled_xhtml.write_bytes(assembled_xhtml)
 
     return 0

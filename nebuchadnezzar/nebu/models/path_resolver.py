@@ -14,7 +14,7 @@ class PathResolver:
         ],
         module_id_getter: Callable[[str], Optional[str]],
     ):
-        self._collection_paths_by_book = {
+        self.collection_paths_by_book = {
             book.slug: os.path.realpath(
                 os.path.join(
                     book_container.books_root, os.path.basename(book.href)
@@ -22,7 +22,7 @@ class PathResolver:
             )
             for book in book_container.books
         }
-        self._module_paths_by_id = {
+        self.module_paths_by_id = {
             module_id: p
             for module_id, p in (
                 (module_id_getter(p), p)
@@ -32,7 +32,7 @@ class PathResolver:
         }
 
     def get_collection_path(self, book_slug: str) -> str:
-        return self._collection_paths_by_book[book_slug]
+        return self.collection_paths_by_book[book_slug]
 
     def get_module_path(self, module_id: str) -> str:
-        return self._module_paths_by_id[module_id]
+        return self.module_paths_by_id[module_id]

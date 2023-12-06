@@ -1,4 +1,5 @@
 from pathlib import Path
+import inspect
 
 import pytest
 from aioresponses import aioresponses
@@ -76,11 +77,13 @@ def current_snapshot_dir(snapshot_dir):
 def assert_match(snapshot, current_snapshot_dir):
     # emulate the way pytest_snapshot auto names snapshot directories
     # with increased control of the parent directory via current_snapshot_dir
-    def _assert_match(value, name):
-        import inspect
-        frames = inspect.getouterframes(inspect.currentframe())
-        func_name = frames[1].function
-        snapshot.snapshot_dir = current_snapshot_dir / func_name
+    def _assert_match(value, name, *, use_func_name=True):
+        if use_func_name:
+            frames = inspect.getouterframes(inspect.currentframe())
+            func_name = frames[1].function
+            snapshot.snapshot_dir = current_snapshot_dir / func_name
+        else:
+            snapshot.snapshot_dir = current_snapshot_dir
         snapshot.assert_match(value, name)
     return _assert_match
 

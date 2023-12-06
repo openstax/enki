@@ -4,28 +4,19 @@ parse_book_dir
 [[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
 
 cp -R "$IO_FETCHED/." "$IO_FETCH_META"
-
-# Based on https://github.com/openstax/content-synchronizer/blob/e04c05fdce7e1bbba6a61a859b38982e17b74a16/resource-synchronizer/sync.sh#L19-L32
-if [ ! -f $IO_FETCH_META/canonical.json ]; then
-    slugs=()
-    while IFS=$'\n' read -r line; do
-        slugs+=("$line")
-    done < <(xmlstarlet sel -t --match '//*[@slug]' --value-of '@slug' -n < "$IO_FETCH_META/META-INF/books.xml") # LCOV_EXCL_LINE
-    if [[ ${#slugs[@]} == 0 ]]; then
-        die "Could not find slugs in $IO_FETCH_META/META-INF/books.xml" # LCOV_EXCL_LINE
-    fi
-    jo -p -a "${slugs[@]}" > "$IO_FETCH_META/canonical.json"
-fi
-
-fetch-update-meta "$IO_FETCH_META/.git" "$IO_FETCH_META/modules" "$IO_FETCH_META/collections" "$ARG_GIT_REF" "$IO_FETCH_META/canonical.json"
+neb pre-assemble "$IO_FETCH_META"
 rm -rf "$IO_FETCH_META/.git"
+
+repo_info="$(set +x && neb parse-repo "$IO_FETCH_META")"
+pages_root="$(set +x && echo "$repo_info" | jq -r '.container.pages_root')"
+media_root="$(set +x && echo "$repo_info" | jq -r '.container.media_root')"
 
 export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
-if [[ -d "$IO_FETCH_META/media" ]]; then
-    fetch-map-resources "$IO_FETCH_META/modules" "$IO_FETCH_META/media" "$(dirname $IO_INITIAL_RESOURCES)"
-    rm -rf "${IO_FETCH_META:?}/media"
+if [[ -d "${media_root:?}" ]]; then
+    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)"
+    rm -rf "$media_root"
 fi
 
 

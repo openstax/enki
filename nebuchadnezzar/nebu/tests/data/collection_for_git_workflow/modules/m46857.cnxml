@@ -21,8 +21,16 @@
   </media>
   </figure>
   <figure id="eip-idp53333999">
-    <media id="id9955bb01a" alt="Links to a non-existent resource">
-      <image src="foobar.png" mime-type="image/png"/>
+    <media id="image-src-patch-test" alt="Links to a non-existent resource">
+      <image src="../../media/foobar.png" mime-type="image/png"/>
+    </media>
+  </figure>
+  <media id="iframe-src-patch-test" alt="something_neat">
+    <iframe width="660" height="371.4" src="../../media/Interactive/name_of_interactive/index.html"/>
+  </media>
+  <figure id="eip-idp53333999">
+    <media id="image-src-no-patch-test" alt="Links to a non-existent resource">
+      <image src="../media/foobar.png" mime-type="image/png"/>
     </media>
   </figure>
   <para id="linkexample">
@@ -35,6 +43,7 @@
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
     <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
     <para><link url="#fs-id1164354595396"/></para>
+    <para id="link-resource-patch-test"><link resource="../../media/foobar.png">Test link patching</link></para>
   </para>
 
 </content>

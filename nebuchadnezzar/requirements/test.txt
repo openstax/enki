@@ -5,3 +5,4 @@ pytest-runner
 requests-mock
 aioresponses
 pytest-snapshot
+pytest-mock
