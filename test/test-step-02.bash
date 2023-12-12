@@ -28,8 +28,9 @@ while read -r module_file; do
     # Why not sed --in-place=.orig ? Because sed is different on MacOS
     awk '{
         if ($0 ~ /<\/content>/) {
-            print "<!-- HACK: injected math -->"
+            print "<!-- HACK: injected math and code -->"
             print "<div id=\"math-element\" data-math=\"\\frac{2}{5} + \\frac{10}{5}\"></div>"
+            print "<code id=\"code-element\" data-lang=\"python\">hello = 5</code>"
         }
         print
     }' "$module_file" > "$module_file.math"
@@ -43,10 +44,14 @@ KCOV_DIR=_kcov02-d \
 
 find $BOOK_DIR -name "index.cnxml.orig" -exec bash -cxe 'mv $0 $(dirname $0)/index.cnxml' {} \;
 
-# Check that the math was converted
+# Check that the math and code are converted
 while read -r assembled_file; do
     if ! grep '<math xmlns="http://www.w3.org/1998/Math/MathML" alttext="\\frac{2}{5} + \\frac{10}{5}">' "$assembled_file" &> /dev/null; then
         echo "ERROR: Could not find converted math"
+        exit 1
+    fi
+    if ! grep -E '<pre data-type="code" .*data-lang="python".*>hello = <span class="hljs-number">5</span></pre>' "$assembled_file" &> /dev/null; then
+        echo "ERROR: Could not find converted code element"
         exit 1
     fi
 done < <(find $BOOK_DIR -name '*.assembled.xhtml') 
