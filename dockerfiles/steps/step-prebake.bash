@@ -106,7 +106,7 @@ while read -r slug; do # Loop over each <book> entry in the META-INF/books.xml m
     # If there is any TeX math, replace it with mathml and highlight code that has data-lang ()
     if grep -E '.*data-(math|lang)=.+?' "$assembled_file" &> /dev/null; then
         mathified="$assembled_file.mathified.xhtml"
-        node "${JS_EXTRA_VARS[@]}" $MATHIFY_ROOT/typeset/start.js -i "$assembled_file" -o "$mathified" -h -f mathml
+        node "${JS_EXTRA_VARS[@]}" $MATHIFY_ROOT/typeset/start.js -i "$assembled_file" -o "$mathified" -h 1 -f mathml
         mv "$mathified" "$assembled_file"
     fi
 done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --nl < "$repo_root/META-INF/books.xml")
