@@ -75,12 +75,12 @@ graph TB
 ```mermaid
 graph TB
     step-fetch -- fetched --> step-prebake
-    step-fetch -- fetched --> step-bake-web
-    step-prebake -- assembled --> step-bake-web
-    step-prebake -- resources --> step-bake-web
+    step-fetch -- fetched --> step-bake
+    step-prebake -- assembled --> step-bake
+    step-prebake -- resources --> step-bake
     step-fetch -- fetched --> step-postbake
     step-prebake -- assemble-meta --> step-postbake
-    step-bake-web -- baked --> step-postbake
+    step-bake -- baked --> step-postbake
     step-postbake -- linked --> step-disassemble
     step-postbake -- bake-meta --> step-disassemble
     step-fetch -- fetched --> step-jsonify
