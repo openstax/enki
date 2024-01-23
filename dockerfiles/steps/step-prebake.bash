@@ -14,7 +14,7 @@ export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
 if [[ -d "${media_root:?}" ]]; then
-    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)" "$commit_sha"
+    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)" "${commit_sha:?}"
     rm -rf "$media_root"
 fi
 
