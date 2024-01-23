@@ -2544,7 +2544,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     mocker.patch(
         "sys.argv",
         ["", book_dir, original_resources_dir,
-            resources_parent_dir, unused_resources_dir, commit_sha]
+            resources_parent_dir, commit_sha]
     )
     fetch_map_resources.main()
 
@@ -2573,6 +2573,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
         image_src2_meta,
         image_src1_sha1_expected,
         image_src1_meta,
+        commit_sha,
         "interactive",
         "index.xhtml"
     ])
@@ -2683,7 +2684,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         mocker.patch(
             "sys.argv",
             ["", book_dir, original_resources_dir,
-                resources_parent_dir, unused_resources_dir, commit_sha]
+                resources_parent_dir, commit_sha]
         )
         fetch_map_resources.main()
 
@@ -2712,6 +2713,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
             image_src2_meta,
             image_src1_sha1_expected,
             image_src1_meta,
+            commit_sha,
             "interactive",
             "index.xhtml"
         ])
