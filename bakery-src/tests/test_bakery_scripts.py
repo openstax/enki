@@ -2469,6 +2469,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     initial_resources_dir = resources_parent_dir / "x-initial-resources"
     dom_resources_dir = "resources"
     unused_resources_dir = tmp_path / "unused-resources"
+    commit_sha = "0000000"
 
     book_dir.mkdir(parents=True)
     original_resources_dir.mkdir(parents=True)
@@ -2543,7 +2544,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     mocker.patch(
         "sys.argv",
         ["", book_dir, original_resources_dir,
-            resources_parent_dir, unused_resources_dir]
+            resources_parent_dir, unused_resources_dir, commit_sha]
     )
     fetch_map_resources.main()
 
@@ -2583,7 +2584,7 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
         f'<image src="../../media/image_missing.jpg"/>'
         f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
         f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
-        f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
+        f'<iframe src="../{dom_resources_dir}/{commit_sha}/interactive/index.xhtml"/>'
         f'</content>'
         f'</document>'
     )
@@ -2607,6 +2608,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         initial_resources_dir = resources_parent_dir / "initial-resources"
         dom_resources_dir = "myresources"
         unused_resources_dir = tmp_path / "unused-resources"
+        commit_sha = "0000000"
 
         book_dir.mkdir(parents=True)
         original_resources_dir.mkdir(parents=True)
@@ -2681,7 +2683,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         mocker.patch(
             "sys.argv",
             ["", book_dir, original_resources_dir,
-                resources_parent_dir, unused_resources_dir]
+                resources_parent_dir, unused_resources_dir, commit_sha]
         )
         fetch_map_resources.main()
 
@@ -2721,7 +2723,7 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
             f'<image src="../../media/image_missing.jpg"/>'
             f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
             f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
-            f'<iframe src="../{dom_resources_dir}/interactive/index.xhtml"/>'
+            f'<iframe src="../{dom_resources_dir}/{commit_sha}/interactive/index.xhtml"/>'
             f'</content>'
             f'</document>'
         )
