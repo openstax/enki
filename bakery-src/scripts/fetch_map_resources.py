@@ -108,7 +108,6 @@ def main():
 
     filename_to_data = {}
     versioned_root = resources_dir / content_version
-    versioned_root.mkdir(exist_ok=True)
     versioned_subdirs = set()
 
     for child in original_resources_dir.glob('*'):
@@ -146,10 +145,6 @@ def main():
 
             child_directory = new_resource_child_path.parts[0]
             if child_directory not in versioned_subdirs:
-                shutil.move(
-                    resources_dir / child_directory,
-                    versioned_root / child_directory
-                )
                 versioned_subdirs.add(child_directory)
 
             new_resource_src = f"../{dom_resources_dir_name}/{content_version}/{new_resource_child_path}"
@@ -160,6 +155,14 @@ def main():
 
         with cnxml_file.open(mode="wb") as f:
             doc.write(f, encoding="utf-8", xml_declaration=False)
+
+    if len(versioned_subdirs) > 0:
+        versioned_root.mkdir(parents=True)
+        for child_directory in versioned_subdirs:
+            shutil.move(
+                resources_dir / child_directory,
+                versioned_root / child_directory
+            )
 
     all_data_to_json(resources_dir, filename_to_data)
 
