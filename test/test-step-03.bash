@@ -30,7 +30,7 @@ while IFS=$'\n' read -r expected_contents; do
     fi
 done <<EOF
 s3 cp --recursive /tmp/build/0000000/artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
-s3 cp --recursive /tmp/build/0000000/resources/interactives-thisnamedoesnotmatter/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/interactives-thisnamedoesnotmatter
+s3 cp --recursive /tmp/build/0000000/resources/9044eef/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/9044eef
 s3 cp --recursive /tmp/build/0000000/resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
 s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.json
 s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@9044eef.xhtml
