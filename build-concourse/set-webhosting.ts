@@ -36,7 +36,7 @@ const _handleFetchError = async (response: Response) => {
       try {
         error = await response.text();
       } catch {
-        error = "An unknown error occurred";
+        error = 'An unknown error occurred';
       }
       throw new Error(error);
     } else {
@@ -114,7 +114,7 @@ const getCommand = (command: string) => {
 
 const getFlyCommand = (flyTarget: string) => {
   const fly = getCommand('fly');
-  const interactive = { stdio: [0, 0, 0] }
+  const interactive = { stdio: [0, 0, 0] };
   return (args: string, opts = interactive) =>
     fly(`-t ${flyTarget} ${args}`, opts);
 }
@@ -128,4 +128,4 @@ const main = async () => {
   fly(`sp -p ${WEBHOST_PREFIX}${CODE_VERSION} -c ${WEBHOST_YAML}`);
 }
 
-main().catch((err) => { throw err })
+main().catch((err) => { throw err });
