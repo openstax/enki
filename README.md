@@ -292,8 +292,14 @@ CODE_VERSION=<codeversion> npm run build
 # Upload
 fly --target=prod set-pipeline --pipeline=webhost-prod-<codeversion> --config=./webhosting-production.yml 
 
+# OR, use the (experimental) set-webhosting script
+
+CODE_VERSION=<codeversion> npm run set:webhosting
+
+
 # Unpause the pipeline (via the UI or via the command that prints out)
 ```
+See [Creating a new Web-Hosting pipeline in Concourse](./build-concourse/README.md#creating-a-new-web-hosting-pipeline-in-concourse) for more details.
 
 # TODO list
 

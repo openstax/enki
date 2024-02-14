@@ -9,6 +9,7 @@
     "build:webhosting:and-local": "ts-node ./build-webhosting-local.ts",
     "build": "npm run build:json && npm run build:graphs && npm run build:corgi && npm run build:webhosting",
     "build:local": "npm run build:json && npm run build:corgi:and-local && npm run build:webhosting:and-local",
+    "set:webhosting": "npm run build:webhosting && ts-node ./set-webhosting.ts",
     "start": "npm run build",
     "test": "npm run build && npm run build:graphs",
     "coverage": "nyc npm run test",

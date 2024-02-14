@@ -19,6 +19,33 @@ The `*-local.yml` files differ in the following ways:
 - The CORGI API Url is http://smocker, a Mock server
 - The torpedo code is removed mostly because the Mock server does not have an easy way to change state (queued, processing, complete)
 
+# Creating a new Web-Hosting pipeline in Concourse
+
+If you have a code version, you know how to use fly, and you want to create a new web-hosting pipeline, then this is what you want to read.
+
+You can create a web-hosting pipeline manually or you can use the set-webhosting script.
+
+## Manually Create a Web-Hosting Pipeline
+
+1. In your terminal, go to [enki/build-concourse](./)
+1. Run npm install
+1. Run `CODE_VERSION='<your-code-version>' npm run build:webhosting`
+1. Check https://hub.docker.com/r/openstax/enki/tags to ensure the new code version matches a tag.
+1. Login with `fly -t v7 login` (your target might be different, mine is called v7. You can use `fly targets` to list your targets. It's url will be something like ....openstax.org)
+1. Run `fly -t v7 sp -p webhost-prod-<your-code-version> -c ./webhosting-production.yml`
+
+## Using the set-webhosting Script
+
+To run the set-webhosting script, you will need node version >= 18. This script uses the **experimental** fetch api introduced in node version 18. This api is supposed to be [stable as of node version 21](https://devclass.com/2023/10/17/node-js-21-released-with-stable-fetch-api-node-js-20-becomes-long-term-support-release/).
+
+This script automatically does every step you would do manually. Run it like this:
+1. In your terminal, go to [enki/build-concourse](./)
+1. Run npm install
+1. Run `CODE_VERSION='<your-code-version>' npm run set:webhosting`
+
+You may need to login with fly, but it should prompt you for that.
+
+This script searches your ~/.flyrc for a target with a url ending in `.openstax.org`. If you do not have a target with this url yet, you can configure it with `fly -t <target-name> -c <url>`
 
 # Install Prerequisites
 
