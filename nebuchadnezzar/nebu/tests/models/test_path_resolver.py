@@ -29,7 +29,7 @@ def test_collection_href():
 @pytest.fixture
 def test_container(test_collection_href):
     return BookContainer(
-        "/made/up/abs/path",
+        "/made/up/abs/path".replace('/', os.sep),
         [
             Book(
                 "book-slug1", "dummy", test_collection_href
@@ -58,3 +58,10 @@ def test_resolve_book_slug(test_container, test_resolver, test_collection_href):
         test_container.books_root,
         os.path.basename(test_collection_href)
     )
+
+
+def test_resolve_interactive_id(test_container, test_resolver, test_collection_href):
+    public = test_resolver.get_public_interactives_path("abc123").replace(os.sep, '/')
+    private = test_resolver.get_private_interactives_path("abc123").replace(os.sep, '/')
+    assert public == f"{test_container.root_dir}/interactives/abc123"
+    assert private == f"{test_container.root_dir}/private/interactives/abc123"

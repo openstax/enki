@@ -14,6 +14,7 @@ class PathResolver:
         ],
         module_id_getter: Callable[[str], Optional[str]],
     ):
+        self.book_container = book_container
         self.collection_paths_by_book = {
             book.slug: os.path.realpath(
                 os.path.join(
@@ -36,3 +37,18 @@ class PathResolver:
 
     def get_module_path(self, module_id: str) -> str:
         return self.module_paths_by_id[module_id]
+
+    def get_public_interactives_path(self, interactives_id: str):
+        return os.path.join(
+            self.book_container.root_dir,
+            self.book_container.public_root,
+            interactives_id
+        )
+
+    def get_private_interactives_path(self, interactives_id: str):
+        return os.path.join(
+            self.book_container.root_dir,
+            self.book_container.private_root,
+            os.path.basename(self.book_container.public_root),
+            interactives_id
+        )
