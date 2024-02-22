@@ -19,8 +19,13 @@ from lxml import etree
 from .async_job_queue import AsyncJobQueue
 from .converters import cnxml_abstract_to_html
 from .templates.exercise_template import EXERCISE_TEMPLATE
-from .xml_utils import (HTML_DOCUMENT_NAMESPACES, etree_from_str,
-                        squash_xml_to_text, xpath_html)
+from .xml_utils import (
+    HTML_DOCUMENT_NAMESPACES,
+    etree_from_str,
+    squash_xml_to_text,
+    xpath_html,
+)
+from .utils import recursive_merge
 
 logger = logging.getLogger("nebuchadnezzar")
 
@@ -243,7 +248,7 @@ def assemble_collection(collection):
 
 def interactive_callback_factory(match, url_template):
     """Create a callback function to replace an exercise by fetching from
-    a server."""
+    the repository."""
 
     def _annotate_exercise(elem, exercise, page_uuids):
         """Annotate exercise based upon tag data"""
@@ -331,82 +336,94 @@ def interactive_callback_factory(match, url_template):
         exercise["required_context"]["feature"] = feature
         exercise["required_context"]["ref"] = target_ref
 
-    def _recursive_merge(interactive, private):
-        if private is None or len(private) == 0:
-            return interactive
-        merged = interactive.copy()
-        for key, value in private.items():
-            if key in merged:
-                if isinstance(merged[key], dict) and isinstance(value, dict):
-                    merged[key] = _recursive_merge(merged[key], value)
-                elif isinstance(merged[key], list) and isinstance(value, list) and len(merged[key]) == len(value):
-                    merged[key] = [_recursive_merge(
-                        merged_item, value_item) for merged_item, value_item in zip(merged[key], value)]
-            else:
-                merged[key] = value
-        return merged
-
     def _load_interactive_data(interactive_path, private_path):
-        metadata_path= os.path.join(interactive_path, "metadata.json")
-        content_path= os.path.join(interactive_path, "content.json")
-        h5p_path =os.path.join(interactive_path, "h5p.json")
-        private_metadata_path= os.path.join(private_path, "metadata.json")
-        private_content_path= os.path.join(private_path, "content.json")
-        if not os.path.exists(metadata_path) or not os.path.exists(content_path) or not os.path.exists(h5p_path):
-            logging.error("MISSING INTERACTIVE DATA: {}".format(interactive_path))
+        metadata_path = os.path.join(interactive_path, "metadata.json")
+        content_path = os.path.join(interactive_path, "content.json")
+        h5p_path = os.path.join(interactive_path, "h5p.json")
+        private_metadata_path = os.path.join(private_path, "metadata.json")
+        private_content_path = os.path.join(private_path, "content.json")
+        if (
+            not os.path.exists(metadata_path) or
+            not os.path.exists(content_path) or
+            not os.path.exists(h5p_path)
+        ):
+            logging.error(
+                "MISSING INTERACTIVE DATA: {}".format(interactive_path)
+            )
             return None
-        exercise ={}
-        exercise['h5p'] = json.loads(open(h5p_path).read())
-        exercise['content'] = _recursive_merge(json.loads(open(content_path).read()), json.loads(open(private_content_path).read()) if os.path.exists(private_content_path) else None )
-        exercise['metadata'] = _recursive_merge(json.loads(open(metadata_path).read()), json.loads(open(private_metadata_path).read()) if os.path.exists(private_metadata_path) else None )
+        exercise = {}
+        exercise["h5p"] = json.loads(open(h5p_path).read())
+        exercise["content"] = recursive_merge(
+            json.loads(open(content_path).read()),
+            json.loads(open(private_content_path).read())
+            if os.path.exists(private_content_path)
+            else None,
+        )
+        exercise["metadata"] = recursive_merge(
+            json.loads(open(metadata_path).read()),
+            json.loads(open(private_metadata_path).read())
+            if os.path.exists(private_metadata_path)
+            else None,
+        )
         return _parse_exercise_content(exercise)
-    
+
     def _format_exercise_content(exercise):
         formats = []
         library = exercise["h5p"]["mainLibrary"]
-        if exercise['metadata']['is_free_response_supported']:
+        if exercise["metadata"]["is_free_response_supported"]:
             formats.append("free-response")
-        
+
         if library == "H5P.MultiChoice":
             formats.append("multiple-choice")
-            question ={
+            question = {
                 "id": 1,
                 "html": exercise["content"]["question"],
-                "stimulus": exercise["metadata"]["questions"][0]['stimulus'],
-                "answers" : [],
+                "stimulus": exercise["metadata"]["questions"][0]["stimulus"],
+                "answers": [],
                 "formats": formats,
-                "is_answer_order_important": not exercise['content']['behaviour']['randomAnswers'],
-                "collaborator_solutions": []
+                "is_answer_order_important": not exercise["content"][
+                    "behaviour"
+                ]["randomAnswers"],
+                "collaborator_solutions": [],
             }
-            for i, a in enumerate(exercise['content']['answers']):
-                question['answers'].append({
-                    "id": i,
-                    "html": a['text'],
-                    "correctness": a['correct'],
-                    "feedback": a['tipsAndFeedback']['chosenFeedback']
-                    
-                })
-            
-            for a in exercise['metadata']['collaborator_solutions'][0]:
-                question['collaborator_solutions'].append({
-                        "html": a["content"],
-                        "type": a["solution_type"]
-                })
-            exercise['questions'] = [question]
+            for i, a in enumerate(exercise["content"]["answers"]):
+                question["answers"].append(
+                    {
+                        "id": i,
+                        "html": a["text"],
+                        "correctness": a["correct"],
+                        "feedback": a["tipsAndFeedback"]["chosenFeedback"],
+                    }
+                )
+
+            for a in exercise["metadata"]["collaborator_solutions"][0]:
+                question["collaborator_solutions"].append(
+                    {"html": a["content"], "type": a["solution_type"]}
+                )
+            exercise["questions"] = [question]
         else:
             logging.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
         return exercise
-    
+
     def _parse_exercise_content(exercise):
         assert exercise["content"] is not None, "Exercise content is None"
-        assert exercise["h5p"] is not None and exercise["h5p"]["mainLibrary"] is not None, "Exercise h5p library undefined"
+        assert (
+            exercise["h5p"] is not None and
+            exercise["h5p"]["mainLibrary"] is not None
+        ), "Exercise h5p library undefined"
         _format_exercise_content(exercise)
         return exercise
 
     def _replace_exercises(elem, page_uuids):
         item_code = elem.get("href")[len(match):]
-        interactive_path = f"{os.getenv('IO_FETCHED')}/{url_template.format(itemCode=item_code)}"
-        private_path = f"{os.getenv('IO_FETCHED')}/private/{url_template.format(itemCode=item_code)}"
+        interactive_path = (
+            f"{os.getenv('IO_FETCHED')}/"
+            f"{url_template.format(itemCode=item_code)}"
+        )
+        private_path = (
+            f"{os.getenv('IO_FETCHED')}/private/"
+            f"{url_template.format(itemCode=item_code)}"
+        )
         exercise_class = elem.get("class")
 
         # grab the json exercise, run it through Jinja2 template,
@@ -445,7 +462,7 @@ def interactive_callback_factory(match, url_template):
 
 
 def render_exercise(exercise):
-    assert len(exercise["questions"]) > 0, 'No exercise found!'
+    assert len(exercise["questions"]) > 0, "No exercise found!"
     return EXERCISE_TEMPLATE.render(data=exercise)
 
 

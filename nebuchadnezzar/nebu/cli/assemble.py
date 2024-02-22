@@ -61,7 +61,7 @@ def collection_to_assembled_xhtml(
 @click.argument("input-dir", type=click.Path(exists=True))
 @click.argument("output-dir", type=click.Path())
 @click.pass_context
-def assemble(ctx, input_dir, output_dir, interactives_path):
+def assemble(ctx, input_dir, output_dir):
     """Assembles litezip structure data into a single-page-html file.
 
     This also stores the intermediary results alongside the resulting

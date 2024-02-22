@@ -1,6 +1,6 @@
 import re
 import os
-from typing import Optional
+from typing import Optional, Sequence
 from contextlib import contextmanager
 from time import time
 import inspect
@@ -34,3 +34,22 @@ def re_first_or_default(
 ) -> Optional[str]:
     match = re.search(pattern, s)
     return match.group(0) if match is not None else default
+
+
+def recursive_merge(
+    lhs,
+    rhs,
+    *,
+    merge_sequence=lambda lhs, rhs: lhs + rhs,
+    default=lambda lhs, rhs: rhs
+):
+    if isinstance(lhs, dict):
+        return lhs | rhs | {
+            k: recursive_merge(
+                lhs[k], rhs[k], merge_sequence=merge_sequence, default=default
+            )
+            for k in set(lhs.keys()) & set(rhs.keys())
+        }
+    elif isinstance(lhs, Sequence):
+        return merge_sequence(lhs, rhs)
+    return default(lhs, rhs)
