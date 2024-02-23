@@ -220,6 +220,8 @@ def assembled_pair(parts_tuple, exercise_mock, git_path_resolver):
         docs_by_id,
         docs_by_uuid,
         git_path_resolver,
+        None,
+        "exercises.openstax.org"
     )
     return (collection, assembled_collection)
 

@@ -4,9 +4,11 @@ EXERCISE_TEMPLATE_STR = """\
 <div
     data-type="injected-exercise"
     class="{{ data.class }}"
-    data-injected-from-nickname="{{ data.metadata.nickname }}"
+    data-injected-from-nickname="{{ data.nickname }}"
+    data-injected-from-version="{{ data.version }}"
     data-injected-from-url="{{ data.url }}"
-    data-tags="{{ ' '.join(data.metadata.tags) }}">
+    data-tags="{{ ' '.join(data.tags) }}"
+    data-is-vocab="{{ data.is_vocab | lower }}">
     {% if data.required_context -%}
     <div data-type="exercise-context"
         data-context-module="{{ data.required_context.module }}"
@@ -15,8 +17,8 @@ EXERCISE_TEMPLATE_STR = """\
         href="#{{ data.required_context.ref }}">[link]</a>
     </div>
     {% endif -%}
-    {% if data.metadata.stimulus -%}
-    <div data-type="exercise-stimulus">{{ data.metadata.stimulus }}</div>
+    {% if data.stimulus_html -%}
+    <div data-type="exercise-stimulus">{{ data.stimulus_html }}</div>
     {% endif -%}
     {% for question in data.questions -%}
     <div
@@ -25,23 +27,28 @@ EXERCISE_TEMPLATE_STR = """\
         data-formats="{{ ' '.join(question.formats) }}"
         {% if question.id %}data-id="{{ question.id }}"{% endif %}
         >
-        {% if question.stimulus -%}
-        <div data-type="question-stimulus">{{ question.stimulus }}</div>
+        {% if question.stimulus_html -%}
+        <div data-type="question-stimulus">{{ question.stimulus_html }}</div>
         {% endif -%}
-        <div data-type="question-stem">{{ question.html }}</div>
+        <div data-type="question-stem">{{ question.stem_html }}</div>
         {% if question.answers -%}
         <ol data-type="question-answers" type="a">
             {% for option in question.answers -%}
             <li data-type="question-answer" data-id="{{ option.id }}" data-correctness="{{ option.correctness }}">
-                <div data-type="answer-content">{{ option.html }}</div>
-                {% if option.feedback %}<div data-type="answer-feedback">{{ option.feedback }}</div>{% endif %}
+                <div data-type="answer-content">{{ option.content_html }}</div>
+                {% if option.feedback_html %}<div data-type="answer-feedback">{{ option.feedback_html }}</div>{% endif %}
             </li>
             {% endfor -%}
         </ol>
         {% endif -%}
         {% for solution in question.collaborator_solutions -%}
-        <div data-type="question-solution" data-solution-source="collaborator" data-solution-type="{{ solution.type }}">
-            {{ solution.html }}
+        <div data-type="question-solution" data-solution-source="collaborator" data-solution-type="{{ solution.solution_type }}">
+            {{ solution.content_html }}
+        </div>
+        {% endfor -%}
+        {% for solution in question.community_solutions -%}
+        <div data-type="question-solution" data-solution-source="community" data-solution-type="{{ solution.solution_type }}">
+            {{ solution.content_html }}
         </div>
         {% endfor -%}
     </div>

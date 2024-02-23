@@ -5,6 +5,7 @@
 # Public License version 3 (AGPLv3).
 # See LICENCE.txt for details.
 # ###
+import asyncio
 import os
 import logging
 from copy import copy
@@ -16,6 +17,10 @@ import jinja2
 import lxml.html
 from lxml import etree
 
+import requests
+from requests.exceptions import RequestException
+import backoff
+
 from .converters import cnxml_abstract_to_html
 from .templates.exercise_template import EXERCISE_TEMPLATE
 from .xml_utils import (
@@ -25,6 +30,7 @@ from .xml_utils import (
     xpath_html,
 )
 from .utils import recursive_merge
+from .async_job_queue import AsyncJobQueue
 
 logger = logging.getLogger("nebuchadnezzar")
 
@@ -40,10 +46,23 @@ def etree_to_content(etree_, strip_root_node=False):
     return etree.tostring(etree_)  # pragma: no cover
 
 
-def insert_includes(root_elem, page_uuids, includes):
-    for match, proc in includes:
-        for elem in xpath_html(root_elem, match):
-            proc(elem, page_uuids)
+def insert_includes(root_elem, page_uuids, includes, threads=20):
+    async def async_exercise_fetching():
+        loop = asyncio.get_running_loop()
+        for match, proc in includes:
+            job_queue = AsyncJobQueue(threads)
+            async with job_queue as q:
+                for elem in xpath_html(root_elem, match):
+                    q.put_nowait(
+                        loop.run_in_executor(None, proc, elem, page_uuids)
+                    )
+            if len(job_queue.errors) != 0:
+                raise Exception(
+                    "The following errors occurred: \n" +
+                    "\n###### NEXT ERROR ######\n".join(job_queue.errors)
+                )
+
+    asyncio.run(async_exercise_fetching())
 
 
 def update_ids(document):
@@ -234,7 +253,7 @@ def assemble_collection(collection):
 
 def parse_context_tags(tags, elem, page_uuids):
     if not tags:
-        return None
+        return
 
     # Annotate exercise with required context, if it exists
     modules, feature = [], ""
@@ -249,7 +268,7 @@ def parse_context_tags(tags, elem, page_uuids):
     # It's possible that the feature tag is not present, or present but
     # not valid (e.g. value of "context-cnxfeature:").
     if not feature:
-        return None
+        return
 
     # There may be multiple `context-cnxmod:{uuid}` tags, each of which
     # could be the parent page for this exercise, a different page in
@@ -293,6 +312,103 @@ def parse_context_tags(tags, elem, page_uuids):
         # unexpectedly
         target_module = candidate_uuids.pop()
     return target_module, feature
+
+
+def exercise_callback_factory(match, url_template, token=None):
+    """Create a callback function to replace an exercise by fetching from
+    a server."""
+
+    def _annotate_exercise(elem, exercise, page_uuids):
+        """Annotate exercise based upon tag data"""
+        tags = exercise["items"][0].get("tags")
+        context = parse_context_tags(tags, elem, page_uuids)
+        if context is None:
+            return
+        else:
+            target_module, feature = context
+
+        # As a final validation check, confirm the feature is on the target
+        # module and otherwise raise
+        #
+        # NOTE: The following uses xpath() and find() together which may seem
+        # bizarre, but it's a work around for the fact that using just an
+        # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
+        # are multiple threads due to the tree editing that occurs in
+        # _replace_exercises.
+        target_ref = "auto_{}_{}".format(target_module, feature)
+        feature_element = elem.xpath("/*")[0].find(
+            './/*[@id="{}"]'.format(target_ref)
+        )
+
+        assert_msg = "Feature {} not in {} href={}".format(
+            feature, target_module, elem.get("href")
+        )
+        assert feature_element is not None, assert_msg
+
+        exercise["items"][0]["required_context"] = {}
+        exercise["items"][0]["required_context"]["module"] = target_module
+        exercise["items"][0]["required_context"]["feature"] = feature
+        exercise["items"][0]["required_context"]["ref"] = target_ref
+
+    @backoff.on_exception(
+        backoff.expo,
+        RequestException,
+        max_time=60 * 15,
+        giveup=lambda e: (
+            # Give up on non-request error
+            not isinstance(e, RequestException) or (
+                # Give up if the status code is something like 404, 403, etc.
+                e.response is not None and
+                e.response.status_code in range(400, 500)
+            )
+        ),
+        jitter=backoff.full_jitter,
+        raise_on_giveup=True
+    )
+    def _replace_exercises(elem, page_uuids):
+        item_code = elem.get("href")[len(match):]
+        url = url_template.format(itemCode=item_code)
+        exercise_class = elem.get("class")
+        if token:
+            headers = {"Authorization": "Bearer {}".format(token)}
+            res = requests.get(url, headers=headers)
+        else:
+            res = requests.get(url)
+
+        assert res
+        # grab the json exercise, run it through Jinja2 template,
+        # replace element w/ it
+        exercise = res.json()
+
+        if exercise["total_count"] == 0:
+            logger.warning("MISSING EXERCISE: {}".format(url))
+
+            XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
+            missing = etree.Element(
+                XHTML + "span",
+                {"data-type": "missing-exercise"},
+                nsmap=HTML_DOCUMENT_NAMESPACES,
+            )
+            missing.text = "MISSING EXERCISE: tag:{}".format(item_code)
+            nodes = [missing]
+        else:
+            exercise["items"][0]["url"] = url
+            exercise["items"][0]["class"] = exercise_class
+            _annotate_exercise(elem, exercise, page_uuids)
+
+            html = render_exercise(exercise)
+            try:
+                nodes = etree_from_str("<div>{}</div>".format(html))
+            except etree.XMLSyntaxError:  # Probably HTML
+                nodes = etree.HTML(html)[0]  # body node
+
+        parent = elem.getparent()
+        for child in nodes:
+            parent.insert(parent.index(elem), child)
+        parent.remove(elem)  # Special case - assumes single wrapper elem
+
+    xpath = '//xhtml:a[contains(@href, "{}")]'.format(match)
+    return (xpath, _replace_exercises)
 
 
 def interactive_callback_factory(match, path_resolver, docs_by_id):
@@ -388,10 +504,10 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
             formats.append("multiple-choice")
             question = {
                 "id": 1,
-                "html": exercise["content"]["question"],
-                "stimulus": metadata.get(
-                    "questions", [{"stimulus": ""}]
-                )[0]["stimulus"],
+                "stem_html": exercise["content"]["question"],
+                "stimulus_html": metadata.get(
+                    "questions", [{"stimulus_html": ""}]
+                )[0]["stimulus_html"],
                 "answers": [],
                 "formats": formats,
                 "is_answer_order_important": not exercise["content"][
@@ -403,15 +519,20 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
                 question["answers"].append(
                     {
                         "id": i,
-                        "html": a["text"],
+                        "content_html": a["text"],
                         "correctness": a["correct"],
-                        "feedback": a["tipsAndFeedback"]["chosenFeedback"],
+                        "feedback_html": (
+                            a["tipsAndFeedback"]["chosenFeedback"]
+                        ),
                     }
                 )
 
             for a in metadata["collaborator_solutions"]:
                 question["collaborator_solutions"].append(
-                    {"html": a["content"], "type": a["solution_type"]}
+                    {
+                        "content_html": a["content"],
+                        "solution_type": a["solution_type"]
+                    }
                 )
             exercise["questions"] = [question]
         else:  # pragma: no cover
@@ -499,7 +620,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
             exercise["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
 
-            html = render_exercise(exercise)
+            html = render_interactive(exercise)
             try:
                 nodes = etree_from_str("<div>{}</div>".format(html))
             except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
@@ -515,8 +636,19 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
 
 
 def render_exercise(exercise):
+    assert len(exercise["items"]) == 1, 'Exercise "items" array is nonsingular'
+    exercise_content = exercise["items"][0]
+
+    return EXERCISE_TEMPLATE.render(data=exercise_content)
+
+
+def render_interactive(exercise):
     assert len(exercise["questions"]) > 0, "No exercise found!"
-    return EXERCISE_TEMPLATE.render(data=exercise)
+    # Old exercises have a flat data structure. Interactives have a nested
+    # structure so we need to flatten some of it here (or maybe switch to a
+    # flat structure for interactives too)
+    merged = {**exercise, **exercise["metadata"]}
+    return EXERCISE_TEMPLATE.render(data=merged)
 
 
 HTML_DOCUMENT = """\
