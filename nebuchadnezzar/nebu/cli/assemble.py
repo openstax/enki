@@ -5,7 +5,7 @@ import click
 from ._common import common_params
 from ..models.book_part import BookPart
 from ..formatters import (
-    fetch_insert_includes,
+    insert_includes,
     resolve_module_links,
     update_ids,
     assemble_collection,
@@ -17,26 +17,21 @@ from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
 
 
-def create_interactive_factories(interactives_root):
-    exercise_match_paths = (
-        (
-            "{INTERACTIVES_ROOT}",
-            "{}{{itemCode}}".format(
-                interactives_root
-            ),
-        ),
-    )
+def create_interactive_factories(path_resolver: PathResolver, docs_by_id):
     return [
-        interactive_callback_factory(exercise_match, exercise_path)
-        for exercise_match, exercise_path in exercise_match_paths
+        interactive_callback_factory(
+            "{INTERACTIVES_ROOT}",
+            path_resolver,
+            docs_by_id,
+        )
     ]
 
 
 def collection_to_assembled_xhtml(
-    collection, docs_by_id, docs_by_uuid, path_resolver, interactives_path
+    collection, docs_by_id, docs_by_uuid, path_resolver
 ):
     page_uuids = list(docs_by_uuid.keys())
-    includes = create_interactive_factories(interactives_path)
+    includes = create_interactive_factories(path_resolver, docs_by_id)
     # Use docs_by_uuid.values to ensure each document is only used one time
     with unknown_progress("Resolving document references"):
         for document in docs_by_uuid.values():
@@ -51,7 +46,7 @@ def collection_to_assembled_xhtml(
 
     with unknown_progress("Fetching and inserting exercises"):
         # Finally, fetch and insert any includes from remote sources
-        fetch_insert_includes(assembled_collection, page_uuids, includes)
+        insert_includes(assembled_collection, page_uuids, includes)
 
     return fix_namespaces(assembled_collection)
 
@@ -73,7 +68,7 @@ def assemble(ctx, input_dir, output_dir):
     path_resolver = PathResolver(
         container,
         lambda container: Path(container.pages_root).glob("**/*.cnxml"),
-        lambda s: re_first_or_default(r'm[0-9]+', s)
+        lambda s: re_first_or_default(r'm[0-9]+', s),
     )
     output_dir = Path(output_dir)
     if not output_dir.exists():
@@ -98,7 +93,6 @@ def assemble(ctx, input_dir, output_dir):
                 docs_by_id,
                 docs_by_uuid,
                 path_resolver,
-                container.public_root
             )
             output_assembled_xhtml.write_bytes(assembled_xhtml)
 

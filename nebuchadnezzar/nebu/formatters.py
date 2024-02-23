@@ -6,17 +6,16 @@
 # See LICENCE.txt for details.
 # ###
 import os
-import asyncio
 import logging
 from copy import copy
 from functools import lru_cache
 import json
+from pathlib import Path
 
 import jinja2
 import lxml.html
 from lxml import etree
 
-from .async_job_queue import AsyncJobQueue
 from .converters import cnxml_abstract_to_html
 from .templates.exercise_template import EXERCISE_TEMPLATE
 from .xml_utils import (
@@ -41,23 +40,10 @@ def etree_to_content(etree_, strip_root_node=False):
     return etree.tostring(etree_)  # pragma: no cover
 
 
-def fetch_insert_includes(root_elem, page_uuids, includes, threads=20):
-    async def async_interactive_fetching():
-        loop = asyncio.get_running_loop()
-        for match, proc in includes:
-            job_queue = AsyncJobQueue(threads)
-            async with job_queue as q:
-                for elem in xpath_html(root_elem, match):
-                    q.put_nowait(
-                        loop.run_in_executor(None, proc, elem, page_uuids)
-                    )
-            if len(job_queue.errors) != 0:
-                raise Exception(
-                    "The following errors occurred: \n" +
-                    "\n###### NEXT ERROR ######\n".join(job_queue.errors)
-                )
-
-    asyncio.run(async_interactive_fetching())
+def insert_includes(root_elem, page_uuids, includes):
+    for match, proc in includes:
+        for elem in xpath_html(root_elem, match):
+            proc(elem, page_uuids)
 
 
 def update_ids(document):
@@ -246,72 +232,96 @@ def assemble_collection(collection):
     return root
 
 
-def interactive_callback_factory(match, url_template):
+def parse_context_tags(tags, elem, page_uuids):
+    if not tags:
+        return None
+
+    # Annotate exercise with required context, if it exists
+    modules, feature = [], ""
+    for tag in tags:
+        if "context-cnxmod:" in tag:
+            modules.append(tag.split(":")[1])
+        if "context-cnxfeature:" in tag:
+            # Note: Assuming this tag will never be duplicated with
+            # multiple values in the exercise data
+            feature = tag.split(":")[1]
+
+    # It's possible that the feature tag is not present, or present but
+    # not valid (e.g. value of "context-cnxfeature:").
+    if not feature:
+        return None
+
+    # There may be multiple `context-cnxmod:{uuid}` tags, each of which
+    # could be the parent page for this exercise, a different page in
+    # this book, or even invalid altogether. We'll prefer the first,
+    # fallback # to the second, and error in the last case.
+
+    parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
+    parent_page_uuid = parent_page_elem.get("id")
+    if parent_page_uuid.startswith("page_"):
+        # Strip `page_` prefix from ID to get UUID
+        parent_page_uuid = parent_page_uuid.split("page_")[1]
+
+    candidate_uuids = set(modules) & set(page_uuids)
+
+    # Check if the target feature ID is on the parent page for this
+    # exercise. If so, that takes priority over any context-cnxmod tag
+    # values, and should be picked even in cases where the parent page
+    # doesn't match one of the exercise tags. If the feature exists,
+    # we make sure the parent page UUID is included in candidate_uuids.
+    # Otherwise, remove parent page from candidate UUIDs.
+    maybe_feature = parent_page_elem.find(
+        './/*[@id="auto_{}_{}"]'.format(parent_page_uuid, feature)
+    )
+    if maybe_feature is None:
+        candidate_uuids.discard(parent_page_uuid)
+    else:
+        candidate_uuids.add(parent_page_uuid)
+
+    # No valid page UUIDs in exercise data
+    assert_msg = "No candidate uuid for exercise feature {} href={}"
+    assert len(candidate_uuids) > 0, assert_msg.format(
+        feature, elem.get("href")
+    )
+
+    if parent_page_uuid in candidate_uuids:
+        target_module = parent_page_uuid
+    else:
+        # Use an UUID in the intersection of page UUIDs and tag UUIDs
+        # This is somewhat arbritrary, but if we hit this scenario with
+        # more than one UUID in the set things have gone pretty
+        # unexpectedly
+        target_module = candidate_uuids.pop()
+    return target_module, feature
+
+
+def interactive_callback_factory(match, path_resolver, docs_by_id):
     """Create a callback function to replace an exercise by fetching from
     the repository."""
 
     def _annotate_exercise(elem, exercise, page_uuids):
         """Annotate exercise based upon tag data"""
-        tags = exercise["metadata"]["tags"]
-        if not tags:
-            return
-
-        # Annotate exercise with required context, if it exists
-        modules, feature = [], ""
-        for tag in tags:
-            if "context-cnxmod:" in tag:
-                modules.append(tag.split(":")[1])
-            if "context-cnxfeature:" in tag:
-                # Note: Assuming this tag will never be duplicated with
-                # multiple values in the exercise data
-                feature = tag.split(":")[1]
-
-        # It's possible that the feature tag is not present, or present but
-        # not valid (e.g. value of "context-cnxfeature:").
-        if not feature:
-            return
-
-        # There may be multiple `context-cnxmod:{uuid}` tags, each of which
-        # could be the parent page for this exercise, a different page in this
-        # book, or even invalid altogether. We'll prefer the first, fallback
-        # to the second, and error in the last case.
-
-        parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
-        parent_page_uuid = parent_page_elem.get("id")
-        if parent_page_uuid.startswith("page_"):
-            # Strip `page_` prefix from ID to get UUID
-            parent_page_uuid = parent_page_uuid.split("page_")[1]
-
-        candidate_uuids = set(modules) & set(page_uuids)
-
-        # Check if the target feature ID is on the parent page for this
-        # exercise. If so, that takes priority over any context-cnxmod tag
-        # values, and should be picked even in cases where the parent page
-        # doesn't match one of the exercise tags. If the feature exists,
-        # we make sure the parent page UUID is included in candidate_uuids.
-        # Otherwise, remove parent page from candidate UUIDs.
-        maybe_feature = parent_page_elem.find(
-            './/*[@id="auto_{}_{}"]'.format(parent_page_uuid, feature)
-        )
-        if maybe_feature is None:
-            candidate_uuids.discard(parent_page_uuid)
+        metadata = exercise["metadata"]
+        if "feature_page" in metadata:
+            assert "feature_id" in metadata, "Feature page without feature id"
+            module_id = metadata["feature_page"]
+            if module_id in docs_by_id:
+                document = docs_by_id[module_id]
+            else:  # pragma: no cover (already tested in resolve_module_links)
+                module_path = path_resolver.get_module_path(module_id)
+                document = _get_external_document(module_path)
+            target_module = document.metadata["uuid"]
+            feature = metadata["feature_id"]
         else:
-            candidate_uuids.add(parent_page_uuid)
-
-        # No valid page UUIDs in exercise data
-        assert_msg = "No candidate uuid for exercise feature {} href={}"
-        assert len(candidate_uuids) > 0, assert_msg.format(
-            feature, elem.get("href")
-        )
-
-        if parent_page_uuid in candidate_uuids:
-            target_module = parent_page_uuid
-        else:
-            # Use an UUID in the intersection of page UUIDs and tag UUIDs
-            # This is somewhat arbritrary, but if we hit this scenario with
-            # more than one UUID in the set things have gone pretty
-            # unexpectedly
-            target_module = candidate_uuids.pop()
+            parsed = parse_context_tags(
+                metadata.get("tags", None),
+                elem,
+                page_uuids,
+            )
+            if parsed is None:
+                return
+            else:
+                target_module, feature = parsed
 
         # As a final validation check, confirm the feature is on the target
         # module and otherwise raise
@@ -347,30 +357,31 @@ def interactive_callback_factory(match, url_template):
             not os.path.exists(content_path) or
             not os.path.exists(h5p_path)
         ):
-            logging.error(
+            logger.error(
                 "MISSING INTERACTIVE DATA: {}".format(interactive_path)
             )
             return None
         exercise = {}
-        exercise["h5p"] = json.loads(open(h5p_path).read())
+        exercise["h5p"] = json.loads(Path(h5p_path).read_bytes())
         exercise["content"] = recursive_merge(
-            json.loads(open(content_path).read()),
-            json.loads(open(private_content_path).read())
+            json.loads(Path(content_path).read_bytes()),
+            json.loads(Path(private_content_path).read_bytes())
             if os.path.exists(private_content_path)
-            else None,
+            else {},
         )
         exercise["metadata"] = recursive_merge(
-            json.loads(open(metadata_path).read()),
-            json.loads(open(private_metadata_path).read())
+            json.loads(Path(metadata_path).read_bytes()),
+            json.loads(Path(private_metadata_path).read_bytes())
             if os.path.exists(private_metadata_path)
-            else None,
+            else {},
         )
         return _parse_exercise_content(exercise)
 
     def _format_exercise_content(exercise):
         formats = []
         library = exercise["h5p"]["mainLibrary"]
-        if exercise["metadata"]["is_free_response_supported"]:
+        metadata = exercise["metadata"]
+        if metadata.get("is_free_response_supported", False):
             formats.append("free-response")
 
         if library == "H5P.MultiChoice":
@@ -378,7 +389,9 @@ def interactive_callback_factory(match, url_template):
             question = {
                 "id": 1,
                 "html": exercise["content"]["question"],
-                "stimulus": exercise["metadata"]["questions"][0]["stimulus"],
+                "stimulus": metadata.get(
+                    "questions", [{"stimulus": ""}]
+                )[0]["stimulus"],
                 "answers": [],
                 "formats": formats,
                 "is_answer_order_important": not exercise["content"][
@@ -396,13 +409,13 @@ def interactive_callback_factory(match, url_template):
                     }
                 )
 
-            for a in exercise["metadata"]["collaborator_solutions"][0]:
+            for a in metadata["collaborator_solutions"]:
                 question["collaborator_solutions"].append(
                     {"html": a["content"], "type": a["solution_type"]}
                 )
             exercise["questions"] = [question]
-        else:
-            logging.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
+        else:  # pragma: no cover
+            logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
         return exercise
 
     def _parse_exercise_content(exercise):
@@ -414,16 +427,49 @@ def interactive_callback_factory(match, url_template):
         _format_exercise_content(exercise)
         return exercise
 
+    def _tags_from_metadata(metadata):
+        tags = metadata.get("tags", [])
+        tag_keys = [
+            "assignment_type",
+            "blooms",
+            "dok",
+            "feature_page",
+            "feature_id",
+            "time",
+        ]
+
+        def add_tag(name, value):
+            name = name.replace("_", "-")
+            tags.append(f"{name}:{value}")
+
+        for k in filter(lambda k: k in metadata, tag_keys):
+            add_tag(k, metadata[k])
+
+        for book in metadata.get("books", []):
+            b = book["name"]
+            for k, v in book.items():
+                if k in {"lo", "aplo"}:
+                    assert isinstance(v, list), f"BUG: {k} should be a list"
+                    for sub_v in v:
+                        add_tag(k, f"{b}:{sub_v}")
+                else:
+                    assert isinstance(v, (str, int, bool, float)), \
+                        f"BUG: unsupported value: {k}"
+                    if k in {"aacn", "nclex"}:
+                        add_tag("nursing", f"{k}:{v}")
+                    elif k == "name":
+                        add_tag("book-slug", v)
+                    else:
+                        add_tag(k, v)
+
+        return tags
+
     def _replace_exercises(elem, page_uuids):
-        item_code = elem.get("href")[len(match):]
-        interactive_path = (
-            f"{os.getenv('IO_FETCHED')}/"
-            f"{url_template.format(itemCode=item_code)}"
+        nickname = elem.get("href")[len(match) + 1:]
+        interactive_path = path_resolver.get_public_interactives_path(
+            nickname
         )
-        private_path = (
-            f"{os.getenv('IO_FETCHED')}/private/"
-            f"{url_template.format(itemCode=item_code)}"
-        )
+        private_path = path_resolver.get_private_interactives_path(nickname)
         exercise_class = elem.get("class")
 
         # grab the json exercise, run it through Jinja2 template,
@@ -439,17 +485,24 @@ def interactive_callback_factory(match, url_template):
                 {"data-type": "missing-exercise"},
                 nsmap=HTML_DOCUMENT_NAMESPACES,
             )
-            missing.text = "MISSING EXERCISE: tag:{}".format(item_code)
+            missing.text = "MISSING EXERCISE: tag:{}".format(nickname)
             nodes = [missing]
         else:
-            exercise["url"] = interactive_path
+            exercise["metadata"]["nickname"] = nickname
+            exercise["metadata"]["tags"] = _tags_from_metadata(
+                exercise["metadata"]
+            )
+            exercise["url"] = os.path.relpath(
+                interactive_path,
+                os.path.join(path_resolver.book_container.root_dir, "..")
+            )
             exercise["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
 
             html = render_exercise(exercise)
             try:
                 nodes = etree_from_str("<div>{}</div>".format(html))
-            except etree.XMLSyntaxError:  # Probably HTML
+            except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
                 nodes = etree.HTML(html)[0]  # body node
 
         parent = elem.getparent()

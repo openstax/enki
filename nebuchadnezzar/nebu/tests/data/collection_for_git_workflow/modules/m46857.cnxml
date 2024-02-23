@@ -41,7 +41,7 @@
     <link document="m46909">A link to another page without a version</link>
     <link document="m50000">A link to a page that is outside of this collection</link>
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
-    <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
+    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/c20fad8"/></para>
     <para><link url="#fs-id1164354595396"/></para>
     <para id="link-resource-patch-test"><link resource="../../media/foobar.png">Test link patching</link></para>
   </para>
