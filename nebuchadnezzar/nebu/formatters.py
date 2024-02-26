@@ -314,41 +314,57 @@ def parse_context_tags(tags, elem, page_uuids):
     return target_module, feature
 
 
+def annotate_exercise(exercise, elem, target_module, feature):
+    # As a final validation check, confirm the feature is on the target
+    # module and otherwise raise
+    #
+    # NOTE: The following uses xpath() and find() together which may seem
+    # bizarre, but it's a work around for the fact that using just an
+    # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
+    # are multiple threads due to the tree editing that occurs in
+    # _replace_exercises.
+    target_ref = "auto_{}_{}".format(target_module, feature)
+    feature_element = elem.xpath("/*")[0].find(
+        './/*[@id="{}"]'.format(target_ref)
+    )
+
+    assert_msg = "Feature {} not in {} href={}".format(
+        feature, target_module, elem.get("href")
+    )
+    assert feature_element is not None, assert_msg
+
+    exercise["required_context"] = {}
+    exercise["required_context"]["module"] = target_module
+    exercise["required_context"]["feature"] = feature
+    exercise["required_context"]["ref"] = target_ref
+
+
+def get_missing_exercise_placeholder(uri, exercise_id):
+    logger.warning("MISSING EXERCISE: {}".format(uri))
+
+    XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
+    missing = etree.Element(
+        XHTML + "span",
+        {"data-type": "missing-exercise"},
+        nsmap=HTML_DOCUMENT_NAMESPACES,
+    )
+    missing.text = "MISSING EXERCISE: tag:{}".format(exercise_id)
+    nodes = [missing]
+    return nodes
+
+
 def exercise_callback_factory(match, url_template, token=None):
     """Create a callback function to replace an exercise by fetching from
     a server."""
 
-    def _annotate_exercise(elem, exercise, page_uuids):
+    def _annotate_exercise(elem, data, page_uuids):
         """Annotate exercise based upon tag data"""
-        tags = exercise["items"][0].get("tags")
+        exercise = data["items"][0]
+        tags = exercise.get("tags", [])
         context = parse_context_tags(tags, elem, page_uuids)
-        if context is None:
-            return
-        else:
+        if context is not None:
             target_module, feature = context
-
-        # As a final validation check, confirm the feature is on the target
-        # module and otherwise raise
-        #
-        # NOTE: The following uses xpath() and find() together which may seem
-        # bizarre, but it's a work around for the fact that using just an
-        # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
-        # are multiple threads due to the tree editing that occurs in
-        # _replace_exercises.
-        target_ref = "auto_{}_{}".format(target_module, feature)
-        feature_element = elem.xpath("/*")[0].find(
-            './/*[@id="{}"]'.format(target_ref)
-        )
-
-        assert_msg = "Feature {} not in {} href={}".format(
-            feature, target_module, elem.get("href")
-        )
-        assert feature_element is not None, assert_msg
-
-        exercise["items"][0]["required_context"] = {}
-        exercise["items"][0]["required_context"]["module"] = target_module
-        exercise["items"][0]["required_context"]["feature"] = feature
-        exercise["items"][0]["required_context"]["ref"] = target_ref
+            annotate_exercise(exercise, elem, target_module, feature)
 
     @backoff.on_exception(
         backoff.expo,
@@ -381,16 +397,7 @@ def exercise_callback_factory(match, url_template, token=None):
         exercise = res.json()
 
         if exercise["total_count"] == 0:
-            logger.warning("MISSING EXERCISE: {}".format(url))
-
-            XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
-            missing = etree.Element(
-                XHTML + "span",
-                {"data-type": "missing-exercise"},
-                nsmap=HTML_DOCUMENT_NAMESPACES,
-            )
-            missing.text = "MISSING EXERCISE: tag:{}".format(item_code)
-            nodes = [missing]
+            nodes = get_missing_exercise_placeholder(url, item_code)
         else:
             exercise["items"][0]["url"] = url
             exercise["items"][0]["class"] = exercise_class
@@ -428,39 +435,14 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
                 document = _get_external_document(module_path)
             target_module = document.metadata["uuid"]
             feature = metadata["feature_id"]
+            annotate_exercise(exercise, elem, target_module, feature)
         else:
-            parsed = parse_context_tags(
-                metadata.get("tags", None),
-                elem,
-                page_uuids,
-            )
-            if parsed is None:
+            tags = metadata.get("tags", [])
+            context = parse_context_tags(tags, elem, page_uuids)
+            if context is None:
                 return
-            else:
-                target_module, feature = parsed
-
-        # As a final validation check, confirm the feature is on the target
-        # module and otherwise raise
-        #
-        # NOTE: The following uses xpath() and find() together which may seem
-        # bizarre, but it's a work around for the fact that using just an
-        # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
-        # are multiple threads due to the tree editing that occurs in
-        # _replace_exercises.
-        target_ref = "auto_{}_{}".format(target_module, feature)
-        feature_element = elem.xpath("/*")[0].find(
-            './/*[@id="{}"]'.format(target_ref)
-        )
-
-        assert_msg = "Feature {} not in {} href={}".format(
-            feature, target_module, elem.get("href")
-        )
-        assert feature_element is not None, assert_msg
-
-        exercise["required_context"] = {}
-        exercise["required_context"]["module"] = target_module
-        exercise["required_context"]["feature"] = feature
-        exercise["required_context"]["ref"] = target_ref
+            target_module, feature = context
+            annotate_exercise(exercise, elem, target_module, feature)
 
     def _load_interactive_data(interactive_path, private_path):
         metadata_path = os.path.join(interactive_path, "metadata.json")
@@ -540,11 +522,9 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         return exercise
 
     def _parse_exercise_content(exercise):
-        assert exercise["content"] is not None, "Exercise content is None"
-        assert (
-            exercise["h5p"] is not None and
-            exercise["h5p"]["mainLibrary"] is not None
-        ), "Exercise h5p library undefined"
+        assert "content" in exercise, "Exercise content is missing"
+        assert "h5p" in exercise and "mainLibrary" in exercise["h5p"], \
+            "Exercise h5p library missing"
         _format_exercise_content(exercise)
         return exercise
 
@@ -590,34 +570,23 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         interactive_path = path_resolver.get_public_interactives_path(
             nickname
         )
+        uri = os.path.relpath(
+            interactive_path,
+            os.path.join(path_resolver.book_container.root_dir, "..")
+        )
         private_path = path_resolver.get_private_interactives_path(nickname)
-        exercise_class = elem.get("class")
-
-        # grab the json exercise, run it through Jinja2 template,
-        # replace element w/ it
+        css_class = elem.get("class")
         exercise = _load_interactive_data(interactive_path, private_path)
 
         if exercise is None:
-            logger.warning("MISSING EXERCISE: {}".format(interactive_path))
-
-            XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
-            missing = etree.Element(
-                XHTML + "span",
-                {"data-type": "missing-exercise"},
-                nsmap=HTML_DOCUMENT_NAMESPACES,
-            )
-            missing.text = "MISSING EXERCISE: tag:{}".format(nickname)
-            nodes = [missing]
+            nodes = get_missing_exercise_placeholder(uri, nickname)
         else:
             exercise["metadata"]["nickname"] = nickname
             exercise["metadata"]["tags"] = _tags_from_metadata(
                 exercise["metadata"]
             )
-            exercise["url"] = os.path.relpath(
-                interactive_path,
-                os.path.join(path_resolver.book_container.root_dir, "..")
-            )
-            exercise["class"] = exercise_class
+            exercise["url"] = uri
+            exercise["class"] = css_class
             _annotate_exercise(elem, exercise, page_uuids)
 
             html = render_interactive(exercise)
