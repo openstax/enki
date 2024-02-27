@@ -1,6 +1,6 @@
 import re
 import os
-from typing import Optional, Sequence
+from typing import Optional
 from contextlib import contextmanager
 from time import time
 import inspect
@@ -50,6 +50,6 @@ def recursive_merge(
             )
             for k in set(lhs.keys()) & set(rhs.keys())
         }
-    elif isinstance(lhs, Sequence):
+    elif isinstance(lhs, (list, tuple)):
         return merge_sequence(lhs, rhs)
     return default(lhs, rhs)

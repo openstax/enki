@@ -402,8 +402,10 @@ def exercise_callback_factory(match, url_template, token=None):
             exercise["items"][0]["url"] = url
             exercise["items"][0]["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
-
-            html = render_exercise(exercise)
+            assert len(exercise["items"]) == 1, \
+                'Exercise "items" array is nonsingular'
+            exercise_content = exercise["items"][0]
+            html = render_exercise(exercise_content)
             try:
                 nodes = etree_from_str("<div>{}</div>".format(html))
             except etree.XMLSyntaxError:  # Probably HTML
@@ -422,9 +424,8 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
     """Create a callback function to replace an exercise by fetching from
     the repository."""
 
-    def _annotate_exercise(elem, exercise, page_uuids):
+    def _annotate_exercise(elem, exercise, metadata, page_uuids):
         """Annotate exercise based upon tag data"""
-        metadata = exercise["metadata"]
         if "feature_page" in metadata:
             assert "feature_id" in metadata, "Feature page without feature id"
             module_id = metadata["feature_page"]
@@ -444,7 +445,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
             target_module, feature = context
             annotate_exercise(exercise, elem, target_module, feature)
 
-    def _load_interactive_data(interactive_path, private_path):
+    def _load_h5p_interactive(interactive_path, private_path):
         metadata_path = os.path.join(interactive_path, "metadata.json")
         content_path = os.path.join(interactive_path, "content.json")
         h5p_path = os.path.join(interactive_path, "h5p.json")
@@ -459,74 +460,99 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
                 "MISSING INTERACTIVE DATA: {}".format(interactive_path)
             )
             return None
-        exercise = {}
-        exercise["h5p"] = json.loads(Path(h5p_path).read_bytes())
-        exercise["content"] = recursive_merge(
+        h5p_in = {}
+        h5p_in["h5p"] = json.loads(Path(h5p_path).read_bytes())
+        h5p_in["content"] = recursive_merge(
             json.loads(Path(content_path).read_bytes()),
             json.loads(Path(private_content_path).read_bytes())
             if os.path.exists(private_content_path)
             else {},
         )
-        exercise["metadata"] = recursive_merge(
+        h5p_in["metadata"] = recursive_merge(
             json.loads(Path(metadata_path).read_bytes()),
             json.loads(Path(private_metadata_path).read_bytes())
             if os.path.exists(private_metadata_path)
             else {},
         )
-        return _parse_exercise_content(exercise)
+        return h5p_in
 
-    def _format_exercise_content(exercise):
-        formats = []
-        library = exercise["h5p"]["mainLibrary"]
-        metadata = exercise["metadata"]
-        if metadata.get("is_free_response_supported", False):
-            formats.append("free-response")
+    def _multichoice_question_factory(id, entry):
+        question = {
+            "id": id,
+            "stem_html": entry["question"],
+            "answers": [
+                {
+                    "id": i,
+                    "content_html": a["text"],
+                    "correctness": a["correct"],
+                    "feedback_html": (
+                        a["tipsAndFeedback"]["chosenFeedback"]
+                    ),
+                }
+                for i, a in enumerate(entry["answers"])
+            ],
+            "is_answer_order_important": (
+                not entry["behaviour"]["randomAnswers"]
+            ),
+        }
+        return question
 
-        if library == "H5P.MultiChoice":
-            formats.append("multiple-choice")
-            question = {
-                "id": 1,
-                "stem_html": exercise["content"]["question"],
-                "stimulus_html": metadata.get(
-                    "questions", [{"stimulus_html": ""}]
-                )[0]["stimulus_html"],
-                "answers": [],
-                "formats": formats,
-                "is_answer_order_important": not exercise["content"][
-                    "behaviour"
-                ]["randomAnswers"],
-                "collaborator_solutions": [],
-            }
-            for i, a in enumerate(exercise["content"]["answers"]):
-                question["answers"].append(
-                    {
-                        "id": i,
-                        "content_html": a["text"],
-                        "correctness": a["correct"],
-                        "feedback_html": (
-                            a["tipsAndFeedback"]["chosenFeedback"]
-                        ),
-                    }
-                )
-
-            for a in metadata["collaborator_solutions"]:
-                question["collaborator_solutions"].append(
-                    {
-                        "content_html": a["content"],
-                        "solution_type": a["solution_type"]
-                    }
-                )
-            exercise["questions"] = [question]
-        else:  # pragma: no cover
-            logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
-        return exercise
-
-    def _parse_exercise_content(exercise):
-        assert "content" in exercise, "Exercise content is missing"
-        assert "h5p" in exercise and "mainLibrary" in exercise["h5p"], \
+    def _questions_from_h5p(h5p):
+        assert "content" in h5p, "Exercise content is missing"
+        assert "h5p" in h5p and "mainLibrary" in h5p["h5p"], \
             "Exercise h5p library missing"
-        _format_exercise_content(exercise)
-        return exercise
+        questions = []
+        metadata = h5p["metadata"]
+        main_library = h5p["h5p"]["mainLibrary"]
+
+        def add_question(
+            id,
+            library,
+            entry,
+            stimulus_html,
+            collaborator_solutions,
+            is_free_response_supported
+        ):
+            question = {}
+            question["stimulus_html"] = stimulus_html
+            # TODO: Match collaborator solution to question for question sets
+            question["collaborator_solutions"] = collaborator_solutions
+            question["formats"] = formats = []
+            # TODO: This does not exist in new metadata, but if it did, it
+            # should probably be per-question (something metadata does not
+            # support at the moment)
+            if is_free_response_supported:
+                formats.append("free-response")
+            if library.startswith("H5P.MultiChoice"):
+                formats.append("multiple-choice")
+                # Merge the dicts
+                question |= _multichoice_question_factory(id, entry)
+                questions.append(question)
+            else:  # pragma: no cover
+                logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
+
+        # TODO: Try to remove this field from metadata
+        stimulus_html = (
+            metadata["questions"][0]["stimulus_html"]
+            if "questions" in metadata
+            else ""
+        )
+        collaborator_solutions = [
+            {
+                "content_html": a["content"],
+                "solution_type": a["solution_type"]
+            }
+            for a in metadata.get("collaborator_solutions", [])
+        ]
+        add_question(
+            1,
+            main_library,
+            h5p["content"],
+            stimulus_html,
+            collaborator_solutions,
+            metadata.get("is_free_response_supported", False),
+        )
+        return questions
 
     def _tags_from_metadata(metadata):
         tags = metadata.get("tags", [])
@@ -570,26 +596,29 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         interactive_path = path_resolver.get_public_interactives_path(
             nickname
         )
-        uri = os.path.relpath(
+        relpath = os.path.relpath(
             interactive_path,
             os.path.join(path_resolver.book_container.root_dir, "..")
         )
         private_path = path_resolver.get_private_interactives_path(nickname)
         css_class = elem.get("class")
-        exercise = _load_interactive_data(interactive_path, private_path)
+        h5p_in = _load_h5p_interactive(interactive_path, private_path)
 
-        if exercise is None:
-            nodes = get_missing_exercise_placeholder(uri, nickname)
+        if not h5p_in:
+            nodes = get_missing_exercise_placeholder(relpath, nickname)
         else:
-            exercise["metadata"]["nickname"] = nickname
-            exercise["metadata"]["tags"] = _tags_from_metadata(
-                exercise["metadata"]
-            )
-            exercise["url"] = uri
+            exercise = {}
+            exercise["nickname"] = nickname
+            exercise["tags"] = _tags_from_metadata(h5p_in["metadata"])
+            exercise["url"] = relpath
             exercise["class"] = css_class
-            _annotate_exercise(elem, exercise, page_uuids)
+            exercise["questions"] = questions = _questions_from_h5p(h5p_in)
+            exercise["is_vocab"] = False
 
-            html = render_interactive(exercise)
+            assert len(questions) > 0, "No exercise found!"
+            _annotate_exercise(elem, exercise, h5p_in["metadata"], page_uuids)
+
+            html = render_exercise(exercise)
             try:
                 nodes = etree_from_str("<div>{}</div>".format(html))
             except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
@@ -605,19 +634,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
 
 
 def render_exercise(exercise):
-    assert len(exercise["items"]) == 1, 'Exercise "items" array is nonsingular'
-    exercise_content = exercise["items"][0]
-
-    return EXERCISE_TEMPLATE.render(data=exercise_content)
-
-
-def render_interactive(exercise):
-    assert len(exercise["questions"]) > 0, "No exercise found!"
-    # Old exercises have a flat data structure. Interactives have a nested
-    # structure so we need to flatten some of it here (or maybe switch to a
-    # flat structure for interactives too)
-    merged = {**exercise, **exercise["metadata"]}
-    return EXERCISE_TEMPLATE.render(data=merged)
+    return EXERCISE_TEMPLATE.render(data=exercise)
 
 
 HTML_DOCUMENT = """\
