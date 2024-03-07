@@ -4,7 +4,8 @@ set -e
 [[ $0 != "-bash" ]] && cd "$(dirname "$0")"
 
 install_poetry() {
-    pip install poetry
+    # needs to match version in openstax/python3-poetry
+    pip install 'poetry==1.4.0'
 }
 
 if [[ $CI ]]; then

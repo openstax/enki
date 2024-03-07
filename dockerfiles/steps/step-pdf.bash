@@ -2,7 +2,7 @@
 parse_book_dir
 
 # Style needed because mathjax will size converted math according to surrounding text
-cp "$IO_BAKED/the-style-pdf.css" "$IO_LINKED"
+cp "$IO_BAKED/"*-pdf.css "$IO_LINKED"
 shopt -s globstar nullglob
 for collection in "$IO_LINKED/"*.linked.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
@@ -51,19 +51,22 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 # Save all the slug/uuid pairs into a JSON file
 jo -a $jo_args > $book_slugs_file
 
+books_missing_styles=()
 shopt -s globstar nullglob
 while read -r book_slug; do
+    [[ -f "$IO_LINKED/$book_slug-pdf.css" ]] || books_missing_styles+=("$book_slug")
     link-rex "$IO_LINKED/$book_slug.mathified.xhtml" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
     prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.rex-linked.xhtml"
 done < <(read_book_slugs)
 shopt -u globstar nullglob
 
-
-# Verify the style file exists before building a PDF
+# Warn about missing styles (prince does not care)
 # LCOV_EXCL_START
-if [[ ! -f "$IO_LINKED/the-style-pdf.css" ]]; then
+if [[ ${#books_missing_styles[@]} -gt 0 ]]; then
     say "=============================================="
-    say " WARNING: There was no CSS file. Maybe a bug?"
+    say " WARNING: Missing CSS files for these books:"
+    say " WARNING: ${books_missing_styles[*]}"
+    say " WARNING: Maybe a bug?"
     say " WARNING: Waiting 15 seconds"
     say "=============================================="
     sleep 15
