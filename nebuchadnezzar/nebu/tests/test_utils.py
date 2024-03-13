@@ -15,9 +15,9 @@ def test_recursive_merge_dict():
     # Default: keep rhs
     assert merged["x"] == 2
     # Default: concat array
-    assert merged["y"] == [2, 3]
+    assert merged["y"] == [3]
     # Default: recursively merge dicts
-    assert merged["z"]["w"] == [1, 2]
+    assert merged["z"]["w"] == [2]
     # Override default behavior to add int and/or float
     custom_default = recursive_merge(
         a,
@@ -25,3 +25,16 @@ def test_recursive_merge_dict():
         default=lambda a, b: a + b if isinstance(a, (int, float)) else b
     )
     assert custom_default["x"] == 3
+    default_favors_not_none = recursive_merge([1], None)
+    assert default_favors_not_none == [1]
+    default_favors_not_none = recursive_merge([1], [None])
+    assert default_favors_not_none == [1]
+    default_favors_not_none = recursive_merge({ "a": [1] }, { "a": [None] })
+    assert default_favors_not_none["a"] == [1]
+    default_favors_not_none = recursive_merge({ "a": [1] }, { "b": [None] })
+    assert default_favors_not_none["a"] == [1]
+    assert default_favors_not_none["b"] == [None]
+    default_favors_not_none = recursive_merge([1, None, 3], [None, 2, None])
+    assert default_favors_not_none == [1, 2, 3]
+    use_rhs_when_types_differ = recursive_merge([1], "s")
+    assert use_rhs_when_types_differ == "s"

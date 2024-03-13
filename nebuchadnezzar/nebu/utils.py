@@ -36,20 +36,31 @@ def re_first_or_default(
     return match.group(0) if match is not None else default
 
 
+def merge_by_index(lhs, rhs, merge_sequence, default):
+    return list(
+        recursive_merge(
+            dict(enumerate(lhs)),
+            dict(enumerate(rhs)),
+            merge_sequence=merge_sequence,
+            default=default,
+        ).values()
+    )
+
+
 def recursive_merge(
     lhs,
     rhs,
     *,
-    merge_sequence=lambda lhs, rhs: lhs + rhs,
-    default=lambda lhs, rhs: rhs
+    merge_sequence=merge_by_index,
+    default=lambda lhs, rhs: rhs if rhs is not None else lhs
 ):
-    if isinstance(lhs, dict):
+    if isinstance(lhs, dict) and isinstance(rhs, dict):
         return lhs | rhs | {
             k: recursive_merge(
                 lhs[k], rhs[k], merge_sequence=merge_sequence, default=default
             )
             for k in set(lhs.keys()) & set(rhs.keys())
         }
-    elif isinstance(lhs, (list, tuple)):
-        return merge_sequence(lhs, rhs)
+    elif isinstance(lhs, (list, tuple)) and isinstance(rhs, (list, tuple)):
+        return merge_sequence(lhs, rhs, merge_sequence, default)
     return default(lhs, rhs)
