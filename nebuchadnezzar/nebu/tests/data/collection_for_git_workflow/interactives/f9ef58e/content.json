@@ -1,0 +1,392 @@
+{
+  "introPage": {
+    "showIntroPage": false,
+    "startButtonText": "Start Quiz",
+    "introduction": ""
+  },
+  "progressType": "dots",
+  "passPercentage": 50,
+  "questions": [
+    {
+      "params": {
+        "media": {
+          "type": {
+            "params": {}
+          },
+          "disableImageZooming": false
+        },
+        "overallFeedback": [
+          {
+            "from": 0,
+            "to": 100
+          }
+        ],
+        "behaviour": {
+          "enableRetry": true,
+          "enableSolutionsButton": true,
+          "enableCheckButton": true,
+          "type": "auto",
+          "singlePoint": false,
+          "randomAnswers": false,
+          "showSolutionsRequiresInput": true,
+          "confirmCheckDialog": false,
+          "confirmRetryDialog": false,
+          "autoCheck": false,
+          "passPercentage": 100,
+          "showScorePoints": true
+        },
+        "UI": {
+          "checkAnswerButton": "Check",
+          "submitAnswerButton": "Submit",
+          "showSolutionButton": "Show solution",
+          "tryAgainButton": "Retry",
+          "tipsLabel": "Show tip",
+          "scoreBarLabel": "You got :num out of :total points",
+          "tipAvailable": "Tip available",
+          "feedbackAvailable": "Feedback available",
+          "readFeedback": "Read feedback",
+          "wrongAnswer": "Wrong answer",
+          "correctAnswer": "Correct answer",
+          "shouldCheck": "Should have been checked",
+          "shouldNotCheck": "Should not have been checked",
+          "noInput": "Please answer before viewing the solution",
+          "a11yCheck": "Check the answers. The responses will be marked as correct, incorrect, or unanswered.",
+          "a11yShowSolution": "Show the solution. The task will be marked with its correct solution.",
+          "a11yRetry": "Retry the task. Reset all responses and start the task over again."
+        },
+        "confirmCheck": {
+          "header": "Finish ?",
+          "body": "Are you sure you wish to finish ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Finish"
+        },
+        "confirmRetry": {
+          "header": "Retry ?",
+          "body": "Are you sure you wish to retry ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Confirm"
+        },
+        "question": "<p>Q1</p>\n",
+        "summarySolution": "",
+        "detailedSolution": "",
+        "answers": [
+          {
+            "correct": true,
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q1A1</p>\n"
+          },
+          {
+            "correct": false,
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q1A2</p>\n"
+          }
+        ]
+      },
+      "library": "H5P.MultiChoice 1.16",
+      "metadata": {
+        "contentType": "Multiple Choice",
+        "license": "U",
+        "title": "Untitled Multiple Choice",
+        "authors": [],
+        "changes": [],
+        "extraTitle": "Untitled Multiple Choice"
+      },
+      "subContentId": "5b158702-ac11-4549-8be2-211d65a0ea98"
+    },
+    {
+      "params": {
+        "media": {
+          "type": {
+            "params": {}
+          },
+          "disableImageZooming": false
+        },
+        "behaviour": {
+          "enableRetry": true,
+          "enableSolutionsButton": true,
+          "enableCheckButton": true,
+          "confirmCheckDialog": false,
+          "confirmRetryDialog": false,
+          "autoCheck": false
+        },
+        "l10n": {
+          "trueText": "True",
+          "falseText": "False",
+          "score": "You got @score of @total points",
+          "checkAnswer": "Check",
+          "submitAnswer": "Submit",
+          "showSolutionButton": "Show solution",
+          "tryAgain": "Retry",
+          "wrongAnswerMessage": "Wrong answer",
+          "correctAnswerMessage": "Correct answer",
+          "scoreBarLabel": "You got :num out of :total points",
+          "a11yCheck": "Check the answers. The responses will be marked as correct, incorrect, or unanswered.",
+          "a11yShowSolution": "Show the solution. The task will be marked with its correct solution.",
+          "a11yRetry": "Retry the task. Reset all responses and start the task over again."
+        },
+        "confirmCheck": {
+          "header": "Finish ?",
+          "body": "Are you sure you wish to finish ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Finish"
+        },
+        "confirmRetry": {
+          "header": "Retry ?",
+          "body": "Are you sure you wish to retry ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Confirm"
+        },
+        "question": "<p>Q2</p>\n",
+        "summarySolution": "<p>das</p>\n",
+        "detailedSolution": "",
+        "correct": "true"
+      },
+      "library": "H5P.TrueFalse 1.8",
+      "metadata": {
+        "contentType": "True/False Question",
+        "license": "U",
+        "title": "Untitled True/False Question",
+        "authors": [],
+        "changes": [],
+        "extraTitle": "Untitled True/False Question"
+      },
+      "subContentId": "ebd34558-53d4-4c7a-9a21-30ab2ff4c810"
+    },
+    {
+      "params": {
+        "media": {
+          "type": {
+            "params": {}
+          },
+          "disableImageZooming": false
+        },
+        "overallFeedback": [
+          {
+            "from": 0,
+            "to": 100
+          }
+        ],
+        "behaviour": {
+          "enableRetry": true,
+          "enableSolutionsButton": true,
+          "enableCheckButton": true,
+          "type": "auto",
+          "singlePoint": false,
+          "randomAnswers": false,
+          "showSolutionsRequiresInput": true,
+          "confirmCheckDialog": false,
+          "confirmRetryDialog": false,
+          "autoCheck": false,
+          "passPercentage": 100,
+          "showScorePoints": true
+        },
+        "UI": {
+          "checkAnswerButton": "Check",
+          "submitAnswerButton": "Submit",
+          "showSolutionButton": "Show solution",
+          "tryAgainButton": "Retry",
+          "tipsLabel": "Show tip",
+          "scoreBarLabel": "You got :num out of :total points",
+          "tipAvailable": "Tip available",
+          "feedbackAvailable": "Feedback available",
+          "readFeedback": "Read feedback",
+          "wrongAnswer": "Wrong answer",
+          "correctAnswer": "Correct answer",
+          "shouldCheck": "Should have been checked",
+          "shouldNotCheck": "Should not have been checked",
+          "noInput": "Please answer before viewing the solution",
+          "a11yCheck": "Check the answers. The responses will be marked as correct, incorrect, or unanswered.",
+          "a11yShowSolution": "Show the solution. The task will be marked with its correct solution.",
+          "a11yRetry": "Retry the task. Reset all responses and start the task over again."
+        },
+        "confirmCheck": {
+          "header": "Finish ?",
+          "body": "Are you sure you wish to finish ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Finish"
+        },
+        "confirmRetry": {
+          "header": "Retry ?",
+          "body": "Are you sure you wish to retry ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Confirm"
+        },
+        "question": "<p>Q3</p>\n",
+        "summarySolution": "",
+        "detailedSolution": "",
+        "answers": [
+          {
+            "correct": false,
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q3A1</p>\n"
+          },
+          {
+            "correct": "true",
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q3A2</p>\n"
+          }
+        ]
+      },
+      "library": "H5P.MultiChoice 1.16",
+      "metadata": {
+        "contentType": "Multiple Choice",
+        "license": "U",
+        "title": "Untitled Multiple Choice",
+        "authors": [],
+        "changes": [],
+        "extraTitle": "Untitled Multiple Choice"
+      },
+      "subContentId": "2b6a7e9b-2e0b-48a2-870d-7d2c13b0be9b"
+    },
+    {
+      "params": {
+        "media": {
+          "type": {
+            "params": {}
+          },
+          "disableImageZooming": false
+        },
+        "overallFeedback": [
+          {
+            "from": 0,
+            "to": 100
+          }
+        ],
+        "behaviour": {
+          "enableRetry": true,
+          "enableSolutionsButton": true,
+          "enableCheckButton": true,
+          "type": "auto",
+          "singlePoint": false,
+          "randomAnswers": false,
+          "showSolutionsRequiresInput": true,
+          "confirmCheckDialog": false,
+          "confirmRetryDialog": false,
+          "autoCheck": false,
+          "passPercentage": 100,
+          "showScorePoints": true
+        },
+        "UI": {
+          "checkAnswerButton": "Check",
+          "submitAnswerButton": "Submit",
+          "showSolutionButton": "Show solution",
+          "tryAgainButton": "Retry",
+          "tipsLabel": "Show tip",
+          "scoreBarLabel": "You got :num out of :total points",
+          "tipAvailable": "Tip available",
+          "feedbackAvailable": "Feedback available",
+          "readFeedback": "Read feedback",
+          "wrongAnswer": "Wrong answer",
+          "correctAnswer": "Correct answer",
+          "shouldCheck": "Should have been checked",
+          "shouldNotCheck": "Should not have been checked",
+          "noInput": "Please answer before viewing the solution",
+          "a11yCheck": "Check the answers. The responses will be marked as correct, incorrect, or unanswered.",
+          "a11yShowSolution": "Show the solution. The task will be marked with its correct solution.",
+          "a11yRetry": "Retry the task. Reset all responses and start the task over again."
+        },
+        "confirmCheck": {
+          "header": "Finish ?",
+          "body": "Are you sure you wish to finish ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Finish"
+        },
+        "confirmRetry": {
+          "header": "Retry ?",
+          "body": "Are you sure you wish to retry ?",
+          "cancelLabel": "Cancel",
+          "confirmLabel": "Confirm"
+        },
+        "question": "<p>Q4</p>\n",
+        "summarySolution": "",
+        "detailedSolution": "",
+        "answers": [
+          {
+            "correct": true,
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q4A1</p>\n"
+          },
+          {
+            "correct": false,
+            "tipsAndFeedback": {
+              "tip": "",
+              "chosenFeedback": "",
+              "notChosenFeedback": ""
+            },
+            "text": "<p>Q4A2</p>\n"
+          }
+        ]
+      },
+      "library": "H5P.MultiChoice 1.16",
+      "metadata": {
+        "contentType": "Multiple Choice",
+        "license": "U",
+        "title": "Untitled Multiple Choice",
+        "authors": [],
+        "changes": [],
+        "extraTitle": "Untitled Multiple Choice"
+      },
+      "subContentId": "b4ca57f4-ffa4-4040-a9ff-bba588769b58"
+    }
+  ],
+  "disableBackwardsNavigation": false,
+  "randomQuestions": false,
+  "endGame": {
+    "showResultPage": true,
+    "showSolutionButton": true,
+    "showRetryButton": true,
+    "noResultMessage": "Finished",
+    "message": "Your result:",
+    "scoreBarLabel": "You got @finals out of @totals points",
+    "overallFeedback": [
+      {
+        "from": 0,
+        "to": 100
+      }
+    ],
+    "solutionButtonText": "Show solution",
+    "retryButtonText": "Retry",
+    "finishButtonText": "Finish",
+    "submitButtonText": "Submit",
+    "showAnimations": false,
+    "skippable": false,
+    "skipButtonText": "Skip video"
+  },
+  "override": {
+    "checkButton": true
+  },
+  "texts": {
+    "prevButton": "Previous question",
+    "nextButton": "Next question",
+    "finishButton": "Finish",
+    "submitButton": "Submit",
+    "textualProgress": "Question: @current of @total questions",
+    "jumpToQuestion": "Question %d of %total",
+    "questionLabel": "Question",
+    "readSpeakerProgress": "Question @current of @total",
+    "unansweredText": "Unanswered",
+    "answeredText": "Answered",
+    "currentQuestionText": "Current question",
+    "navigationLabel": "Questions"
+  }
+}
