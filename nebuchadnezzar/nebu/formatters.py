@@ -476,26 +476,69 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         )
         return h5p_in
 
-    def _multichoice_question_factory(id, entry):
-        question = {
+    def _answer_factory(id, content_html, correctness, feedback_html):
+        b_correctness = None
+        if isinstance(correctness, bool):
+            b_correctness = correctness
+        elif isinstance(correctness, str):
+            str_correctness = correctness.strip().lower()
+            assert str_correctness in (
+                "true",
+                "false",
+            ), f"Invalid value for correctness: {correctness}"
+            b_correctness = str_correctness == "true"
+        assert isinstance(b_correctness, bool), \
+            "Could not get bool correctness"
+        return {
             "id": id,
-            "stem_html": entry["question"],
-            "answers": [
-                {
-                    "id": i,
-                    "content_html": a["text"],
-                    "correctness": a["correct"],
-                    "feedback_html": (
-                        a["tipsAndFeedback"]["chosenFeedback"]
-                    ),
-                }
-                for i, a in enumerate(entry["answers"])
-            ],
-            "is_answer_order_important": (
-                not entry["behaviour"]["randomAnswers"]
-            ),
+            "content_html": content_html,
+            # cookbook/lib/kitchen/injected_question_element.rb#L72
+            "correctness": "1.0" if b_correctness else "0.0",
+            "feedback_html": feedback_html,
         }
-        return question
+
+    def _question_factory(id, stem_html, answers, is_answer_order_important):
+        return {
+            "id": id,
+            "stem_html": stem_html,
+            "answers": answers,
+            "is_answer_order_important": is_answer_order_important,
+        }
+
+    def _multichoice_question_factory(id, entry):
+        answers = [
+            _answer_factory(
+                id=i + 1,
+                content_html=a["text"],
+                correctness=a["correct"],
+                feedback_html=a["tipsAndFeedback"]["chosenFeedback"],
+            )
+            for i, a in enumerate(entry["answers"])
+        ]
+        return _question_factory(
+            id=id,
+            stem_html=entry["question"],
+            answers=answers,
+            is_answer_order_important=not entry["behaviour"]["randomAnswers"]
+        )
+
+    def _true_false_question_factory(id, entry):
+        behavior = entry.get("behaviour", {})
+        answers = [
+            _answer_factory(
+                id=i + 1,
+                content_html=option.capitalize(),
+                correctness=entry["correct"] == option,
+                feedback_html=behavior.get("feedbackOnCorrect", "")
+            )
+            for i, option in enumerate(("true", "false"))
+        ]
+        return _question_factory(
+            id=id,
+            stem_html=entry["question"],
+            answers=answers,
+            is_answer_order_important=True
+        )
 
     def _questions_from_h5p(h5p):
         assert "content" in h5p, "Exercise content is missing"
@@ -509,47 +552,53 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
             id,
             library,
             entry,
-            stimulus_html,
-            collaborator_solutions,
             is_free_response_supported
         ):
             question = {}
-            question["stimulus_html"] = stimulus_html
-            # TODO: Match collaborator solution to question for question sets
-            question["collaborator_solutions"] = collaborator_solutions
+            question["stimulus_html"] = entry.get("questionStimulus", "")
+            question["collaborator_solutions"] = [
+                {
+                    "content_html": entry[key],
+                    "solution_type": solution_type
+                }
+                for key, solution_type in (
+                    ("detailedSolution", "detailed"),
+                    ("summarySolution", "summary")
+                )
+                if key in entry and len(entry[key]) > 0
+            ]
             question["formats"] = formats = []
-            # TODO: This does not exist in new metadata, but if it did, it
-            # should probably be per-question (something metadata does not
-            # support at the moment)
             if is_free_response_supported:
                 formats.append("free-response")
-            if library.startswith("H5P.MultiChoice"):
+            if library == "H5P.MultiChoice":
                 formats.append("multiple-choice")
                 # Merge the dicts
                 question |= _multichoice_question_factory(id, entry)
                 questions.append(question)
+            elif library == "H5P.TrueFalse":
+                formats.append("true-false")
+                question |= _true_false_question_factory(id, entry)
+                questions.append(question)
+            elif library == "H5P.QuestionSet":
+                for i, q in enumerate(entry["questions"]):
+                    sub_library = q["library"].split(" ")[0]
+                    sub_entry = q["params"]
+                    assert not sub_library == "H5P.QuestionSet", \
+                        "Question sets cannot contain question sets"
+                    add_question(
+                        i + 1,
+                        sub_library,
+                        sub_entry,
+                        is_free_response_supported
+                    )
             else:  # pragma: no cover
                 logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
 
-        # TODO: Try to remove this field from metadata
-        stimulus_html = (
-            metadata["questions"][0]["stimulus_html"]
-            if "questions" in metadata
-            else ""
-        )
-        collaborator_solutions = [
-            {
-                "content_html": a["content"],
-                "solution_type": a["solution_type"]
-            }
-            for a in metadata.get("collaborator_solutions", [])
-        ]
         add_question(
             1,
             main_library,
             h5p["content"],
-            stimulus_html,
-            collaborator_solutions,
+            # TODO: Should this be on each question too?
             metadata.get("is_free_response_supported", False),
         )
         return questions
