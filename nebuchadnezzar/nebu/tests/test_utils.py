@@ -29,9 +29,9 @@ def test_recursive_merge_dict():
     assert default_favors_not_none == [1]
     default_favors_not_none = recursive_merge([1], [None])
     assert default_favors_not_none == [1]
-    default_favors_not_none = recursive_merge({ "a": [1] }, { "a": [None] })
+    default_favors_not_none = recursive_merge({"a": [1]}, {"a": [None]})
     assert default_favors_not_none["a"] == [1]
-    default_favors_not_none = recursive_merge({ "a": [1] }, { "b": [None] })
+    default_favors_not_none = recursive_merge({"a": [1]}, {"b": [None]})
     assert default_favors_not_none["a"] == [1]
     assert default_favors_not_none["b"] == [None]
     default_favors_not_none = recursive_merge([1, None, 3], [None, 2, None])
