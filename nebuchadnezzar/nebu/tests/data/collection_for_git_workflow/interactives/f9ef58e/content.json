@@ -115,7 +115,8 @@
           "enableCheckButton": true,
           "confirmCheckDialog": false,
           "confirmRetryDialog": false,
-          "autoCheck": false
+          "autoCheck": false,
+          "feedbackOnCorrect": "Something"
         },
         "l10n": {
           "trueText": "True",

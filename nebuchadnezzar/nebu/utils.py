@@ -64,3 +64,17 @@ def recursive_merge(
     elif isinstance(lhs, (list, tuple)) and isinstance(rhs, (list, tuple)):
         return merge_sequence(lhs, rhs, merge_sequence, default)
     return default(lhs, rhs)
+
+
+def try_parse_bool(maybe_bool):
+    result = None
+    if isinstance(maybe_bool, bool):
+        result = maybe_bool
+    elif isinstance(maybe_bool, str):
+        str_correctness = maybe_bool.strip().lower()
+        if str_correctness in ("true", "false"):
+            result = str_correctness == "true"
+    elif isinstance(maybe_bool, (float, int)):
+        result = maybe_bool > 0
+    assert result is not None, f"Failed to parse bool from: {maybe_bool}"
+    return result

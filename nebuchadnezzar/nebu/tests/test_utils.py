@@ -1,6 +1,7 @@
 import json
 
-from nebu.utils import recursive_merge
+from nebu.utils import recursive_merge, try_parse_bool
+import pytest
 
 
 def test_recursive_merge_dict():
@@ -38,3 +39,17 @@ def test_recursive_merge_dict():
     assert default_favors_not_none == [1, 2, 3]
     use_rhs_when_types_differ = recursive_merge([1], "s")
     assert use_rhs_when_types_differ == "s"
+
+
+@pytest.mark.parametrize(
+    "value,result",
+    [
+        ("true", True),
+        ("True", True),
+        ("false", False),
+        (True, True),
+        (1, True)
+    ]
+)
+def test_try_parse_bool(value, result):
+    assert try_parse_bool(value) == result

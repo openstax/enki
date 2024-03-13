@@ -29,7 +29,7 @@ from .xml_utils import (
     squash_xml_to_text,
     xpath_html,
 )
-from .utils import recursive_merge
+from .utils import recursive_merge, try_parse_bool
 from .async_job_queue import AsyncJobQueue
 
 logger = logging.getLogger("nebuchadnezzar")
@@ -477,18 +477,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         return h5p_in
 
     def _answer_factory(id, content_html, correctness, feedback_html):
-        b_correctness = None
-        if isinstance(correctness, bool):
-            b_correctness = correctness
-        elif isinstance(correctness, str):
-            str_correctness = correctness.strip().lower()
-            assert str_correctness in (
-                "true",
-                "false",
-            ), f"Invalid value for correctness: {correctness}"
-            b_correctness = str_correctness == "true"
-        assert isinstance(b_correctness, bool), \
-            "Could not get bool correctness"
+        b_correctness = try_parse_bool(correctness)
         return {
             "id": id,
             "content_html": content_html,
@@ -508,12 +497,12 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
     def _multichoice_question_factory(id, entry):
         answers = [
             _answer_factory(
-                id=i + 1,
-                content_html=a["text"],
-                correctness=a["correct"],
-                feedback_html=a["tipsAndFeedback"]["chosenFeedback"],
+                id=index + 1,
+                content_html=answer["text"],
+                correctness=answer["correct"],
+                feedback_html=answer["tipsAndFeedback"]["chosenFeedback"],
             )
-            for i, a in enumerate(entry["answers"])
+            for index, answer in enumerate(entry["answers"])
         ]
         return _question_factory(
             id=id,
@@ -524,20 +513,28 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
 
     def _true_false_question_factory(id, entry):
         behavior = entry.get("behaviour", {})
-        answers = [
-            _answer_factory(
-                id=i + 1,
-                content_html=option.capitalize(),
-                correctness=entry["correct"] == option,
-                feedback_html=behavior.get("feedbackOnCorrect", "")
+        answers = []
+        parsed_correctness = try_parse_bool(entry["correct"])
+        for index, option in enumerate((True, False)):
+            is_correct = parsed_correctness == option
+            feedback_key = (
+                "feedbackOnCorrect"
+                if is_correct
+                else "feedbackOnWrong"
             )
-            for i, option in enumerate(("true", "false"))
-        ]
+            answers.append(
+                _answer_factory(
+                    id=index + 1,
+                    content_html=str(option),
+                    correctness=is_correct,
+                    feedback_html=behavior.get(feedback_key, ""),
+                )
+            )
         return _question_factory(
             id=id,
             stem_html=entry["question"],
             answers=answers,
-            is_answer_order_important=True
+            is_answer_order_important=True,
         )
 
     def _questions_from_h5p(h5p):
@@ -548,12 +545,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         metadata = h5p["metadata"]
         main_library = h5p["h5p"]["mainLibrary"]
 
-        def add_question(
-            id,
-            library,
-            entry,
-            is_free_response_supported
-        ):
+        def add_question(id, library, entry, is_free_response_supported):
             question = {}
             question["stimulus_html"] = entry.get("questionStimulus", "")
             question["collaborator_solutions"] = [
