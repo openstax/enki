@@ -1,4 +1,7 @@
+import os
 from pathlib import Path
+import shutil
+import json
 
 import click
 
@@ -16,17 +19,21 @@ from ..xml_utils import fix_namespaces
 from ..utils import re_first_or_default, unknown_progress
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
+from ..media_utils import get_media_metadata
 
 
 DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
 
 
-def create_interactive_factories(path_resolver: PathResolver, docs_by_id):
+def create_interactive_factories(
+        path_resolver: PathResolver, docs_by_id, media_handler
+):
     return [
         interactive_callback_factory(
             "{INTERACTIVES_ROOT}",
             path_resolver,
             docs_by_id,
+            media_handler,
         )
     ]
 
@@ -52,12 +59,52 @@ def create_exercise_factories(exercise_host, token):
     ]
 
 
+def save_resource_metadata(metadata, resource_dir, filename):
+    assert not filename.endswith(".json"), "Duplicate .json suffix"
+    with open(os.path.join(resource_dir, f"{filename}.json"), "w") as fout:
+        json.dump(metadata, fout)
+
+
+def to_dom_resource_path(filename):
+    return f"../resources/{filename}"
+
+
+def move_resource(resource_abs_path, resource_dir, filename):
+    shutil.move(resource_abs_path, os.path.join(resource_dir, filename))
+    return to_dom_resource_path(filename)
+
+
+def h5p_media_handler_factory(path_resolver, resource_dir):
+    def h5p_media_handler(interactive_id, elem, uri_attrib, is_image):
+        resource_orig_path = elem.attrib[uri_attrib]
+        resource_abs_path = path_resolver.find_interactives_path(
+            interactive_id, resource_orig_path
+        )
+        sha1, metadata = get_media_metadata(resource_abs_path, is_image)
+        dom_resource_path = move_resource(
+            resource_abs_path, resource_dir, sha1
+        )
+        elem.attrib[uri_attrib] = dom_resource_path
+        save_resource_metadata(metadata, resource_dir, sha1)
+    return h5p_media_handler
+
+
 def collection_to_assembled_xhtml(
-    collection, docs_by_id, docs_by_uuid, path_resolver, token, exercise_host
+    collection,
+    docs_by_id,
+    docs_by_uuid,
+    path_resolver,
+    token,
+    exercise_host,
+    resource_dir
 ):
     page_uuids = list(docs_by_uuid.keys())
     includes = (
-        create_interactive_factories(path_resolver, docs_by_id) +
+        create_interactive_factories(
+            path_resolver,
+            docs_by_id,
+            h5p_media_handler_factory(path_resolver, resource_dir)
+        ) +
         create_exercise_factories(exercise_host, token)
     )
     # Use docs_by_uuid.values to ensure each document is only used one time
@@ -83,6 +130,7 @@ def collection_to_assembled_xhtml(
 @common_params
 @click.argument("input-dir", type=click.Path(exists=True))
 @click.argument("output-dir", type=click.Path())
+@click.argument("resource-dir", type=click.Path())
 @click.option(
     "--exercise-token", help="Token for including answers in exercises"
 )
@@ -92,7 +140,14 @@ def collection_to_assembled_xhtml(
     help="Default {}".format(DEFAULT_EXERCISES_HOST),
 )
 @click.pass_context
-def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
+def assemble(
+    ctx,
+    input_dir,
+    output_dir,
+    resource_dir,
+    exercise_token,
+    exercise_host
+):
     """Assembles litezip structure data into a single-page-html file.
 
     This also stores the intermediary results alongside the resulting
@@ -131,6 +186,7 @@ def assemble(ctx, input_dir, output_dir, exercise_token, exercise_host):
                 path_resolver,
                 exercise_token,
                 exercise_host,
+                resource_dir
             )
             output_assembled_xhtml.write_bytes(assembled_xhtml)
 

@@ -420,7 +420,12 @@ def exercise_callback_factory(match, url_template, token=None):
     return (xpath, _replace_exercises)
 
 
-def interactive_callback_factory(match, path_resolver, docs_by_id):
+def interactive_callback_factory(
+    match,
+    path_resolver,
+    docs_by_id,
+    media_handler
+):
     """Create a callback function to replace an exercise by fetching from
     the repository."""
 
@@ -632,6 +637,32 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
 
         return tags
 
+    def _handle_attachments(attachments, nickname, node):
+        for media_elem in xpath_html(
+            node, '//*[@src][starts-with(@src, "media")]'
+        ):
+            attrib = None
+            tag = media_elem.tag
+            is_image = tag.endswith("img")
+            if is_image:
+                attrib = "src"
+            assert attrib is not None, f"Unhandled tag: {tag}"
+            uri = media_elem.attrib[attrib]
+            try:
+                assert uri in attachments, \
+                    "Resource not found in H5P attachments"
+                media_handler(nickname, media_elem, attrib, is_image)
+            except Exception as e:  # pragma: no cover
+                logger.warning(
+                    "Error while handling resource file "
+                    f"({uri}): {e}"
+                )
+                text = f'[missing_resource: {uri}]'
+                comment = etree.Comment(etree.tostring(node))
+                comment.tail = text
+                parent = node.getparent()
+                parent.replace(node, comment)
+
     def _replace_exercises(elem, page_uuids):
         nickname = elem.get("href")[len(match) + 1:]
         interactive_path = path_resolver.get_public_interactives_path(
@@ -648,6 +679,7 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
         if not h5p_in:
             nodes = get_missing_exercise_placeholder(relpath, nickname)
         else:
+            attachments = h5p_in["metadata"]["attachments"]
             exercise = {}
             exercise["nickname"] = nickname
             exercise["tags"] = _tags_from_metadata(h5p_in["metadata"])
@@ -664,7 +696,8 @@ def interactive_callback_factory(match, path_resolver, docs_by_id):
                 nodes = etree_from_str("<div>{}</div>".format(html))
             except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
                 nodes = etree.HTML(html)[0]  # body node
-
+            for node in nodes:
+                _handle_attachments(attachments, nickname, node)
         parent = elem.getparent()
         for child in nodes:
             parent.insert(parent.index(elem), child)

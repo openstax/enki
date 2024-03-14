@@ -38,17 +38,35 @@ class PathResolver:
     def get_module_path(self, module_id: str) -> str:
         return self.module_paths_by_id[module_id]
 
-    def get_public_interactives_path(self, interactives_id: str):
+    def get_public_interactives_path(self, interactives_id: str, *parts: str):
         return os.path.join(
             self.book_container.root_dir,
             self.book_container.public_root,
-            interactives_id
+            interactives_id,
+            *parts
         )
 
-    def get_private_interactives_path(self, interactives_id: str):
+    def get_private_interactives_path(self, interactives_id: str, *parts: str):
         return os.path.join(
             self.book_container.root_dir,
             self.book_container.private_root,
             os.path.basename(self.book_container.public_root),
-            interactives_id
+            interactives_id,
+            *parts
         )
+
+    def find_interactives_path(self, interactives_id: str, *parts: str):
+        real_path = None
+        public_path = self.get_public_interactives_path(
+            interactives_id,
+            *parts
+        )
+        private_path = self.get_private_interactives_path(
+            interactives_id,
+            *parts
+        )
+        if os.path.exists(public_path):
+            real_path = public_path
+        elif os.path.exists(private_path):
+            real_path = private_path
+        return real_path

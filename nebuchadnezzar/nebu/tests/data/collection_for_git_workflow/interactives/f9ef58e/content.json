@@ -146,7 +146,7 @@
           "confirmLabel": "Confirm"
         },
         "question": "<p>Q2</p>\n",
-        "summarySolution": "<p>das</p>\n",
+        "summarySolution": "<p>das</p>\n\n<p><img src=\"media/assemble-h5p-test-image.png\" style=\"width: 300px; height: 220px;\"/></p>\n",
         "detailedSolution": "",
         "correct": "true"
       },

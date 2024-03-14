@@ -27,9 +27,9 @@ def test_collection_href():
 
 
 @pytest.fixture
-def test_container(test_collection_href):
+def test_container(test_collection_href, tmp_path):
     return BookContainer(
-        "/made/up/abs/path".replace('/', os.sep),
+        str(tmp_path).replace('/', os.sep),
         [
             Book(
                 "book-slug1", "dummy", test_collection_href
@@ -65,3 +65,24 @@ def test_resolve_interactive_id(test_container, test_resolver, test_collection_h
     private = test_resolver.get_private_interactives_path("abc123").replace(os.sep, '/')
     assert public == f"{test_container.root_dir}/interactives/abc123"
     assert private == f"{test_container.root_dir}/private/interactives/abc123"
+
+
+def test_find_interactives_path(test_container, tmp_path):
+    id = "a"
+    private_dir = "test-private-interactives"
+    test_container.private_root = private_dir
+    test_resolver = PathResolver(
+        test_container,
+        lambda _: list(module_id_map.values()),
+        lambda s: re_first_or_default(r'm[0-9]+', s)
+    )
+    pub = tmp_path / "interactives" / id / "media" / "something.png"
+    priv = tmp_path / private_dir / "interactives" / id / "media" / "something-else.png"
+    pub.parent.mkdir(parents=True)
+    pub.touch()
+    priv.parent.mkdir(parents=True)
+    priv.touch()
+    pub_path = test_resolver.find_interactives_path(id, "media/something.png")
+    assert pub_path is not None and private_dir not in pub_path
+    priv_path = test_resolver.find_interactives_path(id, "media/something-else.png")
+    assert priv_path is not None and private_dir in priv_path
