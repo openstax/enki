@@ -500,6 +500,8 @@ def interactive_callback_factory(
         }
 
     def _multichoice_question_factory(id, entry):
+        behavior = entry.get("behaviour", {})
+        random_answers = try_parse_bool(behavior.get("randomAnswers", False))
         answers = [
             _answer_factory(
                 id=index + 1,
@@ -513,7 +515,7 @@ def interactive_callback_factory(
             id=id,
             stem_html=entry["question"],
             answers=answers,
-            is_answer_order_important=not entry["behaviour"]["randomAnswers"]
+            is_answer_order_important=not random_answers
         )
 
     def _true_false_question_factory(id, entry):
