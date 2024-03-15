@@ -638,30 +638,31 @@ def interactive_callback_factory(
         return tags
 
     def _handle_attachments(attachments, nickname, node):
-        for media_elem in xpath_html(
-            node, '//*[@src][starts-with(@src, "media")]'
+        # The idea is to be relatively generic with the xpath and handle
+        # results conditionally in the loop
+        # No namespaces at this point (except when they have been included
+        # in the H5P content like for math), so names should be mostly local
+        for media_elem in node.xpath(
+            '//img[@src][not(starts-with(@src, "http"))] |'
+            '//audio[@src][not(starts-with(@src, "http"))] |'
+            '//video//source[@src][not(starts-with(@src, "http"))]'
         ):
-            attrib = None
-            tag = media_elem.tag
-            is_image = tag.endswith("img")
-            if is_image:
-                attrib = "src"
-            assert attrib is not None, f"Unhandled tag: {tag}"
+            attrib = "src"
+            is_image = media_elem.tag == "img"
             uri = media_elem.attrib[attrib]
+            if uri not in attachments:  # pragma: no cover
+                logger.warning(f"Resource not found in H5P attachments: {uri}")
             try:
-                assert uri in attachments, \
-                    "Resource not found in H5P attachments"
                 media_handler(nickname, media_elem, attrib, is_image)
             except Exception as e:  # pragma: no cover
-                logger.warning(
-                    "Error while handling resource file "
-                    f"({uri}): {e}"
+                logger.error(
+                    f"Error while handling resource file ({uri}): {e}"
                 )
                 text = f'[missing_resource: {uri}]'
-                comment = etree.Comment(etree.tostring(node))
+                comment = etree.Comment(etree.tostring(media_elem))
                 comment.tail = text
-                parent = node.getparent()
-                parent.replace(node, comment)
+                parent = media_elem.getparent()
+                parent.replace(media_elem, comment)
 
     def _replace_exercises(elem, page_uuids):
         nickname = elem.get("href")[len(match) + 1:]
