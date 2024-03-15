@@ -461,9 +461,7 @@ def interactive_callback_factory(
             not os.path.exists(content_path) or
             not os.path.exists(h5p_path)
         ):
-            logger.error(
-                "MISSING INTERACTIVE DATA: {}".format(interactive_path)
-            )
+            logger.error(f"MISSING INTERACTIVE DATA: {interactive_path}")
             return None
         h5p_in = {}
         h5p_in["h5p"] = json.loads(Path(h5p_path).read_bytes())
@@ -544,15 +542,25 @@ def interactive_callback_factory(
             is_answer_order_important=True,
         )
 
-    def _questions_from_h5p(h5p):
-        assert "content" in h5p, "Exercise content is missing"
-        assert "h5p" in h5p and "mainLibrary" in h5p["h5p"], \
+    def _questions_from_h5p(h5p_in):
+        assert "content" in h5p_in, "Exercise content is missing"
+        assert "h5p" in h5p_in and "mainLibrary" in h5p_in["h5p"], \
             "Exercise h5p library missing"
         questions = []
-        metadata = h5p["metadata"]
-        main_library = h5p["h5p"]["mainLibrary"]
+        main_library = h5p_in["h5p"]["mainLibrary"]
 
-        def add_question(id, library, entry, is_free_response_supported):
+        supported_libraries = {
+            "H5P.MultiChoice": {
+                "formats": ["multiple-choice"],
+                "factory": _multichoice_question_factory,
+            },
+            "H5P.TrueFalse": {
+                "formats": ["true-false"],
+                "factory": _true_false_question_factory,
+            },
+        }
+
+        def add_question(id, library, entry):
             question = {}
             question["stimulus_html"] = entry.get("questionStimulus", "")
             question["collaborator_solutions"] = [
@@ -566,40 +574,22 @@ def interactive_callback_factory(
                 )
                 if key in entry and len(entry[key]) > 0
             ]
-            question["formats"] = formats = []
-            if is_free_response_supported:
-                formats.append("free-response")
-            if library == "H5P.MultiChoice":
-                formats.append("multiple-choice")
-                # Merge the dicts
-                question |= _multichoice_question_factory(id, entry)
-                questions.append(question)
-            elif library == "H5P.TrueFalse":
-                formats.append("true-false")
-                question |= _true_false_question_factory(id, entry)
+            if library in supported_libraries:
+                lib = supported_libraries[library]
+                question["formats"] = lib["formats"]
+                question.update(**lib["factory"](id, entry))
                 questions.append(question)
             elif library == "H5P.QuestionSet":
                 for i, q in enumerate(entry["questions"]):
                     sub_library = q["library"].split(" ")[0]
                     sub_entry = q["params"]
-                    assert not sub_library == "H5P.QuestionSet", \
+                    assert sub_library != "H5P.QuestionSet", \
                         "Question sets cannot contain question sets"
-                    add_question(
-                        i + 1,
-                        sub_library,
-                        sub_entry,
-                        is_free_response_supported
-                    )
+                    add_question(i + 1, sub_library, sub_entry)
             else:  # pragma: no cover
                 logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
 
-        add_question(
-            1,
-            main_library,
-            h5p["content"],
-            # TODO: Should this be on each question too?
-            metadata.get("is_free_response_supported", False),
-        )
+        add_question(1, main_library, h5p_in["content"])
         return questions
 
     def _tags_from_metadata(metadata):
