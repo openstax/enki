@@ -89,17 +89,21 @@ def _true_false_question_factory(id: int, entry: dict[str, Any]):
 
 
 class SupportedLibrary(NamedTuple):
-    formats: List[str]
+    get_formats: Callable[[dict[str, Any]], List[str]]
     make_question: Callable[[int, dict[str, Any]], dict[str, Any]]
 
 
 SUPPORTED_LIBRARIES = {
     "H5P.MultiChoice": SupportedLibrary(
-        ["multiple-choice"],
+        lambda m: (
+            ["free-response", "multiple-choice"]
+            if m.get("is_free_response_supported", False)
+            else ["multiple-choice"]
+        ),
         _multichoice_question_factory,
     ),
     "H5P.TrueFalse": SupportedLibrary(
-        ["true-false"],
+        lambda _: ["true-false"],
         _true_false_question_factory,
     ),
 }
@@ -109,6 +113,7 @@ def _add_question(
     id: int,
     library: str,
     entry: dict[str, Any],
+    metadata: dict[str, Any],
     questions: List[dict[str, Any]],
 ):
     question = {}
@@ -125,7 +130,7 @@ def _add_question(
     ]
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
-        question["formats"] = lib.formats
+        question["formats"] = lib.get_formats(metadata)
         question.update(**lib.make_question(id, entry))
         questions.append(question)
     elif library == "H5P.QuestionSet":
@@ -134,7 +139,7 @@ def _add_question(
             sub_entry = q["params"]
             assert sub_library != "H5P.QuestionSet", \
                 "Question sets cannot contain question sets"
-            _add_question(i + 1, sub_library, sub_entry, questions)
+            _add_question(i + 1, sub_library, sub_entry, metadata, questions)
     else:  # pragma: no cover
         logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
 
@@ -145,8 +150,9 @@ def questions_from_h5p(h5p_in: dict[str, Any]):
         "Exercise h5p library missing"
     questions = []
     main_library = h5p_in["h5p"]["mainLibrary"]
+    metadata = h5p_in["metadata"]
 
-    _add_question(1, main_library, h5p_in["content"], questions)
+    _add_question(1, main_library, h5p_in["content"], metadata, questions)
     return questions
 
 
