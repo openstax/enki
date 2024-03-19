@@ -2,6 +2,7 @@ import logging
 import os
 import json
 from pathlib import Path
+from typing import Any, Callable, List, NamedTuple, Union
 
 from lxml import etree
 from .utils import recursive_merge, try_parse_bool
@@ -10,7 +11,12 @@ from .utils import recursive_merge, try_parse_bool
 logger = logging.getLogger("nebuchadnezzar")
 
 
-def _answer_factory(id, content_html, correctness, feedback_html):
+def _answer_factory(
+    id: int,
+    content_html: str,
+    correctness: Union[bool, str, int, float],
+    feedback_html: str
+) -> dict[str, Any]:
     b_correctness = try_parse_bool(correctness)
     return {
         "id": id,
@@ -21,7 +27,12 @@ def _answer_factory(id, content_html, correctness, feedback_html):
     }
 
 
-def _question_factory(id, stem_html, answers, is_answer_order_important):
+def _question_factory(
+    id: int,
+    stem_html: str,
+    answers: List[dict[str, Any]],
+    is_answer_order_important: bool
+) -> dict[str, Any]:
     return {
         "id": id,
         "stem_html": stem_html,
@@ -30,7 +41,7 @@ def _question_factory(id, stem_html, answers, is_answer_order_important):
     }
 
 
-def _multichoice_question_factory(id, entry):
+def _multichoice_question_factory(id: int, entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     random_answers = try_parse_bool(behavior.get("randomAnswers", False))
     answers = [
@@ -50,7 +61,7 @@ def _multichoice_question_factory(id, entry):
     )
 
 
-def _true_false_question_factory(id, entry):
+def _true_false_question_factory(id: int, entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     answers = []
     parsed_correctness = try_parse_bool(entry["correct"])
@@ -77,19 +88,29 @@ def _true_false_question_factory(id, entry):
     )
 
 
+class SupportedLibrary(NamedTuple):
+    formats: List[str]
+    make_question: Callable[[int, dict[str, Any]], dict[str, Any]]
+
+
 SUPPORTED_LIBRARIES = {
-    "H5P.MultiChoice": {
-        "formats": ["multiple-choice"],
-        "factory": _multichoice_question_factory,
-    },
-    "H5P.TrueFalse": {
-        "formats": ["true-false"],
-        "factory": _true_false_question_factory,
-    },
+    "H5P.MultiChoice": SupportedLibrary(
+        ["multiple-choice"],
+        _multichoice_question_factory,
+    ),
+    "H5P.TrueFalse": SupportedLibrary(
+        ["true-false"],
+        _true_false_question_factory,
+    ),
 }
 
 
-def _add_question(id, library, entry, questions):
+def _add_question(
+    id: int,
+    library: str,
+    entry: dict[str, Any],
+    questions: List[dict[str, Any]],
+):
     question = {}
     question["collaborator_solutions"] = [
         {
@@ -104,8 +125,8 @@ def _add_question(id, library, entry, questions):
     ]
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
-        question["formats"] = lib["formats"]
-        question.update(**lib["factory"](id, entry))
+        question["formats"] = lib.formats
+        question.update(**lib.make_question(id, entry))
         questions.append(question)
     elif library == "H5P.QuestionSet":
         for i, q in enumerate(entry["questions"]):
@@ -118,7 +139,7 @@ def _add_question(id, library, entry, questions):
         logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
 
 
-def questions_from_h5p(h5p_in):
+def questions_from_h5p(h5p_in: dict[str, Any]):
     assert "content" in h5p_in, "Exercise content is missing"
     assert "h5p" in h5p_in and "mainLibrary" in h5p_in["h5p"], \
         "Exercise h5p library missing"
@@ -129,7 +150,7 @@ def questions_from_h5p(h5p_in):
     return questions
 
 
-def tags_from_metadata(metadata):
+def tags_from_metadata(metadata: dict[str, Any]):
     tags = metadata.get("tags", [])
     tag_keys = [
         "assignment_type",
@@ -167,7 +188,7 @@ def tags_from_metadata(metadata):
     return tags
 
 
-def load_h5p_interactive(interactive_path, private_path):
+def load_h5p_interactive(interactive_path: str, private_path: str):
     metadata_path = os.path.join(interactive_path, "metadata.json")
     content_path = os.path.join(interactive_path, "content.json")
     h5p_path = os.path.join(interactive_path, "h5p.json")
@@ -197,7 +218,12 @@ def load_h5p_interactive(interactive_path, private_path):
     return h5p_in
 
 
-def handle_attachments(attachments, nickname, node, media_handler):
+def handle_attachments(
+    attachments: List[str],
+    nickname: str,
+    node: etree.ElementBase,
+    media_handler: Callable[[str, etree.ElementBase, str, bool], None]
+):
     # The idea is to be relatively generic with the xpath and handle
     # results conditionally in the loop
     # No namespaces at this point (except when they have been included

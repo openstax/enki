@@ -1,6 +1,6 @@
 import re
 import os
-from typing import Optional
+from typing import Optional, Union
 from contextlib import contextmanager
 from time import time
 import inspect
@@ -66,7 +66,7 @@ def recursive_merge(
     return default(lhs, rhs)
 
 
-def try_parse_bool(maybe_bool):
+def try_parse_bool(maybe_bool: Union[bool, str, int, float]):
     result = None
     if isinstance(maybe_bool, bool):
         result = maybe_bool
