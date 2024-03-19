@@ -1,0 +1,225 @@
+import logging
+import os
+import json
+from pathlib import Path
+
+from lxml import etree
+from .utils import recursive_merge, try_parse_bool
+
+
+logger = logging.getLogger("nebuchadnezzar")
+
+
+def _answer_factory(id, content_html, correctness, feedback_html):
+    b_correctness = try_parse_bool(correctness)
+    return {
+        "id": id,
+        "content_html": content_html,
+        # cookbook/lib/kitchen/injected_question_element.rb#L72
+        "correctness": "1.0" if b_correctness else "0.0",
+        "feedback_html": feedback_html,
+    }
+
+
+def _question_factory(id, stem_html, answers, is_answer_order_important):
+    return {
+        "id": id,
+        "stem_html": stem_html,
+        "answers": answers,
+        "is_answer_order_important": is_answer_order_important,
+    }
+
+
+def _multichoice_question_factory(id, entry):
+    behavior = entry.get("behaviour", {})
+    random_answers = try_parse_bool(behavior.get("randomAnswers", False))
+    answers = [
+        _answer_factory(
+            id=index + 1,
+            content_html=answer["text"],
+            correctness=answer["correct"],
+            feedback_html=answer["tipsAndFeedback"]["chosenFeedback"],
+        )
+        for index, answer in enumerate(entry["answers"])
+    ]
+    return _question_factory(
+        id=id,
+        stem_html=entry["question"],
+        answers=answers,
+        is_answer_order_important=not random_answers
+    )
+
+
+def _true_false_question_factory(id, entry):
+    behavior = entry.get("behaviour", {})
+    answers = []
+    parsed_correctness = try_parse_bool(entry["correct"])
+    for index, option in enumerate((True, False)):
+        is_correct = parsed_correctness == option
+        feedback_key = (
+            "feedbackOnCorrect"
+            if is_correct
+            else "feedbackOnWrong"
+        )
+        answers.append(
+            _answer_factory(
+                id=index + 1,
+                content_html=str(option),
+                correctness=is_correct,
+                feedback_html=behavior.get(feedback_key, ""),
+            )
+        )
+    return _question_factory(
+        id=id,
+        stem_html=entry["question"],
+        answers=answers,
+        is_answer_order_important=True,
+    )
+
+
+SUPPORTED_LIBRARIES = {
+    "H5P.MultiChoice": {
+        "formats": ["multiple-choice"],
+        "factory": _multichoice_question_factory,
+    },
+    "H5P.TrueFalse": {
+        "formats": ["true-false"],
+        "factory": _true_false_question_factory,
+    },
+}
+
+
+def _add_question(id, library, entry, questions):
+    question = {}
+    question["collaborator_solutions"] = [
+        {
+            "content_html": entry[key],
+            "solution_type": solution_type
+        }
+        for key, solution_type in (
+            ("detailedSolution", "detailed"),
+            ("summarySolution", "summary")
+        )
+        if key in entry and len(entry[key]) > 0
+    ]
+    if library in SUPPORTED_LIBRARIES:
+        lib = SUPPORTED_LIBRARIES[library]
+        question["formats"] = lib["formats"]
+        question.update(**lib["factory"](id, entry))
+        questions.append(question)
+    elif library == "H5P.QuestionSet":
+        for i, q in enumerate(entry["questions"]):
+            sub_library = q["library"].split(" ")[0]
+            sub_entry = q["params"]
+            assert sub_library != "H5P.QuestionSet", \
+                "Question sets cannot contain question sets"
+            _add_question(i + 1, sub_library, sub_entry, questions)
+    else:  # pragma: no cover
+        logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
+
+
+def questions_from_h5p(h5p_in):
+    assert "content" in h5p_in, "Exercise content is missing"
+    assert "h5p" in h5p_in and "mainLibrary" in h5p_in["h5p"], \
+        "Exercise h5p library missing"
+    questions = []
+    main_library = h5p_in["h5p"]["mainLibrary"]
+
+    _add_question(1, main_library, h5p_in["content"], questions)
+    return questions
+
+
+def tags_from_metadata(metadata):
+    tags = metadata.get("tags", [])
+    tag_keys = [
+        "assignment_type",
+        "blooms",
+        "dok",
+        "feature_page",
+        "feature_id",
+        "time",
+    ]
+
+    def add_tag(name, value):
+        name = name.replace("_", "-")
+        tags.append(f"{name}:{value}")
+
+    for k in filter(lambda k: k in metadata, tag_keys):
+        add_tag(k, metadata[k])
+
+    for book in metadata.get("books", []):
+        b = book["name"]
+        for k, v in book.items():
+            if k in {"lo", "aplo"}:
+                assert isinstance(v, list), f"BUG: {k} should be a list"
+                for sub_v in v:
+                    add_tag(k, f"{b}:{sub_v}")
+            else:
+                assert isinstance(v, (str, int, bool, float)), \
+                    f"BUG: unsupported value: {k}"
+                if k in {"aacn", "nclex"}:
+                    add_tag("nursing", f"{k}:{v}")
+                elif k == "name":
+                    add_tag("book-slug", v)
+                else:
+                    add_tag(k, v)
+
+    return tags
+
+
+def load_h5p_interactive(interactive_path, private_path):
+    metadata_path = os.path.join(interactive_path, "metadata.json")
+    content_path = os.path.join(interactive_path, "content.json")
+    h5p_path = os.path.join(interactive_path, "h5p.json")
+    private_metadata_path = os.path.join(private_path, "metadata.json")
+    private_content_path = os.path.join(private_path, "content.json")
+    if (
+        not os.path.exists(metadata_path) or
+        not os.path.exists(content_path) or
+        not os.path.exists(h5p_path)
+    ):
+        logger.error(f"MISSING INTERACTIVE DATA: {interactive_path}")
+        return None
+    h5p_in = {}
+    h5p_in["h5p"] = json.loads(Path(h5p_path).read_bytes())
+    h5p_in["content"] = recursive_merge(
+        json.loads(Path(content_path).read_bytes()),
+        json.loads(Path(private_content_path).read_bytes())
+        if os.path.exists(private_content_path)
+        else {},
+    )
+    h5p_in["metadata"] = recursive_merge(
+        json.loads(Path(metadata_path).read_bytes()),
+        json.loads(Path(private_metadata_path).read_bytes())
+        if os.path.exists(private_metadata_path)
+        else {},
+    )
+    return h5p_in
+
+
+def handle_attachments(attachments, nickname, node, media_handler):
+    # The idea is to be relatively generic with the xpath and handle
+    # results conditionally in the loop
+    # No namespaces at this point (except when they have been included
+    # in the H5P content like for math), so names should be mostly local
+    for media_elem in node.xpath(
+        '//img[@src][not(starts-with(@src, "http"))] |'
+        '//audio[@src][not(starts-with(@src, "http"))] |'
+        '//video//source[@src][not(starts-with(@src, "http"))]'
+    ):
+        attrib = "src"
+        is_image = media_elem.tag == "img"
+        uri = media_elem.attrib[attrib]
+        if uri not in attachments:  # pragma: no cover
+            logger.warning(f"Resource not found in H5P attachments: {uri}")
+        try:
+            media_handler(nickname, media_elem, attrib, is_image)
+        except Exception as e:  # pragma: no cover
+            logger.error(
+                f"Error while handling resource file ({uri}): {e}"
+            )
+            text = f'[missing_resource: {uri}]'
+            comment = etree.Comment(etree.tostring(media_elem))
+            comment.tail = text
+            parent = media_elem.getparent()
+            parent.replace(media_elem, comment)

@@ -10,8 +10,6 @@ import os
 import logging
 from copy import copy
 from functools import lru_cache
-import json
-from pathlib import Path
 
 import jinja2
 import lxml.html
@@ -29,8 +27,8 @@ from .xml_utils import (
     squash_xml_to_text,
     xpath_html,
 )
-from .utils import recursive_merge, try_parse_bool
 from .async_job_queue import AsyncJobQueue
+from . import h5p_injection
 
 logger = logging.getLogger("nebuchadnezzar")
 
@@ -424,7 +422,7 @@ def interactive_callback_factory(
     match,
     path_resolver,
     docs_by_id,
-    media_handler
+    media_handler,
 ):
     """Create a callback function to replace an exercise by fetching from
     the repository."""
@@ -450,212 +448,6 @@ def interactive_callback_factory(
             target_module, feature = context
             annotate_exercise(exercise, elem, target_module, feature)
 
-    def _load_h5p_interactive(interactive_path, private_path):
-        metadata_path = os.path.join(interactive_path, "metadata.json")
-        content_path = os.path.join(interactive_path, "content.json")
-        h5p_path = os.path.join(interactive_path, "h5p.json")
-        private_metadata_path = os.path.join(private_path, "metadata.json")
-        private_content_path = os.path.join(private_path, "content.json")
-        if (
-            not os.path.exists(metadata_path) or
-            not os.path.exists(content_path) or
-            not os.path.exists(h5p_path)
-        ):
-            logger.error(f"MISSING INTERACTIVE DATA: {interactive_path}")
-            return None
-        h5p_in = {}
-        h5p_in["h5p"] = json.loads(Path(h5p_path).read_bytes())
-        h5p_in["content"] = recursive_merge(
-            json.loads(Path(content_path).read_bytes()),
-            json.loads(Path(private_content_path).read_bytes())
-            if os.path.exists(private_content_path)
-            else {},
-        )
-        h5p_in["metadata"] = recursive_merge(
-            json.loads(Path(metadata_path).read_bytes()),
-            json.loads(Path(private_metadata_path).read_bytes())
-            if os.path.exists(private_metadata_path)
-            else {},
-        )
-        return h5p_in
-
-    def _answer_factory(id, content_html, correctness, feedback_html):
-        b_correctness = try_parse_bool(correctness)
-        return {
-            "id": id,
-            "content_html": content_html,
-            # cookbook/lib/kitchen/injected_question_element.rb#L72
-            "correctness": "1.0" if b_correctness else "0.0",
-            "feedback_html": feedback_html,
-        }
-
-    def _question_factory(id, stem_html, answers, is_answer_order_important):
-        return {
-            "id": id,
-            "stem_html": stem_html,
-            "answers": answers,
-            "is_answer_order_important": is_answer_order_important,
-        }
-
-    def _multichoice_question_factory(id, entry):
-        behavior = entry.get("behaviour", {})
-        random_answers = try_parse_bool(behavior.get("randomAnswers", False))
-        answers = [
-            _answer_factory(
-                id=index + 1,
-                content_html=answer["text"],
-                correctness=answer["correct"],
-                feedback_html=answer["tipsAndFeedback"]["chosenFeedback"],
-            )
-            for index, answer in enumerate(entry["answers"])
-        ]
-        return _question_factory(
-            id=id,
-            stem_html=entry["question"],
-            answers=answers,
-            is_answer_order_important=not random_answers
-        )
-
-    def _true_false_question_factory(id, entry):
-        behavior = entry.get("behaviour", {})
-        answers = []
-        parsed_correctness = try_parse_bool(entry["correct"])
-        for index, option in enumerate((True, False)):
-            is_correct = parsed_correctness == option
-            feedback_key = (
-                "feedbackOnCorrect"
-                if is_correct
-                else "feedbackOnWrong"
-            )
-            answers.append(
-                _answer_factory(
-                    id=index + 1,
-                    content_html=str(option),
-                    correctness=is_correct,
-                    feedback_html=behavior.get(feedback_key, ""),
-                )
-            )
-        return _question_factory(
-            id=id,
-            stem_html=entry["question"],
-            answers=answers,
-            is_answer_order_important=True,
-        )
-
-    def _questions_from_h5p(h5p_in):
-        assert "content" in h5p_in, "Exercise content is missing"
-        assert "h5p" in h5p_in and "mainLibrary" in h5p_in["h5p"], \
-            "Exercise h5p library missing"
-        questions = []
-        main_library = h5p_in["h5p"]["mainLibrary"]
-
-        supported_libraries = {
-            "H5P.MultiChoice": {
-                "formats": ["multiple-choice"],
-                "factory": _multichoice_question_factory,
-            },
-            "H5P.TrueFalse": {
-                "formats": ["true-false"],
-                "factory": _true_false_question_factory,
-            },
-        }
-
-        def add_question(id, library, entry):
-            question = {}
-            question["stimulus_html"] = entry.get("questionStimulus", "")
-            question["collaborator_solutions"] = [
-                {
-                    "content_html": entry[key],
-                    "solution_type": solution_type
-                }
-                for key, solution_type in (
-                    ("detailedSolution", "detailed"),
-                    ("summarySolution", "summary")
-                )
-                if key in entry and len(entry[key]) > 0
-            ]
-            if library in supported_libraries:
-                lib = supported_libraries[library]
-                question["formats"] = lib["formats"]
-                question.update(**lib["factory"](id, entry))
-                questions.append(question)
-            elif library == "H5P.QuestionSet":
-                for i, q in enumerate(entry["questions"]):
-                    sub_library = q["library"].split(" ")[0]
-                    sub_entry = q["params"]
-                    assert sub_library != "H5P.QuestionSet", \
-                        "Question sets cannot contain question sets"
-                    add_question(i + 1, sub_library, sub_entry)
-            else:  # pragma: no cover
-                logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
-
-        add_question(1, main_library, h5p_in["content"])
-        return questions
-
-    def _tags_from_metadata(metadata):
-        tags = metadata.get("tags", [])
-        tag_keys = [
-            "assignment_type",
-            "blooms",
-            "dok",
-            "feature_page",
-            "feature_id",
-            "time",
-        ]
-
-        def add_tag(name, value):
-            name = name.replace("_", "-")
-            tags.append(f"{name}:{value}")
-
-        for k in filter(lambda k: k in metadata, tag_keys):
-            add_tag(k, metadata[k])
-
-        for book in metadata.get("books", []):
-            b = book["name"]
-            for k, v in book.items():
-                if k in {"lo", "aplo"}:
-                    assert isinstance(v, list), f"BUG: {k} should be a list"
-                    for sub_v in v:
-                        add_tag(k, f"{b}:{sub_v}")
-                else:
-                    assert isinstance(v, (str, int, bool, float)), \
-                        f"BUG: unsupported value: {k}"
-                    if k in {"aacn", "nclex"}:
-                        add_tag("nursing", f"{k}:{v}")
-                    elif k == "name":
-                        add_tag("book-slug", v)
-                    else:
-                        add_tag(k, v)
-
-        return tags
-
-    def _handle_attachments(attachments, nickname, node):
-        # The idea is to be relatively generic with the xpath and handle
-        # results conditionally in the loop
-        # No namespaces at this point (except when they have been included
-        # in the H5P content like for math), so names should be mostly local
-        for media_elem in node.xpath(
-            '//img[@src][not(starts-with(@src, "http"))] |'
-            '//audio[@src][not(starts-with(@src, "http"))] |'
-            '//video//source[@src][not(starts-with(@src, "http"))]'
-        ):
-            attrib = "src"
-            is_image = media_elem.tag == "img"
-            uri = media_elem.attrib[attrib]
-            if uri not in attachments:  # pragma: no cover
-                logger.warning(f"Resource not found in H5P attachments: {uri}")
-            try:
-                media_handler(nickname, media_elem, attrib, is_image)
-            except Exception as e:  # pragma: no cover
-                logger.error(
-                    f"Error while handling resource file ({uri}): {e}"
-                )
-                text = f'[missing_resource: {uri}]'
-                comment = etree.Comment(etree.tostring(media_elem))
-                comment.tail = text
-                parent = media_elem.getparent()
-                parent.replace(media_elem, comment)
-
     def _replace_exercises(elem, page_uuids):
         nickname = elem.get("href")[len(match) + 1:]
         interactive_path = path_resolver.get_public_interactives_path(
@@ -667,7 +459,10 @@ def interactive_callback_factory(
         )
         private_path = path_resolver.get_private_interactives_path(nickname)
         css_class = elem.get("class")
-        h5p_in = _load_h5p_interactive(interactive_path, private_path)
+        h5p_in = h5p_injection.load_h5p_interactive(
+            interactive_path,
+            private_path,
+        )
 
         if not h5p_in:
             nodes = get_missing_exercise_placeholder(relpath, nickname)
@@ -675,22 +470,37 @@ def interactive_callback_factory(
             attachments = h5p_in["metadata"]["attachments"]
             exercise = {}
             exercise["nickname"] = nickname
-            exercise["tags"] = _tags_from_metadata(h5p_in["metadata"])
+            exercise["tags"] = h5p_injection.tags_from_metadata(
+                h5p_in["metadata"]
+            )
             exercise["url"] = relpath
             exercise["class"] = css_class
-            exercise["questions"] = questions = _questions_from_h5p(h5p_in)
+            exercise["questions"] = questions = (
+                h5p_injection.questions_from_h5p(h5p_in)
+            )
             exercise["is_vocab"] = False
+            exercise["stimulus_html"] = h5p_in["content"].get(
+                "questionStimulus", ""
+            )
 
             assert len(questions) > 0, "No exercise found!"
             _annotate_exercise(elem, exercise, h5p_in["metadata"], page_uuids)
 
             html = render_exercise(exercise)
+
             try:
                 nodes = etree_from_str("<div>{}</div>".format(html))
             except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
                 nodes = etree.HTML(html)[0]  # body node
+
             for node in nodes:
-                _handle_attachments(attachments, nickname, node)
+                h5p_injection.handle_attachments(
+                    attachments,
+                    nickname,
+                    node,
+                    media_handler,
+                )
+
         parent = elem.getparent()
         for child in nodes:
             parent.insert(parent.index(elem), child)
