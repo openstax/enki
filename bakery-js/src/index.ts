@@ -190,9 +190,10 @@ epubCommand
 
       // Copy the CSS file to the destination
       const cssContents = readFileSync(
-        `${sourceDir}/${DIRNAMES.IO_BAKED}/the-style-pdf.css`,
+        `${sourceDir}/${DIRNAMES.IO_BAKED}/${opfFile.parsed.slug}-pdf.css`,
         'utf-8'
       )
+      // NOTE: Each css file has the same name in a different book directory
       writeFileSync(
         `${destinationDir}/${opfFile.parsed.slug}/the-style-epub.css`,
         cssContents

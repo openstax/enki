@@ -100,12 +100,15 @@ def main():
     in_dir = Path(sys.argv[1]).resolve(strict=True)
     original_resources_dir = Path(sys.argv[2]).resolve(strict=True)
     resources_parent_dir = Path(sys.argv[3]).resolve(strict=True)
+    content_version = sys.argv[4]
     resources_dir = resources_parent_dir / resources_dir_name
     resources_dir.mkdir(exist_ok=True)
 
     cnxml_files = in_dir.glob("**/*.cnxml")
 
     filename_to_data = {}
+    versioned_root = resources_dir / content_version
+    versioned_subdirs = set()
 
     for child in original_resources_dir.glob('*'):
         if child.is_dir():
@@ -140,7 +143,11 @@ def main():
             new_resource_child_path = resource_original_filepath.relative_to(
                 original_resources_dir)
 
-            new_resource_src = f"../{dom_resources_dir_name}/{new_resource_child_path}"
+            child_directory = new_resource_child_path.parts[0]
+            if child_directory not in versioned_subdirs:
+                versioned_subdirs.add(child_directory)
+
+            new_resource_src = f"../{dom_resources_dir_name}/{content_version}/{new_resource_child_path}"
 
             print(
                 f"rewriting iframe source from {resource_original_src} to {new_resource_src}")
@@ -148,6 +155,14 @@ def main():
 
         with cnxml_file.open(mode="wb") as f:
             doc.write(f, encoding="utf-8", xml_declaration=False)
+
+    if len(versioned_subdirs) > 0:
+        versioned_root.mkdir(parents=True)
+        for child_directory in versioned_subdirs:
+            shutil.move(
+                resources_dir / child_directory,
+                versioned_root / child_directory
+            )
 
     all_data_to_json(resources_dir, filename_to_data)
 

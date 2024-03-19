@@ -1,10 +1,9 @@
 # Formerly git-fetch-metadata
 parse_book_dir
 
-[[ "$ARG_GIT_REF" == latest ]] && ARG_GIT_REF=main
-
 cp -R "$IO_FETCHED/." "$IO_FETCH_META"
 neb pre-assemble "$IO_FETCH_META"
+commit_sha="$(set +x && git -C "$IO_FETCH_META" log --format="%h" -1)"
 rm -rf "$IO_FETCH_META/.git"
 
 repo_info="$(set +x && neb parse-repo "$IO_FETCH_META")"
@@ -15,7 +14,7 @@ export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
 # Missing media files will still be caught by git-validate-references
 if [[ -d "${media_root:?}" ]]; then
-    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)"
+    fetch-map-resources "${pages_root:?}" "${media_root:?}" "$(dirname $IO_INITIAL_RESOURCES)" "${commit_sha:?}"
     rm -rf "$media_root"
 fi
 
