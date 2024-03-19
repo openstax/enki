@@ -480,7 +480,7 @@ def interactive_callback_factory(
             )
             exercise["is_vocab"] = False
             exercise["stimulus_html"] = h5p_in["content"].get(
-                "questionStimulus", ""
+                "questionSetStimulus", ""
             )
 
             assert len(questions) > 0, "No exercise found!"

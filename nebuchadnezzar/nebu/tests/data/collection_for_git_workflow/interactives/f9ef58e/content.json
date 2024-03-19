@@ -389,5 +389,6 @@
     "answeredText": "Answered",
     "currentQuestionText": "Current question",
     "navigationLabel": "Questions"
-  }
+  },
+  "questionSetStimulus": "<p>Something something</p>\n"
 }
