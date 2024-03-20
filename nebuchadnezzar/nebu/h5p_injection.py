@@ -11,6 +11,31 @@ from .utils import recursive_merge, try_parse_bool
 logger = logging.getLogger("nebuchadnezzar")
 
 
+POSSIBLE_PROBLEMS = """\
+Possible causes are:
+- Private content may not have been fetched
+- The private content may be in the wrong format
+- The content may be malformed
+"""
+
+MISSING_PROPERTY_ERROR = (
+    "Content was missing the following required property: {key}"
+)
+
+NO_SOLUTION_ERROR = "Content was missing solution."
+
+
+class H5PInjectionError(Exception):
+    def __init__(self, nickname, error) -> None:
+        super().__init__(
+            "H5P content injection error\n\n"
+            f"{error}\n"
+            f"Content ID: {nickname}\n"
+            "\n" +
+            POSSIBLE_PROBLEMS
+        )
+
+
 def _answer_factory(
     id: int,
     content_html: str,
@@ -53,6 +78,7 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
         )
         for index, answer in enumerate(entry["answers"])
     ]
+    assert len(answers) > 0, NO_SOLUTION_ERROR
     return _question_factory(
         id=id,
         stem_html=entry["question"],
@@ -144,16 +170,21 @@ def _add_question(
         logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
 
 
-def questions_from_h5p(h5p_in: dict[str, Any]):
-    assert "content" in h5p_in, "Exercise content is missing"
-    assert "h5p" in h5p_in and "mainLibrary" in h5p_in["h5p"], \
-        "Exercise h5p library missing"
-    questions = []
-    main_library = h5p_in["h5p"]["mainLibrary"]
-    metadata = h5p_in["metadata"]
-
-    _add_question(1, main_library, h5p_in["content"], metadata, questions)
-    return questions
+def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
+    try:
+        questions = []
+        main_library = h5p_in["h5p"]["mainLibrary"]
+        metadata = h5p_in["metadata"]
+        _add_question(1, main_library, h5p_in["content"], metadata, questions)
+        return questions
+    except KeyError as ke:
+        key = ke.args[0]
+        raise H5PInjectionError(
+            nickname, MISSING_PROPERTY_ERROR.format(key=key)
+        )
+    except AssertionError as ae:
+        underlying_error = ae.args[0]
+        raise H5PInjectionError(nickname, underlying_error)
 
 
 def tags_from_metadata(metadata: dict[str, Any]):

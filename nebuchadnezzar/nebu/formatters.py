@@ -476,7 +476,7 @@ def interactive_callback_factory(
             exercise["url"] = relpath
             exercise["class"] = css_class
             exercise["questions"] = questions = (
-                h5p_injection.questions_from_h5p(h5p_in)
+                h5p_injection.questions_from_h5p(nickname, h5p_in)
             )
             exercise["is_vocab"] = False
             exercise["stimulus_html"] = h5p_in["content"].get(
