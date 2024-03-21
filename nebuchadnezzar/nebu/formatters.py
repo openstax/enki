@@ -337,18 +337,23 @@ def annotate_exercise(exercise, elem, target_module, feature):
     exercise["required_context"]["ref"] = target_ref
 
 
-def get_missing_exercise_placeholder(uri, exercise_id):
-    logger.warning("MISSING EXERCISE: {}".format(uri))
-
+def get_exercise_placeholder(message, data_type):
     XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
     missing = etree.Element(
         XHTML + "span",
-        {"data-type": "missing-exercise"},
+        {"data-type": data_type},
         nsmap=HTML_DOCUMENT_NAMESPACES,
     )
-    missing.text = "MISSING EXERCISE: tag:{}".format(exercise_id)
+    missing.text = message
     nodes = [missing]
     return nodes
+
+
+def get_missing_exercise_placeholder(uri, exercise_id):
+    logger.warning("MISSING EXERCISE: {}".format(uri))
+    return get_exercise_placeholder(
+        f"MISSING EXERCISE: tag:{exercise_id}", "missing-exercise"
+    )
 
 
 def exercise_callback_factory(match, url_template, token=None):
@@ -475,30 +480,38 @@ def interactive_callback_factory(
             )
             exercise["url"] = relpath
             exercise["class"] = css_class
-            exercise["questions"] = questions = (
-                h5p_injection.questions_from_h5p(nickname, h5p_in)
-            )
             exercise["is_vocab"] = False
             exercise["stimulus_html"] = h5p_in["content"].get(
                 "questionSetStimulus", ""
             )
 
-            assert len(questions) > 0, "No exercise found!"
-            _annotate_exercise(elem, exercise, h5p_in["metadata"], page_uuids)
-
-            html = render_exercise(exercise)
-
             try:
-                nodes = etree_from_str("<div>{}</div>".format(html))
-            except etree.XMLSyntaxError:  # pragma: no cover (Probably HTML)
-                nodes = etree.HTML(html)[0]  # body node
+                exercise["questions"] = h5p_injection.questions_from_h5p(
+                    nickname, h5p_in
+                )
+                _annotate_exercise(
+                    elem, exercise, h5p_in["metadata"], page_uuids
+                )
 
-            for node in nodes:
-                h5p_injection.handle_attachments(
-                    attachments,
-                    nickname,
-                    node,
-                    media_handler,
+                html = render_exercise(exercise)
+
+                try:
+                    nodes = etree_from_str("<div>{}</div>".format(html))
+                except etree.XMLSyntaxError:  # pragma: no cover
+                    # (Probably HTML)
+                    nodes = etree.HTML(html)[0]  # body node
+
+                for node in nodes:
+                    h5p_injection.handle_attachments(
+                        attachments,
+                        nickname,
+                        node,
+                        media_handler,
+                    )
+            except h5p_injection.UnsupportedLibraryError as ule:
+                library = ule.args[0]
+                nodes = get_exercise_placeholder(
+                    f"UNSUPPORTED LIBRARY: {library}", "unsupported-library"
                 )
 
         parent = elem.getparent()

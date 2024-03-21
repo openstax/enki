@@ -6,7 +6,6 @@ from typing import Any, Callable, List, NamedTuple, Union
 
 from lxml import etree
 
-from .xml_utils import etree_from_str, etree_to_str
 from .utils import recursive_merge, try_parse_bool
 
 
