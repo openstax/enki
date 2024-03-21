@@ -24,6 +24,7 @@ from .templates.exercise_template import EXERCISE_TEMPLATE
 from .xml_utils import (
     HTML_DOCUMENT_NAMESPACES,
     etree_from_str,
+    etree_to_content,
     squash_xml_to_text,
     xpath_html,
 )
@@ -31,17 +32,6 @@ from .async_job_queue import AsyncJobQueue
 from . import h5p_injection
 
 logger = logging.getLogger("nebuchadnezzar")
-
-
-def etree_to_content(etree_, strip_root_node=False):
-    if strip_root_node:
-        return "".join(
-            node
-            if isinstance(node, str)
-            else etree.tostring(node).decode("utf-8")
-            for node in etree_.xpath("node()")
-        )
-    return etree.tostring(etree_)  # pragma: no cover
 
 
 def insert_includes(root_elem, page_uuids, includes, threads=20):
