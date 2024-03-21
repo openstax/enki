@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any, Callable, List, NamedTuple, Union
 
 from lxml import etree
+
+from .xml_utils import etree_from_str, etree_to_str
 from .utils import recursive_merge, try_parse_bool
 
 
@@ -26,14 +28,37 @@ NO_SOLUTION_ERROR = "Content was missing solution."
 
 
 class H5PInjectionError(Exception):
+    pass
+
+
+class H5PContentError(H5PInjectionError):
     def __init__(self, nickname, error) -> None:
         super().__init__(
             "H5P content injection error\n\n"
+            f"H5P Content ID: {nickname}\n"
             f"{error}\n"
-            f"Content ID: {nickname}\n"
             "\n" +
             POSSIBLE_PROBLEMS
         )
+
+
+class UnsupportedLibraryError(H5PInjectionError):
+    def __init__(self, library) -> None:
+        super().__init__(library)
+
+
+def _make_collaborator_solutions(entry):
+    return [
+        {
+            "content_html": entry[key],
+            "solution_type": solution_type
+        }
+        for key, solution_type in (
+            ("detailedSolution", "detailed"),
+            ("summarySolution", "summary")
+        )
+        if key in entry and len(entry[key]) > 0
+    ]
 
 
 def _answer_factory(
@@ -121,16 +146,16 @@ class SupportedLibrary(NamedTuple):
 
 SUPPORTED_LIBRARIES = {
     "H5P.MultiChoice": SupportedLibrary(
-        lambda m: (
+        get_formats=lambda m: (
             ["free-response", "multiple-choice"]
             if m.get("is_free_response_supported", False)
             else ["multiple-choice"]
         ),
-        _multichoice_question_factory,
+        make_question=_multichoice_question_factory,
     ),
     "H5P.TrueFalse": SupportedLibrary(
-        lambda _: ["true-false"],
-        _true_false_question_factory,
+        get_formats=lambda _: ["true-false"],
+        make_question=_true_false_question_factory,
     ),
 }
 
@@ -140,20 +165,10 @@ def _add_question(
     library: str,
     entry: dict[str, Any],
     metadata: dict[str, Any],
-    questions: List[dict[str, Any]],
+    questions: List[dict[str, Any]] = [],
 ):
     question = {}
-    question["collaborator_solutions"] = [
-        {
-            "content_html": entry[key],
-            "solution_type": solution_type
-        }
-        for key, solution_type in (
-            ("detailedSolution", "detailed"),
-            ("summarySolution", "summary")
-        )
-        if key in entry and len(entry[key]) > 0
-    ]
+    question["collaborator_solutions"] = _make_collaborator_solutions(entry)
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
         question["formats"] = lib.get_formats(metadata)
@@ -166,8 +181,8 @@ def _add_question(
             assert sub_library != "H5P.QuestionSet", \
                 "Question sets cannot contain question sets"
             _add_question(i + 1, sub_library, sub_entry, metadata, questions)
-    else:  # pragma: no cover
-        logger.error("UNSUPPORTED EXERCISE TYPE: {}".format(library))
+    else:
+        raise UnsupportedLibraryError(library)
 
 
 def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
@@ -179,12 +194,12 @@ def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
         return questions
     except KeyError as ke:
         key = ke.args[0]
-        raise H5PInjectionError(
+        raise H5PContentError(
             nickname, MISSING_PROPERTY_ERROR.format(key=key)
         )
     except AssertionError as ae:
         underlying_error = ae.args[0]
-        raise H5PInjectionError(nickname, underlying_error)
+        raise H5PContentError(nickname, underlying_error)
 
 
 def tags_from_metadata(metadata: dict[str, Any]):
