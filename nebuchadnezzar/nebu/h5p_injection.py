@@ -167,11 +167,23 @@ def _add_question(
     questions: List[dict[str, Any]] = [],
 ):
     question = {}
-    question["collaborator_solutions"] = _make_collaborator_solutions(entry)
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
         question["formats"] = lib.get_formats(metadata)
         question.update(**lib.make_question(id, entry))
+        question["collaborator_solutions"] = _make_collaborator_solutions(
+            entry
+        )
+        if entry.get("isSolutionPublic", None) is not True:
+            question["answers"] = [
+                {
+                    k: v
+                    for k, v in answer.items()
+                    if k not in ("correctness", "feedback_html")
+                }
+                for answer in question["answers"]
+            ]
+            question["collaborator_solutions"] = []
         questions.append(question)
     elif library == "H5P.QuestionSet":
         for i, q in enumerate(entry["questions"]):

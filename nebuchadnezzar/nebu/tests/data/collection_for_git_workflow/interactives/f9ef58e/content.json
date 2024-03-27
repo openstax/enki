@@ -67,7 +67,7 @@
           "confirmLabel": "Confirm"
         },
         "question": "<p>Q1</p>\n",
-        "summarySolution": "",
+        "summarySolution": "<p>das</p>\n\n<p><img src=\"media/assemble-h5p-test-image.png\" style=\"width: 300px; height: 220px;\"/></p>\n",
         "detailedSolution": "",
         "answers": [
           {
@@ -88,7 +88,8 @@
             },
             "text": "<p>Q1A2</p>\n"
           }
-        ]
+        ],
+        "isSolutionPublic": true
       },
       "library": "H5P.MultiChoice 1.16",
       "metadata": {
@@ -148,7 +149,8 @@
         "question": "<p>Q2</p>\n",
         "summarySolution": "<p>das</p>\n\n<p><img src=\"media/assemble-h5p-test-image.png\" style=\"width: 300px; height: 220px;\"/></p>\n",
         "detailedSolution": "",
-        "correct": "true"
+        "correct": "true",
+        "isSolutionPublic": false
       },
       "library": "H5P.TrueFalse 1.8",
       "metadata": {
@@ -242,7 +244,8 @@
             },
             "text": "<p>Q3A2</p>\n"
           }
-        ]
+        ],
+        "isSolutionPublic": true
       },
       "library": "H5P.MultiChoice 1.16",
       "metadata": {
@@ -336,7 +339,8 @@
             },
             "text": "<p>Q4A2</p>\n"
           }
-        ]
+        ],
+        "isSolutionPublic": true
       },
       "library": "H5P.MultiChoice 1.16",
       "metadata": {

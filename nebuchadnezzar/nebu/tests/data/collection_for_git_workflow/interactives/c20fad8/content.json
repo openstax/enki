@@ -56,5 +56,6 @@
     "cancelLabel": "Cancel",
     "confirmLabel": "Confirm"
   },
-  "question": "<p>Which statement best compares and contrasts the aims and topics of natural philosophy had versus physics?</p>\n"
+  "question": "<p>Which statement best compares and contrasts the aims and topics of natural philosophy had versus physics?</p>\n",
+  "isSolutionPublic": false
 }
