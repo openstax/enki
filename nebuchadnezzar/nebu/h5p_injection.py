@@ -145,9 +145,9 @@ class SupportedLibrary(NamedTuple):
 
 SUPPORTED_LIBRARIES = {
     "H5P.MultiChoice": SupportedLibrary(
-        get_formats=lambda m: (
+        get_formats=lambda q: (
             ["free-response", "multiple-choice"]
-            if m.get("is_free_response_supported", False)
+            if q.get("isFreeResponseSupported", False) is True
             else ["multiple-choice"]
         ),
         make_question=_multichoice_question_factory,
@@ -163,13 +163,12 @@ def _add_question(
     id: int,
     library: str,
     entry: dict[str, Any],
-    metadata: dict[str, Any],
     questions: List[dict[str, Any]] = [],
 ):
     question = {}
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
-        question["formats"] = lib.get_formats(metadata)
+        question["formats"] = lib.get_formats(entry)
         question.update(**lib.make_question(id, entry))
         question["collaborator_solutions"] = _make_collaborator_solutions(
             entry
@@ -191,7 +190,7 @@ def _add_question(
             sub_entry = q["params"]
             assert sub_library != "H5P.QuestionSet", \
                 "Question sets cannot contain question sets"
-            _add_question(i + 1, sub_library, sub_entry, metadata, questions)
+            _add_question(i + 1, sub_library, sub_entry, questions)
     else:
         raise UnsupportedLibraryError(library)
 
@@ -200,8 +199,7 @@ def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
     try:
         questions = []
         main_library = h5p_in["h5p"]["mainLibrary"]
-        metadata = h5p_in["metadata"]
-        _add_question(1, main_library, h5p_in["content"], metadata, questions)
+        _add_question(1, main_library, h5p_in["content"], questions)
         return questions
     except KeyError as ke:
         key = ke.args[0]

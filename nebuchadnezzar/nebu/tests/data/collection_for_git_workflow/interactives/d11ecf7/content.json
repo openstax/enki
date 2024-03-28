@@ -97,5 +97,6 @@
   ],
   "summarySolution": "",
   "detailedSolution": "Blah blah blah!",
-  "isSolutionPublic": true
+  "isSolutionPublic": true,
+  "isFreeResponseSupported": true
 }
