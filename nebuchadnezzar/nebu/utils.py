@@ -47,12 +47,19 @@ def merge_by_index(lhs, rhs, merge_sequence, default):
     )
 
 
+def return_not_none(lhs, rhs):
+    if rhs is not None and lhs is not None:
+        raise Exception(f"Cannot merge values: {lhs} and {rhs}")
+    return rhs if rhs is not None else lhs
+
+
 def recursive_merge(
     lhs,
     rhs,
     *,
     merge_sequence=merge_by_index,
-    default=lambda lhs, rhs: rhs if rhs is not None else lhs
+    sequence_types=(list, tuple),
+    default=return_not_none,
 ):
     if isinstance(lhs, dict) and isinstance(rhs, dict):
         return lhs | rhs | {
@@ -61,7 +68,7 @@ def recursive_merge(
             )
             for k in set(lhs.keys()) & set(rhs.keys())
         }
-    elif isinstance(lhs, (list, tuple)) and isinstance(rhs, (list, tuple)):
+    elif isinstance(lhs, sequence_types) and isinstance(rhs, sequence_types):
         return merge_sequence(lhs, rhs, merge_sequence, default)
     return default(lhs, rhs)
 

@@ -5,7 +5,7 @@ import pytest
 
 
 def test_recursive_merge_dict():
-    a = {"x": 1, "y": [2], "z": {"w": [1]}}
+    a = {"x": None, "y": [None], "z": {"w": [None]}}
     b = {"x": 2, "y": [3], "z": {"w": [2]}}
     orig_a, orig_b = json.dumps(a), json.dumps(b)
     merged = recursive_merge(a, b)
@@ -21,12 +21,12 @@ def test_recursive_merge_dict():
     assert merged["z"]["w"] == [2]
     # Override default behavior to add int and/or float
     custom_default = recursive_merge(
-        a,
-        b,
+        {"x": 1, "y": [2], "z": {"w": [1]}},
+        {"x": 2, "y": [3], "z": {"w": [2]}},
         default=lambda a, b: a + b if isinstance(a, (int, float)) else b
     )
     assert custom_default["x"] == 3
-    default_favors_not_none = recursive_merge([1], None)
+    default_favors_not_none = recursive_merge([1], [None])
     assert default_favors_not_none == [1]
     default_favors_not_none = recursive_merge([1], [None])
     assert default_favors_not_none == [1]
@@ -37,8 +37,9 @@ def test_recursive_merge_dict():
     assert default_favors_not_none["b"] == [None]
     default_favors_not_none = recursive_merge([1, None, 3], [None, 2, None])
     assert default_favors_not_none == [1, 2, 3]
-    use_rhs_when_types_differ = recursive_merge([1], "s")
-    assert use_rhs_when_types_differ == "s"
+    with pytest.raises(Exception) as e:
+        recursive_merge([1], ["s"])
+    assert e.match("Cannot merge")
 
 
 @pytest.mark.parametrize(
