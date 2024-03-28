@@ -346,6 +346,36 @@ def get_missing_exercise_placeholder(uri, exercise_id):
     )
 
 
+def parse_exercise_html_to_etree(s):
+    try:
+        return etree_from_str(f"<div>{s}</div>")
+    except etree.XMLSyntaxError as xse:
+        body = etree.HTML(s, None)[0]  # body node
+        lineno = (xse.lineno - 1) if xse.lineno is not None else 0
+        end_lineno = (
+            lineno + 1
+            if lineno != 0 and xse.end_lineno is None
+            else xse.end_lineno
+        )
+        error_lines = "\n".join(s.splitlines()[lineno:end_lineno])
+        padding = "#" * 35
+        comment = etree.Comment(
+            "\n".join(
+                (
+                    "",
+                    f"{padding}WARNING{padding}",
+                    "Fell back to HTML parsing",
+                    f"Underlying XML error: {xse}",
+                    f"Relevant line(s):\n{error_lines}",
+                    f"{padding}WARNING{padding}",
+                    "",
+                )
+            )
+        )
+        body.insert(0, comment)
+        return body
+
+
 def exercise_callback_factory(match, url_template, token=None):
     """Create a callback function to replace an exercise by fetching from
     a server."""
@@ -399,10 +429,7 @@ def exercise_callback_factory(match, url_template, token=None):
                 'Exercise "items" array is nonsingular'
             exercise_content = exercise["items"][0]
             html = render_exercise(exercise_content)
-            try:
-                nodes = etree_from_str("<div>{}</div>".format(html))
-            except etree.XMLSyntaxError:  # Probably HTML
-                nodes = etree.HTML(html)[0]  # body node
+            nodes = parse_exercise_html_to_etree(html)
 
         parent = elem.getparent()
         for child in nodes:
@@ -484,12 +511,7 @@ def interactive_callback_factory(
                 )
 
                 html = render_exercise(exercise)
-
-                try:
-                    nodes = etree_from_str("<div>{}</div>".format(html))
-                except etree.XMLSyntaxError:  # pragma: no cover
-                    # (Probably HTML)
-                    nodes = etree.HTML(html)[0]  # body node
+                nodes = parse_exercise_html_to_etree(html)
 
                 for node in nodes:
                     h5p_injection.handle_attachments(
