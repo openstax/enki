@@ -71,6 +71,19 @@ def etree_to_str(root, pretty_print=True, encoding="utf-8"):
     return etree.tostring(root, pretty_print=pretty_print, encoding=encoding)
 
 
+def etree_to_content(etree_, strip_root_node=False) -> str:
+    if strip_root_node:
+        return "".join(
+            node
+            if isinstance(node, str)
+            else etree_to_str(node, pretty_print=False).decode("utf-8")
+            for node in etree_.xpath("node()")
+        )
+    return etree_to_str(etree_, pretty_print=False).decode(
+        "utf-8"
+    )  # pragma: no cover
+
+
 def squash_xml_to_text(elm, remove_namespaces=False):
     """Squash the given XML element (as `elm`) to a text containing XML.
     The outer most element/tag will be removed, but inner elements will

@@ -1,0 +1,10 @@
+{
+  "embedTypes": [
+    "iframe"
+  ],
+  "language": "en",
+  "license": "U",
+  "extraTitle": "",
+  "title": "",
+  "mainLibrary": "fake-unsupported-to-test-error"
+}

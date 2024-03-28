@@ -3,8 +3,9 @@ import sys
 import unittest
 
 from lxml import etree
-import pytest
+from nebu.xml_utils import etree_from_str, fix_namespaces, squash_xml_to_text
 
+import pytest
 
 IS_PY2 = sys.version_info.major == 2
 
@@ -27,7 +28,6 @@ class TestSquashXMLToText(unittest.TestCase):
 
     @property
     def target(self):
-        from nebu.xml_utils import squash_xml_to_text
         return squash_xml_to_text
 
     def test(self):
@@ -118,8 +118,6 @@ class TestSquashXMLToText(unittest.TestCase):
 
 
 def test_fixnamespaces(snapshot):
-    from nebu.xml_utils import fix_namespaces, etree_from_str
-
     before = etree_from_str(
         """\
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
@@ -171,7 +169,6 @@ def test_fixnamespaces(snapshot):
     ]
 )
 def test_fromstring(xml_doc, type):
-    from nebu.xml_utils import etree_from_str
     tree = etree_from_str(xml_doc)
-    assert tree, f"{type}: failed to parse"
+    assert len(tree) > 0, f"{type}: failed to parse"
     assert len(tree.xpath('//a')) > 0, f"{type}: bad parsing result"

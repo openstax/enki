@@ -108,3 +108,24 @@ def mock_aioresponses():
 def tmpcwd(tmpdir, monkeypatch):
     monkeypatch.chdir(tmpdir)
     return Path(str(tmpdir))
+
+
+@pytest.fixture
+def create_stub():
+    class Stub:
+        def __init__(self, call_actual=None):
+            self.calls = []
+            self._call_actual = call_actual
+
+        def calls_actual(self, actual):
+            return Stub(call_actual=actual)
+
+        def returns(self, value):
+            return Stub(call_actual=lambda *_args, **_kwargs: value)
+
+        def __call__(self, *args, **kwargs):
+            self.calls.append({"args": args, "kwargs": kwargs})
+            if self._call_actual is not None:
+                return self._call_actual(*args, **kwargs)
+
+    return Stub

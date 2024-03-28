@@ -30,8 +30,9 @@
     There are many ways to grill
     <link document="m46909">A link to another page without a version</link>
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
-    <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
-    <para id="exercise-1"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para><para id="exercise-2"><link class="os-embed" url="#exercise/Ch01-CI-Intro-RQ01"/></para>
+    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/781985d"/></para>
+    <para id="exercise-1"><link class="os-embed" url="{INTERACTIVES_ROOT}/fake-not-existing-to-test-error"/></para><para id="exercise-2"><link class="os-embed" url="#exercise/Ch01-CI-Intro-RQ01"/></para>
+    <para id="exercise-2"><link class="os-embed" url="{INTERACTIVES_ROOT}/d11ecf7"/></para>
   </para>
 
 </content>
