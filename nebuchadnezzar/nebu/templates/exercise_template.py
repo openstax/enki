@@ -46,11 +46,6 @@ EXERCISE_TEMPLATE_STR = """\
             {{ solution.content_html }}
         </div>
         {% endfor -%}
-        {% for solution in question.community_solutions -%}
-        <div data-type="question-solution" data-solution-source="community" data-solution-type="{{ solution.solution_type }}">
-            {{ solution.content_html }}
-        </div>
-        {% endfor -%}
     </div>
     {% endfor -%}
 </div>

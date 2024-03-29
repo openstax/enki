@@ -6,6 +6,7 @@
 # See LICENCE.txt for details.
 # ###
 import asyncio
+import os
 import logging
 from copy import copy
 from functools import lru_cache
@@ -19,30 +20,21 @@ from requests.exceptions import RequestException
 import backoff
 
 from .converters import cnxml_abstract_to_html
+from .templates.exercise_template import EXERCISE_TEMPLATE
 from .xml_utils import (
     HTML_DOCUMENT_NAMESPACES,
-    xpath_html,
     etree_from_str,
+    etree_to_content,
     squash_xml_to_text,
+    xpath_html,
 )
-from .templates.exercise_template import EXERCISE_TEMPLATE
 from .async_job_queue import AsyncJobQueue
+from . import h5p_injection
 
 logger = logging.getLogger("nebuchadnezzar")
 
 
-def etree_to_content(etree_, strip_root_node=False):
-    if strip_root_node:
-        return "".join(
-            node
-            if isinstance(node, str)
-            else etree.tostring(node).decode("utf-8")
-            for node in etree_.xpath("node()")
-        )
-    return etree.tostring(etree_)  # pragma: no cover
-
-
-def fetch_insert_includes(root_elem, page_uuids, includes, threads=20):
+def insert_includes(root_elem, page_uuids, includes, threads=20):
     async def async_exercise_fetching():
         loop = asyncio.get_running_loop()
         for match, proc in includes:
@@ -247,104 +239,163 @@ def assemble_collection(collection):
     return root
 
 
+def parse_context_tags(tags, elem, page_uuids):
+    if not tags:
+        return
+
+    # Annotate exercise with required context, if it exists
+    modules, feature = [], ""
+    for tag in tags:
+        if "context-cnxmod:" in tag:
+            modules.append(tag.split(":")[1])
+        if "context-cnxfeature:" in tag:
+            # Note: Assuming this tag will never be duplicated with
+            # multiple values in the exercise data
+            feature = tag.split(":")[1]
+
+    # It's possible that the feature tag is not present, or present but
+    # not valid (e.g. value of "context-cnxfeature:").
+    if not feature:
+        return
+
+    # There may be multiple `context-cnxmod:{uuid}` tags, each of which
+    # could be the parent page for this exercise, a different page in
+    # this book, or even invalid altogether. We'll prefer the first,
+    # fallback # to the second, and error in the last case.
+
+    parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
+    parent_page_uuid = parent_page_elem.get("id")
+    if parent_page_uuid.startswith("page_"):
+        # Strip `page_` prefix from ID to get UUID
+        parent_page_uuid = parent_page_uuid.split("page_")[1]
+
+    candidate_uuids = set(modules) & set(page_uuids)
+
+    # Check if the target feature ID is on the parent page for this
+    # exercise. If so, that takes priority over any context-cnxmod tag
+    # values, and should be picked even in cases where the parent page
+    # doesn't match one of the exercise tags. If the feature exists,
+    # we make sure the parent page UUID is included in candidate_uuids.
+    # Otherwise, remove parent page from candidate UUIDs.
+    maybe_feature = parent_page_elem.find(
+        './/*[@id="auto_{}_{}"]'.format(parent_page_uuid, feature)
+    )
+    if maybe_feature is None:
+        candidate_uuids.discard(parent_page_uuid)
+    else:
+        candidate_uuids.add(parent_page_uuid)
+
+    # No valid page UUIDs in exercise data
+    assert_msg = "No candidate uuid for exercise feature {} href={}"
+    assert len(candidate_uuids) > 0, assert_msg.format(
+        feature, elem.get("href")
+    )
+
+    if parent_page_uuid in candidate_uuids:
+        target_module = parent_page_uuid
+    else:
+        # Use an UUID in the intersection of page UUIDs and tag UUIDs
+        # This is somewhat arbritrary, but if we hit this scenario with
+        # more than one UUID in the set things have gone pretty
+        # unexpectedly
+        target_module = candidate_uuids.pop()
+    return target_module, feature
+
+
+def annotate_exercise(exercise, elem, target_module, feature):
+    # As a final validation check, confirm the feature is on the target
+    # module and otherwise raise
+    #
+    # NOTE: The following uses xpath() and find() together which may seem
+    # bizarre, but it's a work around for the fact that using just an
+    # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
+    # are multiple threads due to the tree editing that occurs in
+    # _replace_exercises.
+    target_ref = "auto_{}_{}".format(target_module, feature)
+    feature_element = elem.xpath("/*")[0].find(
+        './/*[@id="{}"]'.format(target_ref)
+    )
+
+    assert_msg = "Feature {} not in {} href={}".format(
+        feature, target_module, elem.get("href")
+    )
+    assert feature_element is not None, assert_msg
+
+    exercise["required_context"] = {}
+    exercise["required_context"]["module"] = target_module
+    exercise["required_context"]["feature"] = feature
+    exercise["required_context"]["ref"] = target_ref
+
+
+def get_exercise_placeholder(message, data_type):
+    XHTML = HTML_DOCUMENT_NAMESPACES["xhtml"]
+    div = etree.Element(
+        f"{{{XHTML}}}div",
+        {},
+        nsmap=HTML_DOCUMENT_NAMESPACES,
+        xmlns=XHTML
+    )
+    etree.SubElement(
+        div,
+        f"{{{XHTML}}}span",
+        {"data-type": data_type},
+        nsmap=HTML_DOCUMENT_NAMESPACES,
+    ).text = message
+    return div
+
+
+def get_missing_exercise_placeholder(uri, exercise_id):
+    logger.warning("MISSING EXERCISE: {}".format(uri))
+    return get_exercise_placeholder(
+        f"MISSING EXERCISE: tag:{exercise_id}", "missing-exercise"
+    )
+
+
+def parse_exercise_html_to_etree(s: str, content_id: str):
+    try:
+        return etree_from_str(f"<div>{s}</div>")
+    except etree.XMLSyntaxError as xse:
+        logger.warning(
+            f"WARNING: Falling back to HTML parsing for: {content_id}\n"
+            f"\tUnderlying XML error: {xse}"
+        )
+
+        padding = "#" * 35
+        comment = etree.Comment(
+            "\n"
+            f"{padding}WARNING{padding}\n"
+            "Fell back to HTML parsing for the following content\n"
+            f"{padding}WARNING{padding}\n"
+        )
+        body = etree.HTML(s, None)[0]
+        body.insert(0, comment)
+        return body
+
+
 def exercise_callback_factory(match, url_template, token=None):
     """Create a callback function to replace an exercise by fetching from
     a server."""
 
-    def _annotate_exercise(elem, exercise, page_uuids):
+    def _annotate_exercise(elem, data, page_uuids):
         """Annotate exercise based upon tag data"""
-        tags = exercise["items"][0].get("tags")
-        if not tags:
-            return
-
-        # Annotate exercise with required context, if it exists
-        modules, feature = [], ""
-        for tag in tags:
-            if "context-cnxmod:" in tag:
-                modules.append(tag.split(":")[1])
-            if "context-cnxfeature:" in tag:
-                # Note: Assuming this tag will never be duplicated with
-                # multiple values in the exercise data
-                feature = tag.split(":")[1]
-
-        # It's possible that the feature tag is not present, or present but
-        # not valid (e.g. value of "context-cnxfeature:").
-        if not feature:
-            return
-
-        # There may be multiple `context-cnxmod:{uuid}` tags, each of which
-        # could be the parent page for this exercise, a different page in this
-        # book, or even invalid altogether. We'll prefer the first, fallback
-        # to the second, and error in the last case.
-
-        parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
-        parent_page_uuid = parent_page_elem.get("id")
-        if parent_page_uuid.startswith("page_"):
-            # Strip `page_` prefix from ID to get UUID
-            parent_page_uuid = parent_page_uuid.split("page_")[1]
-
-        candidate_uuids = set(modules) & set(page_uuids)
-
-        # Check if the target feature ID is on the parent page for this
-        # exercise. If so, that takes priority over any context-cnxmod tag
-        # values, and should be picked even in cases where the parent page
-        # doesn't match one of the exercise tags. If the feature exists,
-        # we make sure the parent page UUID is included in candidate_uuids.
-        # Otherwise, remove parent page from candidate UUIDs.
-        maybe_feature = parent_page_elem.find(
-            './/*[@id="auto_{}_{}"]'.format(parent_page_uuid, feature)
-        )
-        if maybe_feature is None:
-            candidate_uuids.discard(parent_page_uuid)
-        else:
-            candidate_uuids.add(parent_page_uuid)
-
-        # No valid page UUIDs in exercise data
-        assert_msg = "No candidate uuid for exercise feature {} href={}"
-        assert len(candidate_uuids) > 0, assert_msg.format(
-            feature, elem.get("href")
-        )
-
-        if parent_page_uuid in candidate_uuids:
-            target_module = parent_page_uuid
-        else:
-            # Use an UUID in the intersection of page UUIDs and tag UUIDs
-            # This is somewhat arbritrary, but if we hit this scenario with
-            # more than one UUID in the set things have gone pretty
-            # unexpectedly
-            target_module = candidate_uuids.pop()
-
-        # As a final validation check, confirm the feature is on the target
-        # module and otherwise raise
-        #
-        # NOTE: The following uses xpath() and find() together which may seem
-        # bizarre, but it's a work around for the fact that using just an
-        # xpath of '//*[@id="auto_{}_{}"]' results in seg faults when there
-        # are multiple threads due to the tree editing that occurs in
-        # _replace_exercises.
-        target_ref = "auto_{}_{}".format(target_module, feature)
-        feature_element = elem.xpath("/*")[0].find(
-            './/*[@id="{}"]'.format(target_ref)
-        )
-
-        assert_msg = "Feature {} not in {} href={}".format(
-            feature, target_module, elem.get("href")
-        )
-        assert feature_element is not None, assert_msg
-
-        exercise["items"][0]["required_context"] = {}
-        exercise["items"][0]["required_context"]["module"] = target_module
-        exercise["items"][0]["required_context"]["feature"] = feature
-        exercise["items"][0]["required_context"]["ref"] = target_ref
+        exercise = data["items"][0]
+        tags = exercise.get("tags", [])
+        context = parse_context_tags(tags, elem, page_uuids)
+        if context is not None:
+            target_module, feature = context
+            annotate_exercise(exercise, elem, target_module, feature)
 
     @backoff.on_exception(
         backoff.expo,
         RequestException,
         max_time=60 * 15,
         giveup=lambda e: (
-            # Give up if the status code is something like 404, 403, etc.
-            isinstance(e, RequestException) and
-            e.response.status_code in range(400, 500)
+            # Give up on non-request error
+            not isinstance(e, RequestException) or (
+                # Give up if the status code is something like 404, 403, etc.
+                e.response is not None and
+                e.response.status_code in range(400, 500)
+            )
         ),
         jitter=backoff.full_jitter,
         raise_on_giveup=True
@@ -365,29 +416,113 @@ def exercise_callback_factory(match, url_template, token=None):
         exercise = res.json()
 
         if exercise["total_count"] == 0:
-            logger.warning("MISSING EXERCISE: {}".format(url))
-
-            XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
-            missing = etree.Element(
-                XHTML + "span",
-                {"data-type": "missing-exercise"},
-                nsmap=HTML_DOCUMENT_NAMESPACES,
-            )
-            missing.text = "MISSING EXERCISE: tag:{}".format(item_code)
-            nodes = [missing]
+            root_elem = get_missing_exercise_placeholder(url, item_code)
         else:
             exercise["items"][0]["url"] = url
             exercise["items"][0]["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
-
-            html = render_exercise(exercise)
-            try:
-                nodes = etree_from_str("<div>{}</div>".format(html))
-            except etree.XMLSyntaxError:  # Probably HTML
-                nodes = etree.HTML(html)[0]  # body node
+            assert len(exercise["items"]) == 1, \
+                'Exercise "items" array is nonsingular'
+            exercise_content = exercise["items"][0]
+            html = render_exercise(exercise_content)
+            root_elem = parse_exercise_html_to_etree(html, item_code)
 
         parent = elem.getparent()
-        for child in nodes:
+        for child in root_elem:
+            parent.insert(parent.index(elem), child)
+        parent.remove(elem)  # Special case - assumes single wrapper elem
+
+    xpath = '//xhtml:a[contains(@href, "{}")]'.format(match)
+    return (xpath, _replace_exercises)
+
+
+def interactive_callback_factory(
+    match,
+    path_resolver,
+    docs_by_id,
+    media_handler,
+):
+    """Create a callback function to replace an exercise by fetching from
+    the repository."""
+
+    def _annotate_exercise(elem, exercise, metadata, page_uuids):
+        """Annotate exercise based upon tag data"""
+        if "feature_page" in metadata:
+            assert "feature_id" in metadata, "Feature page without feature id"
+            module_id = metadata["feature_page"]
+            if module_id in docs_by_id:
+                document = docs_by_id[module_id]
+            else:  # pragma: no cover (already tested in resolve_module_links)
+                module_path = path_resolver.get_module_path(module_id)
+                document = _get_external_document(module_path)
+            target_module = document.metadata["uuid"]
+            feature = metadata["feature_id"]
+            annotate_exercise(exercise, elem, target_module, feature)
+        else:
+            tags = metadata.get("tags", [])
+            context = parse_context_tags(tags, elem, page_uuids)
+            if context is None:
+                return
+            target_module, feature = context
+            annotate_exercise(exercise, elem, target_module, feature)
+
+    def _replace_exercises(elem, page_uuids):
+        nickname = elem.get("href")[len(match) + 1:]
+        interactive_path = path_resolver.get_public_interactives_path(
+            nickname
+        )
+        relpath = os.path.relpath(
+            interactive_path,
+            os.path.join(path_resolver.book_container.root_dir, "..")
+        )
+        private_path = path_resolver.get_private_interactives_path(nickname)
+        css_class = elem.get("class")
+        h5p_in = h5p_injection.load_h5p_interactive(
+            interactive_path,
+            private_path,
+        )
+
+        if not h5p_in:
+            root_elem = get_missing_exercise_placeholder(relpath, nickname)
+        else:
+            attachments = h5p_in["metadata"]["attachments"]
+            exercise = {}
+            exercise["nickname"] = nickname
+            exercise["tags"] = h5p_injection.tags_from_metadata(
+                h5p_in["metadata"]
+            )
+            exercise["url"] = relpath
+            exercise["class"] = css_class
+            exercise["is_vocab"] = False
+            exercise["stimulus_html"] = h5p_in["content"].get(
+                "questionSetStimulus", ""
+            )
+
+            try:
+                exercise["questions"] = h5p_injection.questions_from_h5p(
+                    nickname, h5p_in
+                )
+                _annotate_exercise(
+                    elem, exercise, h5p_in["metadata"], page_uuids
+                )
+
+                html = render_exercise(exercise)
+                root_elem = parse_exercise_html_to_etree(html, nickname)
+
+                h5p_injection.handle_attachments(
+                    attachments,
+                    nickname,
+                    root_elem,
+                    media_handler,
+                )
+            except h5p_injection.UnsupportedLibraryError as ule:
+                library = ule.args[0]
+                root_elem = get_exercise_placeholder(
+                    f"UNSUPPORTED LIBRARY: {library}", "unsupported-library"
+                )
+
+        parent = elem.getparent()
+        for child in root_elem:
             parent.insert(parent.index(elem), child)
         parent.remove(elem)  # Special case - assumes single wrapper elem
 
@@ -396,10 +531,7 @@ def exercise_callback_factory(match, url_template, token=None):
 
 
 def render_exercise(exercise):
-    assert len(exercise["items"]) == 1, 'Exercise "items" array is nonsingular'
-    exercise_content = exercise["items"][0]
-
-    return EXERCISE_TEMPLATE.render(data=exercise_content)
+    return EXERCISE_TEMPLATE.render(data=exercise)
 
 
 HTML_DOCUMENT = """\

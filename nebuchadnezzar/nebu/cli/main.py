@@ -1,6 +1,5 @@
 """Commandline utility for publishing content"""
 import click
-import pkg_resources
 import sys
 import requests
 import re
@@ -11,6 +10,12 @@ from nebu import __version__
 from .assemble import assemble
 from .pre_assemble import pre_assemble
 from .parse_repo import parse_repo
+
+
+if sys.version_info < (3, 10):  # pragma: no cover
+    from importlib_metadata import entry_points
+else:  # pragma: no cover
+    from importlib.metadata import entry_points
 
 
 __all__ = ('cli',)
@@ -145,5 +150,5 @@ cli.add_command(pre_assemble, help_section='Stock')
 cli.add_command(assemble, help_section='Stock')
 cli.add_command(parse_repo, help_section='Stock')
 
-for entry_point in pkg_resources.iter_entry_points('neb.extension'):
+for entry_point in entry_points(group='neb.extension'):
     entry_point.load()(cli)  # pragma: no cover

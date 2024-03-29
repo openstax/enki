@@ -1,0 +1,18 @@
+{
+  "errata_id": "781985d",
+  "collaborator_solutions": [],
+  "is_solution_public": true,
+  "books": [
+    {
+      "name": "stax-nutrition",
+      "aacn": "1.2a"
+    }
+  ],
+  "blooms": 1,
+  "attachments": [],
+  "tags": [
+    "module-slug:fake",
+    "context-cnxmod:d93df8ff-6e4a-4a5e-befc-ba5a144f309c",
+    "context-cnxfeature:fig-ch01_00_01"
+  ]
+}

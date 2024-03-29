@@ -98,10 +98,13 @@ class Book:
     collection_id: Optional[str] = None
 
 
-BookContainer = book_container_factory(
-    "/collections",
-    "/modules",
-    "/media",
-    "/private",
-    "/interactives",
-)
+class BookContainer(
+    book_container_factory(
+        "/collections",
+        "/modules",
+        "/media",
+        "/private",
+        "/interactives",
+    )
+):
+    pass

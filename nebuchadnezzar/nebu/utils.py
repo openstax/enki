@@ -1,6 +1,6 @@
 import re
 import os
-from typing import Optional
+from typing import Optional, Union
 from contextlib import contextmanager
 from time import time
 import inspect
@@ -34,3 +34,54 @@ def re_first_or_default(
 ) -> Optional[str]:
     match = re.search(pattern, s)
     return match.group(0) if match is not None else default
+
+
+def merge_by_index(lhs, rhs, merge_sequence, default):
+    return list(
+        recursive_merge(
+            dict(enumerate(lhs)),
+            dict(enumerate(rhs)),
+            merge_sequence=merge_sequence,
+            default=default,
+        ).values()
+    )
+
+
+def return_not_none(lhs, rhs):
+    if rhs is not None and lhs is not None:
+        raise Exception(f"Cannot merge values: {lhs} and {rhs}")
+    return rhs if rhs is not None else lhs
+
+
+def recursive_merge(
+    lhs,
+    rhs,
+    *,
+    merge_sequence=merge_by_index,
+    sequence_types=(list, tuple),
+    default=return_not_none,
+):
+    if isinstance(lhs, dict) and isinstance(rhs, dict):
+        return lhs | rhs | {
+            k: recursive_merge(
+                lhs[k], rhs[k], merge_sequence=merge_sequence, default=default
+            )
+            for k in set(lhs.keys()) & set(rhs.keys())
+        }
+    elif isinstance(lhs, sequence_types) and isinstance(rhs, sequence_types):
+        return merge_sequence(lhs, rhs, merge_sequence, default)
+    return default(lhs, rhs)
+
+
+def try_parse_bool(maybe_bool: Union[bool, str, int, float]):
+    result = None
+    if isinstance(maybe_bool, bool):
+        result = maybe_bool
+    elif isinstance(maybe_bool, str):
+        str_correctness = maybe_bool.strip().lower()
+        if str_correctness in ("true", "false"):
+            result = str_correctness == "true"
+    elif isinstance(maybe_bool, (float, int)):
+        result = maybe_bool > 0
+    assert result is not None, f"Failed to parse bool from: {maybe_bool}"
+    return result
