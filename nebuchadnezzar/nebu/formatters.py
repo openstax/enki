@@ -351,22 +351,13 @@ def get_missing_exercise_placeholder(uri, exercise_id):
     )
 
 
-def parse_exercise_html_to_etree(s: str):
-    wrapper = f"<div>{s}</div>"
+def parse_exercise_html_to_etree(s: str, content_id: str):
     try:
-        return etree_from_str(wrapper)
+        return etree_from_str(f"<div>{s}</div>")
     except etree.XMLSyntaxError as xse:
-        lineno = (xse.lineno - 1) if xse.lineno is not None else 0
-        end_lineno = (
-            lineno + 1
-            if lineno != 0 and xse.end_lineno is None
-            else xse.end_lineno
-        )
-        error_lines = "\n".join(s.splitlines()[lineno:end_lineno])
         logger.warning(
-            "Fell back to HTML parsing\n"
-            f"Underlying XML error: {xse}\n"
-            f"Relevant line(s):\n{error_lines}"
+            f"WARNING: Falling back to HTML parsing for: {content_id}\n"
+            f"\tUnderlying XML error: {xse}"
         )
 
         padding = "#" * 35
@@ -434,7 +425,7 @@ def exercise_callback_factory(match, url_template, token=None):
                 'Exercise "items" array is nonsingular'
             exercise_content = exercise["items"][0]
             html = render_exercise(exercise_content)
-            root_elem = parse_exercise_html_to_etree(html)
+            root_elem = parse_exercise_html_to_etree(html, item_code)
 
         parent = elem.getparent()
         for child in root_elem:
@@ -516,7 +507,7 @@ def interactive_callback_factory(
                 )
 
                 html = render_exercise(exercise)
-                root_elem = parse_exercise_html_to_etree(html)
+                root_elem = parse_exercise_html_to_etree(html, nickname)
 
                 h5p_injection.handle_attachments(
                     attachments,
