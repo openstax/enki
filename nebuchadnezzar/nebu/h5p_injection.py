@@ -297,16 +297,10 @@ def handle_attachments(
         attrib = "src"
         is_image = media_elem.tag == "img"
         uri = media_elem.attrib[attrib]
+        fq_uri = f"{nickname}:{uri}"
         if uri not in attachments:  # pragma: no cover
-            logger.warning(f"Resource not found in H5P attachments: {uri}")
+            logger.warning(f"Resource not found in H5P attachments: {fq_uri}")
         try:
             media_handler(nickname, media_elem, attrib, is_image)
         except Exception as e:  # pragma: no cover
-            logger.error(
-                f"Error while handling resource file ({uri}): {e}"
-            )
-            text = f'[missing_resource: {uri}]'
-            comment = etree.Comment(etree.tostring(media_elem))
-            comment.tail = text
-            parent = media_elem.getparent()
-            parent.replace(media_elem, comment)
+            logger.error(f"Error while handling resource file ({fq_uri}): {e}")
