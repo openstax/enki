@@ -356,7 +356,6 @@ def parse_exercise_html_to_etree(s: str):
     try:
         return etree_from_str(wrapper)
     except etree.XMLSyntaxError as xse:
-        body = etree.HTML(s, None)[0]  # body node
         lineno = (xse.lineno - 1) if xse.lineno is not None else 0
         end_lineno = (
             lineno + 1
@@ -364,20 +363,20 @@ def parse_exercise_html_to_etree(s: str):
             else xse.end_lineno
         )
         error_lines = "\n".join(s.splitlines()[lineno:end_lineno])
+        logger.warning(
+            "Fell back to HTML parsing\n"
+            f"Underlying XML error: {xse}\n"
+            f"Relevant line(s):\n{error_lines}"
+        )
+
         padding = "#" * 35
         comment = etree.Comment(
-            "\n".join(
-                (
-                    "",
-                    f"{padding}WARNING{padding}",
-                    "Fell back to HTML parsing",
-                    f"Underlying XML error: {xse}",
-                    f"Relevant line(s):\n{error_lines}",
-                    f"{padding}WARNING{padding}",
-                    "",
-                )
-            )
+            "\n"
+            f"{padding}WARNING{padding}\n"
+            "Fell back to HTML parsing for the following content\n"
+            f"{padding}WARNING{padding}\n"
         )
+        body = etree.HTML(s, None)[0]
         body.insert(0, comment)
         return body
 
