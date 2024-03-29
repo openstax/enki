@@ -513,13 +513,12 @@ def interactive_callback_factory(
                 html = render_exercise(exercise)
                 nodes = parse_exercise_html_to_etree(html)
 
-                for node in nodes:
-                    h5p_injection.handle_attachments(
-                        attachments,
-                        nickname,
-                        node,
-                        media_handler,
-                    )
+                h5p_injection.handle_attachments(
+                    attachments,
+                    nickname,
+                    nodes,
+                    media_handler,
+                )
             except h5p_injection.UnsupportedLibraryError as ule:
                 library = ule.args[0]
                 nodes = get_exercise_placeholder(
