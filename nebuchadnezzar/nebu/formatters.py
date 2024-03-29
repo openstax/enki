@@ -328,15 +328,20 @@ def annotate_exercise(exercise, elem, target_module, feature):
 
 
 def get_exercise_placeholder(message, data_type):
-    XHTML = "{{{}}}".format(HTML_DOCUMENT_NAMESPACES["xhtml"])
-    missing = etree.Element(
-        XHTML + "span",
+    XHTML = HTML_DOCUMENT_NAMESPACES["xhtml"]
+    div = etree.Element(
+        f"{{{XHTML}}}div",
+        {},
+        nsmap=HTML_DOCUMENT_NAMESPACES,
+        xmlns=XHTML
+    )
+    etree.SubElement(
+        div,
+        f"{{{XHTML}}}span",
         {"data-type": data_type},
         nsmap=HTML_DOCUMENT_NAMESPACES,
-    )
-    missing.text = message
-    nodes = [missing]
-    return nodes
+    ).text = message
+    return div
 
 
 def get_missing_exercise_placeholder(uri, exercise_id):
@@ -346,9 +351,10 @@ def get_missing_exercise_placeholder(uri, exercise_id):
     )
 
 
-def parse_exercise_html_to_etree(s):
+def parse_exercise_html_to_etree(s: str):
+    wrapper = f"<div>{s}</div>"
     try:
-        return etree_from_str(f"<div>{s}</div>")
+        return etree_from_str(wrapper)
     except etree.XMLSyntaxError as xse:
         body = etree.HTML(s, None)[0]  # body node
         lineno = (xse.lineno - 1) if xse.lineno is not None else 0
@@ -420,7 +426,7 @@ def exercise_callback_factory(match, url_template, token=None):
         exercise = res.json()
 
         if exercise["total_count"] == 0:
-            nodes = get_missing_exercise_placeholder(url, item_code)
+            root_elem = get_missing_exercise_placeholder(url, item_code)
         else:
             exercise["items"][0]["url"] = url
             exercise["items"][0]["class"] = exercise_class
@@ -429,10 +435,10 @@ def exercise_callback_factory(match, url_template, token=None):
                 'Exercise "items" array is nonsingular'
             exercise_content = exercise["items"][0]
             html = render_exercise(exercise_content)
-            nodes = parse_exercise_html_to_etree(html)
+            root_elem = parse_exercise_html_to_etree(html)
 
         parent = elem.getparent()
-        for child in nodes:
+        for child in root_elem:
             parent.insert(parent.index(elem), child)
         parent.remove(elem)  # Special case - assumes single wrapper elem
 
@@ -487,7 +493,7 @@ def interactive_callback_factory(
         )
 
         if not h5p_in:
-            nodes = get_missing_exercise_placeholder(relpath, nickname)
+            root_elem = get_missing_exercise_placeholder(relpath, nickname)
         else:
             attachments = h5p_in["metadata"]["attachments"]
             exercise = {}
@@ -511,22 +517,22 @@ def interactive_callback_factory(
                 )
 
                 html = render_exercise(exercise)
-                nodes = parse_exercise_html_to_etree(html)
+                root_elem = parse_exercise_html_to_etree(html)
 
                 h5p_injection.handle_attachments(
                     attachments,
                     nickname,
-                    nodes,
+                    root_elem,
                     media_handler,
                 )
             except h5p_injection.UnsupportedLibraryError as ule:
                 library = ule.args[0]
-                nodes = get_exercise_placeholder(
+                root_elem = get_exercise_placeholder(
                     f"UNSUPPORTED LIBRARY: {library}", "unsupported-library"
                 )
 
         parent = elem.getparent()
-        for child in nodes:
+        for child in root_elem:
             parent.insert(parent.index(elem), child)
         parent.remove(elem)  # Special case - assumes single wrapper elem
 
