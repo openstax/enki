@@ -519,6 +519,15 @@ def interactive_callback_factory(
                     root_elem,
                     media_handler,
                 )
+                for attachment in attachments:
+                    resource_abs_path = path_resolver.find_interactives_path(
+                        nickname, attachment
+                    )
+                    if resource_abs_path is not None:  # pragma: no cover
+                        logger.warning(
+                            "WARNING: Possible unused resource: "
+                            f"{nickname}:{resource_abs_path}"
+                        )
             except h5p_injection.UnsupportedLibraryError as ule:
                 library = ule.args[0]
                 root_elem = get_exercise_placeholder(

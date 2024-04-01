@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import json
+from functools import lru_cache
 
 import click
 
@@ -69,23 +70,27 @@ def to_dom_resource_path(filename):
     return f"../resources/{filename}"
 
 
-def move_resource(resource_abs_path, resource_dir, filename):
-    shutil.move(resource_abs_path, os.path.join(resource_dir, filename))
-    return to_dom_resource_path(filename)
-
-
-def h5p_media_handler_factory(path_resolver, resource_dir):
-    def h5p_media_handler(interactive_id, elem, uri_attrib, is_image):
-        resource_orig_path = elem.attrib[uri_attrib]
+def h5p_media_handler_factory(path_resolver: PathResolver, resource_dir: str):
+    @lru_cache
+    def handle_resource(
+        interactive_id: str, resource_orig_path: str, is_image: bool
+    ):
         resource_abs_path = path_resolver.find_interactives_path(
             interactive_id, resource_orig_path
         )
+        assert resource_abs_path is not None, \
+            f"Could not find resource: {interactive_id}:{resource_orig_path}"
         sha1, metadata = get_media_metadata(resource_abs_path, is_image)
-        dom_resource_path = move_resource(
-            resource_abs_path, resource_dir, sha1
-        )
-        elem.attrib[uri_attrib] = dom_resource_path
+        resource_dst = os.path.join(resource_dir, sha1)
+        shutil.move(resource_abs_path, resource_dst)
         save_resource_metadata(metadata, resource_dir, sha1)
+        return to_dom_resource_path(sha1)
+
+    def h5p_media_handler(interactive_id, elem, uri_attrib, is_image):
+        resource_orig_path = elem.attrib[uri_attrib]
+        elem.attrib[uri_attrib] = handle_resource(
+            interactive_id, resource_orig_path, is_image
+        )
     return h5p_media_handler
 
 
