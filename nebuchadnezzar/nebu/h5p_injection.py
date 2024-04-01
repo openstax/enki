@@ -3,6 +3,7 @@ import os
 import json
 from pathlib import Path
 from typing import Any, Callable, List, NamedTuple, Union
+import traceback
 
 from lxml import etree
 
@@ -303,4 +304,6 @@ def handle_attachments(
         try:
             media_handler(nickname, media_elem, attrib, is_image)
         except Exception as e:  # pragma: no cover
-            logger.error(f"Error while handling resource file ({fq_uri}): {e}")
+            logger.error(f"Error while handling resource file ({fq_uri}):")
+            for tb in traceback.format_exception(e):
+                logger.error(tb)
