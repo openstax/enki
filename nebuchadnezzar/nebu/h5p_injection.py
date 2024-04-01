@@ -103,7 +103,10 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
         )
         for index, answer in enumerate(entry["answers"])
     ]
-    assert len(answers) > 0, NO_SOLUTION_ERROR
+    # Assertion disabled because many free-response multiple choice questions
+    # have no answer choices
+    # TODO: Maybe re-enable this check?
+    # assert len(answers) > 0, NO_SOLUTION_ERROR
     return _question_factory(
         id=id,
         stem_html=entry["question"],
