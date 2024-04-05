@@ -101,7 +101,7 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
             correctness=answer["correct"],
             feedback_html=answer["tipsAndFeedback"]["chosenFeedback"],
         )
-        for index, answer in enumerate(entry["answers"])
+        for index, answer in enumerate(entry.get("answers", []))
     ]
     # Assertion disabled because many free-response multiple choice questions
     # have no answer choices
