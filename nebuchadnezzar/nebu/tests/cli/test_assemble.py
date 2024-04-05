@@ -1,12 +1,14 @@
 import json
 from pathlib import Path
 from collections import defaultdict
+from typing import cast
 
 from lxml import etree
 import pytest
 
 from nebu.cli import assemble
 from nebu.cli.main import cli
+from nebu.models.path_resolver import PathResolver
 
 
 @pytest.fixture
@@ -22,6 +24,13 @@ def shutil_stub(monkeypatch, create_stub):
 def save_resource_metadata_stub(monkeypatch, create_stub):
     stub = create_stub()
     monkeypatch.setattr(assemble, "save_resource_metadata", stub)
+    return stub
+
+
+@pytest.fixture
+def unlink_stub(monkeypatch, create_stub):
+    stub = create_stub()
+    monkeypatch.setattr(assemble.os, "unlink", stub)
     return stub
 
 
@@ -199,6 +208,7 @@ class TestAssembleIntegration:
         git_path_resolver,
         shutil_stub,
         save_resource_metadata_stub,
+        unlink_stub,
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
@@ -239,8 +249,14 @@ def assembled_pair(
     git_path_resolver,
     shutil_stub,
     save_resource_metadata_stub,
+    unlink_stub,
 ):
     from nebu.cli.assemble import collection_to_assembled_xhtml
+
+    media_handler = assemble.media_handler_factory(
+        "fake-resources",
+        {}
+    )
 
     collection, docs_by_id, docs_by_uuid = parts_tuple
     assembled_collection = collection_to_assembled_xhtml(
@@ -250,7 +266,7 @@ def assembled_pair(
         git_path_resolver,
         None,
         "exercises.openstax.org",
-        "fake-resources",
+        media_handler,
     )
     return (collection, assembled_collection)
 
@@ -296,6 +312,7 @@ def test_h5p_media_handler(
     shutil_stub,
     save_resource_metadata_stub,
     monkeypatch,
+    unlink_stub,
 ):
     fake_path = "fake-path"
     resource_dir = "resources"
@@ -303,15 +320,21 @@ def test_h5p_media_handler(
     metadata = {}
 
     class PathResolverStub:
-        find_interactives_path = create_stub().returns(fake_path)
+        find_interactives_paths = create_stub().returns({
+            "public": fake_path,
+            "private": fake_path,
+        })
 
     class ElementStub:
         attrib = defaultdict(lambda: fake_path)
 
     metadata_stub = create_stub().returns((filename, metadata))
     monkeypatch.setattr(assemble, "get_media_metadata", metadata_stub)
+    get_checksums_stub = create_stub().returns(("sha1", "s3_md5"))
+    monkeypatch.setattr(assemble, "get_checksums", get_checksums_stub)
     media_handler = assemble.h5p_media_handler_factory(
-        PathResolverStub(), resource_dir
+        cast(PathResolver, PathResolverStub()),
+        assemble.media_handler_factory(resource_dir)
     )
     element_stub = ElementStub()
     media_handler("test", element_stub, "src", True)
@@ -327,6 +350,8 @@ def test_h5p_media_handler(
     assert filename in element_stub.attrib["src"]
     # Should save metadata
     assert len(save_resource_metadata_stub.calls) > 0
+    # Should call unlink because of private path with equal checksums
+    assert len(unlink_stub.calls) > 0
 
 
 def test_assemble_collection(
@@ -334,6 +359,7 @@ def test_assemble_collection(
     assembled_pair,
     shutil_stub,
     save_resource_metadata_stub,
+    unlink_stub,
 ):
     _, assembled_collection = assembled_pair
     assert_match(
@@ -341,4 +367,4 @@ def test_assemble_collection(
     )
     # Ensure media files included in the integration test
     assert len(shutil_stub.move.calls) > 0
-    assert len(save_resource_metadata_stub.calls)
+    assert len(save_resource_metadata_stub.calls) > 0

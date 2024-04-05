@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import json
-from functools import lru_cache
+from typing import Callable
 
 import click
 
@@ -20,21 +20,22 @@ from ..xml_utils import fix_namespaces
 from ..utils import re_first_or_default, unknown_progress
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
-from ..media_utils import get_media_metadata
+from ..media_utils import get_media_metadata, get_checksums
 
 
 DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
 
 
 def create_interactive_factories(
-        path_resolver: PathResolver, docs_by_id, media_handler
+    path_resolver: PathResolver, docs_by_id, media_handler
 ):
+    h5p_media_handler = h5p_media_handler_factory(path_resolver, media_handler)
     return [
         interactive_callback_factory(
             "{INTERACTIVES_ROOT}",
             path_resolver,
             docs_by_id,
-            media_handler,
+            h5p_media_handler,
         )
     ]
 
@@ -70,26 +71,53 @@ def to_dom_resource_path(filename):
     return f"../resources/{filename}"
 
 
-def h5p_media_handler_factory(path_resolver: PathResolver, resource_dir: str):
-    @lru_cache
-    def handle_resource(
-        interactive_id: str, resource_orig_path: str, is_image: bool
+def media_handler_factory(
+    resource_dir: str, media_cache: dict[tuple, str] = {}
+):
+    def media_handler(
+        cache_key: tuple,
+        resource_abs_path: str | None,
+        is_image: bool,
     ):
-        resource_abs_path = path_resolver.find_interactives_path(
-            interactive_id, resource_orig_path
-        )
-        assert resource_abs_path is not None, \
-            f"Could not find resource: {interactive_id}:{resource_orig_path}"
-        sha1, metadata = get_media_metadata(resource_abs_path, is_image)
-        resource_dst = os.path.join(resource_dir, sha1)
-        shutil.move(resource_abs_path, resource_dst)
-        save_resource_metadata(metadata, resource_dir, sha1)
-        return to_dom_resource_path(sha1)
+        cached = media_cache.get(cache_key, None)
+        if cached is None:
+            assert resource_abs_path is not None, \
+                f"Missing resource: {cache_key}"
+            sha1, metadata = get_media_metadata(resource_abs_path, is_image)
+            resource_dst = os.path.join(resource_dir, sha1)
+            shutil.move(resource_abs_path, resource_dst)
+            save_resource_metadata(metadata, resource_dir, sha1)
+            cached = media_cache[cache_key] = to_dom_resource_path(sha1)
+        return cached
+    return media_handler
 
+
+def h5p_media_handler_factory(
+    path_resolver: PathResolver,
+    media_handler: Callable[[tuple, str | None, bool], str]
+):
     def h5p_media_handler(interactive_id, elem, uri_attrib, is_image):
-        resource_orig_path = elem.attrib[uri_attrib]
-        elem.attrib[uri_attrib] = handle_resource(
-            interactive_id, resource_orig_path, is_image
+        orig_path = elem.attrib[uri_attrib]
+        cache_key = (interactive_id, orig_path)
+        paths = path_resolver.find_interactives_paths(
+            interactive_id, orig_path
+        )
+        # Expect the public and private version of the file to be the same
+        # We would need to handle this problem even if we were copying all
+        # files into a temporary directory
+        if "public" in paths and "private" in paths:
+            private_path = paths["private"]
+            public_path = paths["public"]
+            private_checksums = get_checksums(private_path)
+            public_checksums = get_checksums(public_path)
+            assert private_checksums == public_checksums, (
+                "Files have the same name but different content:"
+                f"{public_path} and {private_path}"
+            )
+            os.unlink(private_path)
+        maybe_abs_path = paths.get("public", paths.get("private", None))
+        elem.attrib[uri_attrib] = media_handler(
+            cache_key, maybe_abs_path, is_image
         )
     return h5p_media_handler
 
@@ -101,17 +129,15 @@ def collection_to_assembled_xhtml(
     path_resolver,
     token,
     exercise_host,
-    resource_dir
+    media_handler
 ):
     page_uuids = list(docs_by_uuid.keys())
-    includes = (
-        create_interactive_factories(
-            path_resolver,
-            docs_by_id,
-            h5p_media_handler_factory(path_resolver, resource_dir)
-        ) +
-        create_exercise_factories(exercise_host, token)
-    )
+    includes = [
+        *create_interactive_factories(
+            path_resolver, docs_by_id, media_handler
+        ),
+        *create_exercise_factories(exercise_host, token),
+    ]
     # Use docs_by_uuid.values to ensure each document is only used one time
     with unknown_progress("Resolving document references"):
         for document in docs_by_uuid.values():
@@ -170,6 +196,8 @@ def assemble(
     if not output_dir.exists():
         output_dir.mkdir()
 
+    media_handler = media_handler_factory(resource_dir)
+
     for book in container.books:
         output_assembled_xhtml = output_dir / f"{book.slug}.assembled.xhtml"
 
@@ -191,7 +219,7 @@ def assemble(
                 path_resolver,
                 exercise_token,
                 exercise_host,
-                resource_dir
+                media_handler,
             )
             output_assembled_xhtml.write_bytes(assembled_xhtml)
 

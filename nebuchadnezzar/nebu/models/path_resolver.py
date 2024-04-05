@@ -55,18 +55,21 @@ class PathResolver:
             *parts
         )
 
+    def find_interactives_paths(self, interactives_id, *parts: str):
+        return {
+            k: v for k, v in (
+                (
+                    "public",
+                    self.get_public_interactives_path(interactives_id, *parts)
+                ),
+                (
+                    "private",
+                    self.get_private_interactives_path(interactives_id, *parts)
+                )
+            )
+            if os.path.exists(v)
+        }
+
     def find_interactives_path(self, interactives_id: str, *parts: str):
-        real_path = None
-        public_path = self.get_public_interactives_path(
-            interactives_id,
-            *parts
-        )
-        private_path = self.get_private_interactives_path(
-            interactives_id,
-            *parts
-        )
-        if os.path.exists(public_path):
-            real_path = public_path
-        elif os.path.exists(private_path):
-            real_path = private_path
-        return real_path
+        paths = self.find_interactives_paths(interactives_id, *parts)
+        return paths.get("public", paths.get("private", None))
