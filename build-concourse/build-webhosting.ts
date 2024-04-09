@@ -1,7 +1,16 @@
-import * as fs from 'fs'
-import * as yaml from 'js-yaml'
-import { KeyValue, loadEnv, readScript, RESOURCES, toConcourseTask, expect, PDF_OR_WEB, stepsToTasks } from './util'
-import { GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from './step-definitions'
+import * as fs from "fs";
+import * as yaml from "js-yaml";
+import {
+    KeyValue,
+    loadEnv,
+    readScript,
+    RESOURCES,
+    toConcourseTask,
+    expect,
+    PDF_OR_WEB,
+    stepsToTasks,
+} from "./util";
+import { GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from "./step-definitions";
 
 function makePipeline(envValues: KeyValue) {
     const resources = [
@@ -12,49 +21,76 @@ function makePipeline(envValues: KeyValue) {
                 secret_access_key: envValues.AWS_SECRET_ACCESS_KEY,
                 session_token: envValues.AWS_SESSION_TOKEN,
                 bucket: envValues.WEB_QUEUE_STATE_S3_BUCKET,
-                initial_version: 'initializing',
-                versioned_file: `${envValues.CODE_VERSION}.web-hosting-git-queue.json`
+                initial_version: "initializing",
+                versioned_file: `${envValues.CODE_VERSION}.web-hosting-git-queue.json`,
             },
-            type: 's3',
+            type: "s3",
         },
         {
-            type: 'time',
+            type: "time",
             name: RESOURCES.TICKER,
             source: {
-                interval: envValues.PIPELINE_TICK_INTERVAL
-            }
-        }
-    ]
+                interval: envValues.PIPELINE_TICK_INTERVAL,
+            },
+        },
+    ];
 
     const gitFeeder = {
-        name: 'git-feeder',
-        plan: [{
-            get: RESOURCES.TICKER,
-            trigger: true,
-        }, toConcourseTask(envValues, 'git-check-feed', [], [], {AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, ABL_FILE_URL: true, CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, MAX_BOOKS_PER_TICK: true}, readScript('script/git_check_feed.sh')),
-        ]
-    }
-    
+        name: "git-feeder",
+        plan: [
+            {
+                get: RESOURCES.TICKER,
+                trigger: true,
+            },
+            toConcourseTask(
+                envValues,
+                "check-feed",
+                [],
+                [],
+                {
+                    AWS_ACCESS_KEY_ID: true,
+                    AWS_SECRET_ACCESS_KEY: true,
+                    AWS_SESSION_TOKEN: false,
+                    CORGI_API_URL: true,
+                    CODE_VERSION: true,
+                    WEB_QUEUE_STATE_S3_BUCKET: true,
+                    MAX_BOOKS_PER_TICK: true,
+                },
+                readScript("script/check_feed.sh")
+            ),
+        ],
+    };
+
     const gitWebBaker = {
-        name: 'git-bakery',
+        name: "git-bakery",
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
             {
                 get: RESOURCES.S3_GIT_QUEUE,
                 trigger: true,
-                version: 'every'
+                version: "every",
             },
-            ...stepsToTasks(envValues, PDF_OR_WEB.WEB, GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD),
-        ]
-    }
+            ...stepsToTasks(
+                envValues,
+                PDF_OR_WEB.WEB,
+                GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD
+            ),
+        ],
+    };
 
-    return { jobs: [gitFeeder, gitWebBaker], resources }
+    return { jobs: [gitFeeder, gitWebBaker], resources };
 }
 
 export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
-    console.log(`Writing pipeline YAML file to ${saveYamlFile}`)
-    fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
+    console.log(`Writing pipeline YAML file to ${saveYamlFile}`);
+    fs.writeFileSync(
+        saveYamlFile,
+        yaml.dump(makePipeline(loadEnv(loadEnvFile)))
+    );
 }
 
-loadSaveAndDump('./env/webhosting-sandbox.json', './webhosting-sandbox.yml')
-loadSaveAndDump('./env/webhosting-production.json', './webhosting-production.yml')
+loadSaveAndDump("./env/webhosting-sandbox.json", "./webhosting-sandbox.yml");
+loadSaveAndDump(
+    "./env/webhosting-production.json",
+    "./webhosting-production.yml"
+);

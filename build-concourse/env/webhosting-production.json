@@ -4,6 +4,7 @@
     "AWS_ACCESS_KEY_ID": "((prod-web-hosting-content-gatekeeper-access-key-id))",
     "AWS_SECRET_ACCESS_KEY": "((prod-web-hosting-content-gatekeeper-secret-access-key))",
     "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",
+    "CORGI_API_URL": "https://corgi.ce.openstax.org",
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
     "WEB_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-web-hosting-content-queue-state",
@@ -11,4 +12,4 @@
     "PIPELINE_TICK_INTERVAL": "12h",
     "MAX_BOOKS_PER_TICK": "50",
     "GH_SECRET_CREDS": "git:((github-api-token))"
-  }
+}
