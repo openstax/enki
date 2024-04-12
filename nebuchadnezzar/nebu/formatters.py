@@ -479,12 +479,8 @@ def interactive_callback_factory(
             interactive_path,
             os.path.join(path_resolver.book_container.root_dir, "..")
         )
-        private_path = path_resolver.get_private_interactives_path(nickname)
         css_class = elem.get("class")
-        h5p_in = h5p_injection.load_h5p_interactive(
-            interactive_path,
-            private_path,
-        )
+        h5p_in = h5p_injection.load_h5p_interactive(interactive_path)
 
         if not h5p_in:
             root_elem = get_missing_exercise_placeholder(relpath, nickname)

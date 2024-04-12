@@ -20,7 +20,7 @@ from ..xml_utils import fix_namespaces
 from ..utils import re_first_or_default, unknown_progress
 from ..models.book_container import BookContainer
 from ..models.path_resolver import PathResolver
-from ..media_utils import get_media_metadata, get_checksums
+from ..media_utils import get_media_metadata
 
 
 DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
@@ -102,20 +102,8 @@ def h5p_media_handler_factory(
         paths = path_resolver.find_interactives_paths(
             interactive_id, orig_path
         )
-        # Expect the public and private version of the file to be the same
-        # We would need to handle this problem even if we were copying all
-        # files into a temporary directory
-        if "public" in paths and "private" in paths:
-            private_path = paths["private"]
-            public_path = paths["public"]
-            private_checksums = get_checksums(private_path)
-            public_checksums = get_checksums(public_path)
-            assert private_checksums == public_checksums, (
-                "Files have the same name but different content:"
-                f"{public_path} and {private_path}"
-            )
-            os.unlink(private_path)
-        maybe_abs_path = paths.get("public", paths.get("private", None))
+        # Specifically use public path here
+        maybe_abs_path = paths.get("public", None)
         elem.attrib[uri_attrib] = media_handler(
             cache_key, maybe_abs_path, is_image
         )

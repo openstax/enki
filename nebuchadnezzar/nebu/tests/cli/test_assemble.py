@@ -28,18 +28,6 @@ def save_resource_metadata_stub(monkeypatch, create_stub):
 
 
 @pytest.fixture
-def unlink_stub(monkeypatch, create_stub):
-    stub = create_stub()
-    monkeypatch.setattr(assemble.os, "unlink", stub)
-    return stub
-
-
-@pytest.fixture
-def src_data(datadir):
-    return datadir / "collection_for_git_workflow"
-
-
-@pytest.fixture
 def result_data(datadir):
     return datadir / "assembled_collection_for_bakedpdf_workflow"
 
@@ -115,12 +103,12 @@ class TestAssembleCmd:
             self.collection_to_assembled_xhtml,
         )
 
-    def test(self, tmp_path, src_data, result_data, invoker):
+    def test(self, tmp_path, git_collection_data, result_data, invoker):
         output_dir = tmp_path / "build"
 
         args = [
             "assemble",  # (target)
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
             str(tmp_path),
         ]
@@ -135,7 +123,7 @@ class TestAssembleCmd:
         with output_file.open("rb") as ofb:
             assert ofb.read().decode() == "faux"
 
-    def test_output_dir_exists(self, tmp_path, src_data, invoker):
+    def test_output_dir_exists(self, tmp_path, git_collection_data, invoker):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
@@ -143,7 +131,7 @@ class TestAssembleCmd:
 
         args = [
             "assemble",  # (target)
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
             str(tmp_path),
         ]
@@ -155,7 +143,7 @@ class TestAssembleCmd:
     def test_edited_collection_xml(
         self,
         tmp_path,
-        src_data,
+        git_collection_data,
         invoker,
         edit_collection_xml,
         git_path_resolver
@@ -169,7 +157,7 @@ class TestAssembleCmd:
 
         from nebu.cli.main import cli
 
-        args = ["assemble", str(src_data), str(output_dir), str(tmp_path)]
+        args = ["assemble", str(git_collection_data), str(output_dir), str(tmp_path)]
         result = invoker(cli, args)
 
         assert result.exit_code == 0
@@ -201,14 +189,13 @@ class TestAssembleIntegration:
     def test_exercises(
         self,
         tmp_path,
-        src_data,
+        git_collection_data,
         add_exercises,
         exercise_mock,
         invoker,
         git_path_resolver,
         shutil_stub,
         save_resource_metadata_stub,
-        unlink_stub,
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
@@ -221,7 +208,7 @@ class TestAssembleIntegration:
             "assemble",
             "--exercise-host",
             "exercises.openstax.org",
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
             str(tmp_path),
         )
@@ -249,7 +236,6 @@ def assembled_pair(
     git_path_resolver,
     shutil_stub,
     save_resource_metadata_stub,
-    unlink_stub,
 ):
     from nebu.cli.assemble import collection_to_assembled_xhtml
 
@@ -312,7 +298,6 @@ def test_h5p_media_handler(
     shutil_stub,
     save_resource_metadata_stub,
     monkeypatch,
-    unlink_stub,
 ):
     fake_path = "fake-path"
     resource_dir = "resources"
@@ -322,7 +307,6 @@ def test_h5p_media_handler(
     class PathResolverStub:
         find_interactives_paths = create_stub().returns({
             "public": fake_path,
-            "private": fake_path,
         })
 
     class ElementStub:
@@ -350,8 +334,6 @@ def test_h5p_media_handler(
     assert filename in element_stub.attrib["src"]
     # Should save metadata
     assert len(save_resource_metadata_stub.calls) > 0
-    # Should call unlink because of private path with equal checksums
-    assert len(unlink_stub.calls) > 0
 
 
 def test_assemble_collection(
@@ -359,7 +341,6 @@ def test_assemble_collection(
     assembled_pair,
     shutil_stub,
     save_resource_metadata_stub,
-    unlink_stub,
 ):
     _, assembled_collection = assembled_pair
     assert_match(

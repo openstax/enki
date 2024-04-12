@@ -57,5 +57,19 @@
     "confirmLabel": "Confirm"
   },
   "question": "<p>Which statement best compares and contrasts the aims and topics of natural philosophy had versus physics?</p>\n",
-  "isSolutionPublic": false
+  "isSolutionPublic": false,
+  "answers": [
+    {
+      "text": "<p>Natural philosophy included all aspects of nature including physics.</p>\n"
+    },
+    {
+      "text": "<p>Natural philosophy included all aspects of nature excluding physics.</p>\n"
+    },
+    {
+      "text": "<p>Natural philosophy and physics are different.</p>\n"
+    },
+    {
+      "text": "<p>Natural philosophy and physics are essentially the same thing.</p>\n"
+    }
+  ]
 }

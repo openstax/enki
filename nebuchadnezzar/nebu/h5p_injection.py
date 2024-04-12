@@ -2,7 +2,7 @@ import logging
 import os
 import json
 from pathlib import Path
-from typing import Any, Callable, List, NamedTuple, Union
+from typing import Any, Callable, List, NamedTuple
 import traceback
 
 from lxml import etree
@@ -37,8 +37,7 @@ class H5PContentError(H5PInjectionError):
             "H5P content injection error\n\n"
             f"H5P Content ID: {nickname}\n"
             f"{error}\n"
-            "\n" +
-            POSSIBLE_PROBLEMS
+            "\n" + POSSIBLE_PROBLEMS
         )
 
 
@@ -49,13 +48,10 @@ class UnsupportedLibraryError(H5PInjectionError):
 
 def _make_collaborator_solutions(entry):
     return [
-        {
-            "content_html": entry[key],
-            "solution_type": solution_type
-        }
+        {"content_html": entry[key], "solution_type": solution_type}
         for key, solution_type in (
             ("detailedSolution", "detailed"),
-            ("summarySolution", "summary")
+            ("summarySolution", "summary"),
         )
         if key in entry and len(entry[key]) > 0
     ]
@@ -64,24 +60,27 @@ def _make_collaborator_solutions(entry):
 def _answer_factory(
     id: int,
     content_html: str,
-    correctness: Union[bool, str, int, float],
-    feedback_html: str
+    correctness: bool | str | int | float | None,
+    feedback_html: str | None,
 ) -> dict[str, Any]:
-    b_correctness = try_parse_bool(correctness)
-    return {
+    answer = {
         "id": id,
         "content_html": content_html,
-        # cookbook/lib/kitchen/injected_question_element.rb#L72
-        "correctness": "1.0" if b_correctness else "0.0",
-        "feedback_html": feedback_html,
     }
+    if correctness is not None:
+        b_correctness = try_parse_bool(correctness)
+        # cookbook/lib/kitchen/injected_question_element.rb#L72
+        answer["correctness"] = "1.0" if b_correctness else "0.0"
+    if feedback_html is not None:
+        answer["feedback_html"] = feedback_html
+    return answer
 
 
 def _question_factory(
     id: int,
     stem_html: str,
     answers: List[dict[str, Any]],
-    is_answer_order_important: bool
+    is_answer_order_important: bool,
 ) -> dict[str, Any]:
     return {
         "id": id,
@@ -98,8 +97,10 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
         _answer_factory(
             id=index + 1,
             content_html=answer["text"],
-            correctness=answer["correct"],
-            feedback_html=answer["tipsAndFeedback"]["chosenFeedback"],
+            correctness=answer.get("correct", None),
+            feedback_html=answer.get("tipsAndFeedback", {}).get(
+                "chosenFeedback", None
+            ),
         )
         for index, answer in enumerate(entry.get("answers", []))
     ]
@@ -111,27 +112,31 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
         id=id,
         stem_html=entry["question"],
         answers=answers,
-        is_answer_order_important=not random_answers
+        is_answer_order_important=not random_answers,
     )
 
 
 def _true_false_question_factory(id: int, entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     answers = []
-    parsed_correctness = try_parse_bool(entry["correct"])
+    parsed_correctness = (
+        try_parse_bool(entry["correct"]) if "correct" in entry else None
+    )
     for index, option in enumerate((True, False)):
         is_correct = parsed_correctness == option
         feedback_key = (
             "feedbackOnCorrect"
             if is_correct
             else "feedbackOnWrong"
+            if parsed_correctness is not None
+            else None
         )
         answers.append(
             _answer_factory(
                 id=index + 1,
                 content_html=str(option),
                 correctness=is_correct,
-                feedback_html=behavior.get(feedback_key, ""),
+                feedback_html=behavior.get(feedback_key, None),
             )
         )
     return _question_factory(
@@ -177,23 +182,14 @@ def _add_question(
         question["collaborator_solutions"] = _make_collaborator_solutions(
             entry
         )
-        if entry.get("isSolutionPublic", None) is not True:
-            question["answers"] = [
-                {
-                    k: v
-                    for k, v in answer.items()
-                    if k not in ("correctness", "feedback_html")
-                }
-                for answer in question["answers"]
-            ]
-            question["collaborator_solutions"] = []
         questions.append(question)
     elif library == "H5P.QuestionSet":
         for i, q in enumerate(entry["questions"]):
             sub_library = q["library"].split(" ")[0]
             sub_entry = q["params"]
-            assert sub_library != "H5P.QuestionSet", \
-                "Question sets cannot contain question sets"
+            assert (
+                sub_library != "H5P.QuestionSet"
+            ), "Question sets cannot contain question sets"
             _add_question(i + 1, sub_library, sub_entry, questions)
     else:
         raise UnsupportedLibraryError(library)
@@ -207,9 +203,7 @@ def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
         return questions
     except KeyError as ke:
         key = ke.args[0]
-        raise H5PContentError(
-            nickname, MISSING_PROPERTY_ERROR.format(key=key)
-        )
+        raise H5PContentError(nickname, MISSING_PROPERTY_ERROR.format(key=key))
     except AssertionError as ae:
         underlying_error = ae.args[0]
         raise H5PContentError(nickname, underlying_error)
@@ -241,8 +235,9 @@ def tags_from_metadata(metadata: dict[str, Any]):
                 for sub_v in v:
                     add_tag(k, f"{b}:{sub_v}")
             else:
-                assert isinstance(v, (str, int, bool, float)), \
-                    f"BUG: unsupported value: {k}"
+                assert isinstance(
+                    v, (str, int, bool, float)
+                ), f"BUG: unsupported value: {k}"
                 if k in {"aacn", "nclex"}:
                     add_tag("nursing", f"{k}:{v}")
                 elif k == "name":
@@ -253,12 +248,12 @@ def tags_from_metadata(metadata: dict[str, Any]):
     return tags
 
 
-def load_h5p_interactive(interactive_path: str, private_path: str):
+def load_h5p_interactive(
+    interactive_path: str, private_path: str | None = None
+):
     metadata_path = os.path.join(interactive_path, "metadata.json")
     content_path = os.path.join(interactive_path, "content.json")
     h5p_path = os.path.join(interactive_path, "h5p.json")
-    private_metadata_path = os.path.join(private_path, "metadata.json")
-    private_content_path = os.path.join(private_path, "content.json")
     if (
         not os.path.exists(metadata_path) or
         not os.path.exists(content_path) or
@@ -266,28 +261,26 @@ def load_h5p_interactive(interactive_path: str, private_path: str):
     ):
         logger.error(f"MISSING INTERACTIVE DATA: {interactive_path}")
         return None
-    h5p_in = {}
-    h5p_in["h5p"] = json.loads(Path(h5p_path).read_bytes())
-    h5p_in["content"] = recursive_merge(
-        json.loads(Path(content_path).read_bytes()),
-        json.loads(Path(private_content_path).read_bytes())
-        if os.path.exists(private_content_path)
-        else {},
-    )
-    h5p_in["metadata"] = recursive_merge(
-        json.loads(Path(metadata_path).read_bytes()),
-        json.loads(Path(private_metadata_path).read_bytes())
-        if os.path.exists(private_metadata_path)
-        else {},
-    )
-    return h5p_in
+    h5p = json.loads(Path(h5p_path).read_bytes())
+    content = json.loads(Path(content_path).read_bytes())
+    metadata = json.loads(Path(metadata_path).read_bytes())
+    if private_path is not None:
+        private_content_path = Path(private_path) / "content.json"
+        content = recursive_merge(
+            content, json.loads(private_content_path.read_bytes())
+        )
+    return {
+        "h5p": h5p,
+        "content": content,
+        "metadata": metadata,
+    }
 
 
 def handle_attachments(
     attachments: List[str],
     nickname: str,
     node: etree.ElementBase,
-    media_handler: Callable[[str, etree.ElementBase, str, bool], None]
+    media_handler: Callable[[str, etree.ElementBase, str, bool], None],
 ):
     # The idea is to be relatively generic with the xpath and handle
     # results conditionally in the loop
