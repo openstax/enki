@@ -170,8 +170,19 @@ function read_style() {
 }
 
 function read_book_slugs() {
-    if [[ -f "$IO_BOOK/slugs" ]]; then
-        # Exclude blanks lines
+    while [[ -n "${1:-}" ]]; do
+        case "$1" in
+            "--from-repo")
+                force_from_repo=1
+            ;;
+            *)
+                die "Unknown option: $1"  # LCOV_EXCL_LINE
+            ;;
+        esac
+        shift
+    done
+    if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
+        # Exclude blank lines
         awk '$0 { print }' "$IO_BOOK/slugs"
     else
         fetched="$IO_FETCHED"
@@ -290,7 +301,7 @@ function do_step() {
             echo "$repo" > "$INPUT_SOURCE_DIR/repo"
             if [[ -n "${arg_book_slug-}" ]]; then
                 # CORGI does not include a new line after the slug. Simulate that with echo -n
-                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
+                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs"
             fi
             echo "$version" > "$INPUT_SOURCE_DIR/version"
             # Dummy files
