@@ -138,6 +138,30 @@ def _true_false_question_factory(id: int, entry: dict[str, Any]):
     )
 
 
+def _essay_question_factory(id: int, entry: dict[str, Any]):
+    keywords = entry.get("keywords", [])
+    solution = entry.get("solution", {})
+    solution_intro = solution.get("introduction", "")
+    solution_sample = solution.get("sample", "")
+    feedback = " ".join(v for v in (solution_intro, solution_sample) if v)
+    answers = [
+        _answer_factory(
+            id=index + 1,
+            content_html=keyword["keyword"],
+            correctness=True,
+            feedback_html=feedback,
+        )
+        for index, keyword in enumerate(keywords)
+        if keyword["keyword"] != "*"
+    ]
+    return _question_factory(
+        id=id,
+        stem_html=entry["taskDescription"],
+        answers=answers,
+        is_answer_order_important=False,
+    )
+
+
 class SupportedLibrary(NamedTuple):
     get_formats: Callable[[dict[str, Any]], List[str]]
     make_question: Callable[[int, dict[str, Any]], dict[str, Any]]
@@ -155,6 +179,10 @@ SUPPORTED_LIBRARIES = {
     "H5P.TrueFalse": SupportedLibrary(
         get_formats=lambda _: ["true-false"],
         make_question=_true_false_question_factory,
+    ),
+    "H5P.Essay": SupportedLibrary(
+        get_formats=lambda _: ["free-response"],
+        make_question=_essay_question_factory,
     ),
 }
 
