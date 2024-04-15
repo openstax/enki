@@ -314,8 +314,6 @@ def test_h5p_media_handler(
 
     metadata_stub = create_stub().returns((filename, metadata))
     monkeypatch.setattr(assemble, "get_media_metadata", metadata_stub)
-    get_checksums_stub = create_stub().returns(("sha1", "s3_md5"))
-    monkeypatch.setattr(assemble, "get_checksums", get_checksums_stub)
     media_handler = assemble.h5p_media_handler_factory(
         cast(PathResolver, PathResolverStub()),
         assemble.media_handler_factory(resource_dir)
