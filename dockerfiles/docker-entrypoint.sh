@@ -173,7 +173,7 @@ function read_book_slugs() {
     while [[ -n "${1:-}" ]]; do
         case "$1" in
             "--from-repo")
-                force_from_repo=1
+                local force_from_repo=1
             ;;
             *)
                 die "Unknown option: $1"  # LCOV_EXCL_LINE

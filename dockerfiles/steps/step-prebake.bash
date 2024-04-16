@@ -7,7 +7,7 @@ pages_root="$(set +x && echo "$repo_info" | jq -r '.container.pages_root')"
 media_root="$(set +x && echo "$repo_info" | jq -r '.container.media_root')"
 
 not_found="$(grep -vFxf <(read_book_slugs --from-repo) <(read_book_slugs) || echo -n)"
-[[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-book)"
+[[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-repo)"
 
 neb pre-assemble "$IO_FETCH_META"
 commit_sha="$(set +x && git -C "$IO_FETCH_META" log --format="%h" -1)"
