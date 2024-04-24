@@ -461,23 +461,42 @@ def interactive_callback_factory(
             parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
             parent_page_uuid = parent_page_elem.get("id").lstrip("page_")
             context_uuid, context_elem_id = None, None
-            # If multiple contexts are valid, we will use the last one while
-            # prioritizing the parent page if it has a match
+            specificity_by_name = {
+                "default": -1,
+                "diff_book": 0,
+                "same_book": 1,
+                "same_page": 2,
+            }
+            last_specificity = specificity_by_name["default"]
+            # If multiple contexts are valid, we use the most specific one
             for module_id, elem_id in split_contexts:
                 if module_id in docs_by_id:
                     document = docs_by_id[module_id]
+                    specificity = specificity_by_name["same_book"]
                 else:  # pragma: no cover
+                    # If we already found one more specific, we can skip and
+                    # avoid loading additional documents
+                    if last_specificity > specificity_by_name["diff_book"]:
+                        continue
                     module_path = path_resolver.get_module_path(module_id)
                     document = _get_external_document(module_path)
+                    specificity = specificity_by_name["diff_book"]
+
                 target_module = document.metadata["uuid"]
+
+                if target_module == parent_page_uuid:
+                    specificity = specificity_by_name["same_page"]
+
+                if specificity < last_specificity:
+                    continue
+
                 # Search assembled document for the referenced element
                 maybe_feature = elem.xpath(
                     f'//*[@id = "auto_{target_module}_{elem_id}"]'
                 )
                 if len(maybe_feature) > 0:
                     context_uuid, context_elem_id = target_module, elem_id
-                    if target_module == parent_page_uuid:
-                        break
+                    last_specificity = specificity
             assert context_uuid is not None and context_elem_id is not None, \
                 f'Invalid context: {exercise["nickname"]}'
             annotate_exercise(exercise, elem, context_uuid, context_elem_id)
