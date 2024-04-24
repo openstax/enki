@@ -451,17 +451,36 @@ def interactive_callback_factory(
 
     def _annotate_exercise(elem, exercise, metadata, page_uuids):
         """Annotate exercise based upon tag data"""
-        if "feature_page" in metadata:
-            assert "feature_id" in metadata, "Feature page without feature id"
-            module_id = metadata["feature_page"]
-            if module_id in docs_by_id:
-                document = docs_by_id[module_id]
-            else:  # pragma: no cover (already tested in resolve_module_links)
-                module_path = path_resolver.get_module_path(module_id)
-                document = _get_external_document(module_path)
-            target_module = document.metadata["uuid"]
-            feature = metadata["feature_id"]
-            annotate_exercise(exercise, elem, target_module, feature)
+        split_contexts = [
+            ctx.split("#", 1)
+            for ctx in metadata.get("context", [])
+            if "#" in ctx
+        ]
+        if len(split_contexts) > 0:
+            # Get the uuid of the page the content is being injected into
+            parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
+            parent_page_uuid = parent_page_elem.get("id").lstrip("page_")
+            context_uuid, context_elem_id = None, None
+            # If multiple contexts are valid, we will use the last one while
+            # prioritizing the parent page if it has a match
+            for module_id, elem_id in split_contexts:
+                if module_id in docs_by_id:
+                    document = docs_by_id[module_id]
+                else:  # pragma: no cover
+                    module_path = path_resolver.get_module_path(module_id)
+                    document = _get_external_document(module_path)
+                target_module = document.metadata["uuid"]
+                # Search assembled document for the referenced element
+                maybe_feature = elem.xpath(
+                    f'//*[@id = "auto_{target_module}_{elem_id}"]'
+                )
+                if len(maybe_feature) > 0:
+                    context_uuid, context_elem_id = target_module, elem_id
+                    if target_module == parent_page_uuid:
+                        break
+            assert context_uuid is not None and context_elem_id is not None, \
+                f'Invalid context: {exercise["nickname"]}'
+            annotate_exercise(exercise, elem, context_uuid, context_elem_id)
         else:
             tags = metadata.get("tags", [])
             context = parse_context_tags(tags, elem, page_uuids)
