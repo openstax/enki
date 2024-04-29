@@ -26,10 +26,5 @@ cp -R $DATA_ROOT/kcov-destination/* $COVERAGE_DIR
 echo ""
 echo "DONE: Open $COVERAGE_DIR/index.html in a browser to see the code coverage."
 
-# Upload to codecov only if running inside CI
-if [[ $CI || $CODECOV_TOKEN ]]; then
-    bash <(curl -s https://codecov.io/bash) -Z -s $PWD/../coverage -s $PWD/../bakery-js/coverage
-fi
-
 echo "Checking if bakery-js files are formatted properly. If not, run 'npm run lint:fix'"
 npm --prefix ../bakery-js run lint
