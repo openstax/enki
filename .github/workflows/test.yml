@@ -69,5 +69,3 @@ jobs:
         run: CI_TEST=true ./test/test-step-08.bash
       - name: Lint scripts
         run: CI_TEST=true ./test/test-step-09.bash
-      - name: Upload Code Coverage
-        uses: codecov/codecov-action@v3
