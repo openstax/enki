@@ -22,6 +22,9 @@ if [[ -d "${media_root:?}" ]]; then
     rm -rf "$media_root"
 fi
 
+if false; then
+    echo "Will not happen!"
+fi
 
 # Copy web styles to the resources directory created by fetch-map-resources
 style_resource_root="$IO_INITIAL_RESOURCES/styles"
@@ -77,6 +80,13 @@ while read -r slug_name; do
     fi
 done < <(xmlstarlet sel -t -m '//*[@slug]' -v '@slug' -n < "$IO_FETCH_META/META-INF/books.xml")
 
+if false; then
+    echo "Will not happen!"
+fi
+if false; then
+    echo "Will not happen!"
+fi
+if false; then echo "Will not happen!"; fi
 
 # Formerly git-assemble
 parse_book_dir
