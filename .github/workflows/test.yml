@@ -23,6 +23,7 @@ jobs:
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
       - name: Install Problem Matchers
+        if: ${{ github.event_name == 'pull_request' }}
         run: echo "::add-matcher::problem-matcher.json"
       - name: Setup Python
         uses: actions/setup-python@v2
