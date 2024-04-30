@@ -33,31 +33,16 @@ elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
     jq -sr '
         .[0] as $input |
         (.[1] | .coverage | to_entries) as $lines |
-        [["File", "%Cov", "Missing"]] +
-        [["----", "----", "-------"]] +
-        [
-            $input | .files | .[] |
-                .file as $file |
-                .percent_covered as $percent_covered |
-                [
-                    $lines | .[] |
-                        .key as $relpath |
-                        select($file | endswith($relpath)) |
-                        .value | to_entries | .[] |
-                            select(.value == 0) |
-                            .key
-                ] | join(",") as $missing_lines |
-                [$file, $percent_covered, $missing_lines]
-        ] +
-        [[], ["Total", ($input | .percent_covered)]] | .[] |
-            (.[0] | .[0:52]) as $col1 |
-            .[1] as $col2 | 
-            .[2] as $col3 |
-            $col1 +
-            (" " * (55 - ($col1 | length))) +
-            $col2 +
-            (" " * (10 - ($col2 | length))) +
-            $col3
+        $input | .files | .[] |
+            .file as $file |
+            .percent_covered as $percent_covered |
+            $lines | .[] |
+                .key as $relpath |
+                select($file | endswith($relpath)) |
+                .value | to_entries | .[] |
+                    select(.value == 0) |
+                    .key as $line |
+                    "\($file | ltrimstr("/")): line \($line), col 1, Error - line not covered by tests. (coverage-error)"
     ' "$merged_coverage" "$merged_lines"
     jq -r '
         select((.percent_covered | tonumber) < 100) |
