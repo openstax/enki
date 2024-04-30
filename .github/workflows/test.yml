@@ -22,13 +22,13 @@ jobs:
       #     key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
-      - run: echo "::add-matcher::${GITHUB_ACTION_PATH}/problem-matcher.json"
+      - run: echo "::add-matcher::problem-matcher.json"
         shell: bash
       - name: Install Problem Matchers
         run: |
           set -x
           pwd
-          ls -l ${GITHUB_ACTION_PATH}/problem-matcher.json
+          ls -l problem-matcher.json
           file="dockerfiles/steps/step-prebake.bash"
           line=26
           echo "$file: line $line, col 1, Error - line not covered by tests. (coverage-error)"
