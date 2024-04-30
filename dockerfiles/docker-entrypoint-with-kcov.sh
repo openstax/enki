@@ -42,7 +42,7 @@ elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
                 .value | to_entries | .[] |
                     select(.value == 0) |
                     .key as $line |
-                    "\($file | ltrimstr("/")): line \($line), col 1, Error - line not covered by tests. (coverage-error)"
+                    "\($file | ltrimstr("/")): line \($line), col 1, Warning - line not covered by tests. (coverage-error)"
     ' "$merged_coverage" "$merged_lines"
     jq -r '
         select((.percent_covered | tonumber) < 100) |
