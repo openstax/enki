@@ -22,13 +22,20 @@ jobs:
       #     key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
+      - run: echo "::add-matcher::${GITHUB_ACTION_PATH}/problem-matcher.json"
+        shell: bash
       - name: Install Problem Matchers
         run: |
-          echo "::add-matcher::.github/problem-matcher.json"
+          set -x
+          pwd
+          ls -l ${GITHUB_ACTION_PATH}/problem-matcher.json
           file="dockerfiles/steps/step-prebake.bash"
           line=26
           echo "$file: line $line, col 1, Error - line not covered by tests. (coverage-error)"
-          exit 1
+      - run: echo "::remove-matcher owner=enki-problem-matcher::"
+        shell: bash
+      - run: exit 1
+        shell: bash
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
