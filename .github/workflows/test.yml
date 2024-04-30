@@ -25,7 +25,7 @@ jobs:
       - name: Install Problem Matchers
         run: |
           echo "::add-matcher::.github/problem-matcher.json"
-          file="/dockerfiles/steps/step-prebake.bash"
+          file="dockerfiles/steps/step-prebake.bash"
           line=26
           echo "$file: line $line, col 1, Error - line not covered by tests. (coverage-error)"
           exit 1
