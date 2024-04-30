@@ -29,13 +29,36 @@ elif [[ $1 == '__CI_KCOV_MERGE_ALL__' ]]; then
     kcov --merge $dirs_to_merge
     read -r repo _rest <<< "$dirs_to_merge"
     merged_coverage="$repo/kcov-merged/coverage.json"
-    jq -r '
-        . as $input |
-        [$input | .files | .[] | [.file, .percent_covered]] |
-        (. + [[], ["Total", ($input | .percent_covered)]]) as $report |
-        ([$report | .[] | .[0] | length] | max | . + 4) as $columns |
-        $report | .[] | .[0] + (" " * ($columns - (.[0] | length))) + .[1]
-    ' "$merged_coverage"
+    merged_lines="$repo/kcov-merged/codecov.json"
+    jq -sr '
+        .[0] as $input |
+        (.[1] | .coverage | to_entries) as $lines |
+        [["File", "%Cov", "Missing"]] +
+        [["----", "----", "-------"]] +
+        [
+            $input | .files | .[] |
+                .file as $file |
+                .percent_covered as $percent_covered |
+                [
+                    $lines | .[] |
+                        .key as $relpath |
+                        select($file | endswith($relpath)) |
+                        .value | to_entries | .[] |
+                            select(.value == 0) |
+                            .key
+                ] | join(",") as $missing_lines |
+                [$file, $percent_covered, $missing_lines]
+        ] +
+        [[], ["Total", ($input | .percent_covered)]] | .[] |
+            (.[0] | .[0:52]) as $col1 |
+            .[1] as $col2 | 
+            .[2] as $col3 |
+            $col1 +
+            (" " * (55 - ($col1 | length))) +
+            $col2 +
+            (" " * (10 - ($col2 | length))) +
+            $col3
+    ' "$merged_coverage" "$merged_lines"
     jq -r '
         select((.percent_covered | tonumber) < 100) |
         error("Coverage must be at least 100%")
