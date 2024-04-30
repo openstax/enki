@@ -262,8 +262,8 @@ def test_includes_callback(assert_match, fake_doc):
 
     includes = [
         exercise_callback_factory(exercise_match, EXERCISE_URL),
-        ('//xhtml:*[@data-type = "exercise"]', _upcase_text),
-        ("//xhtml:a", _upcase_text),
+        ('//xhtml:*[@data-type = "exercise"]', _upcase_text, False),
+        ("//xhtml:a", _upcase_text, False),
     ]
 
     insert_includes(fake_doc, [""], includes)
@@ -287,8 +287,8 @@ def test_includes_token_callback(assert_match, fake_doc):
         exercise_callback_factory(
             exercise_match, EXERCISE_URL, exercise_token
         ),
-        ('//xhtml:*[@data-type = "exercise"]', _upcase_text),
-        ("//xhtml:a", _upcase_text),
+        ('//xhtml:*[@data-type = "exercise"]', _upcase_text, False),
+        ("//xhtml:a", _upcase_text, False),
     ]
 
     insert_includes(fake_doc, ["", "123", "456"], includes)

@@ -1,5 +1,6 @@
 from pathlib import Path
 import inspect
+import shutil
 
 import pytest
 from aioresponses import aioresponses
@@ -12,9 +13,15 @@ CONFIG_FILEPATH = here / 'config.ini'
 
 
 @pytest.fixture
-def git_collection_data(datadir):
+def git_collection_data(datadir, tmp_path):
     """This data reflects what is expected from git storage"""
-    return datadir / 'collection_for_git_workflow'
+
+    src = datadir / "collection_for_git_workflow"
+    dst = tmp_path / "collection_for_git_workflow"
+
+    shutil.copytree(src, dst)
+
+    return dst
 
 
 @pytest.fixture
@@ -40,7 +47,7 @@ def git_path_resolver(git_collection_container):
 
 
 @pytest.fixture
-def parts_tuple(git_collection_data, git_path_resolver):
+def parts_tuple(git_path_resolver):
     from nebu.models.book_part import BookPart
 
     collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(

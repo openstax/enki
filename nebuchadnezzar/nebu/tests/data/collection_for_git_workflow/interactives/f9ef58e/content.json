@@ -337,7 +337,7 @@
               "chosenFeedback": "",
               "notChosenFeedback": ""
             },
-            "text": "<p>Q4A2</p>\n"
+            "text": "<p>Q4A2<img src=\"media/assemble-h5p-test-image.png\" style=\"width: 300px; height: 220px;\"/></p>\n"
           }
         ],
         "isSolutionPublic": true

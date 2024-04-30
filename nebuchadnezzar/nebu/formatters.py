@@ -37,18 +37,22 @@ logger = logging.getLogger("nebuchadnezzar")
 def insert_includes(root_elem, page_uuids, includes, threads=20):
     async def async_exercise_fetching():
         loop = asyncio.get_running_loop()
-        for match, proc in includes:
-            job_queue = AsyncJobQueue(threads)
-            async with job_queue as q:
-                for elem in xpath_html(root_elem, match):
-                    q.put_nowait(
-                        loop.run_in_executor(None, proc, elem, page_uuids)
+        for match, proc, concurrent in includes:
+            if concurrent:
+                job_queue = AsyncJobQueue(threads)
+                async with job_queue as q:
+                    for elem in xpath_html(root_elem, match):
+                        q.put_nowait(
+                            loop.run_in_executor(None, proc, elem, page_uuids)
+                        )
+                if len(job_queue.errors) != 0:
+                    raise Exception(
+                        "The following errors occurred: \n" +
+                        "\n###### NEXT ERROR ######\n".join(job_queue.errors)
                     )
-            if len(job_queue.errors) != 0:
-                raise Exception(
-                    "The following errors occurred: \n" +
-                    "\n###### NEXT ERROR ######\n".join(job_queue.errors)
-                )
+            else:
+                for elem in xpath_html(root_elem, match):
+                    proc(elem, page_uuids)
 
     asyncio.run(async_exercise_fetching())
 
@@ -433,7 +437,7 @@ def exercise_callback_factory(match, url_template, token=None):
         parent.remove(elem)  # Special case - assumes single wrapper elem
 
     xpath = '//xhtml:a[contains(@href, "{}")]'.format(match)
-    return (xpath, _replace_exercises)
+    return (xpath, _replace_exercises, True)
 
 
 def interactive_callback_factory(
@@ -475,12 +479,8 @@ def interactive_callback_factory(
             interactive_path,
             os.path.join(path_resolver.book_container.root_dir, "..")
         )
-        private_path = path_resolver.get_private_interactives_path(nickname)
         css_class = elem.get("class")
-        h5p_in = h5p_injection.load_h5p_interactive(
-            interactive_path,
-            private_path,
-        )
+        h5p_in = h5p_injection.load_h5p_interactive(interactive_path)
 
         if not h5p_in:
             root_elem = get_missing_exercise_placeholder(relpath, nickname)
@@ -515,6 +515,15 @@ def interactive_callback_factory(
                     root_elem,
                     media_handler,
                 )
+                for attachment in attachments:
+                    resource_abs_path = path_resolver.find_interactives_path(
+                        nickname, attachment
+                    )
+                    if resource_abs_path is not None:  # pragma: no cover
+                        logger.warning(
+                            "WARNING: Possible unused resource: "
+                            f"{nickname}:{resource_abs_path}"
+                        )
             except h5p_injection.UnsupportedLibraryError as ule:
                 library = ule.args[0]
                 root_elem = get_exercise_placeholder(
@@ -527,7 +536,7 @@ def interactive_callback_factory(
         parent.remove(elem)  # Special case - assumes single wrapper elem
 
     xpath = '//xhtml:a[contains(@href, "{}")]'.format(match)
-    return (xpath, _replace_exercises)
+    return (xpath, _replace_exercises, False)
 
 
 def render_exercise(exercise):

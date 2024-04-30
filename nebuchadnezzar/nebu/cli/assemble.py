@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import json
+from typing import Callable
 
 import click
 
@@ -26,14 +27,15 @@ DEFAULT_EXERCISES_HOST = "exercises.openstax.org"
 
 
 def create_interactive_factories(
-        path_resolver: PathResolver, docs_by_id, media_handler
+    path_resolver: PathResolver, docs_by_id, media_handler
 ):
+    h5p_media_handler = h5p_media_handler_factory(path_resolver, media_handler)
     return [
         interactive_callback_factory(
             "{INTERACTIVES_ROOT}",
             path_resolver,
             docs_by_id,
-            media_handler,
+            h5p_media_handler,
         )
     ]
 
@@ -69,23 +71,42 @@ def to_dom_resource_path(filename):
     return f"../resources/{filename}"
 
 
-def move_resource(resource_abs_path, resource_dir, filename):
-    shutil.move(resource_abs_path, os.path.join(resource_dir, filename))
-    return to_dom_resource_path(filename)
+def media_handler_factory(
+    resource_dir: str, media_cache: dict[tuple, str] = {}
+):
+    def media_handler(
+        cache_key: tuple,
+        resource_abs_path: str | None,
+        is_image: bool,
+    ):
+        cached = media_cache.get(cache_key, None)
+        if cached is None:
+            assert resource_abs_path is not None, \
+                f"Missing resource: {cache_key}"
+            sha1, metadata = get_media_metadata(resource_abs_path, is_image)
+            resource_dst = os.path.join(resource_dir, sha1)
+            shutil.move(resource_abs_path, resource_dst)
+            save_resource_metadata(metadata, resource_dir, sha1)
+            cached = media_cache[cache_key] = to_dom_resource_path(sha1)
+        return cached
+    return media_handler
 
 
-def h5p_media_handler_factory(path_resolver, resource_dir):
+def h5p_media_handler_factory(
+    path_resolver: PathResolver,
+    media_handler: Callable[[tuple, str | None, bool], str]
+):
     def h5p_media_handler(interactive_id, elem, uri_attrib, is_image):
-        resource_orig_path = elem.attrib[uri_attrib]
-        resource_abs_path = path_resolver.find_interactives_path(
-            interactive_id, resource_orig_path
+        orig_path = elem.attrib[uri_attrib]
+        cache_key = (interactive_id, orig_path)
+        paths = path_resolver.find_interactives_paths(
+            interactive_id, orig_path
         )
-        sha1, metadata = get_media_metadata(resource_abs_path, is_image)
-        dom_resource_path = move_resource(
-            resource_abs_path, resource_dir, sha1
+        # Specifically use public path here
+        maybe_abs_path = paths.get("public", None)
+        elem.attrib[uri_attrib] = media_handler(
+            cache_key, maybe_abs_path, is_image
         )
-        elem.attrib[uri_attrib] = dom_resource_path
-        save_resource_metadata(metadata, resource_dir, sha1)
     return h5p_media_handler
 
 
@@ -96,17 +117,15 @@ def collection_to_assembled_xhtml(
     path_resolver,
     token,
     exercise_host,
-    resource_dir
+    media_handler
 ):
     page_uuids = list(docs_by_uuid.keys())
-    includes = (
-        create_interactive_factories(
-            path_resolver,
-            docs_by_id,
-            h5p_media_handler_factory(path_resolver, resource_dir)
-        ) +
-        create_exercise_factories(exercise_host, token)
-    )
+    includes = [
+        *create_interactive_factories(
+            path_resolver, docs_by_id, media_handler
+        ),
+        *create_exercise_factories(exercise_host, token),
+    ]
     # Use docs_by_uuid.values to ensure each document is only used one time
     with unknown_progress("Resolving document references"):
         for document in docs_by_uuid.values():
@@ -165,6 +184,8 @@ def assemble(
     if not output_dir.exists():
         output_dir.mkdir()
 
+    media_handler = media_handler_factory(resource_dir)
+
     for book in container.books:
         output_assembled_xhtml = output_dir / f"{book.slug}.assembled.xhtml"
 
@@ -186,7 +207,7 @@ def assemble(
                 path_resolver,
                 exercise_token,
                 exercise_host,
-                resource_dir
+                media_handler,
             )
             output_assembled_xhtml.write_bytes(assembled_xhtml)
 
