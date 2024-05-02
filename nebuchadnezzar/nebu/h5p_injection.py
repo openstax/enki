@@ -243,8 +243,6 @@ def tags_from_metadata(metadata: dict[str, Any]):
         "assignment_type",
         "blooms",
         "dok",
-        "feature_page",
-        "feature_id",
         "time",
     ]
 

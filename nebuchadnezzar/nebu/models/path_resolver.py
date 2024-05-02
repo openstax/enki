@@ -33,10 +33,14 @@ class PathResolver:
         }
 
     def get_collection_path(self, book_slug: str) -> str:
-        return self.collection_paths_by_book[book_slug]
+        collection = self.collection_paths_by_book.get(book_slug, None)
+        assert collection is not None, f"Collection not found: {book_slug}"
+        return collection
 
     def get_module_path(self, module_id: str) -> str:
-        return self.module_paths_by_id[module_id]
+        module = self.module_paths_by_id.get(module_id, None)
+        assert module is not None, f"Module not found: {module_id}"
+        return module
 
     def get_public_interactives_path(self, interactives_id: str, *parts: str):
         return os.path.join(

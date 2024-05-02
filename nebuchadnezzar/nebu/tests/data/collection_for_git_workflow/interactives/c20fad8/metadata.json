@@ -17,7 +17,11 @@
       "science_practice": "visual-representations"
     }
   ],
-  "feature_page": "m46913",
-  "feature_id": "fig-ch01_00_01",
-  "attachments": []
+  "attachments": [],
+  "context": [
+    "m46857",
+    "m46913",
+    "m46857#parent-page-but-invalid",
+    "m46913#fig-ch01_00_01"
+  ]
 }
