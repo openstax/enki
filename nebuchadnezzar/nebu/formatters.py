@@ -474,13 +474,16 @@ def interactive_callback_factory(
                     document = docs_by_id[module_id]
                     specificity = specificity_by_name["same_book"]
                 else:  # pragma: no cover
-                    # If we already found one more specific, we can skip and
-                    # avoid loading additional documents
-                    if last_specificity > specificity_by_name["diff_book"]:
-                        continue
-                    module_path = path_resolver.get_module_path(module_id)
-                    document = _get_external_document(module_path)
-                    specificity = specificity_by_name["diff_book"]
+                    # Ignore context linking to different book for now
+                    # until a more formal decision is made
+                    # # If we already found one more specific, we can skip and
+                    # # avoid loading additional documents
+                    # if last_specificity > specificity_by_name["diff_book"]:
+                    #     continue
+                    # module_path = path_resolver.get_module_path(module_id)
+                    # document = _get_external_document(module_path)
+                    # specificity = specificity_by_name["diff_book"]
+                    continue
 
                 target_module = document.metadata["uuid"]
 
