@@ -1161,20 +1161,16 @@ def test_check_feed(tmp_path, mocker):
     # Expected s3 requests / responses by invocation:
     #
     #
-    # Invocation 4 (git):
+    # Invocation 1:
     #   - Book
     #       - Initial check for .complete: head_object => Return a 404
     #       - Check for .pending head_object => Return a 404
     #       - put_object by script with book data
     #       - put_object by script with .pending state
     #
-    # Invocation 5 (git):
+    # Invocation 2 (git):
     #   - Book
     #       - Check for .complete => head_object return object
-    #       - Initial check for .complete: head_object => Return a 404
-    #       - Check for .pending head_object => Return a 404
-    #       - put_object by script with book data
-    #       - put_object by script with .pending state
 
     queue_state_bucket = "queue-state-bucket"
     queue_filename = "queue-state-filename.json"
@@ -1236,7 +1232,7 @@ def test_check_feed(tmp_path, mocker):
     )
 
     # Book: Put book data
-    _stubber_add_put_object(queue_filename, json.dumps(book3))
+    _stubber_add_put_object(queue_filename, json.dumps(book))
 
     # Book: Put book .pending
     _stubber_add_put_object(

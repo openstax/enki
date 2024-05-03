@@ -31,15 +31,12 @@ def get_abl(api_root, code_version):
 
 @timed
 def main():
-    # feed_json = Path(sys.argv[1]).resolve(strict=True)
     corgi_api_url = sys.argv[1]
     code_version = sys.argv[2]
     queue_state_bucket = sys.argv[3]
     queue_filename = sys.argv[4]
     max_books_per_run = int(sys.argv[5])
-    state_prefix = "corgi"
-    # state_prefix = sys.argv[6]
-    # feed_filter = sys.argv[7]
+    state_prefix = sys.argv[6]
 
     s3_client = boto3.client("s3")
     books_queued = 0
