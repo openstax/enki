@@ -45,3 +45,4 @@ pip-delete-this-directory.txt
 # Generated coverage files
 .coverage
 htmlcov/
+.corgi-concourse-resource-state
