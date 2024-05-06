@@ -3,7 +3,6 @@
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_ACCESS_KEY_ID": "((prod-web-hosting-content-gatekeeper-access-key-id))",
     "AWS_SECRET_ACCESS_KEY": "((prod-web-hosting-content-gatekeeper-secret-access-key))",
-    "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",
     "CORGI_API_URL": "https://corgi.ce.openstax.org",
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
     "WEB_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
