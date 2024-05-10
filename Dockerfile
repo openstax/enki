@@ -185,18 +185,6 @@ RUN curl https://codeload.github.com/jpmens/jo/tar.gz/refs/tags/$JO_VERSION > jo
     && make install \
     ;
 
-# ---------------------------
-# Build concourse resource
-# ---------------------------
-
-FROM openstax/python3-poetry:20230310.212344 as concourse-resource-builder
-
-WORKDIR /code
-COPY ./corgi-concourse-resource .
-
-RUN poetry build -f sdist
-
-
 # ===========================
 # The Final Stage
 # ===========================
@@ -254,9 +242,9 @@ RUN apt-get autoremove -y \
 # ---------------------------
 
 WORKDIR /workspace/enki/corgi-concourse-resource/
-COPY --from=concourse-resource-builder /code/dist .
+COPY ./corgi-concourse-resource /workspace/enki/corgi-concourse-resource/
 RUN set -x \
-    && pip3 install /workspace/enki/corgi-concourse-resource/corgi*concourse*resource*.tar.gz \
+    && pip3 install /workspace/enki/corgi-concourse-resource/. \
     && mkdir -p /opt/resource \
     && for script in check in out; do ln -s $(which $script) /opt/resource/; done
 

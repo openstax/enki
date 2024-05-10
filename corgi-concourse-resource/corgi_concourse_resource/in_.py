@@ -3,7 +3,7 @@ import os
 import sys
 
 from . import corgi_api as api
-from .utils import msg, write_file, get_repo_path
+from .utils import get_repo_path, msg, write_file
 
 
 def in_(dest_path, in_stream):
@@ -37,5 +37,5 @@ def main():  # pragma: no cover
     print(json.dumps(version))
 
 
-if __name__ == '__main__':  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()
