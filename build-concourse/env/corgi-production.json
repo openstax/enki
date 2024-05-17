@@ -4,7 +4,6 @@
   "CORGI_ARTIFACTS_S3_BUCKET": "openstax-cops-artifacts",
   "CORGI_CLOUDFRONT_URL": "https://openstax.org",
   "PREVIEW_APP_URL_PREFIX": "apps/archive-preview",
-  "ABL_FILE_URL": "https://raw.githubusercontent.com/openstax/content-manager-approved-books/main/approved-book-list.json",
   "AWS_ACCESS_KEY_ID": "((prod-cops-artifacts-access-key-id))",
   "AWS_SECRET_ACCESS_KEY": "((prod-cops-artifacts-secret-access-key))",
   "GH_SECRET_CREDS": "git:((github-api-token))",

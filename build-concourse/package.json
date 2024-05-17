@@ -1,7 +1,6 @@
 {
   "scripts": {
     "build:json": "ts-node --transpile-only ./build-json.ts",
-    "build:gdocs": "ts-node ./build-gdocs.ts",
     "build:graphs": "ts-node ./build-graphs.ts",
     "build:corgi": "ts-node ./build-corgi.ts",
     "build:corgi:and-local": "ts-node ./build-corgi-local.ts",
