@@ -2,7 +2,7 @@ import logging
 import os
 import json
 from pathlib import Path
-from typing import Any, Callable, List, NamedTuple
+from typing import Any, Callable, NamedTuple
 import traceback
 
 from lxml import etree
@@ -46,6 +46,10 @@ class UnsupportedLibraryError(H5PInjectionError):
         super().__init__(library)
 
 
+def _answer_id_parts(id_parts: list[str], idx: int) -> list[str]:
+    return [*id_parts, f"a-{idx}"]
+
+
 def _make_collaborator_solutions(entry):
     return [
         {"content_html": entry[key], "solution_type": solution_type}
@@ -58,13 +62,13 @@ def _make_collaborator_solutions(entry):
 
 
 def _answer_factory(
-    id: int,
+    id_parts: list[str],
     content_html: str,
     correctness: bool | str | int | float | None,
     feedback_html: str | None,
 ) -> dict[str, Any]:
     answer = {
-        "id": id,
+        "id": "_".join(id_parts),
         "content_html": content_html,
     }
     if correctness is not None:
@@ -77,25 +81,25 @@ def _answer_factory(
 
 
 def _question_factory(
-    id: int,
+    id_parts: list[str],
     stem_html: str,
-    answers: List[dict[str, Any]],
+    answers: list[dict[str, Any]],
     is_answer_order_important: bool,
 ) -> dict[str, Any]:
     return {
-        "id": id,
+        "id": "_".join(id_parts),
         "stem_html": stem_html,
         "answers": answers,
         "is_answer_order_important": is_answer_order_important,
     }
 
 
-def _multichoice_question_factory(id: int, entry: dict[str, Any]):
+def _multichoice_question_factory(id_parts: list[str], entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     random_answers = try_parse_bool(behavior.get("randomAnswers", False))
     answers = [
         _answer_factory(
-            id=index + 1,
+            id_parts=_answer_id_parts(id_parts, index + 1),
             content_html=answer["text"],
             correctness=answer.get("correct", None),
             feedback_html=answer.get("tipsAndFeedback", {}).get(
@@ -109,14 +113,14 @@ def _multichoice_question_factory(id: int, entry: dict[str, Any]):
     # TODO: Maybe re-enable this check?
     # assert len(answers) > 0, NO_SOLUTION_ERROR
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["question"],
         answers=answers,
         is_answer_order_important=not random_answers,
     )
 
 
-def _true_false_question_factory(id: int, entry: dict[str, Any]):
+def _true_false_question_factory(id_parts: list[str], entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     answers = []
     parsed_correctness = (
@@ -133,21 +137,21 @@ def _true_false_question_factory(id: int, entry: dict[str, Any]):
         )
         answers.append(
             _answer_factory(
-                id=index + 1,
+                id_parts=_answer_id_parts(id_parts, index + 1),
                 content_html=str(option),
                 correctness=is_correct,
                 feedback_html=behavior.get(feedback_key, None),
             )
         )
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["question"],
         answers=answers,
         is_answer_order_important=True,
     )
 
 
-def _essay_question_factory(id: int, entry: dict[str, Any]):
+def _essay_question_factory(id_parts: list[str], entry: dict[str, Any]):
     keywords = entry.get("keywords", [])
     solution = entry.get("solution", {})
     solution_intro = solution.get("introduction", "")
@@ -155,7 +159,7 @@ def _essay_question_factory(id: int, entry: dict[str, Any]):
     feedback = " ".join(v for v in (solution_intro, solution_sample) if v)
     answers = [
         _answer_factory(
-            id=index + 1,
+            id_parts=_answer_id_parts(id_parts, index + 1),
             content_html=keyword["keyword"],
             correctness=True,
             feedback_html=feedback,
@@ -164,7 +168,7 @@ def _essay_question_factory(id: int, entry: dict[str, Any]):
         if keyword["keyword"] != "*"
     ]
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["taskDescription"],
         answers=answers,
         is_answer_order_important=False,
@@ -172,8 +176,8 @@ def _essay_question_factory(id: int, entry: dict[str, Any]):
 
 
 class SupportedLibrary(NamedTuple):
-    get_formats: Callable[[dict[str, Any]], List[str]]
-    make_question: Callable[[int, dict[str, Any]], dict[str, Any]]
+    get_formats: Callable[[dict[str, Any]], list[str]]
+    make_question: Callable[[list[str], dict[str, Any]], dict[str, Any]]
 
 
 SUPPORTED_LIBRARIES = {
@@ -197,16 +201,16 @@ SUPPORTED_LIBRARIES = {
 
 
 def _add_question(
-    id: int,
+    id_parts: list[str],
     library: str,
     entry: dict[str, Any],
-    questions: List[dict[str, Any]] = [],
+    questions: list[dict[str, Any]] = [],
 ):
     question = {}
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
         question["formats"] = lib.get_formats(entry)
-        question.update(**lib.make_question(id, entry))
+        question.update(**lib.make_question(id_parts, entry))
         question["collaborator_solutions"] = _make_collaborator_solutions(
             entry
         )
@@ -218,7 +222,9 @@ def _add_question(
             assert (
                 sub_library != "H5P.QuestionSet"
             ), "Question sets cannot contain question sets"
-            _add_question(i + 1, sub_library, sub_entry, questions)
+            _add_question(
+                [*id_parts, f"q-{i + 1}"], sub_library, sub_entry, questions
+            )
     else:
         raise UnsupportedLibraryError(library)
 
@@ -227,7 +233,9 @@ def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
     try:
         questions = []
         main_library = h5p_in["h5p"]["mainLibrary"]
-        _add_question(1, main_library, h5p_in["content"], questions)
+        _add_question(
+            ["exercise", nickname], main_library, h5p_in["content"], questions
+        )
         return questions
     except KeyError as ke:
         key = ke.args[0]
@@ -303,7 +311,7 @@ def load_h5p_interactive(
 
 
 def handle_attachments(
-    attachments: List[str],
+    attachments: list[str],
     nickname: str,
     node: etree.ElementBase,
     media_handler: Callable[[str, etree.ElementBase, str, bool], None],
