@@ -376,6 +376,11 @@ def parse_exercise_html_to_etree(s: str, content_id: str):
         return body
 
 
+def get_parent_page_uuid(elem):
+    parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
+    return parent_page_elem.get("id").lstrip("page_")
+
+
 def exercise_callback_factory(match, url_template, token=None):
     """Create a callback function to replace an exercise by fetching from
     a server."""
@@ -422,13 +427,14 @@ def exercise_callback_factory(match, url_template, token=None):
         if exercise["total_count"] == 0:
             root_elem = get_missing_exercise_placeholder(url, item_code)
         else:
+            parent_page_uuid = get_parent_page_uuid(elem)
             exercise["items"][0]["url"] = url
             exercise["items"][0]["class"] = exercise_class
             _annotate_exercise(elem, exercise, page_uuids)
             assert len(exercise["items"]) == 1, \
                 'Exercise "items" array is nonsingular'
             exercise_content = exercise["items"][0]
-            html = render_exercise(exercise_content)
+            html = render_exercise(exercise_content, parent_page_uuid)
             root_elem = parse_exercise_html_to_etree(html, item_code)
 
         parent = elem.getparent()
@@ -458,8 +464,7 @@ def interactive_callback_factory(
         ]
         if len(split_contexts) > 0:
             # Get the uuid of the page the content is being injected into
-            parent_page_elem = elem.xpath('ancestor::*[@data-type="page"]')[0]
-            parent_page_uuid = parent_page_elem.get("id").lstrip("page_")
+            parent_page_uuid = get_parent_page_uuid(elem)
             context_uuid, context_elem_id = None, None
             specificity_by_name = {
                 "default": -1,
@@ -526,6 +531,7 @@ def interactive_callback_factory(
         if not h5p_in:
             root_elem = get_missing_exercise_placeholder(relpath, nickname)
         else:
+            parent_page_uuid = get_parent_page_uuid(elem)
             attachments = h5p_in["metadata"]["attachments"]
             exercise = {}
             exercise["nickname"] = nickname
@@ -547,7 +553,7 @@ def interactive_callback_factory(
                     elem, exercise, h5p_in["metadata"], page_uuids
                 )
 
-                html = render_exercise(exercise)
+                html = render_exercise(exercise, parent_page_uuid)
                 root_elem = parse_exercise_html_to_etree(html, nickname)
 
                 h5p_injection.handle_attachments(
@@ -580,8 +586,10 @@ def interactive_callback_factory(
     return (xpath, _replace_exercises, False)
 
 
-def render_exercise(exercise):
-    return EXERCISE_TEMPLATE.render(data=exercise)
+def render_exercise(exercise, parent_page_uuid):
+    return EXERCISE_TEMPLATE.render(
+        data=exercise, parent_page_uuid=parent_page_uuid
+    )
 
 
 HTML_DOCUMENT = """\

@@ -54,7 +54,7 @@ class UnsupportedLibraryError(H5PInjectionError):
 
 
 def _answer_id_parts(id_parts: list[str], idx: int) -> list[str]:
-    return [*id_parts, f"a-{idx}"]
+    return [*id_parts, f"answer{idx}"]
 
 
 def _make_collaborator_solutions(entry) -> list[CollaboratorSolution]:
@@ -94,7 +94,6 @@ def _question_factory(
     is_answer_order_important: bool,
 ) -> ExerciseQuestionBase:
     return {
-        # cookbook/lib/kitchen/injected_question_element.rb:81
         "id": "_".join(id_parts),
         "stem_html": stem_html,
         "answers": answers,
@@ -230,7 +229,10 @@ def _add_question(
                 sub_library != "H5P.QuestionSet"
             ), "Question sets cannot contain question sets"
             _add_question(
-                [*id_parts, f"q-{i + 1}"], sub_library, sub_entry, questions
+                [*id_parts, f"question{i + 1}"],
+                sub_library,
+                sub_entry,
+                questions
             )
     else:
         raise UnsupportedLibraryError(library)
@@ -243,7 +245,7 @@ def questions_from_h5p(
         questions = []
         main_library = h5p_in["h5p"]["mainLibrary"]
         _add_question(
-            ["exercise", nickname], main_library, h5p_in["content"], questions
+            [nickname], main_library, h5p_in["content"], questions
         )
         return questions
     except KeyError as ke:
