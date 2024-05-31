@@ -2,12 +2,19 @@ import logging
 import os
 import json
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from collections.abc import Callable
+from typing import Any, NamedTuple
 import traceback
 
 from lxml import etree
 
 from .utils import recursive_merge, try_parse_bool
+from .typing.exercise import (
+    ExerciseQuestion,
+    ExerciseQuestionBase,
+    ExerciseAnswer,
+    CollaboratorSolution
+)
 
 
 logger = logging.getLogger("nebuchadnezzar")
@@ -50,7 +57,7 @@ def _answer_id_parts(id_parts: list[str], idx: int) -> list[str]:
     return [*id_parts, f"a-{idx}"]
 
 
-def _make_collaborator_solutions(entry):
+def _make_collaborator_solutions(entry) -> list[CollaboratorSolution]:
     return [
         {"content_html": entry[key], "solution_type": solution_type}
         for key, solution_type in (
@@ -66,8 +73,8 @@ def _answer_factory(
     content_html: str,
     correctness: bool | str | int | float | None,
     feedback_html: str | None,
-) -> dict[str, Any]:
-    answer = {
+) -> ExerciseAnswer:
+    answer: ExerciseAnswer = {
         "id": "_".join(id_parts),
         "content_html": content_html,
     }
@@ -83,9 +90,9 @@ def _answer_factory(
 def _question_factory(
     id_parts: list[str],
     stem_html: str,
-    answers: list[dict[str, Any]],
+    answers: list[ExerciseAnswer],
     is_answer_order_important: bool,
-) -> dict[str, Any]:
+) -> ExerciseQuestionBase:
     return {
         # cookbook/lib/kitchen/injected_question_element.rb:81
         "id": "_".join(id_parts),
@@ -178,7 +185,7 @@ def _essay_question_factory(id_parts: list[str], entry: dict[str, Any]):
 
 class SupportedLibrary(NamedTuple):
     get_formats: Callable[[dict[str, Any]], list[str]]
-    make_question: Callable[[list[str], dict[str, Any]], dict[str, Any]]
+    make_question: Callable[[list[str], dict[str, Any]], ExerciseQuestionBase]
 
 
 SUPPORTED_LIBRARIES = {
@@ -205,16 +212,15 @@ def _add_question(
     id_parts: list[str],
     library: str,
     entry: dict[str, Any],
-    questions: list[dict[str, Any]] = [],
+    questions: list[ExerciseQuestion] = [],
 ):
-    question = {}
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
-        question["formats"] = lib.get_formats(entry)
-        question.update(**lib.make_question(id_parts, entry))
-        question["collaborator_solutions"] = _make_collaborator_solutions(
-            entry
-        )
+        question: ExerciseQuestion = {
+            **lib.make_question(id_parts, entry),
+            "formats": lib.get_formats(entry),
+            "collaborator_solutions": _make_collaborator_solutions(entry)
+        }
         questions.append(question)
     elif library == "H5P.QuestionSet":
         for i, q in enumerate(entry["questions"]):
@@ -230,7 +236,9 @@ def _add_question(
         raise UnsupportedLibraryError(library)
 
 
-def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
+def questions_from_h5p(
+    nickname: str, h5p_in: dict[str, Any]
+) -> list[ExerciseQuestion]:
     try:
         questions = []
         main_library = h5p_in["h5p"]["mainLibrary"]
