@@ -73,7 +73,7 @@ def _answer_factory(
     }
     if correctness is not None:
         b_correctness = try_parse_bool(correctness)
-        # cookbook/lib/kitchen/injected_question_element.rb#L72
+        # cookbook/lib/kitchen/injected_question_element.rb:72
         answer["correctness"] = "1.0" if b_correctness else "0.0"
     if feedback_html is not None:
         answer["feedback_html"] = feedback_html
@@ -87,6 +87,7 @@ def _question_factory(
     is_answer_order_important: bool,
 ) -> dict[str, Any]:
     return {
+        # cookbook/lib/kitchen/injected_question_element.rb:81
         "id": "_".join(id_parts),
         "stem_html": stem_html,
         "answers": answers,
