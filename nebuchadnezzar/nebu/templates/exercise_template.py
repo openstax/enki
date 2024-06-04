@@ -25,8 +25,8 @@ EXERCISE_TEMPLATE_STR = """\
         data-type="exercise-question"
         data-is-answer-order-important="{{ question.is_answer_order_important | lower }}"
         data-formats="{{ ' '.join(question.formats) }}"
-        {% if question.id %}id="auto_{{ parent_page_uuid }}_{{ question.id }}"{% endif %}
-        >
+        id="auto_{{ parent_page_uuid }}_{{ question.id }}"
+    >
         {% if question.stimulus_html -%}
         <div data-type="question-stimulus">{{ question.stimulus_html }}</div>
         {% endif -%}
@@ -34,7 +34,7 @@ EXERCISE_TEMPLATE_STR = """\
         {% if question.answers -%}
         <ol data-type="question-answers" type="a">
             {% for option in question.answers -%}
-            <li data-type="question-answer" id="auto_{{ parent_page_uuid }}_{{ option.id }}" data-correctness="{{ option.correctness }}">
+            <li data-type="question-answer" data-correctness="{{ option.correctness }}">
                 <div data-type="answer-content">{{ option.content_html }}</div>
                 {% if option.feedback_html %}<div data-type="answer-feedback">{{ option.feedback_html }}</div>{% endif %}
             </li>
