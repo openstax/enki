@@ -13,7 +13,7 @@ from .typing.exercise import (
     ExerciseQuestion,
     ExerciseQuestionBase,
     ExerciseAnswer,
-    CollaboratorSolution
+    CollaboratorSolution,
 )
 
 
@@ -22,8 +22,6 @@ logger = logging.getLogger("nebuchadnezzar")
 
 POSSIBLE_PROBLEMS = """\
 Possible causes are:
-- Private content may not have been fetched
-- The private content may be in the wrong format
 - The content may be malformed
 """
 
@@ -53,10 +51,6 @@ class UnsupportedLibraryError(H5PInjectionError):
         super().__init__(library)
 
 
-def _answer_id_parts(id_parts: list[str], idx: int) -> list[str]:
-    return [*id_parts, f"answer{idx}"]
-
-
 def _make_collaborator_solutions(entry) -> list[CollaboratorSolution]:
     return [
         {"content_html": entry[key], "solution_type": solution_type}
@@ -69,13 +63,11 @@ def _make_collaborator_solutions(entry) -> list[CollaboratorSolution]:
 
 
 def _answer_factory(
-    id_parts: list[str],
     content_html: str,
     correctness: bool | str | int | float | None,
     feedback_html: str | None,
 ) -> ExerciseAnswer:
     answer: ExerciseAnswer = {
-        "id": "_".join(id_parts),
         "content_html": content_html,
     }
     if correctness is not None:
@@ -106,14 +98,13 @@ def _multichoice_question_factory(id_parts: list[str], entry: dict[str, Any]):
     random_answers = try_parse_bool(behavior.get("randomAnswers", False))
     answers = [
         _answer_factory(
-            id_parts=_answer_id_parts(id_parts, index + 1),
             content_html=answer["text"],
             correctness=answer.get("correct", None),
             feedback_html=answer.get("tipsAndFeedback", {}).get(
                 "chosenFeedback", None
             ),
         )
-        for index, answer in enumerate(entry.get("answers", []))
+        for answer in entry.get("answers", [])
     ]
     # Assertion disabled because many free-response multiple choice questions
     # have no answer choices
@@ -133,7 +124,7 @@ def _true_false_question_factory(id_parts: list[str], entry: dict[str, Any]):
     parsed_correctness = (
         try_parse_bool(entry["correct"]) if "correct" in entry else None
     )
-    for index, option in enumerate((True, False)):
+    for option in (True, False):
         is_correct = parsed_correctness == option
         feedback_key = (
             "feedbackOnCorrect"
@@ -144,7 +135,6 @@ def _true_false_question_factory(id_parts: list[str], entry: dict[str, Any]):
         )
         answers.append(
             _answer_factory(
-                id_parts=_answer_id_parts(id_parts, index + 1),
                 content_html=str(option),
                 correctness=is_correct,
                 feedback_html=behavior.get(feedback_key, None),
@@ -166,12 +156,11 @@ def _essay_question_factory(id_parts: list[str], entry: dict[str, Any]):
     feedback = " ".join(v for v in (solution_intro, solution_sample) if v)
     answers = [
         _answer_factory(
-            id_parts=_answer_id_parts(id_parts, index + 1),
             content_html=keyword["keyword"],
             correctness=True,
             feedback_html=feedback,
         )
-        for index, keyword in enumerate(keywords)
+        for keyword in keywords
         if keyword["keyword"] != "*"
     ]
     return _question_factory(
@@ -211,14 +200,14 @@ def _add_question(
     id_parts: list[str],
     library: str,
     entry: dict[str, Any],
-    questions: list[ExerciseQuestion] = [],
+    questions: list[ExerciseQuestion],
 ):
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
         question: ExerciseQuestion = {
             **lib.make_question(id_parts, entry),
             "formats": lib.get_formats(entry),
-            "collaborator_solutions": _make_collaborator_solutions(entry)
+            "collaborator_solutions": _make_collaborator_solutions(entry),
         }
         questions.append(question)
     elif library == "H5P.QuestionSet":
@@ -232,7 +221,7 @@ def _add_question(
                 [*id_parts, f"question{i + 1}"],
                 sub_library,
                 sub_entry,
-                questions
+                questions,
             )
     else:
         raise UnsupportedLibraryError(library)
@@ -242,11 +231,9 @@ def questions_from_h5p(
     nickname: str, h5p_in: dict[str, Any]
 ) -> list[ExerciseQuestion]:
     try:
-        questions = []
+        questions: list[ExerciseQuestion] = []
         main_library = h5p_in["h5p"]["mainLibrary"]
-        _add_question(
-            [nickname], main_library, h5p_in["content"], questions
-        )
+        _add_question([nickname], main_library, h5p_in["content"], questions)
         return questions
     except KeyError as ke:
         key = ke.args[0]

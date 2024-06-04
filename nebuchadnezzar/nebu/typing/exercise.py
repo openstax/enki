@@ -9,7 +9,6 @@ class ExerciseAnswerFull(TypedDict, total=False):
 
 
 class ExerciseAnswer(ExerciseAnswerFull):
-    id: str
     content_html: str
 
 
