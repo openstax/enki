@@ -294,7 +294,7 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                                                       else None)
             if not id_:
                 fallback_key = None
-                if child.get('data-type') in ('chapter',):
+                if data_type in ('chapter', 'unit'):
                     fallback_key = metadata.get('title')
                 id_ = _compute_id(parent, child, fallback_key)
                 assert metadata.get('version')
