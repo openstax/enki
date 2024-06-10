@@ -45,7 +45,11 @@
     <para><link url="#fs-id1164354595396"/></para>
     <para id="link-resource-patch-test"><link resource="../../media/foobar.png">Test link patching</link></para>
     <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/f9ef58e"/></para>
-    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/f9ef58e"/></para>
+    <exercise id="fjsdfd">
+      <problem id="fjislgs">
+        <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/f9ef58e"/></para>
+      </problem>
+    </exercise>
     <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/unsupported"/></para>
   </para>
 
