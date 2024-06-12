@@ -62,7 +62,7 @@ if [[ -f "$IO_BOOK/job_id" ]]; then
         rex_archive_param="?archive=$CORGI_CLOUDFRONT_URL/$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
         first_page_slug=$(jq -r '.tree.contents[0].slug' "$book_metadata")
-        rex_prod_url="$REX_PROD_PREVIEW_URL/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
+        rex_prod_url="$REX_PROD_PREVIEW_URL/apps/rex/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
 
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
