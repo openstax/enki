@@ -9,5 +9,5 @@
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-cops-artifacts",
     "CORGI_CLOUDFRONT_URL": "https://gibberish",
     "PREVIEW_APP_URL_PREFIX": "apps/archive-localdev",
-    "REX_PROD_PREVIEW_URL": "https://opensatx.org"
+    "REX_PROD_PREVIEW_URL": "https://openstax.org"
 }
