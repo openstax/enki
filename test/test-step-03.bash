@@ -55,7 +55,7 @@ EOF
 
 
 expected_book_slug="book-slug1"
-expected_url="https://rex-test/books/00000000-0000-0000-0000-000000000000@9044eef/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
+expected_url="https://rex-test/apps/rex/books/00000000-0000-0000-0000-000000000000@9044eef/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
 expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"}]'
 actual_contents="$(cat $ARTIFACTS_URL_PATH)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
