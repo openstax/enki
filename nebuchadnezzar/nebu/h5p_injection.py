@@ -2,12 +2,19 @@ import logging
 import os
 import json
 from pathlib import Path
-from typing import Any, Callable, List, NamedTuple
+from collections.abc import Callable
+from typing import Any, NamedTuple
 import traceback
 
 from lxml import etree
 
 from .utils import recursive_merge, try_parse_bool
+from .typing.exercise import (
+    ExerciseQuestion,
+    ExerciseQuestionBase,
+    ExerciseAnswer,
+    CollaboratorSolution,
+)
 
 
 logger = logging.getLogger("nebuchadnezzar")
@@ -15,8 +22,6 @@ logger = logging.getLogger("nebuchadnezzar")
 
 POSSIBLE_PROBLEMS = """\
 Possible causes are:
-- Private content may not have been fetched
-- The private content may be in the wrong format
 - The content may be malformed
 """
 
@@ -46,7 +51,7 @@ class UnsupportedLibraryError(H5PInjectionError):
         super().__init__(library)
 
 
-def _make_collaborator_solutions(entry):
+def _make_collaborator_solutions(entry) -> list[CollaboratorSolution]:
     return [
         {"content_html": entry[key], "solution_type": solution_type}
         for key, solution_type in (
@@ -58,18 +63,16 @@ def _make_collaborator_solutions(entry):
 
 
 def _answer_factory(
-    id: int,
     content_html: str,
     correctness: bool | str | int | float | None,
     feedback_html: str | None,
-) -> dict[str, Any]:
-    answer = {
-        "id": id,
+) -> ExerciseAnswer:
+    answer: ExerciseAnswer = {
         "content_html": content_html,
     }
     if correctness is not None:
         b_correctness = try_parse_bool(correctness)
-        # cookbook/lib/kitchen/injected_question_element.rb#L72
+        # cookbook/lib/kitchen/injected_question_element.rb:72
         answer["correctness"] = "1.0" if b_correctness else "0.0"
     if feedback_html is not None:
         answer["feedback_html"] = feedback_html
@@ -77,52 +80,51 @@ def _answer_factory(
 
 
 def _question_factory(
-    id: int,
+    id_parts: list[str],
     stem_html: str,
-    answers: List[dict[str, Any]],
+    answers: list[ExerciseAnswer],
     is_answer_order_important: bool,
-) -> dict[str, Any]:
+) -> ExerciseQuestionBase:
     return {
-        "id": id,
+        "id": "_".join(id_parts),
         "stem_html": stem_html,
         "answers": answers,
         "is_answer_order_important": is_answer_order_important,
     }
 
 
-def _multichoice_question_factory(id: int, entry: dict[str, Any]):
+def _multichoice_question_factory(id_parts: list[str], entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     random_answers = try_parse_bool(behavior.get("randomAnswers", False))
     answers = [
         _answer_factory(
-            id=index + 1,
             content_html=answer["text"],
             correctness=answer.get("correct", None),
             feedback_html=answer.get("tipsAndFeedback", {}).get(
                 "chosenFeedback", None
             ),
         )
-        for index, answer in enumerate(entry.get("answers", []))
+        for answer in entry.get("answers", [])
     ]
     # Assertion disabled because many free-response multiple choice questions
     # have no answer choices
     # TODO: Maybe re-enable this check?
     # assert len(answers) > 0, NO_SOLUTION_ERROR
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["question"],
         answers=answers,
         is_answer_order_important=not random_answers,
     )
 
 
-def _true_false_question_factory(id: int, entry: dict[str, Any]):
+def _true_false_question_factory(id_parts: list[str], entry: dict[str, Any]):
     behavior = entry.get("behaviour", {})
     answers = []
     parsed_correctness = (
         try_parse_bool(entry["correct"]) if "correct" in entry else None
     )
-    for index, option in enumerate((True, False)):
+    for option in (True, False):
         is_correct = parsed_correctness == option
         feedback_key = (
             "feedbackOnCorrect"
@@ -133,21 +135,20 @@ def _true_false_question_factory(id: int, entry: dict[str, Any]):
         )
         answers.append(
             _answer_factory(
-                id=index + 1,
                 content_html=str(option),
                 correctness=is_correct,
                 feedback_html=behavior.get(feedback_key, None),
             )
         )
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["question"],
         answers=answers,
         is_answer_order_important=True,
     )
 
 
-def _essay_question_factory(id: int, entry: dict[str, Any]):
+def _essay_question_factory(id_parts: list[str], entry: dict[str, Any]):
     keywords = entry.get("keywords", [])
     solution = entry.get("solution", {})
     solution_intro = solution.get("introduction", "")
@@ -155,16 +156,15 @@ def _essay_question_factory(id: int, entry: dict[str, Any]):
     feedback = " ".join(v for v in (solution_intro, solution_sample) if v)
     answers = [
         _answer_factory(
-            id=index + 1,
             content_html=keyword["keyword"],
             correctness=True,
             feedback_html=feedback,
         )
-        for index, keyword in enumerate(keywords)
+        for keyword in keywords
         if keyword["keyword"] != "*"
     ]
     return _question_factory(
-        id=id,
+        id_parts=id_parts,
         stem_html=entry["taskDescription"],
         answers=answers,
         is_answer_order_important=False,
@@ -172,8 +172,8 @@ def _essay_question_factory(id: int, entry: dict[str, Any]):
 
 
 class SupportedLibrary(NamedTuple):
-    get_formats: Callable[[dict[str, Any]], List[str]]
-    make_question: Callable[[int, dict[str, Any]], dict[str, Any]]
+    get_formats: Callable[[dict[str, Any]], list[str]]
+    make_question: Callable[[list[str], dict[str, Any]], ExerciseQuestionBase]
 
 
 SUPPORTED_LIBRARIES = {
@@ -197,19 +197,18 @@ SUPPORTED_LIBRARIES = {
 
 
 def _add_question(
-    id: int,
+    id_parts: list[str],
     library: str,
     entry: dict[str, Any],
-    questions: List[dict[str, Any]] = [],
+    questions: list[ExerciseQuestion],
 ):
-    question = {}
     if library in SUPPORTED_LIBRARIES:
         lib = SUPPORTED_LIBRARIES[library]
-        question["formats"] = lib.get_formats(entry)
-        question.update(**lib.make_question(id, entry))
-        question["collaborator_solutions"] = _make_collaborator_solutions(
-            entry
-        )
+        question: ExerciseQuestion = {
+            **lib.make_question(id_parts, entry),
+            "formats": lib.get_formats(entry),
+            "collaborator_solutions": _make_collaborator_solutions(entry),
+        }
         questions.append(question)
     elif library == "H5P.QuestionSet":
         for i, q in enumerate(entry["questions"]):
@@ -218,16 +217,23 @@ def _add_question(
             assert (
                 sub_library != "H5P.QuestionSet"
             ), "Question sets cannot contain question sets"
-            _add_question(i + 1, sub_library, sub_entry, questions)
+            _add_question(
+                [*id_parts, f"question{i + 1}"],
+                sub_library,
+                sub_entry,
+                questions,
+            )
     else:
         raise UnsupportedLibraryError(library)
 
 
-def questions_from_h5p(nickname: str, h5p_in: dict[str, Any]):
+def questions_from_h5p(
+    nickname: str, h5p_in: dict[str, Any]
+) -> list[ExerciseQuestion]:
     try:
-        questions = []
+        questions: list[ExerciseQuestion] = []
         main_library = h5p_in["h5p"]["mainLibrary"]
-        _add_question(1, main_library, h5p_in["content"], questions)
+        _add_question([nickname], main_library, h5p_in["content"], questions)
         return questions
     except KeyError as ke:
         key = ke.args[0]
@@ -303,7 +309,7 @@ def load_h5p_interactive(
 
 
 def handle_attachments(
-    attachments: List[str],
+    attachments: list[str],
     nickname: str,
     node: etree.ElementBase,
     media_handler: Callable[[str, etree.ElementBase, str, bool], None],
