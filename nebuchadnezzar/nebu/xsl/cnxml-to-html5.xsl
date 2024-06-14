@@ -1121,7 +1121,8 @@
   starts-with(@target-id, 'ost/api/ex/') or 
   starts-with(@target-id, 'exercise/') or 
   starts-with(@url, '#ost/api/ex/') or 
-  starts-with(@url, '#exercise/')
+  starts-with(@url, '#exercise/') or
+  starts-with(@url, '{INTERACTIVES_ROOT}/')
   ]]">
   <xsl:if test="count(.//c:link) != 1">
     <xsl:call-template name="error-with-context">
