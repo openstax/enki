@@ -206,7 +206,8 @@ def main():
                 "title": doc.metadata.get("title"),
                 "abstract": None,
                 "id": doc.id,
-                "revised": datetime.now(timezone.utc).isoformat()
+                "revised": datetime.now(timezone.utc).isoformat(),
+                "noindex": doc.metadata.get("noindex", False)
             }
 
             # Add / override metadata from baking if available
