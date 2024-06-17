@@ -58,6 +58,18 @@
         <xsl:value-of select="@class"/>
       </xsl:attribute>
     </xsl:if>
+
+    <!-- propagate top-level metadata attributes -->
+    <xsl:for-each select="@*">
+      <xsl:variable name="name" select="name()"/>
+      <xsl:variable name="value" select="."/>
+      <xsl:if test="$name = 'noindex'">
+        <xsl:attribute name="data-{$name}">
+          <xsl:value-of select="$value"/>
+        </xsl:attribute>
+      </xsl:if>
+    </xsl:for-each>
+
     <xsl:if test="$version">
         <xsl:attribute name="data-cnxml-to-html-ver">
             <xsl:value-of select="$version"/>
