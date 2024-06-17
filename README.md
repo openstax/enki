@@ -67,7 +67,7 @@ Note that if `book_slug` is not provided, all books in the repo will be built by
 
 For REX preview you need to build a `all-web` book and run rex-preview command.
 
-**Important Note:** You need to turn off any sort of adblocker for `https://openstax.org` for the preview to work! Don't use Safari because the internal tracker blocker there also breaks REX preview!
+**Important Note:** You need to turn off any sort of adblocker for `https://rex-web.herokuapp.com` for the preview to work! Don't use Safari because the internal tracker blocker there also breaks REX preview!
 
 Example with using a custom data "rextest" directory:
 

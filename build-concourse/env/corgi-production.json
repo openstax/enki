@@ -8,5 +8,5 @@
   "AWS_ACCESS_KEY_ID": "((prod-cops-artifacts-access-key-id))",
   "AWS_SECRET_ACCESS_KEY": "((prod-cops-artifacts-secret-access-key))",
   "GH_SECRET_CREDS": "git:((github-api-token))",
-  "REX_PROD_PREVIEW_URL": "https://openstax.org"
+  "REX_PROD_PREVIEW_URL": "https://rex-web.herokuapp.com"
 }
