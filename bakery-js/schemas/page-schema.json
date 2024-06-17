@@ -32,9 +32,17 @@
     },
     "noindex": {
       "type": "boolean",
-      "description": "True if search engines should not index this page."
+      "description": "True if search engines should not index this page"
     }
   },
   "additionalProperties": false,
-  "required": ["title", "id", "revised", "content", "slug", "abstract", "noindex"]
+  "required": [
+    "title",
+    "id",
+    "revised",
+    "content",
+    "slug",
+    "abstract",
+    "noindex"
+  ]
 }
