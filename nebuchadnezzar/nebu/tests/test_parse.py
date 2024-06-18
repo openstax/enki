@@ -304,3 +304,20 @@ def test_parse_license_with_bad_url_should_error(license_url):
     with pytest.raises(Exception) as e:
         _ = parse_metadata(xml)
     assert 'Invalid license url' in str(e)
+
+
+def test_parse_no_title():
+    cnxml = """
+        <document xmlns="http://cnx.rice.edu/cnxml">
+            <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+                <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27ebee</md:uuid>
+                <md:abstract/>
+            </metadata>
+        </document>
+    """
+
+    xml = etree.fromstring(cnxml)
+
+    with pytest.raises(IndexError):
+        _ = parse_metadata(xml)
