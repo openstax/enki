@@ -29,8 +29,20 @@
     "content": {
       "type": "string",
       "description": "The content for the page"
+    },
+    "noindex": {
+      "type": "boolean",
+      "description": "True if search engines should not index this page"
     }
   },
   "additionalProperties": false,
-  "required": ["title", "id", "revised", "content", "slug", "abstract"]
+  "required": [
+    "title",
+    "id",
+    "revised",
+    "content",
+    "slug",
+    "abstract",
+    "noindex"
+  ]
 }

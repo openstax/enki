@@ -388,7 +388,7 @@ class DocumentMetadataParser:
         'publishers', 'copyright_holders', 'authors', 'summary',
         'cnx-archive-uri', 'cnx-archive-shortid', 'derived_from_uri',
         'derived_from_title', 'version', 'canonical_book_uuid',
-        'license_url', 'slug'
+        'license_url', 'slug', 'noindex'
     )
 
     def __init__(self, elm_tree, raise_value_error=True):
@@ -402,6 +402,17 @@ class DocumentMetadataParser:
         values = self._xml.xpath(prefix + xpath,
                                  namespaces=self.namespaces)
         return values
+
+    @property
+    def noindex(self):
+        items = self.parse(
+            'ancestor-or-self::*[@data-type="page"]/@data-noindex'
+        )
+        try:
+            value = items[0]
+        except IndexError:  # pragma: no cover
+            value = None
+        return isinstance(value, str) and value.strip().lower() == "true"
 
     @property
     def metadata(self):

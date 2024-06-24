@@ -281,7 +281,9 @@ def test_disassemble_book(tmp_path, mocker):
         == "Explain the difference between a model and a theory"
     )
     assert m42119_data["revised"] == "2018/08/03 15:49:52 -0500"
+    assert m42119_data.get("noindex") is True
     assert m42092_data["revised"] is not None
+    assert m42092_data.get("noindex") is False
     # Verify the generated timestamp is ISO8601 and includes timezone info
     assert datetime.fromisoformat(m42092_data["revised"]).tzinfo is not None
 
@@ -3341,6 +3343,7 @@ class HTMLParsingTestCase(unittest.TestCase):
             'version': '3',
             'canonical_book_uuid': 'ea4244ce-dd9c-4166-9c97-acae5faf0ba1',
             'slug': None,
+            'noindex': False,
         }
         self.assertEqual(metadata, expected_metadata)
 
