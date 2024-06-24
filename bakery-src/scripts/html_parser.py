@@ -412,7 +412,7 @@ class DocumentMetadataParser:
             value = items[0]
         except IndexError:  # pragma: no cover
             value = None
-        return value == "true"
+        return isinstance(value, str) and value.strip().lower() == "true"
 
     @property
     def metadata(self):
