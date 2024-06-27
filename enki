@@ -194,7 +194,7 @@ if [[ $arg_command == 'rex-preview' ]]; then
         if [[ ! $json_filename == *":"* && ! $json_filename =~ ^.*\.toc\.json$ ]]; then
             json_filename=$(basename $json_filename) # remove the contents/ directory name
             uuid_and_ver=${json_filename%.*}
-            echo "https://rex-web.herokuapp.com/apps/rex/books/$uuid_and_ver/pages/not-a-valid-page?archive=http://localhost:$rexpreview_port"
+            echo "https://rex-web-production.herokuapp.com/apps/rex/books/$uuid_and_ver/pages/not-a-valid-page?archive=http://localhost:$rexpreview_port"
         fi
     done
 
