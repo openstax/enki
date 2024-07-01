@@ -121,6 +121,7 @@ RUN pip3 install \
 COPY ./nebuchadnezzar/ /workspace/enki/nebuchadnezzar/
 COPY ./bakery-src/scripts/*.py ./bakery-src/scripts/*.js ./bakery-src/scripts/*.json /workspace/enki/bakery-src/scripts/
 COPY ./bakery-src/scripts/gdoc/ /workspace/enki/bakery-src/scripts/gdoc/
+COPY ./bakery-src/scripts/ppt/ /workspace/enki/bakery-src/scripts/ppt/
 RUN pip3 install /workspace/enki/nebuchadnezzar/ /workspace/enki/bakery-src/scripts/.
 
 RUN npm --prefix /workspace/enki/bakery-src/scripts install --production /workspace/enki/bakery-src/scripts
@@ -314,6 +315,7 @@ COPY --from=build-bakery-js-stage /workspace/enki/bakery-js/ /workspace/enki/bak
 COPY --from=build-mathify-stage /workspace/enki/mathify/ /workspace/enki/mathify/
 COPY --from=build-python-stage /workspace/enki/bakery-src/scripts /workspace/enki/bakery-src/scripts
 COPY --from=build-python-stage /workspace/enki/bakery-src/scripts/gdoc /workspace/enki/bakery-src/scripts/gdoc
+COPY --from=build-python-stage /workspace/enki/bakery-src/scripts/ppt /workspace/enki/bakery-src/scripts/ppt
 COPY --from=build-python-stage /usr/local/lib/python3.10/dist-packages /usr/local/lib/python3.10/dist-packages
 COPY --from=build-python-stage \
     /usr/local/bin/neb \
@@ -333,6 +335,7 @@ COPY --from=build-python-stage \
     /usr/local/bin/fetch-update-meta \
     /usr/local/bin/patch-same-book-links \
     /usr/local/bin/link-rex \
+    /usr/local/bin/pptify \
     /usr/local/bin/aws \
     /usr/local/bin/
 

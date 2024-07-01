@@ -50,6 +50,10 @@ set({name: 'step-upload-epub', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outp
 set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
 set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
+// PPT_STEPS
+set({name: 'step-pptx', inputs: [IO.BOOK, IO.FETCH_META, IO.LINKED, IO.RESOURCES], outputs: [IO.PPTX], env: {}})
+set({name: 'step-upload-pptx', inputs: [IO.BOOK, IO.FETCHED, IO.PPTX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+
 // Concourse-specific steps
 set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
 set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
@@ -106,6 +110,19 @@ export const CLI_GIT_GDOC_STEPS = [
 export const GIT_GDOC_STEPS = [
     ...CLI_GIT_GDOC_STEPS,
     get('step-upload-docx'),
+]
+
+export const CLI_GIT_PPTX_STEPS = [
+    get('step-fetch'),
+    get('step-prebake'),
+    get('step-bake'),
+    get('step-postbake'),
+    get('step-pptx'),
+]
+
+export const GIT_PPTX_STEPS = [
+    ...CLI_GIT_PPTX_STEPS,
+    get('step-upload-pptx')
 ]
 
 export function buildLookUpBook(inputSource: RESOURCES): Step {

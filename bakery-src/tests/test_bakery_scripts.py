@@ -5,7 +5,10 @@ import json
 from datetime import datetime
 from enum import Enum
 from glob import glob
+from itertools import chain
+import unittest.mock
 from lxml import etree
+from lxml.builder import E
 import boto3
 import botocore.stub
 import requests_mock
@@ -48,6 +51,7 @@ from bakery_scripts import (
     html_parser,
     cnx_models,
     profiler,
+    pptify_book
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -3719,7 +3723,587 @@ class ModelBehaviorTestCase(unittest.TestCase):
             "r",
         ) as f:
             metadata = json.loads(f.read())
-        document = cnx_models.Document("document", metadata["content"])
-        self.assertTrue(
-            b"To demonstrate the potential of online publishing" in document.content
+        document = cnx_models.Document('document', metadata['content'])
+        self.assertTrue(b'To demonstrate the potential of online publishing'
+                        in document.content)
+
+
+def test_ppt_parsing():
+    input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.mathified.xhtml")
+    tree = etree.parse(str(input_baked_xhtml), None)
+    book = pptify_book.Book(tree)
+    chapters = book.get_chapters()
+    assert [(ch.get_title(), ch.get_number()) for ch in chapters] == [
+        ("Temperature and Heat", "1"),
+        ("The Kinetic Theory of Gases", "2"),
+        ("The First Law of Thermodynamics", "3"),
+        ("The Second Law of Thermodynamics", "4"),
+        ("Electric Charges and Fields", "5"),
+        ("Gauss's Law", "6"),
+        ("Electric Potential", "7"),
+        ("Capacitance", "8"),
+        ("Current and Resistance", "9"),
+        ("Direct-Current Circuits", "10"),
+        ("Magnetic Forces and Fields", "11"),
+        ("Sources of Magnetic Fields", "12"),
+        ("Electromagnetic Induction", "13"),
+        ("Inductance", "14"),
+        ("Alternating-Current Circuits", "15"),
+        ("Electromagnetic Waves", "16"),
+    ]
+    assert [ch.get_chapter_outline() for ch in chapters] == [
+        [
+            "Temperature and Thermal Equilibrium",
+            "Thermometers and Temperature Scales",
+            "Thermal Expansion",
+            "Heat Transfer, Specific Heat, and Calorimetry",
+            "Phase Changes",
+            "Mechanisms of Heat Transfer",
+        ],
+        [
+            "Molecular Model of an Ideal Gas",
+            "Pressure, Temperature, and RMS Speed",
+            "Heat Capacity and Equipartition of Energy",
+            "Distribution of Molecular Speeds",
+        ],
+        [
+            "Thermodynamic Systems",
+            "Work, Heat, and Internal Energy",
+            "First Law of Thermodynamics",
+            "Thermodynamic Processes",
+            "Heat Capacities of an Ideal Gas",
+            "Adiabatic Processes for an Ideal Gas",
+        ],
+        [
+            "Reversible and Irreversible Processes",
+            "Heat Engines",
+            "Refrigerators and Heat Pumps",
+            "Statements of the Second Law of Thermodynamics",
+            "The Carnot Cycle",
+            "Entropy",
+            "Entropy on a Microscopic Scale",
+        ],
+        [
+            "Electric Charge",
+            "Conductors, Insulators, and Charging by Induction",
+            "Coulomb's Law",
+            "Electric Field",
+            "Calculating Electric Fields of Charge Distributions",
+            "Electric Field Lines",
+            "Electric Dipoles",
+        ],
+        [
+            "Electric Flux",
+            "Explaining Gauss’s Law",
+            "Applying Gauss’s Law",
+            "Conductors in Electrostatic Equilibrium",
+        ],
+        [
+            "Electric Potential Energy",
+            "Electric Potential and Potential Difference",
+            "Calculations of Electric Potential",
+            "Determining Field from Potential",
+            "Equipotential Surfaces and Conductors",
+            "Applications of Electrostatics",
+        ],
+        [
+            "Capacitors and Capacitance",
+            "Capacitors in Series and in Parallel",
+            "Energy Stored in a Capacitor",
+            "Capacitor with a Dielectric",
+            "Molecular Model of a Dielectric",
+        ],
+        [
+            "Electrical Current",
+            "Model of Conduction in Metals",
+            "Resistivity and Resistance",
+            "Ohm's Law",
+            "Electrical Energy and Power",
+            "Superconductors",
+        ],
+        [
+            "Electromotive Force",
+            "Resistors in Series and Parallel",
+            "Kirchhoff's Rules",
+            "Electrical Measuring Instruments",
+            "RC Circuits",
+            "Household Wiring and Electrical Safety",
+        ],
+        [
+            "Magnetism and Its Historical Discoveries",
+            "Magnetic Fields and Lines",
+            "Motion of a Charged Particle in a Magnetic Field",
+            "Magnetic Force on a Current-Carrying Conductor",
+            "Force and Torque on a Current Loop",
+            "The Hall Effect",
+            "Applications of Magnetic Forces and Fields",
+        ],
+        [
+            "The Biot-Savart Law",
+            "Magnetic Field Due to a Thin Straight Wire",
+            "Magnetic Force between Two Parallel Currents",
+            "Magnetic Field of a Current Loop",
+            "Ampère’s Law",
+            "Solenoids and Toroids",
+            "Magnetism in Matter",
+        ],
+        [
+            "Faraday’s Law",
+            "Lenz's Law",
+            "Motional Emf",
+            "Induced Electric Fields",
+            "Eddy Currents",
+            "Electric Generators and Back Emf",
+            "Applications of Electromagnetic Induction",
+        ],
+        [
+            "Mutual Inductance",
+            "Self-Inductance and Inductors",
+            "Energy in a Magnetic Field",
+            "RL Circuits",
+            "Oscillations in an LC Circuit",
+            "RLC Series Circuits",
+        ],
+        [
+            "AC Sources",
+            "Simple AC Circuits",
+            "RLC Series Circuits with AC",
+            "Power in an AC Circuit",
+            "Resonance in an AC Circuit",
+            "Transformers",
+        ],
+        [
+            "Maxwell’s Equations and Electromagnetic Waves",
+            "Plane Electromagnetic Waves",
+            "Energy Carried by Electromagnetic Waves",
+            "Momentum and Radiation Pressure",
+            "The Electromagnetic Spectrum",
+        ],
+    ]
+    all_pages = list(chain(*[ch.get_pages() for ch in chapters]))
+    all_figures = list(chain(*[p.get_figures() for p in all_pages]))
+    all_tables = list(chain(*[p.get_tables() for p in all_pages]))
+    assert len(all_pages) == 111
+    assert len(all_figures) == 447
+    assert len(all_tables) == 40
+    assert all(fig.get_src() is not None for fig in all_figures)
+    numbered_figures = (fig for fig in all_figures if fig.has_caption())
+    for fig in numbered_figures:
+        assert isinstance(fig.get_number(), str)
+        assert isinstance(fig.get_caption(), str)
+        assert isinstance(fig.get_src(), str)
+        assert isinstance(fig.get_alt(), str)
+    tables_with_heads = [table for table in all_tables if table.has_head()]
+    assert len(tables_with_heads) == 24
+    for table in tables_with_heads:
+        head = [str(col) for col in table.get_head()]
+        all_rows = tuple(table.get_rows(True))
+        first_row = [str(col) for col in all_rows[0]]
+        body_rows = tuple(table.get_rows(False))
+        first_body_row = [str(col) for col in body_rows[0]]
+        assert head == first_row
+        assert head != first_body_row
+    assert [p for p in all_pages if p.is_summary] == []
+    for p in all_pages:
+        if p.is_introduction:
+            assert p.get_title().lower() == "introduction"
+            assert p.get_number() is None
+            assert p.is_summary is False
+            assert isinstance(p.get_learning_objectives(), list)
+        elif p.is_summary:
+            assert p.is_introduction is False
+        else:
+            assert isinstance(p.get_title(), str)
+            assert isinstance(p.get_number(), str)
+    test_pages = all_pages[:10]
+    shuffled_pages = test_pages[::-1]
+    assert shuffled_pages != test_pages
+    sorted_pages = list(pptify_book.sort_by_document_index(shuffled_pages))
+    assert sorted_pages == test_pages
+
+
+def test_ppt_slide_content(mocker): 
+    def figure_maker(
+        *,
+        src="",
+        alt="test-figure-alt",
+        caption="test-figure-caption",
+        number="1",
+        has_caption=True,
+    ):
+        figure = pptify_book.Figure(mocker.stub())
+        figure.get_src = lambda: src
+        figure.get_alt = lambda: alt
+        figure.get_caption = lambda: caption
+        figure.get_number = lambda: number
+        figure.has_caption = lambda: has_caption
+        return figure
+    
+    def table_maker(
+        *,
+        number="1",
+        has_caption=True,
+        html=E.table(E.tr(E.td("test")))
+    ):
+        table = pptify_book.Table(mocker.stub())
+        table.get_number = lambda: number
+        table.get_title = lambda: f"Table {number}"
+        table.has_caption = lambda: has_caption
+        table.get_table_elem = lambda: html
+        return table
+
+    def page_maker(
+        *,
+        title="test-page",
+        number="1",
+        learning_objectives=None,
+        figures=None,
+        tables=None,
+    ):
+        page = pptify_book.Page(mocker.stub())
+        page.get_title_parts = lambda: (title, number)
+        page.get_learning_objectives = lambda: learning_objectives or []
+        page.get_figures = lambda: figures or []
+        page.get_tables = lambda: tables or []
+        return page
+
+    def chapter_maker(*, title="test-chapter", number="1", pages=[]):
+        chapter = pptify_book.Chapter(mocker.stub())
+        chapter.get_title_parts = lambda: (title, number)
+        chapter.get_pages = lambda: pages
+        return chapter
+    
+    mocker.patch("bakery_scripts.pptify_book.sort_by_document_index", lambda elems: elems)
+
+    chapter_min = chapter_maker(pages=[page_maker()])
+
+    slide_contents = pptify_book.chapter_to_slide_contents(chapter_min)
+    assert list(slide_contents) == [
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+    ]
+
+    chapter_no_figures = chapter_maker(
+        pages=[page_maker(learning_objectives=["one", "two", "three"])]
+    )
+    slide_contents = pptify_book.chapter_to_slide_contents(chapter_no_figures)
+    assert list(slide_contents) == [
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+        pptify_book.OutlineSlideContent(
+            title='1 test-page',
+            notes=None,
+            bullets=['one', 'two', 'three'],
+            heading='Learning Objectives',
+            numbered=False,
+            number_offset=1,
+        ),
+    ]
+
+    chapter_with_figures = chapter_maker(
+        pages=[page_maker(figures=[figure_maker(src="a.png")])]
+    )
+    slide_contents = pptify_book.chapter_to_slide_contents(chapter_with_figures)
+    assert list(slide_contents) == [
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+        pptify_book.FigureSlideContent(
+            title='Figure 1',
+            notes='test-figure-alt',
+            src='a.png',
+            alt='test-figure-alt',
+            caption='test-figure-caption',
+        ),
+    ]
+
+    table_elem = E.table()
+    chapter = chapter_maker(
+        pages=[
+            page_maker(
+                learning_objectives=["one", "two", "three"],
+                figures=[
+                    figure_maker(has_caption=False),  # unnumbered figures should be ignored
+                    figure_maker(src="a.png"),
+                ],
+                tables=[
+                    table_maker(html=table_elem)
+                ]
+            )
+        ]
+    )
+    slide_contents = pptify_book.chapter_to_slide_contents(chapter)
+    assert list(slide_contents) == [
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+        pptify_book.OutlineSlideContent(
+            title='1 test-page',
+            notes=None,
+            bullets=['one', 'two', 'three'],
+            heading='Learning Objectives',
+            numbered=False,
+            number_offset=1,
+        ),
+        pptify_book.FigureSlideContent(
+            title='Figure 1',
+            notes='test-figure-alt',
+            src='a.png',
+            alt='test-figure-alt',
+            caption='test-figure-caption',
+        ),
+        pptify_book.TableSlideContent(
+            title='Table 1',
+            notes=None,
+            html=table_elem,
         )
+    ]
+
+    # Test splitting large slides
+    large_slide = pptify_book.OutlineSlideContent(
+        title="Large slide",
+        numbered=True,
+        bullets=[str(n) for n in range(19)]
+    )
+
+    slides = pptify_book.split_large_bullet_lists([large_slide])
+
+    assert list(slides) == [
+        pptify_book.OutlineSlideContent(
+            title='Large slide (1 of 3)',
+            bullets=['0', '1', '2', '3', '4', '5', '6', '7', '8'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+            notes=None
+        ),
+        pptify_book.OutlineSlideContent(
+            title='Large slide (2 of 3)',
+            bullets=['9', '10', '11', '12', '13', '14', '15', '16', '17'],
+            numbered=True,
+            number_offset=10,
+        ),
+        pptify_book.OutlineSlideContent(
+            title='Large slide (3 of 3)',
+            bullets=['18'],
+            numbered=True,
+            number_offset=19,
+        ),
+    ]
+
+    # Test that split slides does not touch other slide types
+    slide_contents = [
+        pptify_book.FigureSlideContent(
+            src="a.png", title="test", alt="ing", caption="123"
+        )
+    ]
+    slides = pptify_book.split_large_bullet_lists(slide_contents)
+    assert list(slides) == [
+        pptify_book.FigureSlideContent(
+            src="a.png", title="test", alt="ing", caption="123"
+        )
+    ]
+
+    # SlideContent converted to html correctly
+    slides = [
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+        pptify_book.OutlineSlideContent(
+            title='1 test-page',
+            notes=None,
+            bullets=['one', 'two', 'three'],
+            heading='Learning Objectives',
+            numbered=False,
+            number_offset=1,
+        ),
+        pptify_book.FigureSlideContent(
+            src="a.png",
+            title="test",
+            alt="ing",
+            caption="123",
+            notes="Figure slide",
+        ),
+        pptify_book.TableSlideContent(
+            title='Table 1',
+            notes=None,
+            html=table_elem,
+        )
+    ]
+    slides_etree = pptify_book.slide_contents_to_html(
+        "title",
+        "subtitle",
+        slides
+    )
+    expected = """<html><head><title>title</title><meta name="subtitle" content="subtitle"/></head><body><h2>Chapter outline</h2><ol start="1"><li>test-page</li></ol><h2>1 test-page</h2><strong>Learning Objectives</strong><ul><li>one</li><li>two</li><li>three</li></ul><h2>test</h2><figure><img src="a.png" alt="123" title="ing"/></figure><div class="notes"><div>Figure slide</div></div><h2>Table 1</h2><table/></body></html>"""
+    assert etree.tostring(slides_etree, encoding="unicode") == expected
+
+
+def test_slide_transformations(mocker):
+    def shape_maker(*, spec=None):
+        shape = unittest.mock.Mock(spec=spec)
+        shape.title = mocker.stub()
+        return shape
+
+    def slide_maker(*, shapes=[]):
+        slide = mocker.stub()
+        slide.shapes = shapes
+        return slide
+    
+    class MockShapeCollection:
+        def __init__(self, title, shapes):
+            self.title = title
+            self.shapes = shapes
+        
+        def __getitem__(self, idx):
+            return self.shapes[idx]
+    
+    # fix_image_alt_text should remove image paths from the alt text
+    fake_picture_elem = E.span(descr="Some alt text  ./image.png")
+    picture_shape_stub = shape_maker(spec=pptify_book.Picture)
+    picture_shape_stub.element = fake_picture_elem
+    slides = [slide_maker(shapes=[picture_shape_stub])]
+    slides = pptify_book.fix_image_alt_text(slides)
+    slides = list(slides)
+    assert fake_picture_elem.get("descr") == "Some alt text"
+
+    # adjust_figure_caption_font should set the font size of captions
+    fake_figure_title = shape_maker()
+    fake_figure_title.title.text = "Figure 1"
+    fake_caption = shape_maker()
+    fake_caption.text_frame = mocker.stub()
+    fake_para = mocker.stub()
+    fake_caption.text_frame.paragraphs = [fake_para]
+    fake_para.font = mocker.stub()
+    fake_para.font.size = None
+    fake_slide = slide_maker()
+    fake_slide.shapes = MockShapeCollection(fake_figure_title, [fake_caption])
+    slides = [fake_slide]
+    slides = pptify_book.adjust_figure_caption_font(slides)
+    slides = list(slides)
+    # Verify it is set
+    assert fake_para.font.size is not None
+
+    # fix_namespaces should define a14 namespace on a14:m (math drawing element)
+    sim_pandoc_output = """<root><a14:m><text>test<nested>element</nested></text></a14:m></root>"""
+    expected = """<root><a14:m xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"><text>test<nested>element</nested></text></a14:m></root>"""
+    elem = etree.fromstring(sim_pandoc_output, etree.XMLParser(recover=True))
+    pptify_book.fix_namespaces(elem)
+    serialized = etree.tostring(elem, encoding="unicode")
+    assert serialized == expected
+
+    # is_slide_filename should only return true for slide files
+    expected = [
+        ("presentation.xml", False),
+        (".../slides/slide1.xml", True),
+        (".../slides/slide2.xml", True),
+        (".../slides/slide_not_a_slide1.xml", False),
+    ]
+    filenames = tuple(zip(*expected))[0]
+    result = [(n, pptify_book.is_slide_filename(n)) for n in filenames]
+    assert result == expected
+
+    # insert_cover_image should insert cover image on first slide
+    mock_pres = mocker.stub()
+    mock_pres.slide_height = 10000
+    mock_pres.slide_width = 2000
+    mock_slide = mocker.stub()
+    mock_shapes = mock_slide.shapes = mocker.stub()
+    mock_picture = mocker.stub()
+    mock_picture.width = 100
+    mock_picture.element = mocker.stub()
+    mock_picture.left = None
+    mock_picture.name = None
+    mock_descr_elem = mocker.stub()
+    mock_set_descr = mock_descr_elem.set = mocker.stub()
+    mock_picture.element.xpath = lambda *_: [mock_descr_elem]
+    mock_add_picture = mock_shapes.add_picture = mocker.stub()
+    mock_shapes.add_picture.return_value = mock_picture
+    mock_pres.slides = [mock_slide]
+    pptify_book.insert_cover_image(mock_pres, "test_image.png")
+    mock_add_picture.assert_called_once_with(
+        "test_image.png",
+        height=3200400,
+        left=0,
+        top=-1593057
+    )
+    mock_set_descr.assert_called_once_with("descr", "Cover image")
+    assert mock_picture.left == round(mock_pres.slide_width / 2 - mock_picture.width / 2)
+    assert mock_picture.name == "Cover Image"
+
+
+def test_pptify_book(mocker, tmp_path):
+    input_baked_xhtml = Path(TEST_DATA_DIR) / "collection.mathified.xhtml"
+    resource_dir = tmp_path / "resources"
+    reference_doc = Path(__file__).parent.parent / "scripts" / "ppt" / "custom-reference-en.pptx"
+    cover_image = Path(TEST_DATA_DIR) / "fffe62254ef635871589a848b65db441318171eb"
+    resource_dir.mkdir(parents=True)
+    args = [
+        "",
+        str(input_baked_xhtml),
+        str(resource_dir),
+        str(reference_doc),
+        str(cover_image),
+        f"{tmp_path}/ppt-{{number}}.{{extension}}",
+    ]
+
+    mocker.patch("sys.argv", args)
+    slide_contents_to_html_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.slide_contents_to_html", slide_contents_to_html_stub)
+    slides_etree_to_ppt_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.slides_etree_to_ppt", slides_etree_to_ppt_stub)
+    pres_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.pptx.Presentation", pres_stub)
+    slides_post_process_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.slides_post_process", slides_post_process_stub)
+    insert_cover_image_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.insert_cover_image", insert_cover_image_stub)
+    fix_pptx_file_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.fix_pptx_file", fix_pptx_file_stub)
+    path_rename_stub = mocker.stub()
+    mocker.patch("bakery_scripts.pptify_book.Path.rename", path_rename_stub)
+    pptify_book.main()
+
+    chapter_count = 16
+
+    assert slide_contents_to_html_stub.call_count == chapter_count
+    assert slides_etree_to_ppt_stub.call_count == chapter_count
+    for call_args in slides_etree_to_ppt_stub.call_args_list:
+        assert str(call_args.args[1]).endswith(".html")
+        assert str(call_args.args[2]).endswith(".pptx")
+        assert call_args.args[3] == resource_dir
+        assert call_args.args[4] == reference_doc
+    assert pres_stub.call_count == chapter_count
+    assert slides_post_process_stub.call_count == chapter_count
+    assert insert_cover_image_stub.call_count == chapter_count
+    assert path_rename_stub.call_count == chapter_count
+    assert fix_pptx_file_stub.call_count == chapter_count
+    
+

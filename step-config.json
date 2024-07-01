@@ -188,6 +188,33 @@
                 "AWS_SECRET_ACCESS_KEY"
             ]
         },
+        "step-pptx": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META",
+                "IO_LINKED",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_PPTX"
+            ],
+            "requiredEnv": []
+        },
+        "step-upload-pptx": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCHED",
+                "IO_PPTX"
+            ],
+            "outputDirs": [
+                "IO_ARTIFACTS"
+            ],
+            "requiredEnv": [
+                "CORGI_ARTIFACTS_S3_BUCKET",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY"
+            ]
+        },
         "git-dequeue-book": {
             "inputDirs": [
                 "IO_S3_GIT_QUEUE"
@@ -245,6 +272,13 @@
             "step-disassemble",
             "step-jsonify",
             "step-docx"
+        ],
+        "all-pptx": [
+            "step-fetch",
+            "step-prebake",
+            "step-bake",
+            "step-postbake",
+            "step-pptx"
         ]
     }
 }
