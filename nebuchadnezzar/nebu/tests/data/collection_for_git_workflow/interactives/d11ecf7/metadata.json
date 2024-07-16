@@ -1,0 +1,17 @@
+{
+  "errata_id": "d11ecf7",
+  "collaborator_solutions": [
+    {
+      "content": "Something",
+      "solution_type": "detailed"
+    }
+  ],
+  "is_solution_public": true,
+  "books": [],
+  "attachments": [],
+  "context": [
+    "m46882",
+    "m46882#eip-idp25576880",
+    "m46913#fig-ch01_00_01"
+  ]
+}

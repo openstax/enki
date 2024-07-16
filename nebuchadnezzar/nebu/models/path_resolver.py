@@ -14,6 +14,7 @@ class PathResolver:
         ],
         module_id_getter: Callable[[str], Optional[str]],
     ):
+        self.book_container = book_container
         self.collection_paths_by_book = {
             book.slug: os.path.realpath(
                 os.path.join(
@@ -32,7 +33,47 @@ class PathResolver:
         }
 
     def get_collection_path(self, book_slug: str) -> str:
-        return self.collection_paths_by_book[book_slug]
+        collection = self.collection_paths_by_book.get(book_slug, None)
+        assert collection is not None, f"Collection not found: {book_slug}"
+        return collection
 
     def get_module_path(self, module_id: str) -> str:
-        return self.module_paths_by_id[module_id]
+        module = self.module_paths_by_id.get(module_id, None)
+        assert module is not None, f"Module not found: {module_id}"
+        return module
+
+    def get_public_interactives_path(self, interactives_id: str, *parts: str):
+        return os.path.join(
+            self.book_container.root_dir,
+            self.book_container.public_root,
+            interactives_id,
+            *parts
+        )
+
+    def get_private_interactives_path(self, interactives_id: str, *parts: str):
+        return os.path.join(
+            self.book_container.root_dir,
+            self.book_container.private_root,
+            os.path.basename(self.book_container.public_root),
+            interactives_id,
+            *parts
+        )
+
+    def find_interactives_paths(self, interactives_id, *parts: str):
+        return {
+            k: v for k, v in (
+                (
+                    "public",
+                    self.get_public_interactives_path(interactives_id, *parts)
+                ),
+                (
+                    "private",
+                    self.get_private_interactives_path(interactives_id, *parts)
+                )
+            )
+            if os.path.exists(v)
+        }
+
+    def find_interactives_path(self, interactives_id: str, *parts: str):
+        paths = self.find_interactives_paths(interactives_id, *parts)
+        return paths.get("public", paths.get("private", None))

@@ -1,4 +1,4 @@
-<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="id5564559" module-id="" cnxml-version="0.7">
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="id5564559" module-id="" cnxml-version="0.7" noindex="true">
   <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
     <md:content-id>m46857</md:content-id>
     <md:title>Genre Spotlight: Symphonic Metal</md:title>
@@ -41,9 +41,16 @@
     <link document="m46909">A link to another page without a version</link>
     <link document="m50000">A link to a page that is outside of this collection</link>
     <link document="m46913" target-id="pagelocation">A link to another page with location</link>
-    <para id="fs-id1164354595396"><link class="os-embed" url="#ost/api/ex/k12phys-ch01-ex008"/></para>
+    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/c20fad8"/></para>
     <para><link url="#fs-id1164354595396"/></para>
     <para id="link-resource-patch-test"><link resource="../../media/foobar.png">Test link patching</link></para>
+    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/f9ef58e"/></para>
+    <exercise id="fjsdfd">
+      <problem id="fjislgs">
+        <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/f9ef58e"/></para>
+      </problem>
+    </exercise>
+    <para id="fs-id1164354595396"><link class="os-embed" url="{INTERACTIVES_ROOT}/unsupported"/></para>
   </para>
 
 </content>

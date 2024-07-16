@@ -83,6 +83,8 @@ else
     else
         GIT_TERMINAL_PROMPT=0 git clone --depth 1 "$remote_url" --branch "$ARG_GIT_REF" "$IO_FETCHED"
     fi
+    # Initialize submodules
+    GIT_TERMINAL_PROMPT=0 git -C "$IO_FETCHED" submodule update --init --depth 1
 fi
 
 # Clean up the temporary credentials file if it exists

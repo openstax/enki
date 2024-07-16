@@ -3,7 +3,7 @@ from copy import copy
 import re
 
 import pytest
-from nebu.formatters import exercise_callback_factory, fetch_insert_includes
+from nebu.formatters import exercise_callback_factory, insert_includes
 from nebu.xml_utils import open_xml, fix_namespaces
 
 
@@ -262,11 +262,11 @@ def test_includes_callback(assert_match, fake_doc):
 
     includes = [
         exercise_callback_factory(exercise_match, EXERCISE_URL),
-        ('//xhtml:*[@data-type = "exercise"]', _upcase_text),
-        ("//xhtml:a", _upcase_text),
+        ('//xhtml:*[@data-type = "exercise"]', _upcase_text, False),
+        ("//xhtml:a", _upcase_text, False),
     ]
 
-    fetch_insert_includes(fake_doc, [""], includes)
+    insert_includes(fake_doc, [""], includes)
     assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
@@ -287,11 +287,11 @@ def test_includes_token_callback(assert_match, fake_doc):
         exercise_callback_factory(
             exercise_match, EXERCISE_URL, exercise_token
         ),
-        ('//xhtml:*[@data-type = "exercise"]', _upcase_text),
-        ("//xhtml:a", _upcase_text),
+        ('//xhtml:*[@data-type = "exercise"]', _upcase_text, False),
+        ("//xhtml:a", _upcase_text, False),
     ]
 
-    fetch_insert_includes(fake_doc, ["", "123", "456"], includes)
+    insert_includes(fake_doc, ["", "123", "456"], includes)
     assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
@@ -307,7 +307,7 @@ def test_no_tags(assert_match, fake_doc, monkeypatch):
 
     monkeypatch.setattr("nebu.formatters.requests.get", exercise_no_tags)
 
-    fetch_insert_includes(fake_doc, [""], includes)
+    insert_includes(fake_doc, [""], includes)
     assert_match(fix_namespaces(fake_doc), "document.xhtml")
 
 
@@ -327,5 +327,5 @@ def test_feature(assert_match, fake_doc, monkeypatch):
     monkeypatch.setattr("nebu.formatters.requests.get", exercise_mod_tags)
 
     with pytest.raises(Exception) as e:
-        fetch_insert_includes(fake_doc, ["a", "b", "c"], includes)
+        insert_includes(fake_doc, ["a", "b", "c"], includes)
         assert len(re.findall(r"Feature .+? not in .+? href=.+?", str(e))) == 4

@@ -3,6 +3,7 @@ recording vcr cassettes. See README.md for use of this script.
 """
 
 import sys
+
 import requests
 
 API_ROOT = "http://localhost/api"
@@ -17,12 +18,9 @@ def main():
         "job_type_id": "1",
         "version": None,
         "worker_version": "1",
-        "repository": {
-            "name": "osbooks-college-success",
-            "owner": "openstax"
-        },
+        "repository": {"name": "osbooks-college-success", "owner": "openstax"},
         "book": None,
-        "style": None
+        "style": None,
     }
 
     # Generate various permutations of job types and states
@@ -31,7 +29,7 @@ def main():
             data["status_id"] = status_id
             data["job_type_id"] = job_type_id
 
-            response = requests.post(url, json=data, headers={ "Cookie": cookie })
+            response = requests.post(url, json=data, headers={"Cookie": cookie})
             response.raise_for_status()
 
 

@@ -150,18 +150,10 @@ function do_xhtml_validate() {
 }
 
 function do_json_validate() {
-    schema_file="${1:?}"
+    schema_file="${1:-}"
+    : "${schema_file:?'Schema file is a required for json schema validation'}"
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
 }
-
-# FIXME: We assume that every book in the group uses the same style
-# This assumption will not hold true forever, and book style + recipe name should
-# be pulled from fetched-book-group (while still allowing injection w/ CLI)
-
-
-# FIXME: Style devs will probably not like having to bake multiple books repeatedly,
-# especially since they shouldn't care about link-extras correctness during their
-# work cycle.
 
 function read_style() {
     slug_name=$1
@@ -170,8 +162,19 @@ function read_style() {
 }
 
 function read_book_slugs() {
-    if [[ -f "$IO_BOOK/slugs" ]]; then
-        # Exclude blanks lines
+    while [[ -n "${1:-}" ]]; do
+        case "$1" in
+            "--from-repo")
+                local force_from_repo=1
+            ;;
+            *)
+                die "Unknown option: $1"  # LCOV_EXCL_LINE
+            ;;
+        esac
+        shift
+    done
+    if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
+        # Exclude blank lines
         awk '$0 { print }' "$IO_BOOK/slugs"
     else
         fetched="$IO_FETCHED"
@@ -290,7 +293,7 @@ function do_step() {
             echo "$repo" > "$INPUT_SOURCE_DIR/repo"
             if [[ -n "${arg_book_slug-}" ]]; then
                 # CORGI does not include a new line after the slug. Simulate that with echo -n
-                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs" 
+                echo -n "$arg_book_slug" > "$INPUT_SOURCE_DIR/slugs"
             fi
             echo "$version" > "$INPUT_SOURCE_DIR/version"
             # Dummy files

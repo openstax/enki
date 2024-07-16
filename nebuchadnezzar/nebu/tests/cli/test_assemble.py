@@ -1,16 +1,30 @@
 import json
+from pathlib import Path
+from collections import defaultdict
+from typing import cast
 
 from lxml import etree
 import pytest
-from pathlib import Path
 
 from nebu.cli import assemble
 from nebu.cli.main import cli
+from nebu.models.path_resolver import PathResolver
 
 
 @pytest.fixture
-def src_data(datadir):
-    return datadir / "collection_for_git_workflow"
+def shutil_stub(monkeypatch, create_stub):
+    class ShutilStub:
+        move = create_stub()
+
+    monkeypatch.setattr(assemble, "shutil", ShutilStub)
+    return ShutilStub
+
+
+@pytest.fixture
+def save_resource_metadata_stub(monkeypatch, create_stub):
+    stub = create_stub()
+    monkeypatch.setattr(assemble, "save_resource_metadata", stub)
+    return stub
 
 
 @pytest.fixture
@@ -89,13 +103,14 @@ class TestAssembleCmd:
             self.collection_to_assembled_xhtml,
         )
 
-    def test(self, tmp_path, src_data, result_data, invoker):
+    def test(self, tmp_path, git_collection_data, result_data, invoker):
         output_dir = tmp_path / "build"
 
         args = [
             "assemble",  # (target)
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
+            str(tmp_path),
         ]
         result = invoker(cli, args)
 
@@ -108,7 +123,7 @@ class TestAssembleCmd:
         with output_file.open("rb") as ofb:
             assert ofb.read().decode() == "faux"
 
-    def test_output_dir_exists(self, tmp_path, src_data, invoker):
+    def test_output_dir_exists(self, tmp_path, git_collection_data, invoker):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
 
@@ -116,8 +131,9 @@ class TestAssembleCmd:
 
         args = [
             "assemble",  # (target)
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
+            str(tmp_path),
         ]
         result = invoker(cli, args)
 
@@ -127,7 +143,7 @@ class TestAssembleCmd:
     def test_edited_collection_xml(
         self,
         tmp_path,
-        src_data,
+        git_collection_data,
         invoker,
         edit_collection_xml,
         git_path_resolver
@@ -141,7 +157,7 @@ class TestAssembleCmd:
 
         from nebu.cli.main import cli
 
-        args = ["assemble", str(src_data), str(output_dir)]
+        args = ["assemble", str(git_collection_data), str(output_dir), str(tmp_path)]
         result = invoker(cli, args)
 
         assert result.exit_code == 0
@@ -173,11 +189,13 @@ class TestAssembleIntegration:
     def test_exercises(
         self,
         tmp_path,
-        src_data,
+        git_collection_data,
         add_exercises,
         exercise_mock,
         invoker,
-        git_path_resolver
+        git_path_resolver,
+        shutil_stub,
+        save_resource_metadata_stub,
     ):
         output_dir = tmp_path / "build"
         output_dir.mkdir()
@@ -190,8 +208,9 @@ class TestAssembleIntegration:
             "assemble",
             "--exercise-host",
             "exercises.openstax.org",
-            str(src_data),
+            str(git_collection_data),
             str(output_dir),
+            str(tmp_path),
         )
         result = invoker(cli, args)
 
@@ -211,8 +230,19 @@ def current_snapshot_dir(snapshot_dir):
 
 
 @pytest.fixture
-def assembled_pair(parts_tuple, exercise_mock, git_path_resolver):
+def assembled_pair(
+    parts_tuple,
+    exercise_mock,
+    git_path_resolver,
+    shutil_stub,
+    save_resource_metadata_stub,
+):
     from nebu.cli.assemble import collection_to_assembled_xhtml
+
+    media_handler = assemble.media_handler_factory(
+        "fake-resources",
+        {}
+    )
 
     collection, docs_by_id, docs_by_uuid = parts_tuple
     assembled_collection = collection_to_assembled_xhtml(
@@ -221,7 +251,8 @@ def assembled_pair(parts_tuple, exercise_mock, git_path_resolver):
         docs_by_uuid,
         git_path_resolver,
         None,
-        "exercises.openstax.org"
+        "exercises.openstax.org",
+        media_handler,
     )
     return (collection, assembled_collection)
 
@@ -238,6 +269,19 @@ def test_doc_to_html(assert_match, assembled_pair):
         assert_match(_doc_to_html(document), doc_id + ".xhtml")
 
 
+def test_save_resource_metadata(tmp_path):
+    # Mostly just checking that the name is correct
+    name = "123"
+    expected = tmp_path / f"{name}.json"
+    assemble.save_resource_metadata(
+        {"some": "thing"},
+        tmp_path,
+        name
+    )
+    assert expected.exists()
+    assert expected.read_text() == '{"some": "thing"}'
+
+
 def test_col_to_html(assert_match, assembled_pair):
     from nebu.models.book_part import PartType
     from nebu.formatters import _col_to_html
@@ -249,10 +293,57 @@ def test_col_to_html(assert_match, assembled_pair):
         assert_match(_col_to_html(subcol), f"subcol-{i}.xhtml")
 
 
+def test_h5p_media_handler(
+    create_stub,
+    shutil_stub,
+    save_resource_metadata_stub,
+    monkeypatch,
+):
+    fake_path = "fake-path"
+    resource_dir = "resources"
+    filename = "sha1"
+    metadata = {}
+
+    class PathResolverStub:
+        find_interactives_paths = create_stub().returns({
+            "public": fake_path,
+        })
+
+    class ElementStub:
+        attrib = defaultdict(lambda: fake_path)
+
+    metadata_stub = create_stub().returns((filename, metadata))
+    monkeypatch.setattr(assemble, "get_media_metadata", metadata_stub)
+    media_handler = assemble.h5p_media_handler_factory(
+        cast(PathResolver, PathResolverStub()),
+        assemble.media_handler_factory(resource_dir)
+    )
+    element_stub = ElementStub()
+    media_handler("test", element_stub, "src", True)
+    assert len(shutil_stub.move.calls) > 0
+    # Should use path returned by path resolver
+    expected_src_path = fake_path
+    # Should use name returned by get_media_metadata (sha1)
+    expected_dst_path = str(Path(resource_dir) / filename)
+    assert shutil_stub.move.calls[0]["args"] == (
+        expected_src_path, expected_dst_path
+    )
+    # Should set attribute and the new one should include the name
+    assert filename in element_stub.attrib["src"]
+    # Should save metadata
+    assert len(save_resource_metadata_stub.calls) > 0
+
+
 def test_assemble_collection(
-    assert_match, assembled_pair
+    assert_match,
+    assembled_pair,
+    shutil_stub,
+    save_resource_metadata_stub,
 ):
     _, assembled_collection = assembled_pair
     assert_match(
         assembled_collection.decode(), "collection.assembled.xhtml"
     )
+    # Ensure media files included in the integration test
+    assert len(shutil_stub.move.calls) > 0
+    assert len(save_resource_metadata_stub.calls) > 0

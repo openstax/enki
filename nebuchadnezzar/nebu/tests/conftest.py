@@ -1,5 +1,6 @@
 from pathlib import Path
 import inspect
+import shutil
 
 import pytest
 from aioresponses import aioresponses
@@ -12,9 +13,15 @@ CONFIG_FILEPATH = here / 'config.ini'
 
 
 @pytest.fixture
-def git_collection_data(datadir):
+def git_collection_data(datadir, tmp_path):
     """This data reflects what is expected from git storage"""
-    return datadir / 'collection_for_git_workflow'
+
+    src = datadir / "collection_for_git_workflow"
+    dst = tmp_path / "collection_for_git_workflow"
+
+    shutil.copytree(src, dst)
+
+    return dst
 
 
 @pytest.fixture
@@ -40,7 +47,7 @@ def git_path_resolver(git_collection_container):
 
 
 @pytest.fixture
-def parts_tuple(git_collection_data, git_path_resolver):
+def parts_tuple(git_path_resolver):
     from nebu.models.book_part import BookPart
 
     collection, docs_by_id, docs_by_uuid = BookPart.collection_from_file(
@@ -108,3 +115,24 @@ def mock_aioresponses():
 def tmpcwd(tmpdir, monkeypatch):
     monkeypatch.chdir(tmpdir)
     return Path(str(tmpdir))
+
+
+@pytest.fixture
+def create_stub():
+    class Stub:
+        def __init__(self, call_actual=None):
+            self.calls = []
+            self._call_actual = call_actual
+
+        def calls_actual(self, actual):
+            return Stub(call_actual=actual)
+
+        def returns(self, value):
+            return Stub(call_actual=lambda *_args, **_kwargs: value)
+
+        def __call__(self, *args, **kwargs):
+            self.calls.append({"args": args, "kwargs": kwargs})
+            if self._call_actual is not None:
+                return self._call_actual(*args, **kwargs)
+
+    return Stub

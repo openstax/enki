@@ -15,7 +15,11 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}/bakery-src/scripts/",
-          "remoteRoot": "/workspace/enki/venv/lib/python3.8/site-packages/bakery_scripts"
+          "remoteRoot": "/usr/local/lib/python3.10/dist-packages/bakery_scripts"
+        },
+        {
+          "localRoot": "${workspaceFolder}/nebuchadnezzar/nebu",
+          "remoteRoot": "/usr/local/lib/python3.10/dist-packages/nebu"
         }
       ],
       "justMyCode": false

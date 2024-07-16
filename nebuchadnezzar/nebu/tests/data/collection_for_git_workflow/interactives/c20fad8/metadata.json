@@ -1,0 +1,27 @@
+{
+  "errata_id": "c20fad8",
+  "collaborator_solutions": [],
+  "is_solution_public": false,
+  "books": [
+    {
+      "name": "stax-astro",
+      "lo": [
+        "A12-1-2"
+      ]
+    },
+    {
+      "name": "stax-apbio",
+      "aplo": [
+        "ABC-1.A"
+      ],
+      "science_practice": "visual-representations"
+    }
+  ],
+  "attachments": [],
+  "context": [
+    "m46857",
+    "m46913",
+    "m46857#parent-page-but-invalid",
+    "m46913#fig-ch01_00_01"
+  ]
+}

@@ -1,6 +1,6 @@
+import json
 import os
 import sys
-import json
 
 from .corgi_api import update_job
 from .utils import msg
@@ -16,12 +16,12 @@ def out(src_path, in_stream):
 
     msg("Input: {}", input)
 
-    with open(os.path.join(src_path, id_path), "r") as infile:
+    with open(os.path.join(src_path, id_path)) as infile:
         id = infile.read()
 
     artifact_urls = data.get("artifact_urls")
     if artifact_urls:
-        with open(os.path.join(src_path, artifact_urls), "r") as infile:
+        with open(os.path.join(src_path, artifact_urls)) as infile:
             data["artifact_urls"] = json.load(infile)
 
     error_message = data.get("error_message")
@@ -29,7 +29,7 @@ def out(src_path, in_stream):
         error_message_file = data.get("error_message_file")
         if error_message_file:  # pragma: no cover
             full_filepath = os.path.join(src_path, error_message_file)
-            with open(full_filepath, "r", errors="replace") as infile:
+            with open(full_filepath, errors="replace") as infile:
                 error_message_file_data = infile.read()
                 data["error_message"] = error_message_file_data
             del data["error_message_file"]

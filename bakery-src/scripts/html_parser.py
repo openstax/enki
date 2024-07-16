@@ -249,6 +249,10 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
 
         assert p_uuid is not None, 'Should always find a parent UUID'
         uuid_key = elem.get('data-uuid-key', elem.get('class', key))
+        assert uuid_key is not None, (
+            f'Could not compute id for {elem.get("data-type")} '
+            f'on line {elem.sourceline}'
+        )
         return str(uuid.uuid5(p_uuid, uuid_key))
 
     def _compute_shortid(ident_hash):
@@ -289,7 +293,13 @@ def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                                                       if not uuid_key
                                                       else None)
             if not id_:
-                id_ = _compute_id(parent, child, metadata.get('title'))
+                fallback_key = None
+                # In case of chapter or unit, the title originates from
+                # the collxml (at the time of writing this). This condition
+                # ensure that titles from cnxml are never used to generate ids.
+                if data_type in ('chapter', 'unit'):
+                    fallback_key = metadata.get('title')
+                id_ = _compute_id(parent, child, fallback_key)
                 assert metadata.get('version')
                 metadata['cnx-archive-uri'] = \
                     '@'.join((id_, metadata['version']))
@@ -378,7 +388,7 @@ class DocumentMetadataParser:
         'publishers', 'copyright_holders', 'authors', 'summary',
         'cnx-archive-uri', 'cnx-archive-shortid', 'derived_from_uri',
         'derived_from_title', 'version', 'canonical_book_uuid',
-        'license_url', 'slug'
+        'license_url', 'slug', 'noindex'
     )
 
     def __init__(self, elm_tree, raise_value_error=True):
@@ -392,6 +402,17 @@ class DocumentMetadataParser:
         values = self._xml.xpath(prefix + xpath,
                                  namespaces=self.namespaces)
         return values
+
+    @property
+    def noindex(self):
+        items = self.parse(
+            'ancestor-or-self::*[@data-type="page"]/@data-noindex'
+        )
+        try:
+            value = items[0]
+        except IndexError:  # pragma: no cover
+            value = None
+        return isinstance(value, str) and value.strip().lower() == "true"
 
     @property
     def metadata(self):
