@@ -3,13 +3,13 @@ import sys
 import subprocess
 import shlex
 from pathlib import Path
-from typing import Any, Generator, Iterable, ParamSpec, TypeVar
+from typing import Iterable, ParamSpec, TypeVar
 from collections.abc import Callable
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from lxml import etree
-from lxml.builder import E
+from lxml.builder import ElementMaker
 import pptx  # python-pptx
 import pptx.util
 import pptx.shapes
@@ -52,12 +52,12 @@ class Element:
     def element(self):
         return self._element
 
-    def get(self, name: str):
+    def get(self, name: str):  # pragma: no cover
         return self._element.get(name)
 
     def xpath(self, p: str, *, namespaces=None):
         _namespaces = {"h": "http://www.w3.org/1999/xhtml"}
-        if namespaces is not None:
+        if namespaces is not None:  # pragma: no cover
             _namespaces.update(namespaces)
         return self._element.xpath(p, namespaces=_namespaces)
 
@@ -69,68 +69,53 @@ class Element:
             return self.xpath1(p)
         except IndexError:
             return None
-    
-    def __str__(self):
-        return etree.tostring(self._element, encoding="unicode")
 
 
 class BookElement(Element):
-    def get_document_title(self):
-        raise NotImplementedError()
-
     @memoize
-    def get_title_parts(self):
-        document_title = self.get_document_title()
-        title_text = "".join(
-            document_title.xpath(f'.//*[{class_xpath("os-text")}]//text()')
-        ).strip()
-        number_text = "".join(
-            document_title.xpath(f'.//*[{class_xpath("os-number")}]//text()')
-        ).strip()
-        title, number = title_text, None
-        if number_text:
-            number = number_text
-        return title, number
-
     def get_title(self):
-        title, _ = self.get_title_parts()
-        return title
+        return self.xpath1(
+            './/*[@data-type="metadata"]/*[@data-type="document-title"]/text()'
+        ).strip()
 
-    def get_number(self):
-        _, number = self.get_title_parts()
-        return number
+    def get_number(self):  # pragma: no cover
+        raise NotImplementedError()
 
 
 class Captioned(Element):
     @memoize
     def get_caption_elem(self):
-        return self.xpath1(f'.//*[{class_xpath("os-caption-container")}]')
+        return self.xpath1(f'./*[{class_xpath("os-caption-container")}]')
 
     def has_caption(self):
-        return self.xpath1_or_none(
-            f'.//*[{class_xpath("os-caption-container")}]'
-        ) is not None
-    
+        return (
+            self.xpath1_or_none(f'.//*[{class_xpath("os-caption-container")}]')
+            is not None
+        )
+
+    def has_number(self):
+        return self.has_caption() and self.get_number() != ""
+
     @memoize
     def get_number(self) -> str:
         caption_number = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-number")}]//text()'
         )
-        return "".join(caption_number)
+        return "".join(caption_number).strip()
 
     @memoize
     def get_caption(self) -> str:
         caption_text = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-caption")}]//text()'
         )
-        return "".join(caption_text)
+        return "".join(caption_text).strip()
 
     @memoize
     def get_title(self):
         title_text = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-title")}]//text()'
         )
-        return "".join(title_text)
+        return "".join(title_text).strip()
 
 
 class Figure(Captioned):
@@ -148,42 +133,23 @@ class Figure(Captioned):
 
 
 class Table(Captioned):
-    @memoize
-    def has_head(self):
-        return self.xpath1_or_none('.//h:thead') is not None
-    
-    @memoize
-    def _get_rows(self):
-        return tuple(Element(tr) for tr in self.xpath('.//h:tr'))
-    
-    def get_head(self):
-        rows = self._get_rows()
-        if not self.has_head():
-            return None
-        tr_head = rows[0]
-        return tuple(Element(td) for td in Element(tr_head).xpath('.//h:th'))
-
-    def get_rows(self, include_head: bool):
-        rows = self._get_rows()
-        if self.has_head():
-            head, rows = rows[0], rows[1:]
-            if include_head:
-                yield tuple(Element(th) for th in head.xpath('./h:th'))
-        for tr in rows:
-            yield tuple(Element(td) for td in tr.xpath('./h:td'))
-    
     def get_title(self):
-        return ' '.join((
-            "Table",
-            self.get_number(),
-            super().get_title().strip()
-        ))
-    
+        title = super().get_title()
+        if self.has_number():
+            return f"Table {self.get_number()} {title}"
+        else:  # pragma: no cover
+            return f"Table {title}"
+
     def get_table_elem(self):
         return self.xpath1(".//h:table")
 
 
 class Page(BookElement):
+    def __init__(self, parent_chapter: "Chapter", number: str, elem):
+        super().__init__(elem)
+        self.parent_chapter = parent_chapter
+        self.number = number
+
     @memoize
     def get_learning_objectives(self):
         sections = self.xpath(".//h:section")
@@ -200,20 +166,17 @@ class Page(BookElement):
 
     @memoize
     def get_figures(self):
-        figure_elems = self.xpath(
-            f'.//*[{class_xpath("os-figure")} and .//h:img]'
-        )
+        figure_elems = self.xpath(".//h:figure/parent::*")
         return [Figure(elem) for elem in figure_elems]
 
-    @memoize
-    def get_document_title(self):
-        title_elems = self.xpath('.//*[@data-type="document-title"]')
-        return Element(title_elems[1])
-    
+    def get_number(self):
+        return f"{self.parent_chapter.get_number()}.{self.number}"
+
     @memoize
     def get_tables(self):
+        # Get all tables that are not nested in other tables
         table_elems = self.xpath(
-            f'.//*[{class_xpath("os-table")} and .//h:table]'
+            ".//h:table[not(ancestor::h:table)]/parent::*"
         )
         return [Table(elem) for elem in table_elems]
 
@@ -227,27 +190,31 @@ class Page(BookElement):
 
 
 class Chapter(BookElement):
-    @memoize
-    def get_document_title(self):
-        return self.xpath1('./*[@data-type="document-title"]')
+    def __init__(self, number, elem):
+        super().__init__(elem)
+        self.number = number
+
+    def get_number(self):
+        return self.number
 
     @memoize
     def get_pages(self):
         page_elems = self.xpath('.//*[@data-type="page"]')
-        return [Page(elem) for elem in page_elems]
+        pages = enumerate(page_elems, start=1)
+        return [Page(self, str(i), elem) for i, elem in pages]
 
     @memoize
     def get_chapter_outline(
         self, *, include_introduction=False, include_summary=False
     ):
-        return [
-            page.get_title()
-            for page in self.get_pages()
-            if (
-                (include_summary or not page.is_summary)
-                and (include_introduction or not page.is_introduction)
-            )
-        ]
+        pages = self.get_pages()
+        if not include_summary:
+            pages = (page for page in pages if not page.is_summary)
+        if not include_introduction:
+            pages = (page for page in pages if not page.is_introduction)
+        titles = (page.get_title().strip() for page in pages)
+        non_empty_titles = (title for title in titles if title)
+        return list(non_empty_titles)
 
     def __str__(self):
         return f"Chapter {self.get_number()} {self.get_title()}"
@@ -256,16 +223,8 @@ class Chapter(BookElement):
 class Book(Element):
     @memoize
     def get_chapters(self):
-        return [Chapter(el) for el in self.xpath('//*[@data-type="chapter"]')]
-
-    @memoize
-    def get_metadata(self):
-        return Element(self.xpath1('.//*[@data-type="metadata"]'))
-
-    @memoize
-    def get_license(self):
-        md = self.get_metadata()
-        return License(md.xpath1('.//*[@data-type="license"]'))
+        chapters = enumerate(self.xpath('//*[@data-type="chapter"]'), start=1)
+        return [Chapter(str(i), el) for i, el in chapters]
 
     @memoize
     def get_title(self):
@@ -327,8 +286,8 @@ def chunk_bullets(bullets: list[str], max_bullets: int, max_characters: int):
         bullet_len = len(bullet)
         bullet_len *= bullet_len / avg_line_length
         if buffer and (
-            len(buffer) >= max_bullets
-            or character_count + bullet_len >= max_characters
+            len(buffer) >= max_bullets or
+            character_count + bullet_len >= max_characters
         ):
             yield buffer
             buffer = [bullet]
@@ -351,9 +310,7 @@ def split_large_bullet_lists(slide_contents: Iterable[SlideContent]):
                 chunk_bullets(slide_content.bullets, max_bullets, max_chars)
             )
             slide_count = len(bullet_groups)
-            if slide_count == 1:
-                yield slide_content
-            else:
+            if slide_count > 1:
                 number_offset = 1
                 for i, bullets in enumerate(bullet_groups, start=1):
                     title = f"{slide_content.title} ({i} of {slide_count})"
@@ -365,16 +322,38 @@ def split_large_bullet_lists(slide_contents: Iterable[SlideContent]):
                         number_offset=number_offset,
                     )
                     number_offset += len(bullets)
-        else:
-            yield slide_content
+                continue
+        # Default to yielding original content
+        yield slide_content
+
+
+def handle_nested_tables(slide_contents: Iterable[SlideContent]):
+    for slide_content in slide_contents:
+        if isinstance(slide_content, TableSlideContent):
+            table = slide_content
+            nested_tables = table.html.xpath(
+                ".//h:table", namespaces={"h": "http://www.w3.org/1999/xhtml"}
+            )
+            if nested_tables:
+                title = slide_content.title
+                tables = [table.html] + nested_tables
+                count = len(tables)
+                for i, tbl in enumerate(tables, start=1):
+                    yield TableSlideContent(
+                        title=f"{title} ({i} of {count})", html=tbl
+                    )
+                continue
+        # Default to yielding original content
+        yield slide_content
 
 
 def chapter_to_slide_contents(chapter: Chapter):
-    yield OutlineSlideContent(
-        title="Chapter outline",
-        bullets=chapter.get_chapter_outline(),
-        numbered=True,
-    )
+    if chapter.get_chapter_outline():
+        yield OutlineSlideContent(
+            title="Chapter outline",
+            bullets=chapter.get_chapter_outline(),
+            numbered=True,
+        )
     for page in chapter.get_pages():
         learning_objectives = page.get_learning_objectives()
         figures = page.get_figures()
@@ -386,7 +365,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                 for p in (page.get_number(), page.get_title())
                 if p is not None
             )
-            if page.is_summary:
+            if page.is_summary:  # pragma: no cover
                 heading = None
             else:
                 heading = "Learning Objectives"
@@ -399,14 +378,16 @@ def chapter_to_slide_contents(chapter: Chapter):
             for page_content in sort_by_document_index(page_contents):
                 if isinstance(page_content, Figure):
                     fig = page_content
-                    if not fig.has_caption():
+                    if not fig.has_number():
                         continue
                     src = fig.get_src()
-                    alt = fig.get_alt() or fig.get_caption() or "None"
+                    alt = fig.get_alt()
+                    title = f"Figure {fig.get_number()}"
                     caption = fig.get_caption() or fig.get_alt() or "None"
-                    assert src is not None, "Expected to get src attribute"
+                    assert src, f"Missing src attribute: {title}"
+                    assert alt, f"Missing alt text: {title}"
                     yield FigureSlideContent(
-                        title=f"Figure {fig.get_number()}",
+                        title=title,
                         src=src,
                         caption=caption,
                         alt=alt,
@@ -414,23 +395,19 @@ def chapter_to_slide_contents(chapter: Chapter):
                     )
                 elif isinstance(page_content, Table):
                     table = page_content
-                    if not table.has_caption():
+                    if not table.has_number():  # pragma: no cover
                         continue
                     yield TableSlideContent(
-                        title=table.get_title(),
-                        html=table.get_table_elem()
+                        title=table.get_title(), html=table.get_table_elem()
                     )
-
-
-def book_to_slide_contents(book: Book) -> Generator[SlideContent, Any, None]:
-    for chapter in book.get_chapters():
-        for slide_content in chapter_to_slide_contents(chapter):
-            yield slide_content
 
 
 def slide_contents_to_html(
     title: str, subtitle: str, slide_contents: Iterable[SlideContent]
 ):
+    namespace = "http://www.w3.org/1999/xhtml"
+    E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+
     def slide_content_to_html_parts(slide_contents: Iterable[SlideContent]):
         for slide_content in slide_contents:
             if isinstance(slide_content, (OutlineSlideContent,)):
@@ -590,12 +567,12 @@ def fix_pptx_file(input_path: Path):  # pragma: no cover
     output_path = input_path.with_suffix(".tmp")
     with (
         ZipFile(input_path) as pptx_i,
-        ZipFile(output_path, mode="w", compression=ZIP_DEFLATED) as pptx_o
+        ZipFile(output_path, mode="w", compression=ZIP_DEFLATED) as pptx_o,
     ):
         for info in pptx_i.infolist():
             with (
                 pptx_i.open(info.filename, "r") as fin,
-                pptx_o.open(info.filename, "w") as fout
+                pptx_o.open(info.filename, "w") as fout,
             ):
                 content = fin.read()
                 if is_slide_filename(info.filename):
@@ -605,7 +582,6 @@ def fix_pptx_file(input_path: Path):  # pragma: no cover
                 else:
                     fout.write(content)
     output_path.rename(input_path)
-    
 
 
 def main():
@@ -624,6 +600,7 @@ def main():
         )
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
+        slide_contents = handle_nested_tables(slide_contents)
         slides_etree = slide_contents_to_html(
             book.get_title(),
             f"Chapter {chapter.get_number()} {chapter.get_title()}",
