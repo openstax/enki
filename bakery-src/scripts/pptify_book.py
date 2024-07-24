@@ -16,6 +16,7 @@ import pptx.shapes
 from pptx.shapes.picture import Picture
 from pptx.shapes.base import BaseShape
 from pptx.slide import Slide
+from slugify import slugify
 
 
 Param = ParamSpec("Param")
@@ -592,11 +593,13 @@ def main():
     out_fmt = sys.argv[5]
     tree = etree.parse(str(book_input), None)
     book = Book(tree)
-    for n, chapter in enumerate(book.get_chapters(), start=1):
+    for chapter in book.get_chapters():
         print(f"Working on: {chapter}", file=sys.stderr)
+        title = f"{chapter.get_number()} {chapter.get_title()}".replace("'", "")
+        slug = slugify(title)
         ppt_output, html_output = (
-            Path(out_fmt.format(number=n, extension="pptx")).resolve(),
-            Path(out_fmt.format(number=n, extension="html")).resolve(),
+            Path(out_fmt.format(slug=slug, extension="pptx")),
+            Path(out_fmt.format(slug=slug, extension="html")),
         )
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)

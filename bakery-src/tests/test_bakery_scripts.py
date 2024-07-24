@@ -4376,7 +4376,7 @@ def test_pptify_book(mocker, tmp_path):
         str(resource_dir),
         str(reference_doc),
         str(cover_image),
-        f"{tmp_path}/ppt-{{number}}.{{extension}}",
+        f"{tmp_path}/ppt-{{slug}}.{{extension}}",
     ]
 
     mocker.patch("sys.argv", args)
