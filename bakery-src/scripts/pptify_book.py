@@ -612,7 +612,7 @@ def main():
     book_input = Path(sys.argv[1]).resolve(strict=True)
     resource_dir = Path(sys.argv[2]).resolve(strict=True)
     reference_doc = Path(sys.argv[3]).resolve(strict=True)
-    cover_image = Path(sys.argv[4]).resolve(strict=True)
+    cover_image = Path(sys.argv[4]).resolve()
     out_fmt = sys.argv[5]
     tree = etree.parse(str(book_input), None)
     book = Book(tree)
@@ -636,6 +636,7 @@ def main():
         tmp_path = Path(ppt_output).with_suffix(".pptx.tmp")
         pres = pptx.Presentation(ppt_output)
         slides_post_process(pres)
-        insert_cover_image(pres, str(cover_image))
+        if cover_image.exists():
+            insert_cover_image(pres, str(cover_image))
         pres.save(str(tmp_path))
         tmp_path.rename(ppt_output)
