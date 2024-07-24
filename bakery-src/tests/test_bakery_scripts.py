@@ -3895,17 +3895,15 @@ def test_ppt_parsing(mocker):
         'Table 2.1 Critical Temperatures and Pressures for Various Substances',
         'Table 2.2 Vapor Pressure of Water at Various Temperatures',
         'Table 2.3 CV/RCV/R for Various Monatomic, Diatomic, and Triatomic Gases',
-        'Table 3.1 ',
-        'Table 3.2 ',
-        'Table 3.3 ',
+        'Table 3.1',
+        'Table 3.2',
+        'Table 3.3',
         'Table 4.1 Summary of Simple Thermodynamic Processes',
-        'Table 8.1 Representative Values of Dielectric Constants and Dielectric '
-        'Strengths of Various Materials at Room Temperature',
+        'Table 8.1 Representative Values of Dielectric Constants and Dielectric Strengths of Various Materials at Room Temperature',
         'Table 9.1 Resistivities and Conductivities of Various Materials at 20 °C',
         'Table 9.2 Light Output of LED, Incandescent, and CFL Light Bulbs',
         'Table 9.3 Superconductor Critical Temperatures',
-        'Table 10.1 Summary for Equivalent Resistance and Capacitance in Series '
-        'and Parallel Combinations',
+        'Table 10.1 Summary for Equivalent Resistance and Capacitance in Series and Parallel Combinations',
         'Table 12.1 Magnetic Moments of Some Atoms',
         'Table 12.2 Magnetic Susceptibilities',
         'Table 16.1 Electromagnetic Waves',
@@ -3934,6 +3932,7 @@ def test_ppt_parsing(mocker):
     sorted_pages = list(pptify_book.sort_by_document_index(shuffled_pages))
     assert sorted_pages == test_pages
 
+    # The test document does not have learning objectives
     test_page_xhtml = etree.fromstring(
         """
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -4362,6 +4361,13 @@ def test_slide_transformations(mocker):
     adjust_figure_caption_font_stub.assert_called_once()
     mock_pres.slides.add_slide.assert_called_once()
     mocker.stopall()
+
+    assert pptify_book.try_find_nearest_sm(E.div()) == "N/A"
+    assert pptify_book.try_find_nearest_sm(E.div(**{"data-sm": "1"})) == "1"
+    parent_div = E.div(**{"data-sm": "20"})
+    child_div = E.div()
+    parent_div.append(child_div)
+    assert pptify_book.try_find_nearest_sm(child_div) == "20"
 
 
 def test_pptify_book(mocker, tmp_path):

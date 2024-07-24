@@ -3,8 +3,7 @@ import sys
 import subprocess
 import shlex
 from pathlib import Path
-from typing import Iterable, ParamSpec, TypeVar
-from collections.abc import Callable
+from typing import Iterable
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
 
@@ -19,30 +18,15 @@ from pptx.slide import Slide
 from slugify import slugify
 
 
-Param = ParamSpec("Param")
-RetType = TypeVar("RetType")
-
-
 def class_xpath(class_name: str):
     return f'contains(concat(" ", @class, " "), " {class_name} ")'
 
 
-def memoize(func: Callable[Param, RetType]):
-    last_value = -1
-    instance = None
-
-    def wrapper(*args: Param.args, **kwargs: Param.kwargs):
-        nonlocal instance, last_value
-        should_run = False
-        new_value = hash(tuple(map(hash, (*args, *kwargs.items()))))
-        if new_value != last_value:
-            last_value = new_value
-            should_run = True
-        if instance is None or should_run:
-            instance = func(*args, **kwargs)
-        return instance
-
-    return wrapper
+def try_find_nearest_sm(elem):
+    sm_results = elem.xpath('ancestor-or-self::*[@data-sm]/@data-sm')
+    if not sm_results:
+        return "N/A"
+    return sm_results[0]
 
 
 class Element:
@@ -52,9 +36,6 @@ class Element:
     @property
     def element(self):
         return self._element
-
-    def get(self, name: str):  # pragma: no cover
-        return self._element.get(name)
 
     def xpath(self, p: str, *, namespaces=None):
         _namespaces = {"h": "http://www.w3.org/1999/xhtml"}
@@ -73,7 +54,6 @@ class Element:
 
 
 class BookElement(Element):
-    @memoize
     def get_title(self):
         return self.xpath1(
             './/*[@data-type="metadata"]/*[@data-type="document-title"]/text()'
@@ -84,7 +64,6 @@ class BookElement(Element):
 
 
 class Captioned(Element):
-    @memoize
     def get_caption_elem(self):
         return self.xpath1(f'./*[{class_xpath("os-caption-container")}]')
 
@@ -97,21 +76,18 @@ class Captioned(Element):
     def has_number(self):
         return self.has_caption() and self.get_number() != ""
 
-    @memoize
     def get_number(self) -> str:
         caption_number = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-number")}]//text()'
         )
         return "".join(caption_number).strip()
 
-    @memoize
     def get_caption(self) -> str:
         caption_text = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-caption")}]//text()'
         )
         return "".join(caption_text).strip()
 
-    @memoize
     def get_title(self):
         title_text = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-title")}]//text()'
@@ -120,15 +96,12 @@ class Captioned(Element):
 
 
 class Figure(Captioned):
-    @memoize
     def get_img(self):
         return self.xpath1(".//h:img")
 
-    @memoize
     def get_src(self) -> str | None:
         return self.get_img().get("src")
 
-    @memoize
     def get_alt(self) -> str | None:
         return self.get_img().get("alt")
 
@@ -137,7 +110,11 @@ class Table(Captioned):
     def get_title(self):
         title = super().get_title()
         if self.has_number():
-            return f"Table {self.get_number()} {title}"
+            number = self.get_number()
+            if title:
+                return f"Table {number} {title}"
+            else:
+                return f"Table {number}"
         else:  # pragma: no cover
             return f"Table {title}"
 
@@ -151,7 +128,6 @@ class Page(BookElement):
         self.parent_chapter = parent_chapter
         self.number = number
 
-    @memoize
     def get_learning_objectives(self):
         sections = self.xpath(".//h:section")
         if sections:
@@ -165,7 +141,6 @@ class Page(BookElement):
             learning_objectives = []
         return learning_objectives
 
-    @memoize
     def get_figures(self):
         figure_elems = self.xpath(".//h:figure/parent::*")
         return [Figure(elem) for elem in figure_elems]
@@ -173,7 +148,6 @@ class Page(BookElement):
     def get_number(self):
         return f"{self.parent_chapter.get_number()}.{self.number}"
 
-    @memoize
     def get_tables(self):
         # Get all tables that are not nested in other tables
         table_elems = self.xpath(
@@ -198,13 +172,11 @@ class Chapter(BookElement):
     def get_number(self):
         return self.number
 
-    @memoize
     def get_pages(self):
         page_elems = self.xpath('.//*[@data-type="page"]')
         pages = enumerate(page_elems, start=1)
         return [Page(self, str(i), elem) for i, elem in pages]
 
-    @memoize
     def get_chapter_outline(
         self, *, include_introduction=False, include_summary=False
     ):
@@ -217,17 +189,12 @@ class Chapter(BookElement):
         non_empty_titles = (title for title in titles if title)
         return list(non_empty_titles)
 
-    def __str__(self):
-        return f"Chapter {self.get_number()} {self.get_title()}"
-
 
 class Book(Element):
-    @memoize
     def get_chapters(self):
         chapters = enumerate(self.xpath('//*[@data-type="chapter"]'), start=1)
         return [Chapter(str(i), el) for i, el in chapters]
 
-    @memoize
     def get_title(self):
         title_text = self.xpath(".//h:title//text()")
         return "".join(title_text)
@@ -385,8 +352,17 @@ def chapter_to_slide_contents(chapter: Chapter):
                     alt = fig.get_alt()
                     title = f"Figure {fig.get_number()}"
                     caption = fig.get_caption() or fig.get_alt() or "None"
-                    assert src, f"Missing src attribute: {title}"
-                    assert alt, f"Missing alt text: {title}"
+                    if not src or not alt:  # pragma: no cover
+                        name = "src" if not src else "alt"
+                        parent_page_id = fig.element.xpath(
+                            'ancestor::*[@data-type = "page"]/@id'
+                        )[0]
+                        data_sm = try_find_nearest_sm(fig.element)
+                        raise Exception(
+                            f"Figure missing {name}\n"
+                            f"Page ID: {parent_page_id}\n"
+                            f"Nearest element location: {data_sm}"
+                        )
                     yield FigureSlideContent(
                         title=title,
                         src=src,
@@ -594,13 +570,13 @@ def main():
     tree = etree.parse(str(book_input), None)
     book = Book(tree)
     for chapter in book.get_chapters():
-        print(f"Working on: {chapter}", file=sys.stderr)
         title = f"{chapter.get_number()} {chapter.get_title()}".replace("'", "")
         slug = slugify(title)
         ppt_output, html_output = (
             Path(out_fmt.format(slug=slug, extension="pptx")),
             Path(out_fmt.format(slug=slug, extension="html")),
         )
+        print(f"Working on: {slug}", file=sys.stderr)
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
         slide_contents = handle_nested_tables(slide_contents)
