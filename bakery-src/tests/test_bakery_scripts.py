@@ -1,4 +1,5 @@
 """Tests to validate JSON metadata extraction and file generation pipeline"""
+
 import os
 import json
 from datetime import datetime
@@ -20,6 +21,7 @@ from PIL import Image
 from pathlib import Path
 from filecmp import cmp
 import unittest
+
 try:
     from unittest import mock
 except ImportError:
@@ -45,7 +47,7 @@ from bakery_scripts import (
     utils,
     html_parser,
     cnx_models,
-    profiler
+    profiler,
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -53,37 +55,141 @@ TEST_DATA_DIR = os.path.join(HERE, "data")
 TEST_JPEG_DIR = os.path.join(HERE, "test_jpeg_colorspace")
 SCRIPT_DIR = os.path.join(HERE, "../scripts")
 # small JPEG: https://stackoverflow.com/a/2349470/756056
-SMALL_JPEG = bytearray([
-    0xff, 0xd8,  # SOI
-    0xff, 0xe0,  # APP0
-    0x00, 0x10,
-    0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00,
-    0xff, 0xdb,  # DQT
-    0x00, 0x43,
-    0x00,
-    0x03, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x02,
-    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x04, 0x06,
-    0x04, 0x04, 0x04, 0x04, 0x04, 0x08, 0x06, 0x06,
-    0x05, 0x06, 0x09, 0x08, 0x0a, 0x0a, 0x09, 0x08,
-    0x09, 0x09, 0x0a, 0x0c, 0x0f, 0x0c, 0x0a, 0x0b,
-    0x0e, 0x0b, 0x09, 0x09, 0x0d, 0x11, 0x0d, 0x0e,
-    0x0f, 0x10, 0x10, 0x11, 0x10, 0x0a, 0x0c, 0x12,
-    0x13, 0x12, 0x10, 0x13, 0x0f, 0x10, 0x10, 0x10,
-    0xff, 0xc9,  # SOF
-    0x00, 0x0b,
-    0x08, 0x00, 0x01, 0x00, 0x01, 0x01, 0x01, 0x11, 0x00,
-    0xff, 0xcc,  # DAC
-    0x00, 0x06, 0x00, 0x10, 0x10, 0x05,
-    0xff, 0xda,  # SOS
-    0x00, 0x08,
-    0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0xd2, 0xcf, 0x20,
-    0xff, 0xd9,  # EOI
-])
+SMALL_JPEG = bytearray(
+    [
+        0xFF,
+        0xD8,  # SOI
+        0xFF,
+        0xE0,  # APP0
+        0x00,
+        0x10,
+        0x4A,
+        0x46,
+        0x49,
+        0x46,
+        0x00,
+        0x01,
+        0x01,
+        0x01,
+        0x00,
+        0x48,
+        0x00,
+        0x48,
+        0x00,
+        0x00,
+        0xFF,
+        0xDB,  # DQT
+        0x00,
+        0x43,
+        0x00,
+        0x03,
+        0x02,
+        0x02,
+        0x02,
+        0x02,
+        0x02,
+        0x03,
+        0x02,
+        0x02,
+        0x02,
+        0x03,
+        0x03,
+        0x03,
+        0x03,
+        0x04,
+        0x06,
+        0x04,
+        0x04,
+        0x04,
+        0x04,
+        0x04,
+        0x08,
+        0x06,
+        0x06,
+        0x05,
+        0x06,
+        0x09,
+        0x08,
+        0x0A,
+        0x0A,
+        0x09,
+        0x08,
+        0x09,
+        0x09,
+        0x0A,
+        0x0C,
+        0x0F,
+        0x0C,
+        0x0A,
+        0x0B,
+        0x0E,
+        0x0B,
+        0x09,
+        0x09,
+        0x0D,
+        0x11,
+        0x0D,
+        0x0E,
+        0x0F,
+        0x10,
+        0x10,
+        0x11,
+        0x10,
+        0x0A,
+        0x0C,
+        0x12,
+        0x13,
+        0x12,
+        0x10,
+        0x13,
+        0x0F,
+        0x10,
+        0x10,
+        0x10,
+        0xFF,
+        0xC9,  # SOF
+        0x00,
+        0x0B,
+        0x08,
+        0x00,
+        0x01,
+        0x00,
+        0x01,
+        0x01,
+        0x01,
+        0x11,
+        0x00,
+        0xFF,
+        0xCC,  # DAC
+        0x00,
+        0x06,
+        0x00,
+        0x10,
+        0x10,
+        0x05,
+        0xFF,
+        0xDA,  # SOS
+        0x00,
+        0x08,
+        0x01,
+        0x01,
+        0x00,
+        0x00,
+        0x3F,
+        0x00,
+        0xD2,
+        0xCF,
+        0x20,
+        0xFF,
+        0xD9,  # EOI
+    ]
+)
 SHA1_SMALL_JPEG = "3f926a37ebed68c971312726a287610cf06135e7"
 
 
 class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     """HTTPServer mock request handler"""
+
     """extremely simple http server for download exercises test"""
 
     def do_GET(self):  # pylint: disable=invalid-name
@@ -97,7 +203,7 @@ class MockJpegHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-Type", "image/jpeg")
                 self.end_headers()
-                with open(filename, 'rb') as file:
+                with open(filename, "rb") as file:
                     self.wfile.write(file.read())
             else:
                 self.send_response(404)
@@ -125,10 +231,11 @@ def test_link_rex_git(tmp_path, mocker):
 
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    filename = 'osbook.rex-linked.xhtml'
+    filename = "osbook.rex-linked.xhtml"
 
-    mocker.patch("sys.argv", ["", input_xhtml_file,
-                              "idontexistforGit", out_dir, filename])
+    mocker.patch(
+        "sys.argv", ["", input_xhtml_file, "idontexistforGit", out_dir, filename]
+    )
     link_rex.main()
 
     outfile = os.path.join(out_dir, filename)
@@ -154,10 +261,9 @@ def test_link_rex_archive(tmp_path, mocker):
 
     out_dir = tmp_path / "out"
     out_dir.mkdir()
-    filename = 'osbook.rex-linked.xhtml'
+    filename = "osbook.rex-linked.xhtml"
 
-    mocker.patch("sys.argv", ["", input_xhtml_file,
-                 book_slugs_file, out_dir, filename])
+    mocker.patch("sys.argv", ["", input_xhtml_file, book_slugs_file, out_dir, filename])
     link_rex.main()
 
     outfile = os.path.join(out_dir, filename)
@@ -195,9 +301,7 @@ def test_jsonify_book(tmp_path, mocker):
     jsonified_output_dir = tmp_path / "jsonified"
     jsonified_output_dir.mkdir()
 
-    mocker.patch(
-        "sys.argv", ["", disassembled_input_dir, tmp_path / "jsonified"]
-    )
+    mocker.patch("sys.argv", ["", disassembled_input_dir, tmp_path / "jsonified"])
     jsonify_book.main()
 
     jsonified_output = jsonified_output_dir / f"{mock_ident_hash}:m00001.json"
@@ -206,10 +310,7 @@ def test_jsonify_book(tmp_path, mocker):
     jsonified_toc_data = json.loads(jsonified_toc_output.read_text())
 
     assert jsonified_output_data.get("title") == json_metadata_content["title"]
-    assert (
-        jsonified_output_data.get("abstract")
-        == json_metadata_content["abstract"]
-    )
+    assert jsonified_output_data.get("abstract") == json_metadata_content["abstract"]
     assert jsonified_output_data.get("slug") == json_metadata_content["slug"]
     assert jsonified_output_data.get("content") == html_content
     assert jsonified_toc_data.get("content") == toc_content
@@ -218,9 +319,7 @@ def test_jsonify_book(tmp_path, mocker):
 def test_disassemble_book(tmp_path, mocker):
     """Test disassemble_book script"""
     input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.baked.xhtml")
-    input_baked_metadata = os.path.join(
-        TEST_DATA_DIR, "collection.baked-metadata.json"
-    )
+    input_baked_metadata = os.path.join(TEST_DATA_DIR, "collection.baked-metadata.json")
 
     input_dir = tmp_path / "book"
     input_dir.mkdir()
@@ -228,9 +327,7 @@ def test_disassemble_book(tmp_path, mocker):
     input_baked_xhtml_file = input_dir / "collection.baked.xhtml"
     input_baked_xhtml_file.write_bytes(open(input_baked_xhtml, "rb").read())
     input_baked_metadata_file = input_dir / "collection.baked-metadata.json"
-    input_baked_metadata_file.write_text(
-        open(input_baked_metadata, "r").read()
-    )
+    input_baked_metadata_file.write_text(open(input_baked_metadata, "r").read())
 
     disassembled_output = input_dir / "disassembled"
     disassembled_output.mkdir()
@@ -239,11 +336,16 @@ def test_disassemble_book(tmp_path, mocker):
     mock_version = "0.0"
     mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
-    mocker.patch("sys.argv", ["",
-                              str(input_baked_xhtml_file),
-                              str(input_baked_metadata_file),
-                              "collection",
-                              str(disassembled_output)])
+    mocker.patch(
+        "sys.argv",
+        [
+            "",
+            str(input_baked_xhtml_file),
+            str(input_baked_metadata_file),
+            "collection",
+            str(disassembled_output),
+        ],
+    )
     disassemble_book.main()
 
     xhtml_output_files = glob(f"{disassembled_output}/*.xhtml")
@@ -254,18 +356,15 @@ def test_disassemble_book(tmp_path, mocker):
     # Check for expected files and metadata that should be generated in
     # this step
     json_output_m42119 = (
-        disassembled_output /
-        f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output /
-        f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
     assert (
-        m42119_data.get("title")
-        == "Introduction to Science and the Realm of Physics, "
+        m42119_data.get("title") == "Introduction to Science and the Realm of Physics, "
         "Physical Quantities, and Units"
     )
     assert (
@@ -301,11 +400,11 @@ def test_disassemble_book(tmp_path, mocker):
 
     # Ensure same-book-links have additional metadata
     m42119_tree = etree.parse(
-        open(disassembled_output /
-             f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
+        open(disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}.xhtml")
     )
     link = m42119_tree.xpath(
-        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']", namespaces=html_parser.HTML_DOCUMENT_NAMESPACES
+        f"//xhtml:a[@href='/contents/11111111{mock_uuid}#58161']",
+        namespaces=html_parser.HTML_DOCUMENT_NAMESPACES,
     )[0]
     link.attrib["data-page-slug"] = "1-1-physics-an-introduction"
     link.attrib["data-page-uuid"] = f"11111111{mock_uuid}"
@@ -333,22 +432,25 @@ def test_disassemble_book_empty_baked_metadata(tmp_path, mocker):
     mock_version = "0.0"
     mock_ident_hash = f"00000000{mock_uuid}@{mock_version}"
 
-    mocker.patch("sys.argv", ["",
-                              str(input_baked_xhtml_file),
-                              str(input_baked_metadata_file),
-                              "collection",
-                              str(disassembled_output)])
+    mocker.patch(
+        "sys.argv",
+        [
+            "",
+            str(input_baked_xhtml_file),
+            str(input_baked_metadata_file),
+            "collection",
+            str(disassembled_output),
+        ],
+    )
     disassemble_book.main()
 
     # Check for expected files and metadata that should be generated in this
     # step
     json_output_m42119 = (
-        disassembled_output /
-        f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:00000000{mock_uuid}-metadata.json"
     )
     json_output_m42092 = (
-        disassembled_output /
-        f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
+        disassembled_output / f"{mock_ident_hash}:11111111{mock_uuid}-metadata.json"
     )
     m42119_data = json.load(open(json_output_m42119, "r"))
     m42092_data = json.load(open(json_output_m42092, "r"))
@@ -370,43 +472,48 @@ def test_canonical_list_order():
     assert names.index("College Algebra") < names.index("Precalculus")
 
     # All 1e books should come after 2e variants
-    assert names.index("American Government 2e") < \
-        names.index("American Government 1e")
+    assert names.index("American Government 2e") < names.index("American Government 1e")
     assert names.index("Biology 2e") < names.index("Biology 1e")
     assert names.index("Chemistry 2e") < names.index("Chemistry 1e")
-    assert names.index("Chemistry 2e") < \
-        names.index("Chemistry: Atoms First 1e")
-    assert names.index("Biology 2e") < \
-        names.index("Concepts of Biology")
-    assert names.index("Introduction to Sociology 2e") < \
-        names.index("Introduction to Sociology 1e")
-    assert names.index("Principles of Economics 2e") < \
-        names.index("Principles of Economics 1e")
-    assert names.index("Principles of Economics 2e") < \
-        names.index("Principles of Macroeconomics 1e")
-    assert names.index("Principles of Economics 2e") < \
-        names.index("Principles of Macroeconomics for AP Courses 1e")
-    assert names.index("Principles of Economics 2e") < \
-        names.index("Principles of Microeconomics 1e")
-    assert names.index("Principles of Economics 2e") < \
-        names.index("Principles of Microeconomics for AP Courses 1e")
+    assert names.index("Chemistry 2e") < names.index("Chemistry: Atoms First 1e")
+    assert names.index("Biology 2e") < names.index("Concepts of Biology")
+    assert names.index("Introduction to Sociology 2e") < names.index(
+        "Introduction to Sociology 1e"
+    )
+    assert names.index("Principles of Economics 2e") < names.index(
+        "Principles of Economics 1e"
+    )
+    assert names.index("Principles of Economics 2e") < names.index(
+        "Principles of Macroeconomics 1e"
+    )
+    assert names.index("Principles of Economics 2e") < names.index(
+        "Principles of Macroeconomics for AP Courses 1e"
+    )
+    assert names.index("Principles of Economics 2e") < names.index(
+        "Principles of Microeconomics 1e"
+    )
+    assert names.index("Principles of Economics 2e") < names.index(
+        "Principles of Microeconomics for AP Courses 1e"
+    )
 
     # Check for expected ordering within 1e variants
     assert names.index("Biology 1e") < names.index("Concepts of Biology")
-    assert names.index("Chemistry 1e") < \
-        names.index("Chemistry: Atoms First 1e")
-    assert names.index("Principles of Economics 1e") < \
-        names.index("Principles of Macroeconomics 1e")
-    assert names.index("Principles of Macroeconomics 1e") < \
-        names.index("Principles of Microeconomics 1e")
-    assert names.index("Principles of Microeconomics 1e") < \
-        names.index("Principles of Macroeconomics for AP Courses 1e")
-    assert names.index("Principles of Macroeconomics for AP Courses 1e") < \
-        names.index("Principles of Microeconomics for AP Courses 1e")
+    assert names.index("Chemistry 1e") < names.index("Chemistry: Atoms First 1e")
+    assert names.index("Principles of Economics 1e") < names.index(
+        "Principles of Macroeconomics 1e"
+    )
+    assert names.index("Principles of Macroeconomics 1e") < names.index(
+        "Principles of Microeconomics 1e"
+    )
+    assert names.index("Principles of Microeconomics 1e") < names.index(
+        "Principles of Macroeconomics for AP Courses 1e"
+    )
+    assert names.index("Principles of Macroeconomics for AP Courses 1e") < names.index(
+        "Principles of Microeconomics for AP Courses 1e"
+    )
 
 
-def mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                     page_content):
+def mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict, page_content):
     input_dir = tmp_path / "linked-extras"
     input_dir.mkdir()
 
@@ -421,8 +528,7 @@ def mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
     def content_callback(request, context):
         module_uuid = content_dict[request.url.split("/")[-1]]
         context.status_code = 301
-        context.headers['Location'] = \
-            f"https://{server}/contents/{module_uuid}"
+        context.headers["Location"] = f"https://{server}/contents/{module_uuid}"
         return
 
     adapter.register_uri("GET", content_matcher, json=content_callback)
@@ -460,11 +566,8 @@ def test_link_extras_single_match(tmp_path, mocker):
                 "id": "",
                 "slug": "",
                 "contents": [
-                    {
-                        "id": "1234-5678-1234-5678@version",
-                        "slug": "1234-slug"
-                    }
-                ]
+                    {"id": "1234-5678-1234-5678@version", "slug": "1234-slug"}
+                ],
             }
         }
     }
@@ -508,22 +611,27 @@ def test_link_extras_single_match(tmp_path, mocker):
         ],
         [
             ("id", "l2"),
-            ("href", "./00000000-0000-0000-0000-000000000000:1234-5678-1234-5678.xhtml"),
+            (
+                "href",
+                "./00000000-0000-0000-0000-000000000000:1234-5678-1234-5678.xhtml",
+            ),
             ("class", "target-chapter"),
             ("data-book-uuid", "00000000-0000-0000-0000-000000000000"),
             ("data-page-slug", "1234-slug"),
         ],
         [
             ("id", "l5"),
-            ("href", "./00000000-0000-0000-0000-000000000000:1234-5678-1234-5678.xhtml#fragment"),
+            (
+                "href",
+                "./00000000-0000-0000-0000-000000000000:1234-5678-1234-5678.xhtml#fragment",
+            ),
             ("class", "target-chapter"),
             ("data-book-uuid", "00000000-0000-0000-0000-000000000000"),
             ("data-page-slug", "1234-slug"),
         ],
     ]
 
-    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                     page_content)
+    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict, page_content)
 
     output_dir = tmp_path / "linked-extras"
 
@@ -535,9 +643,7 @@ def test_link_extras_single_match(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
 
-    check_links = [
-        link.items() for link in parsed_links
-    ]
+    check_links = [link.items() for link in parsed_links]
 
     assert check_links == expected_links
 
@@ -550,11 +656,7 @@ def test_link_extras_no_containing(tmp_path, mocker):
 
     contents_dict = {}
 
-    extras_dict = {
-        "1234-5678-1234-5678@version": {
-            "books": []
-        }
-    }
+    extras_dict = {"1234-5678-1234-5678@version": {"books": []}}
 
     page_content = """
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -578,11 +680,11 @@ def test_link_extras_no_containing(tmp_path, mocker):
     """
 
     with pytest.raises(
-        Exception,
-        match=r'(No containing books).*\n(content).*\n(module link)'
+        Exception, match=r"(No containing books).*\n(content).*\n(module link)"
     ):
-        mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                         page_content)
+        mock_link_extras(
+            tmp_path, content_dict, contents_dict, extras_dict, page_content
+        )
 
 
 def test_link_extras_single_no_match(tmp_path, mocker):
@@ -597,11 +699,8 @@ def test_link_extras_single_no_match(tmp_path, mocker):
                 "id": "",
                 "slug": "",
                 "contents": [
-                    {
-                        "id": "1234-5678-1234-5678@version",
-                        "slug": "1234-slug"
-                    }
-                ]
+                    {"id": "1234-5678-1234-5678@version", "slug": "1234-slug"}
+                ],
             }
         }
     }
@@ -641,15 +740,17 @@ def test_link_extras_single_no_match(tmp_path, mocker):
         ],
         [
             ("id", "l2"),
-            ("href", "./4664c267-cd62-4a99-8b28-1cb9b3aee347:1234-5678-1234-5678.xhtml"),
+            (
+                "href",
+                "./4664c267-cd62-4a99-8b28-1cb9b3aee347:1234-5678-1234-5678.xhtml",
+            ),
             ("class", "target-chapter"),
             ("data-book-uuid", "4664c267-cd62-4a99-8b28-1cb9b3aee347"),
             ("data-page-slug", "1234-slug"),
         ],
     ]
 
-    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                     page_content)
+    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict, page_content)
 
     output_dir = tmp_path / "linked-extras"
 
@@ -661,9 +762,7 @@ def test_link_extras_single_no_match(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
 
-    check_links = [
-        link.items() for link in parsed_links
-    ]
+    check_links = [link.items() for link in parsed_links]
 
     assert check_links == expected_links
 
@@ -680,11 +779,8 @@ def test_link_extras_multi_match(tmp_path, mocker):
                 "id": "",
                 "slug": "",
                 "contents": [
-                    {
-                        "id": "1234-5678-1234-5678@version",
-                        "slug": "1234-slug"
-                    }
-                ]
+                    {"id": "1234-5678-1234-5678@version", "slug": "1234-slug"}
+                ],
             }
         }
     }
@@ -727,15 +823,17 @@ def test_link_extras_multi_match(tmp_path, mocker):
         ],
         [
             ("id", "l2"),
-            ("href", "./4664c267-cd62-4a99-8b28-1cb9b3aee347:1234-5678-1234-5678.xhtml"),
+            (
+                "href",
+                "./4664c267-cd62-4a99-8b28-1cb9b3aee347:1234-5678-1234-5678.xhtml",
+            ),
             ("class", "target-chapter"),
             ("data-book-uuid", "4664c267-cd62-4a99-8b28-1cb9b3aee347"),
             ("data-page-slug", "1234-slug"),
         ],
     ]
 
-    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                     page_content)
+    mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict, page_content)
 
     output_dir = tmp_path / "linked-extras"
 
@@ -747,9 +845,7 @@ def test_link_extras_multi_match(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
 
-    check_links = [
-        link.items() for link in parsed_links
-    ]
+    check_links = [link.items() for link in parsed_links]
 
     assert check_links == expected_links
 
@@ -793,11 +889,11 @@ def test_link_extras_multi_no_match(tmp_path, mocker):
     """
 
     with pytest.raises(
-        Exception,
-        match=r'(no canonical).*\n.*(content).*\n.*(link).*\n.*(containing)'
+        Exception, match=r"(no canonical).*\n.*(content).*\n.*(link).*\n.*(containing)"
     ):
-        mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                         page_content)
+        mock_link_extras(
+            tmp_path, content_dict, contents_dict, extras_dict, page_content
+        )
 
 
 def test_link_extras_page_slug_not_found(tmp_path):
@@ -806,16 +902,7 @@ def test_link_extras_page_slug_not_found(tmp_path):
 
     contents_dict = {
         "00000000-0000-0000-0000-000000000000": {
-            "tree": {
-                "id": "",
-                "slug": "",
-                "contents": [
-                    {
-                        "id": "",
-                        "slug": ""
-                    }
-                ]
-            }
+            "tree": {"id": "", "slug": "", "contents": [{"id": "", "slug": ""}]}
         }
     }
 
@@ -838,12 +925,10 @@ def test_link_extras_page_slug_not_found(tmp_path):
         </html>
     """
 
-    with pytest.raises(
-        Exception,
-        match=r'(Could not find page slug for module)'
-    ):
-        mock_link_extras(tmp_path, content_dict, contents_dict, extras_dict,
-                         page_content)
+    with pytest.raises(Exception, match=r"(Could not find page slug for module)"):
+        mock_link_extras(
+            tmp_path, content_dict, contents_dict, extras_dict, page_content
+        )
 
 
 def test_link_extras_page_slug_resolver(requests_mock):
@@ -855,27 +940,19 @@ def test_link_extras_page_slug_resolver(requests_mock):
                 "id": "",
                 "slug": "",
                 "contents": [
-                    {
-                        "id": "1234-5678-1234-5678@version",
-                        "slug": "1234-slug"
-                    },
-                    {
-                        "id": "1111-2222-3333-4444@version",
-                        "slug": "1111-slug"
-                    }
-                ]
+                    {"id": "1234-5678-1234-5678@version", "slug": "1234-slug"},
+                    {"id": "1111-2222-3333-4444@version", "slug": "1111-slug"},
+                ],
             }
-        }
+        },
     )
 
     page_slug_resolver = link_extras.gen_page_slug_resolver(
-        requests.Session(),
-        "mock.archive"
+        requests.Session(), "mock.archive"
     )
 
     res = page_slug_resolver(
-        "4664c267-cd62-4a99-8b28-1cb9b3aee347",
-        "1234-5678-1234-5678@version"
+        "4664c267-cd62-4a99-8b28-1cb9b3aee347", "1234-5678-1234-5678@version"
     )
     assert res == "1234-slug"
     assert requests_mock.call_count == 1
@@ -883,43 +960,45 @@ def test_link_extras_page_slug_resolver(requests_mock):
     # called again
     requests_mock.reset_mock()
     res = page_slug_resolver(
-        "4664c267-cd62-4a99-8b28-1cb9b3aee347",
-        "1111-2222-3333-4444@version"
+        "4664c267-cd62-4a99-8b28-1cb9b3aee347", "1111-2222-3333-4444@version"
     )
     assert res == "1111-slug"
     assert requests_mock.call_count == 0
 
     # Test for unmatched slug
-    res = page_slug_resolver(
-        "4664c267-cd62-4a99-8b28-1cb9b3aee347",
-        "foobar@version"
-    )
+    res = page_slug_resolver("4664c267-cd62-4a99-8b28-1cb9b3aee347", "foobar@version")
     assert res is None
 
 
 def test_assemble_book_metadata(tmp_path, mocker):
     """Test assemble_book_metadata script"""
-    input_assembled_book = os.path.join(TEST_DATA_DIR,
-                                        "assembled-book",
-                                        "collection.assembled.xhtml")
+    input_assembled_book = os.path.join(
+        TEST_DATA_DIR, "assembled-book", "collection.assembled.xhtml"
+    )
 
     input_uuid_to_revised = tmp_path / "uuid-to-revised-map.json"
-    with open(input_uuid_to_revised, 'w') as f:
-        json.dump({
-            "m42119": "2018/08/03 15:49:52 -0500",
-            "m42092": "2018/09/18 09:55:13.413 GMT-5"
-        }, f)
+    with open(input_uuid_to_revised, "w") as f:
+        json.dump(
+            {
+                "m42119": "2018/08/03 15:49:52 -0500",
+                "m42092": "2018/09/18 09:55:13.413 GMT-5",
+            },
+            f,
+        )
 
     assembled_metadata_output = tmp_path / "collection.assembed-metadata.json"
 
     mocker.patch(
-        "sys.argv", ["", input_assembled_book,
-                     input_uuid_to_revised, assembled_metadata_output]
+        "sys.argv",
+        ["", input_assembled_book, input_uuid_to_revised, assembled_metadata_output],
     )
     assemble_book_metadata.main()
 
     assembled_metadata = json.loads(assembled_metadata_output.read_text())
-    assert assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["abstract"] is None
+    assert (
+        assembled_metadata["00000000-0000-0000-0000-000000000000@1.6"]["abstract"]
+        is None
+    )
     assert (
         "Explain the difference between a model and a theory"
         in assembled_metadata["11111111-0000-0000-0000-000000000000@1.10"]["abstract"]
@@ -938,9 +1017,9 @@ def test_assemble_book_metadata_empty_revised_json(tmp_path, mocker):
     """Test assemble_book_metadata script when the revised JSON is empty
     to confirm it will fallback to metadata in assembled file
     """
-    input_assembled_book = os.path.join(TEST_DATA_DIR,
-                                        "assembled-book",
-                                        "collection.assembled.xhtml")
+    input_assembled_book = os.path.join(
+        TEST_DATA_DIR, "assembled-book", "collection.assembled.xhtml"
+    )
 
     input_uuid_to_revised = tmp_path / "uuid-to-revised-map.json"
     input_uuid_to_revised.write_text(json.dumps({}))
@@ -948,8 +1027,8 @@ def test_assemble_book_metadata_empty_revised_json(tmp_path, mocker):
     assembled_metadata_output = tmp_path / "collection.assembed-metadata.json"
 
     mocker.patch(
-        "sys.argv", ["", input_assembled_book,
-                     input_uuid_to_revised, assembled_metadata_output]
+        "sys.argv",
+        ["", input_assembled_book, input_uuid_to_revised, assembled_metadata_output],
     )
     assemble_book_metadata.main()
 
@@ -972,12 +1051,7 @@ def test_bake_book_metadata(tmp_path, mocker):
     input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.baked.xhtml")
     output_baked_book_metadata = tmp_path / "collection.toc-metadata.json"
     book_uuid = "031da8d3-b525-429c-80cf-6c8ed997733a"
-    book_slugs = [
-        {
-            "uuid": book_uuid,
-            "slug": "test-book-slug"
-        }
-    ]
+    book_slugs = [{"uuid": book_uuid, "slug": "test-book-slug"}]
     book_slugs_input = tmp_path / "book-slugs.json"
     book_slugs_input.write_text(json.dumps(book_slugs))
 
@@ -1004,10 +1078,7 @@ def test_bake_book_metadata(tmp_path, mocker):
     assert isinstance(book_metadata["tree"], dict) is True
     assert "contents" in book_metadata["tree"].keys()
     assert "license" in book_metadata.keys()
-    assert (
-        book_metadata["revised"]
-        == "2021-02-26T10:51:35.574000-06:00"
-    )
+    assert book_metadata["revised"] == "2021-02-26T10:51:35.574000-06:00"
     assert "College Physics" in book_metadata["title"]
     assert book_metadata["slug"] == "test-book-slug"
     assert book_metadata["id"] == "injected_id"
@@ -1019,9 +1090,7 @@ def test_bake_book_metadata(tmp_path, mocker):
 
 def test_bake_book_metadata_git(tmp_path, mocker):
     """Test bake_book_metadata script with git storage inputs"""
-    input_baked_xhtml = os.path.join(
-        TEST_DATA_DIR, "collection.baked-single.xhtml"
-    )
+    input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.baked-single.xhtml")
     input_raw_metadata = tmp_path / "collection.assembled-metadata.json"
     output_baked_book_metadata = tmp_path / "collection.toc-metadata.json"
 
@@ -1050,10 +1119,7 @@ def test_bake_book_metadata_git(tmp_path, mocker):
     assert isinstance(book_metadata["tree"], dict) is True
     assert "contents" in book_metadata["tree"].keys()
     assert "license" in book_metadata.keys()
-    assert (
-        book_metadata["revised"]
-        == "2019-08-30T16:35:37.569966-05:00"
-    )
+    assert book_metadata["revised"] == "2019-08-30T16:35:37.569966-05:00"
     assert "College Physics" in book_metadata["title"]
     assert book_metadata["slug"] == "physics"
     assert book_metadata["id"] == "c7795d04-cfca-4ec6-a30f-f48d06336635"
@@ -1063,78 +1129,29 @@ def test_bake_book_metadata_git(tmp_path, mocker):
 
 def test_check_feed(tmp_path, mocker):
     """Test check_feed script"""
-    input_book_feed = {
-        "approved_books": [
-            {
-                "collection_id": "col11762",
-                "style": "sociology",
-                "server": "cnx.foobar.org",
-                "tutor_only": False,
-                "books": [
-                    {
-                        "uuid": "02040312-72c8-441e-a685-20e9333f3e1d",
-                        "slug": "introduction-sociology-2e"
-                    }
-                ]
-            },
-            {
-                "collection_id": "col11406",
-                "style": "college-physics",
-                "server": "cnx.foobar.org",
-                "tutor_only": False,
-                "books": [
-                    {
-                        "uuid": "031da8d3-b525-429c-80cf-6c8ed997733a",
-                        "slug": "college-physics"
-                    }
-                ]
-            },
-            {
-                "repository_name": "osbooks-writing-guide",
-                "platforms": ["rex"],
-                "versions": [{
-                    "repository_name": "osbooks-writing-guide",
-                    "min_code_version": "1.42",
-                    "edition": 1,
-                    "commit_sha": "4ff250a4779bc500660063acb85b7aab7df94396",
-                    "commit_metadata": {
-                        "committed_at": "2021-10-25T10:47:06+00:00",
-                        "books": [{
-                            "uuid": "ee7ce46b-0972-4b2c-bc6e-8998c785cd57",
-                            "style": "english-composition",
-                            "slug": "writing-guide"
-                        }]
-                    }
-                }]
-            },
-        ],
-        "approved_versions": [
-            {
-                "collection_id": "col11762",
-                "content_version": "1.14.1",
-                "min_code_version": "20210101.00000000"
-            },
-            {
-                # This version should be ignored due to code version
-                "collection_id": "col11762",
-                "content_version": "1.14.2",
-                "min_code_version": "20210101.00000002"
-            },
-            {
-                "collection_id": "col11406",
-                "content_version": "1.20.15",
-                "min_code_version": "20210101.00000001"
-            },
-            {
-                "repository_name": "osbooks-college-algebra-bundle",
-                "content_version": "1",
-                "min_code_version": "20210101.00000001"
-            }
-        ]
-    }
 
-    json_feed_input = tmp_path / "book-feed.json"
-    json_feed_input.write_text(json.dumps(input_book_feed))
+    input_book_feed = [
+        {
+            "repository_name": "osbooks-introduction-sociology",
+            "code_version": "20210224.204120",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1d",
+            "slug": "introduction-sociology-2e",
+            "committed_at": "2022-02-09T17:32:00+00:00",
+            "consumer": "REX",
+            "commit_sha": "247752b30f009818f9ae90b0e6fe1a0b0fdbac4e",
+        },
+    ]
+
+    api_root = "https://mock.corgi"
+
+    class MockResponse:
+        def json(self):
+            return input_book_feed
+
+        def raise_for_status(self):
+            pass
+
+    check_feed.requests.get = lambda url: MockResponse()
 
     # We'll use the botocore stubber to play out a simple scenario to test the
     # script where we'll trigger multiple invocations to "build" all books
@@ -1143,70 +1160,22 @@ def test_check_feed(tmp_path, mocker):
     #
     # Expected s3 requests / responses by invocation:
     #
-    # Invocation 1 (archive):
-    #   - book 1
+    #
+    # Invocation 1:
+    #   - Book
     #       - Initial check for .complete: head_object => Return a 404
-    #       - Check for .pending: head_object => Return a 404
+    #       - Check for .pending head_object => Return a 404
     #       - put_object by script with book data
     #       - put_object by script with .pending state
-
-    # Invocation 2 (archive):
-    #   - book 1 (emulate a failure from first invocation)
-    #       - Check for .complete => head_object => Return a 404
-    #       - Check for .pending: head_object => Return data
-    #       - Check for .retry: head_object => Return 404
-    #       - put_object by script with book data
-    #       - put_object by script with .retry state
     #
-    # Invocation 3 (archive):
-    #   - book 1
+    # Invocation 2 (git):
+    #   - Book
     #       - Check for .complete => head_object return object
-    #   - book 2
-    #       - Initial check for .complete: head_object => Return a 404
-    #       - Check for .pending head_object => Return a 404
-    #       - put_object by script with book data
-    #       - put_object by script with .pending state
-    #
-    # Invocation 4 (git):
-    #   - book 3
-    #       - Initial check for .complete: head_object => Return a 404
-    #       - Check for .pending head_object => Return a 404
-    #       - put_object by script with book data
-    #       - put_object by script with .pending state
-    #
-    # Invocation 5 (git):
-    #   - book 3
-    #       - Check for .complete => head_object return object
-    #   - book 4
-    #       - Initial check for .complete: head_object => Return a 404
-    #       - Check for .pending head_object => Return a 404
-    #       - put_object by script with book data
-    #       - put_object by script with .pending state
 
     queue_state_bucket = "queue-state-bucket"
     queue_filename = "queue-state-filename.json"
     code_version = "20210101.00000001"
     state_prefix = "foobar"
-    book1 = {
-        "collection_id": "col11762",
-        "server": "cnx.foobar.org",
-        "style": "sociology",
-        "uuid": "02040312-72c8-441e-a685-20e9333f3e1d",
-        "slug": "introduction-sociology-2e",
-        "version": "1.14.1"
-    }
-    book1_col = book1["collection_id"]
-    book1_vers = book1["version"]
-    book2 = {
-        "collection_id": "col11406",
-        "server": "cnx.foobar.org",
-        "style": "college-physics",
-        "uuid": "031da8d3-b525-429c-80cf-6c8ed997733a",
-        "slug": "college-physics",
-        "version": "1.20.15"
-    }
-    book2_col = book2["collection_id"]
-    book2_vers = book2["version"]
 
     s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
@@ -1242,142 +1211,54 @@ def test_check_feed(tmp_path, mocker):
             },
         )
 
-    # Add expected calls for archive books
+    # Add expected calls for git books
 
-    # Book 1: Check for .complete file
+    book = {
+        "repo": input_book_feed[0]["repository_name"],
+        "version": input_book_feed[0]["commit_sha"],
+    }
+
+    book_slug = book["repo"]
+    book_vers = book["version"]
+
+    # Book: Check for .complete file
     _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.complete"
+        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.complete"
     )
 
-    # Book 1: Check for .pending file
+    # Book: Check for .pending file
     _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.pending"
+        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.pending"
     )
 
-    # Book 1: Put book data
-    _stubber_add_put_object(queue_filename, json.dumps(book1))
+    # Book: Put book data
+    _stubber_add_put_object(queue_filename, json.dumps(book))
 
-    # Book 1: Put book .pending
+    # Book: Put book .pending
     _stubber_add_put_object(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.pending",
-        botocore.stub.ANY
+        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.pending",
+        botocore.stub.ANY,
     )
 
-    # Book 1: Check for .complete file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.complete"
-    )
-
-    # Book 1: Check for .pending file (return as though it exists)
+    # Book: Check for .complete file
     _stubber_add_head_object(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.pending"
-    )
-
-    # Book 1: Check for .retry file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.retry"
-    )
-
-    # Book 1: Put book data again
-    _stubber_add_put_object(queue_filename, json.dumps(book1))
-
-    # Book 1: Put book .retry
-    _stubber_add_put_object(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.retry",
-        botocore.stub.ANY
-    )
-
-    # Book 1: Check for .complete file
-    _stubber_add_head_object(
-        f"{code_version}/.{state_prefix}.{book1_col}@{book1_vers}.complete"
-    )
-
-    # Book 2: Check for .complete file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book2_col}@{book2_vers}.complete"
-    )
-
-    # Book 2: Check for .pending file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book2_col}@{book2_vers}.pending"
-    )
-
-    # Book 2: Put book data
-    _stubber_add_put_object(queue_filename, json.dumps(book2))
-
-    # Book 2: Put book .pending
-    _stubber_add_put_object(
-        f"{code_version}/.{state_prefix}.{book2_col}@{book2_vers}.pending",
-        botocore.stub.ANY
+        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.complete"
     )
 
     s3_stubber.activate()
 
     mocker.patch("boto3.client", lambda service: s3_client)
-    mocker.patch(
-        "sys.argv",
-        [
-            "",
-            json_feed_input,
-            code_version,
-            queue_state_bucket,
-            queue_filename,
-            1,
-            state_prefix,
-            "archive"
-        ],
-    )
-
-    for _ in range(3):
-        check_feed.main()
-
-    s3_stubber.assert_no_pending_responses()
-
-    # Add expected calls for git books
-
-    book3 = {
-        "repo": "osbooks-writing-guide",
-        "version": "4ff250a4779bc500660063acb85b7aab7df94396"
-    }
-
-    book3_slug = book3["repo"]
-    book3_vers = book3["version"]
-
-    # Book 3: Check for .complete file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book3_slug}@{book3_vers}.complete"
-    )
-
-    # Book 3: Check for .pending file
-    _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book3_slug}@{book3_vers}.pending"
-    )
-
-    # Book 3: Put book data
-    _stubber_add_put_object(queue_filename, json.dumps(book3))
-
-    # Book 3: Put book .pending
-    _stubber_add_put_object(
-        f"{code_version}/.{state_prefix}.{book3_slug}@{book3_vers}.pending",
-        botocore.stub.ANY
-    )
-
-    # Book 3: Check for .complete file
-    _stubber_add_head_object(
-        f"{code_version}/.{state_prefix}.{book3_slug}@{book3_vers}.complete"
-    )
 
     mocker.patch(
         "sys.argv",
         [
             "",
-            json_feed_input,
+            api_root,
             code_version,
             queue_state_bucket,
             queue_filename,
             1,
             state_prefix,
-            "git"
         ],
     )
 
@@ -1390,21 +1271,18 @@ def test_check_feed(tmp_path, mocker):
         "sys.argv",
         [
             "",
-            json_feed_input,
+            api_root,
             code_version,
             queue_state_bucket,
             queue_filename,
-            1,
+            0,
             state_prefix,
-            "invalidfilter"
         ],
     )
 
-    with pytest.raises(Exception, match='Invalid feed filter value'):
-        check_feed.main()
+    check_feed.main()
 
     s3_stubber.assert_no_pending_responses()
-    s3_stubber.deactivate()
 
 
 def test_patch_same_book_links(tmp_path, mocker):
@@ -1414,10 +1292,7 @@ def test_patch_same_book_links(tmp_path, mocker):
     output_dir = tmp_path / "internal-linked"
     output_dir.mkdir()
 
-    book_metadata = {
-        "id": "bookuuid1",
-        "version": "version"
-    }
+    book_metadata = {"id": "bookuuid1", "version": "version"}
 
     page_content = """
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -1475,7 +1350,8 @@ def test_patch_same_book_links(tmp_path, mocker):
     updated_doc = etree.parse(str(page_output))
 
     for node in updated_doc.xpath(
-        "//x:a[@href]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        "//x:a[@href]",
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         assert expected_links_by_id[node.attrib["id"]] == node.attrib["href"]
 
@@ -1609,19 +1485,11 @@ async def test_gdocify_book(tmp_path, mocker):
         </html>
     """  # noqa: E501
 
-    l1_page_metadata = {
-        "slug": "l1-page-slug"
-    }
+    l1_page_metadata = {"slug": "l1-page-slug"}
 
     book_slugs = [
-        {
-            "uuid": "bookuuid1",
-            "slug": "bookuuid1-slug"
-        },
-        {
-            "uuid": "otheruuid",
-            "slug": "otheruuid-slug"
-        }
+        {"uuid": "bookuuid1", "slug": "bookuuid1-slug"},
+        {"uuid": "otheruuid", "slug": "otheruuid-slug"},
     ]
 
     # Populate a dummy TOC to confirm it is ignored
@@ -1639,8 +1507,9 @@ async def test_gdocify_book(tmp_path, mocker):
     l1_page_metadata_input.write_text(json.dumps(l1_page_metadata))
 
     # Test complete script
-    mocker.patch("sys.argv", ["", input_dir,
-                 output_dir, book_slugs_input, worker_count])
+    mocker.patch(
+        "sys.argv", ["", input_dir, output_dir, book_slugs_input, worker_count]
+    )
     await gdocify_book.run_async()
 
     page_output = output_dir / page_name
@@ -1651,14 +1520,14 @@ async def test_gdocify_book(tmp_path, mocker):
         "l2": "http://openstax.org/books/otheruuid-slug/pages/l2-page-slug",
         "l3": "#foobar",
         "l4": "http://www.openstax.org/l/shorturl",
-        "l5": "http://openstax.org/books/bookuuid1-slug/"
-              "pages/l1-page-slug#foobar",
+        "l5": "http://openstax.org/books/bookuuid1-slug/" "pages/l1-page-slug#foobar",
     }
 
     updated_doc = etree.parse(str(page_output))
 
     for node in updated_doc.xpath(
-        "//x:a[@href]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        "//x:a[@href]",
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         assert expected_links_by_id[node.attrib["id"]] == node.attrib["href"]
 
@@ -1670,7 +1539,8 @@ async def test_gdocify_book(tmp_path, mocker):
 
     # Was mo converted to mi in this case?
     assert (
-        "mi" == updated_doc.xpath(
+        "mi"
+        == updated_doc.xpath(
             '//*[text() = "–identifier"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
@@ -1678,7 +1548,8 @@ async def test_gdocify_book(tmp_path, mocker):
 
     # Was mo converted to mn in this case?
     assert (
-        "mn" == updated_doc.xpath(
+        "mn"
+        == updated_doc.xpath(
             '//*[text() = "-20"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
@@ -1686,7 +1557,8 @@ async def test_gdocify_book(tmp_path, mocker):
 
     # Was mo converted to mtext in this case?
     assert (
-        "mtext" == updated_doc.xpath(
+        "mtext"
+        == updated_doc.xpath(
             '//*[text() = "“UNICODE QUOTES”"]',  # Not an error
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
@@ -1694,14 +1566,16 @@ async def test_gdocify_book(tmp_path, mocker):
 
     # Were mo's containing whitespace converted to mtext?
     assert (
-        "mtext" == updated_doc.xpath(
+        "mtext"
+        == updated_doc.xpath(
             '//*[text() = " "]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
     )
 
     assert (
-        "mtext" == updated_doc.xpath(
+        "mtext"
+        == updated_doc.xpath(
             '//*[text() = "\xa0"]',
             namespaces={"x": "http://www.w3.org/1999/xhtml"},
         )[0].tag.split("}")[1]
@@ -1709,58 +1583,59 @@ async def test_gdocify_book(tmp_path, mocker):
 
     # Do all mo tags contain only whitelisted characters?
     for node in updated_doc.xpath(
-        '//x:mo',
+        "//x:mo",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         if node.text is not None:
             text_len = len(node.text)
             assert text_len > 0
             if text_len == 1:
-                assert node.text in gdocify_book.CHARLISTS['mo_single']
+                assert node.text in gdocify_book.CHARLISTS["mo_single"]
             else:
-                assert node.text in gdocify_book.CHARLISTS['mo_multi']
+                assert node.text in gdocify_book.CHARLISTS["mo_multi"]
 
     # Are all mi tags free of blacklisted characters?
     for node in updated_doc.xpath(
-        '//x:mi',
+        "//x:mi",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         if node.text is not None:
-            assert not any(char in node.text
-                           for char in gdocify_book.CHARLISTS["mi_blacklist"])
+            assert not any(
+                char in node.text for char in gdocify_book.CHARLISTS["mi_blacklist"]
+            )
 
     unwanted_nodes = updated_doc.xpath(
-        '//x:annotation-xml',
+        "//x:annotation-xml",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
 
     unwanted_nodes = updated_doc.xpath(
-        '//x:annotation',
+        "//x:annotation",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
 
     unwanted_nodes = updated_doc.xpath(
-        '//x:msubsup[count(*) < 3]',
+        "//x:msubsup[count(*) < 3]",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
 
     unwanted_nodes = updated_doc.xpath(
-        '//x:msub[count(*) > 2]',
+        "//x:msub[count(*) > 2]",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
 
     msub_nodes = updated_doc.xpath(
-        '//x:msub',
+        "//x:msub",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(msub_nodes) == 1
 
     unwanted_nodes = updated_doc.xpath(
-        '//x:iframe',
+        "//x:iframe",
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
@@ -1774,9 +1649,11 @@ async def test_gdocify_book(tmp_path, mocker):
     # Test fix_jpeg_colorspace
 
     # use a simplified RESOURCES_FOLDER path for testing
-    mocker.patch('bakery_scripts.gdocify_book.RESOURCES_FOLDER', './')
-    mocker.patch('bakery_scripts.gdocify_book.USWEBCOATEDSWOP_ICC',
-                 '/usr/share/color/icc/ghostscript/default_cmyk.icc')
+    mocker.patch("bakery_scripts.gdocify_book.RESOURCES_FOLDER", "./")
+    mocker.patch(
+        "bakery_scripts.gdocify_book.USWEBCOATEDSWOP_ICC",
+        "/usr/share/color/icc/ghostscript/default_cmyk.icc",
+    )
 
     def resolve_img_path(img_filename, out_dir):
         return (out_dir / img_filename).resolve().absolute()
@@ -1785,52 +1662,52 @@ async def test_gdocify_book(tmp_path, mocker):
         # copy test JPEGs into a temporal dir
         copy_tree(TEST_JPEG_DIR, temp_dir)
 
-        rf = './'
-        rgb = rf + 'rgb.jpg'
-        rgb_broken = rf + 'rgb_broken.jpg'
-        cmyk = rf + 'cmyk.jpg'
-        cmyk_no_profile = rf + 'cmyk_no_profile.jpg'
-        cmyk_broken = rf + 'cmyk_broken.jpg'
-        greyscale = rf + 'greyscale.jpg'
-        greyscale_broken = rf + 'greyscale_broken.jpg'
-        png = rf + 'original_public_domain.png'
+        rf = "./"
+        rgb = rf + "rgb.jpg"
+        rgb_broken = rf + "rgb_broken.jpg"
+        cmyk = rf + "cmyk.jpg"
+        cmyk_no_profile = rf + "cmyk_no_profile.jpg"
+        cmyk_broken = rf + "cmyk_broken.jpg"
+        greyscale = rf + "greyscale.jpg"
+        greyscale_broken = rf + "greyscale_broken.jpg"
+        png = rf + "original_public_domain.png"
 
         old_dir = os.getcwd()
         os.chdir(temp_dir)
 
         # convert to RGB
-        await gdocify_book.fix_jpeg_colorspace(
-            resolve_img_path(cmyk, Path(temp_dir)))
+        await gdocify_book.fix_jpeg_colorspace(resolve_img_path(cmyk, Path(temp_dir)))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'RGB'
+        assert im.mode == "RGB"
         im.close()
 
         copy_tree(TEST_JPEG_DIR, temp_dir)  # reset test case
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
         im = Image.open(os.path.join(temp_dir, cmyk_no_profile))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
 
         # convert no profile fully to RGB
         await gdocify_book.fix_jpeg_colorspace(
-            resolve_img_path(cmyk_no_profile, Path(temp_dir)))
+            resolve_img_path(cmyk_no_profile, Path(temp_dir))
+        )
 
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
         im = Image.open(os.path.join(temp_dir, cmyk_no_profile))
-        assert im.mode == 'RGB'
+        assert im.mode == "RGB"
         im.close()
 
         copy_tree(TEST_JPEG_DIR, temp_dir)  # reset test case
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
         im = Image.open(os.path.join(temp_dir, cmyk_no_profile))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
 
         # keep sure only CMYK is converted
@@ -1847,40 +1724,41 @@ async def test_gdocify_book(tmp_path, mocker):
                 <a href="{4}">hallo3</a>
             </body>
             </html>
-        """.format(rgb, greyscale, png, cmyk, cmyk_no_profile)
+        """.format(
+            rgb, greyscale, png, cmyk, cmyk_no_profile
+        )
         doc = etree.fromstring(xhtml)
         async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
-                queue.put_nowait(
-                    gdocify_book.fix_jpeg_colorspace(img_filename))
+                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
-        assert cmp(os.path.join(TEST_JPEG_DIR, rgb),
-                   os.path.join(temp_dir, rgb))
-        assert cmp(os.path.join(TEST_JPEG_DIR, greyscale),
-                   os.path.join(temp_dir, greyscale))
-        assert cmp(os.path.join(TEST_JPEG_DIR, png),
-                   os.path.join(temp_dir, png))
+        assert cmp(os.path.join(TEST_JPEG_DIR, rgb), os.path.join(temp_dir, rgb))
+        assert cmp(
+            os.path.join(TEST_JPEG_DIR, greyscale), os.path.join(temp_dir, greyscale)
+        )
+        assert cmp(os.path.join(TEST_JPEG_DIR, png), os.path.join(temp_dir, png))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'RGB'
+        assert im.mode == "RGB"
         im.close()
 
         im = Image.open(os.path.join(temp_dir, cmyk_no_profile))
-        assert im.mode == 'RGB'
+        assert im.mode == "RGB"
         im.close()
 
         # convert non existing
         # this is a corner case which should not happen in the pipeline
-        with pytest.raises(Exception, match=r'^Error\: Resource file not existing\:.*'):
+        with pytest.raises(Exception, match=r"^Error\: Resource file not existing\:.*"):
             await gdocify_book.fix_jpeg_colorspace(
-                resolve_img_path('./idontexist.jpg', Path(temp_dir)))
+                resolve_img_path("./idontexist.jpg", Path(temp_dir))
+            )
 
         copy_tree(TEST_JPEG_DIR, temp_dir)  # reset test case
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
         im = Image.open(os.path.join(temp_dir, cmyk_no_profile))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
 
         # don't fix invalid images
@@ -1896,37 +1774,45 @@ async def test_gdocify_book(tmp_path, mocker):
                 <img src="{4}" />
             </body>
             </html>
-        """.format(rgb_broken, greyscale_broken, cmyk, cmyk_broken, png)
+        """.format(
+            rgb_broken, greyscale_broken, cmyk, cmyk_broken, png
+        )
         doc = etree.fromstring(xhtml)
         # should only give warnings but should not break
         async with gdocify_book.AsyncJobQueue(worker_count) as queue:
             for img_filename in gdocify_book.get_img_resources(doc, Path(temp_dir)):
-                queue.put_nowait(
-                    gdocify_book.fix_jpeg_colorspace(img_filename))
+                queue.put_nowait(gdocify_book.fix_jpeg_colorspace(img_filename))
 
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'RGB'
+        assert im.mode == "RGB"
         im.close()
 
-        assert cmp(os.path.join(TEST_JPEG_DIR, cmyk_broken),
-                   os.path.join(temp_dir, cmyk_broken))
-        assert cmp(os.path.join(TEST_JPEG_DIR, rgb_broken),
-                   os.path.join(temp_dir, rgb_broken))
-        assert cmp(os.path.join(TEST_JPEG_DIR, greyscale_broken),
-                   os.path.join(temp_dir, greyscale_broken))
-        assert cmp(os.path.join(TEST_JPEG_DIR, png),
-                   os.path.join(temp_dir, png))
+        assert cmp(
+            os.path.join(TEST_JPEG_DIR, cmyk_broken),
+            os.path.join(temp_dir, cmyk_broken),
+        )
+        assert cmp(
+            os.path.join(TEST_JPEG_DIR, rgb_broken), os.path.join(temp_dir, rgb_broken)
+        )
+        assert cmp(
+            os.path.join(TEST_JPEG_DIR, greyscale_broken),
+            os.path.join(temp_dir, greyscale_broken),
+        )
+        assert cmp(os.path.join(TEST_JPEG_DIR, png), os.path.join(temp_dir, png))
 
         copy_tree(TEST_JPEG_DIR, temp_dir)  # reset test case
         im = Image.open(os.path.join(temp_dir, cmyk))
-        assert im.mode == 'CMYK'
+        assert im.mode == "CMYK"
         im.close()
 
-        mocker.patch("bakery_scripts.gdocify_book._convert_cmyk2rgb_embedded_profile",
-                     return_value="mogrify -invalid")
-        with pytest.raises(Exception, match=r'^Error converting file.*'):
+        mocker.patch(
+            "bakery_scripts.gdocify_book._convert_cmyk2rgb_embedded_profile",
+            return_value="mogrify -invalid",
+        )
+        with pytest.raises(Exception, match=r"^Error converting file.*"):
             await gdocify_book.fix_jpeg_colorspace(
-                resolve_img_path(cmyk, Path(temp_dir)))
+                resolve_img_path(cmyk, Path(temp_dir))
+            )
 
         os.chdir(old_dir)
 
@@ -1938,55 +1824,52 @@ def test_mathmltable2png(tmp_path, mocker):
     # test mathjax svg invalid xml patch
     # ==================================
 
-    invalid_svg_parts = '''<svg><g data-semantic-operator="<"/></svg>'''
-    supposed_patched_svg_parts = '''<svg><g data-semantic-operator="&lt;"/></svg>'''
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
-        invalid_svg_parts)
+    invalid_svg_parts = """<svg><g data-semantic-operator="<"/></svg>"""
+    supposed_patched_svg_parts = """<svg><g data-semantic-operator="&lt;"/></svg>"""
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # real world svg parts
-    invalid_svg_parts = '''<svg>
+    invalid_svg_parts = """<svg>
     <g data-semantic-operator="relseq,<" data-mml-node="mo" data-semantic-type="relation" data-semantic-role="inequality" data-semantic-id="9" data-semantic-parent="19" transform="translate(3260.3, 0)" />
-    </svg>'''  # noqa: E501
-    supposed_patched_svg_parts = '''<svg>
+    </svg>"""  # noqa: E501
+    supposed_patched_svg_parts = """<svg>
     <g data-semantic-operator="relseq,&lt;" data-mml-node="mo" data-semantic-type="relation" data-semantic-role="inequality" data-semantic-id="9" data-semantic-parent="19" transform="translate(3260.3, 0)" />
-    </svg>'''  # noqa: E501
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
-        invalid_svg_parts)
+    </svg>"""  # noqa: E501
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # does not happen in real world but test the regEx patching anyway with multiple lines
-    invalid_svg_parts = '''<svg>
+    invalid_svg_parts = """<svg>
     <g data-semantic-operator="<right" />
     <g data-semantic-operator="left<" />
     <g data-semantic-operator="in<between" />
     <g data-semantic-operator="donothingleft>" />
     <g data-semantic-operator=">donothingright" />
     <g data-semantic-operator="donothing>inbetween" />
-    </svg>'''
-    supposed_patched_svg_parts = '''<svg>
+    </svg>"""
+    supposed_patched_svg_parts = """<svg>
     <g data-semantic-operator="&lt;right" />
     <g data-semantic-operator="left&lt;" />
     <g data-semantic-operator="in&lt;between" />
     <g data-semantic-operator="donothingleft>" />
     <g data-semantic-operator=">donothingright" />
     <g data-semantic-operator="donothing>inbetween" />
-    </svg>'''
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(
-        invalid_svg_parts)
+    </svg>"""
+    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # Multiple operators should not happen to my knowledge. (therealmarv)
     # Test the breaking failure of the edge case within the edge case.
-    invalid_svg_parts = '''<svg>
+    invalid_svg_parts = """<svg>
     <g data-semantic-operator="<<" />
-    </svg>'''
-    with pytest.raises(Exception, match=r'^Failed to generate valid XML out of SVG.*'):
+    </svg>"""
+    with pytest.raises(Exception, match=r"^Failed to generate valid XML out of SVG.*"):
         mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
 
     # Invalid unpatchable XML should also break the execution
-    invalid_svg_parts = '<svg><HelloImNotValid></svg>'
-    with pytest.raises(Exception, match=r'^Failed to generate valid XML out of SVG.*'):
+    invalid_svg_parts = "<svg><HelloImNotValid></svg>"
+    with pytest.raises(Exception, match=r"^Failed to generate valid XML out of SVG.*"):
         mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
 
 
@@ -2007,19 +1890,19 @@ class ANY_VALUE:
         return new_valid_param_indexes != []
 
     def __repr__(self):
-        return f'<ANY OF {self.values}>'
+        return f"<ANY OF {self.values}>"
 
 
 class ANY_PARAM:
     # We want enums but don't want all the Enum class methods
-    ABSENT = Enum('ANY_PARAM', 'ABSENT').ABSENT
+    ABSENT = Enum("ANY_PARAM", "ABSENT").ABSENT
 
     def __init__(self, params):
         self.params = params
         self.valid_param_indexes = range(0, len(self.params))
 
     def __repr__(self):
-        return f'<ANY OF {self.params}>'
+        return f"<ANY OF {self.params}>"
 
     def __getitem__(self, key):
         values = []
@@ -2051,9 +1934,9 @@ class ANY_PARAM:
 def test_copy_resource_s3(tmp_path, mocker):
     """Test copy_resource_s3 script"""
 
-    resource_sha = 'fffe62254ef635871589a848b65db441318171eb'
+    resource_sha = "fffe62254ef635871589a848b65db441318171eb"
     resource_a_name = resource_sha
-    resource_b_name = resource_sha + '.json'
+    resource_b_name = resource_sha + ".json"
 
     book_dir = tmp_path / "col11762"
     book_dir.mkdir()
@@ -2073,66 +1956,55 @@ def test_copy_resource_s3(tmp_path, mocker):
     resource_b_data = open(resource_b_data, "rb").read()
     resource_b.write_bytes(resource_b_data)
 
-    bucket = 'distribution-bucket-1234'
-    prefix = 'master/resources'
+    bucket = "distribution-bucket-1234"
+    prefix = "master/resources"
 
-    key_a = prefix + '/' + resource_a_name
-    key_b = prefix + '/' + resource_sha + '-unused.json'
+    key_a = prefix + "/" + resource_a_name
+    key_b = prefix + "/" + resource_sha + "-unused.json"
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
-        'list_objects',
+        "list_objects",
         {},
-        expected_params={
-            'Bucket': bucket,
-            'Prefix': prefix + '/',
-            'Delimiter': '/'
-        }
+        expected_params={"Bucket": bucket, "Prefix": prefix + "/", "Delimiter": "/"},
     )
     for _ in [0, 1]:
         s3_stubber.add_response(
             "put_object",
             {},
-            expected_params=ANY_PARAM([
-                {
-                    'Body':  botocore.stub.ANY,
-                    'Bucket': bucket,
-                    'ContentType': 'application/json',
-                    'Key': key_b,
-                },
-                {
-                    'Body':  botocore.stub.ANY,
-                    'Bucket': bucket,
-                    'ContentType': 'image/jpeg',
-                    'Key': key_a,
-                    'Metadata': {'height': '192', 'width': '241'},
-                },
-            ])
+            expected_params=ANY_PARAM(
+                [
+                    {
+                        "Body": botocore.stub.ANY,
+                        "Bucket": bucket,
+                        "ContentType": "application/json",
+                        "Key": key_b,
+                    },
+                    {
+                        "Body": botocore.stub.ANY,
+                        "Bucket": bucket,
+                        "ContentType": "image/jpeg",
+                        "Key": key_a,
+                        "Metadata": {"height": "192", "width": "241"},
+                    },
+                ]
+            ),
         )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
     mocked_session.client = mocker.MagicMock(return_value=s3_client)
-    mocker.patch(
-        'boto3.session.Session',
-        mocked_session
-    )
-    mocker.patch(
-        'sys.argv',
-        ['',
-         resources_dir,
-         bucket,
-         prefix]
-    )
+    mocker.patch("boto3.session.Session", mocked_session)
+    mocker.patch("sys.argv", ["", resources_dir, bucket, prefix])
 
-    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+    os.environ["AWS_ACCESS_KEY_ID"] = "dummy-key"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "dummy-secret"
 
     copy_resources_s3.main()
 
-    del os.environ['AWS_ACCESS_KEY_ID']
-    del os.environ['AWS_SECRET_ACCESS_KEY']
+    del os.environ["AWS_ACCESS_KEY_ID"]
+    del os.environ["AWS_SECRET_ACCESS_KEY"]
 
     s3_stubber.assert_no_pending_responses()
     s3_stubber.deactivate()
@@ -2146,37 +2018,28 @@ def test_copy_resource_s3_environment(tmp_path, mocker):
     resources_dir = book_dir / "resources"
     resources_dir.mkdir()
 
-    dist_bucket = 'distribution-bucket-1234'
-    dist_bucket_prefix = 'master/resources'
+    dist_bucket = "distribution-bucket-1234"
+    dist_bucket_prefix = "master/resources"
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
-        'list_objects',
+        "list_objects",
         {},
         expected_params={
-            'Bucket': dist_bucket,
-            'Prefix': dist_bucket_prefix + '/',
-            'Delimiter': '/'
-        }
+            "Bucket": dist_bucket,
+            "Prefix": dist_bucket_prefix + "/",
+            "Delimiter": "/",
+        },
     )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
     mocked_session.client = mocker.MagicMock(return_value=s3_client)
 
-    mocker.patch(
-        'boto3.session.Session',
-        mocked_session
-    )
+    mocker.patch("boto3.session.Session", mocked_session)
 
-    mocker.patch(
-        'sys.argv',
-        ['',
-         resources_dir,
-         dist_bucket,
-         dist_bucket_prefix]
-    )
+    mocker.patch("sys.argv", ["", resources_dir, dist_bucket, dist_bucket_prefix])
 
     with pytest.raises(OSError):
         copy_resources_s3.main()
@@ -2189,23 +2052,23 @@ def test_s3_existence(tmp_path, mocker):
     """Test copy_resource_s3.test_s3_existence function"""
 
     resource_name = "fffe62254ef635871589a848b65db441318171eb.json"
-    bucket = 'distribution-bucket-1234'
-    key = 'master/resources/' + resource_name
+    bucket = "distribution-bucket-1234"
+    key = "master/resources/" + resource_name
     resource = os.path.join(TEST_DATA_DIR, resource_name)
     test_resource = {
         "input_metadata_file": resource,
         "output_s3": key,
     }
 
-    aws_key = 'dummy-key'
-    aws_secret = 'dummy-secret'
+    aws_key = "dummy-key"
+    aws_secret = "dummy-secret"
     aws_token = None
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
         "head_object",
-        {"ETag": '14e273e6f416c4b90a071f59ac01206a'},
+        {"ETag": "14e273e6f416c4b90a071f59ac01206a"},
         expected_params={
             "Bucket": bucket,
             "Key": key,
@@ -2214,15 +2077,13 @@ def test_s3_existence(tmp_path, mocker):
     s3_stubber.activate()
 
     upload_resource = copy_resources_s3.check_s3_existence(
-        aws_key, aws_secret, aws_token,
-        bucket, [test_resource],
-        disable_check=False
+        aws_key, aws_secret, aws_token, bucket, [test_resource], disable_check=False
     )[0]
 
-    test_input_metadata = test_resource['input_metadata_file']
-    test_output_s3 = test_resource['output_s3']
-    uploaded_input_metadata = upload_resource['input_metadata_file']
-    uploaded_output_s3 = upload_resource['output_s3']
+    test_input_metadata = test_resource["input_metadata_file"]
+    test_output_s3 = test_resource["output_s3"]
+    uploaded_input_metadata = upload_resource["input_metadata_file"]
+    uploaded_output_s3 = upload_resource["output_s3"]
 
     assert test_input_metadata == uploaded_input_metadata
     assert test_output_s3 == uploaded_output_s3
@@ -2235,8 +2096,8 @@ def test_s3_existence_404(tmp_path, mocker):
     function errors with wrong file name"""
 
     resource_name = "fffe62254ef635871589a848b65db441318171eb"
-    bucket = 'distribution-bucket-1234'
-    key = 'master/resources/' + resource_name
+    bucket = "distribution-bucket-1234"
+    key = "master/resources/" + resource_name
 
     wrong_resource = "babybeluga.json"
     test_resource = os.path.join(TEST_DATA_DIR, wrong_resource)
@@ -2245,19 +2106,22 @@ def test_s3_existence_404(tmp_path, mocker):
         "output_s3": key,
     }
 
-    aws_key = 'dummy-key'
-    aws_secret = 'dummy-secret'
+    aws_key = "dummy-key"
+    aws_secret = "dummy-secret"
     aws_token = None
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.activate()
 
     with pytest.raises(FileNotFoundError):
         copy_resources_s3.check_s3_existence(
-            aws_key, aws_secret, aws_token,
-            bucket, [resource_for_test],
-            disable_check=False
+            aws_key,
+            aws_secret,
+            aws_token,
+            bucket,
+            [resource_for_test],
+            disable_check=False,
         )
 
     s3_stubber.assert_no_pending_responses()
@@ -2276,48 +2140,39 @@ def test_s3_existence_async_error(tmp_path, mocker):
     # Create a fake resource with a name that looks like sha1_filepattern
     (resources_dir / ("a" * 40)).touch()
 
-    dist_bucket = 'distribution-bucket-1234'
-    dist_bucket_prefix = 'master/resources'
+    dist_bucket = "distribution-bucket-1234"
+    dist_bucket_prefix = "master/resources"
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
-        'list_objects',
+        "list_objects",
         {},
         expected_params={
-            'Bucket': dist_bucket,
-            'Prefix': dist_bucket_prefix + '/',
-            'Delimiter': '/'
-        }
+            "Bucket": dist_bucket,
+            "Prefix": dist_bucket_prefix + "/",
+            "Delimiter": "/",
+        },
     )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
     mocked_session.client = mocker.MagicMock(return_value=s3_client)
 
-    mocker.patch(
-        'boto3.session.Session',
-        mocked_session
-    )
+    mocker.patch("boto3.session.Session", mocked_session)
 
-    mocker.patch(
-        'sys.argv',
-        ['',
-         resources_dir,
-         dist_bucket,
-         dist_bucket_prefix]
-    )
+    mocker.patch("sys.argv", ["", resources_dir, dist_bucket, dist_bucket_prefix])
 
-    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+    os.environ["AWS_ACCESS_KEY_ID"] = "dummy-key"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "dummy-secret"
 
     # check_s3_existence raises FileNotFoundError because our made up resource
     # has no metadata json accompanying it
     with pytest.raises(FileNotFoundError):
         copy_resources_s3.main()
 
-    del os.environ['AWS_ACCESS_KEY_ID']
-    del os.environ['AWS_SECRET_ACCESS_KEY']
+    del os.environ["AWS_ACCESS_KEY_ID"]
+    del os.environ["AWS_SECRET_ACCESS_KEY"]
 
     s3_stubber.assert_no_pending_responses()
     s3_stubber.deactivate()
@@ -2336,40 +2191,31 @@ def test_s3_upload_async_error(tmp_path, mocker):
     (resources_dir / ("a" * 40)).touch()
     (resources_dir / ("a" * 40)).with_suffix(".json").touch()
 
-    dist_bucket = 'distribution-bucket-1234'
-    dist_bucket_prefix = 'master/resources'
+    dist_bucket = "distribution-bucket-1234"
+    dist_bucket_prefix = "master/resources"
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
-        'list_objects',
+        "list_objects",
         {},
         expected_params={
-            'Bucket': dist_bucket,
-            'Prefix': dist_bucket_prefix + '/',
-            'Delimiter': '/'
-        }
+            "Bucket": dist_bucket,
+            "Prefix": dist_bucket_prefix + "/",
+            "Delimiter": "/",
+        },
     )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
     mocked_session.client = mocker.MagicMock(return_value=s3_client)
 
-    mocker.patch(
-        'boto3.session.Session',
-        mocked_session
-    )
+    mocker.patch("boto3.session.Session", mocked_session)
 
-    mocker.patch(
-        'sys.argv',
-        ['',
-         resources_dir,
-         dist_bucket,
-         dist_bucket_prefix]
-    )
+    mocker.patch("sys.argv", ["", resources_dir, dist_bucket, dist_bucket_prefix])
 
-    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+    os.environ["AWS_ACCESS_KEY_ID"] = "dummy-key"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "dummy-secret"
 
     class MySuperSpecificTestException(Exception):
         pass
@@ -2379,6 +2225,7 @@ def test_s3_upload_async_error(tmp_path, mocker):
 
     def mock_exists(*args, **kwargs):
         from collections import defaultdict
+
         return [defaultdict(str)] * len(kwargs["resources"])
 
     copy_resources_s3.check_s3_existence = mock_exists
@@ -2387,8 +2234,8 @@ def test_s3_upload_async_error(tmp_path, mocker):
     with pytest.raises(MySuperSpecificTestException):
         copy_resources_s3.main()
 
-    del os.environ['AWS_ACCESS_KEY_ID']
-    del os.environ['AWS_SECRET_ACCESS_KEY']
+    del os.environ["AWS_ACCESS_KEY_ID"]
+    del os.environ["AWS_SECRET_ACCESS_KEY"]
 
     s3_stubber.assert_no_pending_responses()
     s3_stubber.deactivate()
@@ -2407,40 +2254,31 @@ def test_async_feeder_error(tmp_path, mocker):
     (resources_dir / ("a" * 40)).touch()
     (resources_dir / ("a" * 40)).with_suffix(".json").touch()
 
-    dist_bucket = 'distribution-bucket-1234'
-    dist_bucket_prefix = 'master/resources'
+    dist_bucket = "distribution-bucket-1234"
+    dist_bucket_prefix = "master/resources"
 
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
     s3_stubber.add_response(
-        'list_objects',
+        "list_objects",
         {},
         expected_params={
-            'Bucket': dist_bucket,
-            'Prefix': dist_bucket_prefix + '/',
-            'Delimiter': '/'
-        }
+            "Bucket": dist_bucket,
+            "Prefix": dist_bucket_prefix + "/",
+            "Delimiter": "/",
+        },
     )
     s3_stubber.activate()
 
     mocked_session = boto3.session.Session
     mocked_session.client = mocker.MagicMock(return_value=s3_client)
 
-    mocker.patch(
-        'boto3.session.Session',
-        mocked_session
-    )
+    mocker.patch("boto3.session.Session", mocked_session)
 
-    mocker.patch(
-        'sys.argv',
-        ['',
-         resources_dir,
-         dist_bucket,
-         dist_bucket_prefix]
-    )
+    mocker.patch("sys.argv", ["", resources_dir, dist_bucket, dist_bucket_prefix])
 
-    os.environ['AWS_ACCESS_KEY_ID'] = 'dummy-key'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy-secret'
+    os.environ["AWS_ACCESS_KEY_ID"] = "dummy-key"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "dummy-secret"
 
     def mock_exists(*args, **kwargs):
         # Return an empty dict to cause a key error
@@ -2454,8 +2292,8 @@ def test_async_feeder_error(tmp_path, mocker):
         copy_resources_s3.main()
     assert "input_metadata_file" in str(e)
 
-    del os.environ['AWS_ACCESS_KEY_ID']
-    del os.environ['AWS_SECRET_ACCESS_KEY']
+    del os.environ["AWS_ACCESS_KEY_ID"]
+    del os.environ["AWS_SECRET_ACCESS_KEY"]
 
     s3_stubber.assert_no_pending_responses()
     s3_stubber.deactivate()
@@ -2465,8 +2303,9 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     """Test fetch-map-resources script without environment variable set"""
     book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
     original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
-    original_interactive_dir = tmp_path / \
-        "book_slug/fetched-book-group/raw/media/interactive"
+    original_interactive_dir = (
+        tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+    )
     resources_parent_dir = tmp_path / "book_slug"
     initial_resources_dir = resources_parent_dir / "x-initial-resources"
     dom_resources_dir = "resources"
@@ -2479,12 +2318,12 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
 
     interactive = original_interactive_dir / "index.xhtml"
     interactive_content = (
-        '<!DOCTYPE html>'
+        "<!DOCTYPE html>"
         '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
-        '<body>'
-        '<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>'
-        '</body>'
-        '</html>'
+        "<body>"
+        "<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>"
+        "</body>"
+        "</html>"
     )
     interactive.write_text(interactive_content)
 
@@ -2496,35 +2335,41 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     image_unused = original_resources_dir / "image_unused.svg"
 
     # libmagic yields image/svg without the xml declaration
-    image_src1_content = ('<?xml version=1.0 ?>'
-                          '<svg height="30" width="120">'
-                          '<text x="0" y="15" fill="red">'
-                          'checksum me!'
-                          '</text>'
-                          '</svg>')
+    image_src1_content = (
+        "<?xml version=1.0 ?>"
+        '<svg height="30" width="120">'
+        '<text x="0" y="15" fill="red">'
+        "checksum me!"
+        "</text>"
+        "</svg>"
+    )
     image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
     image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
     image_src1.write_text(image_src1_content)
     image_src1_meta = f"{image_src1_sha1_expected}.json"
 
-    image_src2_content = ('<?xml version=1.0 ?>'
-                          '<svg height="50" width="210">'
-                          '<text x="0" y="40" fill="red">'
-                          'checksum me too!'
-                          '</text>'
-                          '</svg>')
+    image_src2_content = (
+        "<?xml version=1.0 ?>"
+        '<svg height="50" width="210">'
+        '<text x="0" y="40" fill="red">'
+        "checksum me too!"
+        "</text>"
+        "</svg>"
+    )
     image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
     image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
     image_src2.write_text(image_src2_content)
     image_src2_meta = f"{image_src2_sha1_expected}.json"
 
     # libmagic yields image/svg without the xml declaration
-    image_unused_content = ('<?xml version=1.0 ?>'
-                            '<svg height="30" width="120">'
-                            '<text x="0" y="15" fill="red">'
-                            'nope.'
-                            '</text>'
-                            '</svg>')
+    image_unused_content = (
+        "<?xml version=1.0 ?>"
+        '<svg height="30" width="120">'
+        '<text x="0" y="15" fill="red">'
+        "nope."
+        "</text>"
+        "</svg>"
+    )
     image_unused.write_text(image_unused_content)
 
     module_0001_dir = book_dir / "m00001"
@@ -2532,81 +2377,83 @@ def test_fetch_map_resources_no_env_variable(tmp_path, mocker):
     module_00001 = book_dir / "m00001/index.cnxml"
     module_00001_content = (
         '<document xmlns="http://cnx.rice.edu/cnxml">'
-        '<content>'
+        "<content>"
         '<image src="../../media/image_src1.svg"/>'
         '<image src="../../media/image_missing.jpg"/>'
         '<image src="../../media/image_src1.svg"/>'
         '<image src="../../media/image_src2.svg"/>'
         '<iframe src="../../media/interactive/index.xhtml"/>'
-        '</content>'
-        '</document>'
+        "</content>"
+        "</document>"
     )
     module_00001.write_text(module_00001_content)
 
     mocker.patch(
         "sys.argv",
-        ["", book_dir, original_resources_dir,
-            resources_parent_dir, commit_sha]
+        ["", book_dir, original_resources_dir, resources_parent_dir, commit_sha],
     )
     fetch_map_resources.main()
 
     assert json.load((initial_resources_dir / image_src1_meta).open()) == {
-        'height': 30,
-        'mime_type': 'image/svg+xml',
-        'original_name': 'image_src1.svg',
+        "height": 30,
+        "mime_type": "image/svg+xml",
+        "original_name": "image_src1.svg",
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
-        's3_md5': f'"{image_src1_md5_expected}"',
-        'sha1': image_src1_sha1_expected,
-        'width': 120
+        "s3_md5": f'"{image_src1_md5_expected}"',
+        "sha1": image_src1_sha1_expected,
+        "width": 120,
     }
     assert json.load((initial_resources_dir / image_src2_meta).open()) == {
-        'height': 50,
-        'mime_type': 'image/svg+xml',
-        'original_name': 'image_src2.svg',
+        "height": 50,
+        "mime_type": "image/svg+xml",
+        "original_name": "image_src2.svg",
         # AWS needs the MD5 quoted inside the string json value.
         # Despite looking like a mistake, this is correct behavior.
-        's3_md5': f'"{image_src2_md5_expected}"',
-        'sha1': image_src2_sha1_expected,
-        'width': 210
+        "s3_md5": f'"{image_src2_md5_expected}"',
+        "sha1": image_src2_sha1_expected,
+        "width": 210,
     }
-    assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
-        image_src2_sha1_expected,
-        image_src2_meta,
-        image_src1_sha1_expected,
-        image_src1_meta,
-        commit_sha,
-        "interactive",
-        "index.xhtml"
-    ])
+    assert set(file.name for file in initial_resources_dir.glob("**/*")) == set(
+        [
+            image_src2_sha1_expected,
+            image_src2_meta,
+            image_src1_sha1_expected,
+            image_src1_meta,
+            commit_sha,
+            "interactive",
+            "index.xhtml",
+        ]
+    )
     tree = etree.parse(str(module_00001))
     expected = (
         f'<document xmlns="http://cnx.rice.edu/cnxml">'
-        f'<content>'
+        f"<content>"
         f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
         f'<image src="../../media/image_missing.jpg"/>'
         f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
         f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
         f'<iframe src="../{dom_resources_dir}/{commit_sha}/interactive/index.xhtml"/>'
-        f'</content>'
-        f'</document>'
+        f"</content>"
+        f"</document>"
     )
     assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
 
-    assert (initial_resources_dir.is_dir())
+    assert initial_resources_dir.is_dir()
 
 
 def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
     """Test fetch-map-resources script with environment variable set"""
-    os.environ['IO_INITIAL_RESOURCES'] = '/whateverxyz/initial-resources'
-    os.environ['IO_RESOURCES'] = '/whateverxyz/myresources'
+    os.environ["IO_INITIAL_RESOURCES"] = "/whateverxyz/initial-resources"
+    os.environ["IO_RESOURCES"] = "/whateverxyz/myresources"
     # function get_resource_dir_name_env should parse the last part of these environment variables out
 
     try:
         book_dir = tmp_path / "book_slug/fetched-book-group/raw/modules"
         original_resources_dir = tmp_path / "book_slug/fetched-book-group/raw/media"
-        original_interactive_dir = tmp_path / \
-            "book_slug/fetched-book-group/raw/media/interactive"
+        original_interactive_dir = (
+            tmp_path / "book_slug/fetched-book-group/raw/media/interactive"
+        )
         resources_parent_dir = tmp_path / "book_slug"
         initial_resources_dir = resources_parent_dir / "initial-resources"
         dom_resources_dir = "myresources"
@@ -2619,12 +2466,12 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
 
         interactive = original_interactive_dir / "index.xhtml"
         interactive_content = (
-            '<!DOCTYPE html>'
+            "<!DOCTYPE html>"
             '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
-            '<body>'
-            '<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>'
-            '</body>'
-            '</html>'
+            "<body>"
+            "<p>Hello! I am an interactive. I should eventually have CSS and javascript</p>"
+            "</body>"
+            "</html>"
         )
         interactive.write_text(interactive_content)
 
@@ -2636,35 +2483,41 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         image_unused = original_resources_dir / "image_unused.svg"
 
         # libmagic yields image/svg without the xml declaration
-        image_src1_content = ('<?xml version=1.0 ?>'
-                              '<svg height="30" width="120">'
-                              '<text x="0" y="15" fill="red">'
-                              'checksum me!'
-                              '</text>'
-                              '</svg>')
+        image_src1_content = (
+            "<?xml version=1.0 ?>"
+            '<svg height="30" width="120">'
+            '<text x="0" y="15" fill="red">'
+            "checksum me!"
+            "</text>"
+            "</svg>"
+        )
         image_src1_sha1_expected = "527617b308327b8773c5105edc8c28bcbbe62553"
         image_src1_md5_expected = "420c64c8dbe981f216989328f9ad97e7"
         image_src1.write_text(image_src1_content)
         image_src1_meta = f"{image_src1_sha1_expected}.json"
 
-        image_src2_content = ('<?xml version=1.0 ?>'
-                              '<svg height="50" width="210">'
-                              '<text x="0" y="40" fill="red">'
-                              'checksum me too!'
-                              '</text>'
-                              '</svg>')
+        image_src2_content = (
+            "<?xml version=1.0 ?>"
+            '<svg height="50" width="210">'
+            '<text x="0" y="40" fill="red">'
+            "checksum me too!"
+            "</text>"
+            "</svg>"
+        )
         image_src2_sha1_expected = "1a95842a832f7129e3a579507e0a6599d820ad51"
         image_src2_md5_expected = "1cec302b44e4297bf7bf1f03dde3e48b"
         image_src2.write_text(image_src2_content)
         image_src2_meta = f"{image_src2_sha1_expected}.json"
 
         # libmagic yields image/svg without the xml declaration
-        image_unused_content = ('<?xml version=1.0 ?>'
-                                '<svg height="30" width="120">'
-                                '<text x="0" y="15" fill="red">'
-                                'nope.'
-                                '</text>'
-                                '</svg>')
+        image_unused_content = (
+            "<?xml version=1.0 ?>"
+            '<svg height="30" width="120">'
+            '<text x="0" y="15" fill="red">'
+            "nope."
+            "</text>"
+            "</svg>"
+        )
         image_unused.write_text(image_unused_content)
 
         module_0001_dir = book_dir / "m00001"
@@ -2672,71 +2525,72 @@ def test_fetch_map_resources_with_env_variable(tmp_path, mocker):
         module_00001 = book_dir / "m00001/index.cnxml"
         module_00001_content = (
             '<document xmlns="http://cnx.rice.edu/cnxml">'
-            '<content>'
+            "<content>"
             '<image src="../../media/image_src1.svg"/>'
             '<image src="../../media/image_missing.jpg"/>'
             '<image src="../../media/image_src1.svg"/>'
             '<image src="../../media/image_src2.svg"/>'
             '<iframe src="../../media/interactive/index.xhtml"/>'
-            '</content>'
-            '</document>'
+            "</content>"
+            "</document>"
         )
         module_00001.write_text(module_00001_content)
 
         mocker.patch(
             "sys.argv",
-            ["", book_dir, original_resources_dir,
-                resources_parent_dir, commit_sha]
+            ["", book_dir, original_resources_dir, resources_parent_dir, commit_sha],
         )
         fetch_map_resources.main()
 
         assert json.load((initial_resources_dir / image_src1_meta).open()) == {
-            'height': 30,
-            'mime_type': 'image/svg+xml',
-            'original_name': 'image_src1.svg',
+            "height": 30,
+            "mime_type": "image/svg+xml",
+            "original_name": "image_src1.svg",
             # AWS needs the MD5 quoted inside the string json value.
             # Despite looking like a mistake, this is correct behavior.
-            's3_md5': f'"{image_src1_md5_expected}"',
-            'sha1': image_src1_sha1_expected,
-            'width': 120
+            "s3_md5": f'"{image_src1_md5_expected}"',
+            "sha1": image_src1_sha1_expected,
+            "width": 120,
         }
         assert json.load((initial_resources_dir / image_src2_meta).open()) == {
-            'height': 50,
-            'mime_type': 'image/svg+xml',
-            'original_name': 'image_src2.svg',
+            "height": 50,
+            "mime_type": "image/svg+xml",
+            "original_name": "image_src2.svg",
             # AWS needs the MD5 quoted inside the string json value.
             # Despite looking like a mistake, this is correct behavior.
-            's3_md5': f'"{image_src2_md5_expected}"',
-            'sha1': image_src2_sha1_expected,
-            'width': 210
+            "s3_md5": f'"{image_src2_md5_expected}"',
+            "sha1": image_src2_sha1_expected,
+            "width": 210,
         }
-        assert set(file.name for file in initial_resources_dir.glob('**/*')) == set([
-            image_src2_sha1_expected,
-            image_src2_meta,
-            image_src1_sha1_expected,
-            image_src1_meta,
-            commit_sha,
-            "interactive",
-            "index.xhtml"
-        ])
+        assert set(file.name for file in initial_resources_dir.glob("**/*")) == set(
+            [
+                image_src2_sha1_expected,
+                image_src2_meta,
+                image_src1_sha1_expected,
+                image_src1_meta,
+                commit_sha,
+                "interactive",
+                "index.xhtml",
+            ]
+        )
         tree = etree.parse(str(module_00001))
         expected = (
             f'<document xmlns="http://cnx.rice.edu/cnxml">'
-            f'<content>'
+            f"<content>"
             f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
             f'<image src="../../media/image_missing.jpg"/>'
             f'<image src="../{dom_resources_dir}/{image_src1_sha1_expected}"/>'
             f'<image src="../{dom_resources_dir}/{image_src2_sha1_expected}"/>'
             f'<iframe src="../{dom_resources_dir}/{commit_sha}/interactive/index.xhtml"/>'
-            f'</content>'
-            f'</document>'
+            f"</content>"
+            f"</document>"
         )
         assert etree.tostring(tree, encoding="utf8") == expected.encode("utf8")
 
-        assert (initial_resources_dir.is_dir())
+        assert initial_resources_dir.is_dir()
     finally:
-        del os.environ['IO_INITIAL_RESOURCES']
-        del os.environ['IO_RESOURCES']
+        del os.environ["IO_INITIAL_RESOURCES"]
+        del os.environ["IO_RESOURCES"]
 
 
 def test_download_exercise_images(tmp_path, mocker):
@@ -2751,15 +2605,15 @@ def test_download_exercise_images(tmp_path, mocker):
 
     assembled1 = assembled_dir / "assembled1.xhtml"
     injected_exercise_content = (
-        '<!DOCTYPE html>'
+        "<!DOCTYPE html>"
         '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
-        '<body>'
-        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        "<body>"
+        "<p>Hello! I have an injected exercise with an image on the internet.</p>"
         '<img src="../resources/testx" />'
         '<img src="http://127.0.0.1:9999/test.jpg" />'
         '<img src="../resources/testy" />'
-        '</body>'
-        '</html>'
+        "</body>"
+        "</html>"
     )
     assembled1.write_text(injected_exercise_content)
 
@@ -2775,7 +2629,8 @@ def test_download_exercise_images(tmp_path, mocker):
         server_thread.start()
         try:
             download_exercise_images.fetch_and_replace_external_exercise_images(
-                resources_dir, str(assembled1), str(output1))
+                resources_dir, str(assembled1), str(output1)
+            )
         finally:
             server.shutdown()
     # check the image is downloaded and file name and content is correct
@@ -2783,7 +2638,7 @@ def test_download_exercise_images(tmp_path, mocker):
     assert Path.is_file(downloaded_image)
     assert downloaded_image.read_bytes() == bytes(SMALL_JPEG)
     # check image metadata generated is correct
-    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + ".json")
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
     assert image_data.get("original_name") == "http://127.0.0.1:9999/test.jpg"
@@ -2796,7 +2651,8 @@ def test_download_exercise_images(tmp_path, mocker):
     doc = etree.parse(str(output1))
     count = -1
     for node in doc.xpath(
-        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        "//x:img[@src]",
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         count = count + 1
         if count == 0:
@@ -2810,22 +2666,22 @@ def test_download_exercise_images(tmp_path, mocker):
 
     assembled2 = assembled_dir / "assembled2.xhtml"
     injected_exercise_content = (
-        '<!DOCTYPE html>'
+        "<!DOCTYPE html>"
         '<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US">'
-        '<body>'
-        '<p>Hello! I have an injected exercise with an image on the internet.</p>'
+        "<body>"
+        "<p>Hello! I have an injected exercise with an image on the internet.</p>"
         '<img src="../resources/testx" />'
         '<img src="http://127.0.0.1:9998/test.jpg" />'
         '<img src="../resources/testy" />'
-        '<div><div>'
+        "<div><div>"
         '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg" />'
-        '</div>'
+        "</div>"
         '<img src="../resources/testz" />'
-        '</div>'
+        "</div>"
         '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png" />'
         '<img src="http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg" />'
-        '</body>'
-        '</html>'
+        "</body>"
+        "</html>"
     )
     assembled2.write_text(injected_exercise_content)
 
@@ -2839,7 +2695,8 @@ def test_download_exercise_images(tmp_path, mocker):
         server_thread.start()
         try:
             download_exercise_images.fetch_and_replace_external_exercise_images(
-                resources_dir, str(assembled2), str(output2))
+                resources_dir, str(assembled2), str(output2)
+            )
         finally:
             server.shutdown()
 
@@ -2861,7 +2718,7 @@ def test_download_exercise_images(tmp_path, mocker):
     assert Path.is_file(downloaded_image)
 
     # check image metadata generated is correct
-    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + '.json')
+    json_metadata_image = resources_dir / (SHA1_SMALL_JPEG + ".json")
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
     assert image_data.get("original_name") == "http://127.0.0.1:9998/test.jpg"
@@ -2871,33 +2728,39 @@ def test_download_exercise_images(tmp_path, mocker):
     assert image_data.get("width") == 1
     assert image_data.get("height") == 1
 
-    json_metadata_image = resources_dir / (SHA1_CMYK + '.json')
+    json_metadata_image = resources_dir / (SHA1_CMYK + ".json")
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get(
-        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
+    assert (
+        image_data.get("original_name")
+        == "http://127.0.0.1:9998/test_jpeg_colorspace/cmyk.jpg"
+    )
     assert image_data.get("mime_type") == "image/jpeg"
     assert image_data.get("s3_md5") == '"227616b605949ee33ede48ca329563bd"'
     assert image_data.get("sha1") == SHA1_CMYK
     assert image_data.get("width") == 1680
     assert image_data.get("height") == 1050
 
-    json_metadata_image = resources_dir / (SHA1_ORIGINAL + '.json')
+    json_metadata_image = resources_dir / (SHA1_ORIGINAL + ".json")
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get(
-        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
+    assert (
+        image_data.get("original_name")
+        == "http://127.0.0.1:9998/test_jpeg_colorspace/original_public_domain.png"
+    )
     assert image_data.get("mime_type") == "image/png"
     assert image_data.get("s3_md5") == '"aaeb2fd09a2d6762835964291e0448b2"'
     assert image_data.get("sha1") == SHA1_ORIGINAL
     assert image_data.get("width") == 1728
     assert image_data.get("height") == 1080
 
-    json_metadata_image = resources_dir / (SHA1_RGB + '.json')
+    json_metadata_image = resources_dir / (SHA1_RGB + ".json")
     assert Path.is_file(json_metadata_image)
     image_data = json.loads(json_metadata_image.read_text())
-    assert image_data.get(
-        "original_name") == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
+    assert (
+        image_data.get("original_name")
+        == "http://127.0.0.1:9998/test_jpeg_colorspace/rgb.jpg"
+    )
     assert image_data.get("mime_type") == "image/jpeg"
     assert image_data.get("s3_md5") == '"7a60945c5bebe815c25d91baf35dc79f"'
     assert image_data.get("sha1") == SHA1_RGB
@@ -2908,7 +2771,8 @@ def test_download_exercise_images(tmp_path, mocker):
     doc = etree.parse(str(output1))
     count = -1
     for node in doc.xpath(
-        "//x:img[@src]", namespaces={"x": "http://www.w3.org/1999/xhtml"},
+        "//x:img[@src]",
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
         count = count + 1
         if count == 0:
@@ -2989,14 +2853,14 @@ def test_link_single(tmp_path, mocker):
                 "contents": [
                     {
                         "id": "9f049b16-15e9-4725-8c8b-4908a3e2be5e@",
-                        "slug": "book1-page1"
+                        "slug": "book1-page1",
                     },
                     {
                         "id": "cffe96ff-cab6-453c-9996-ed6abe5d9b13e@",
-                        "slug": "book1-page2"
-                    }
-                ]
-            }
+                        "slug": "book1-page2",
+                    },
+                ],
+            },
         }
     }
     book1_baked = baked_dir / "book1.baked.xhtml"
@@ -3048,14 +2912,14 @@ def test_link_single(tmp_path, mocker):
                 "contents": [
                     {
                         "id": "4aa9351c-019f-4c06-bb40-d58262ea7ec7@",
-                        "slug": "book2-page1"
+                        "slug": "book2-page1",
                     },
                     {
                         "id": "2e51553f-fde8-43a3-8191-fd8b493a6cfa@",
-                        "slug": "book2-page2"
-                    }
-                ]
-            }
+                        "slug": "book2-page2",
+                    },
+                ],
+            },
         }
     }
     book2_baked = baked_dir / "book2.baked.xhtml"
@@ -3065,33 +2929,40 @@ def test_link_single(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug,
-         str(linked_xhtml), str("testversion")]
+        [
+            "",
+            str(baked_dir),
+            str(baked_meta_dir),
+            source_book_slug,
+            str(linked_xhtml),
+            str("testversion"),
+        ],
     )
     link_single.main()
 
     expected_links = [
         [
             ("id", "l1"),
-            ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml"),
+            (
+                "href",
+                "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:4aa9351c-019f-4c06-bb40-d58262ea7ec7.xhtml",
+            ),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
             ("data-page-slug", "book2-page1"),
         ],
         [
             ("id", "l2"),
-            ("href",
-             "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:"
-             "2e51553f-fde8-43a3-8191-fd8b493a6cfa.xhtml#foobar"),
+            (
+                "href",
+                "./3c321f43-1da5-4c7b-91d1-abca2dd8ab8f@testversion:"
+                "2e51553f-fde8-43a3-8191-fd8b493a6cfa.xhtml#foobar",
+            ),
             ("data-book-uuid", "3c321f43-1da5-4c7b-91d1-abca2dd8ab8f"),
             ("data-book-slug", "book2"),
             ("data-page-slug", "book2-page2"),
         ],
-        [
-            ("id", "l3"),
-            ("href", "/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e")
-        ]
+        [("id", "l3"), ("href", "/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e")],
     ]
 
     tree = etree.parse(str(linked_xhtml))
@@ -3101,9 +2972,7 @@ def test_link_single(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
 
-    check_links = [
-        link.items() for link in parsed_links
-    ]
+    check_links = [link.items() for link in parsed_links]
 
     assert check_links == expected_links
 
@@ -3183,18 +3052,18 @@ def test_link_single_with_flag(tmp_path, mocker):
                 "contents": [
                     {
                         "id": "9f049b16-15e9-4725-8c8b-4908a3e2be5e@",
-                        "slug": "book1-page1"
+                        "slug": "book1-page1",
                     },
                     {
                         "id": "cffe96ff-cab6-453c-9996-ed6abe5d9b13e@",
-                        "slug": "book1-page2"
+                        "slug": "book1-page2",
                     },
                     {
                         "id": "cea7795c-c138-4356-a221-f5eed5ad1adc@",
-                        "slug": "book1-page3"
-                    }
-                ]
-            }
+                        "slug": "book1-page3",
+                    },
+                ],
+            },
         }
     }
     book1_baked = baked_dir / "book1.baked.xhtml"
@@ -3204,36 +3073,35 @@ def test_link_single_with_flag(tmp_path, mocker):
 
     mocker.patch(
         "sys.argv",
-        ["", str(baked_dir), str(baked_meta_dir), source_book_slug, str(linked_xhtml), str("testversion"),
-         "--mock-otherbook"]
+        [
+            "",
+            str(baked_dir),
+            str(baked_meta_dir),
+            source_book_slug,
+            str(linked_xhtml),
+            str("testversion"),
+            "--mock-otherbook",
+        ],
     )
     link_single.main()
 
     expected_links = [
         [
             ("id", "l1"),
-            ("href",
-             "mock-inter-book-link"),
-            ("data-book-uuid",
-             "mock-inter-book-uuid")
+            ("href", "mock-inter-book-link"),
+            ("data-book-uuid", "mock-inter-book-uuid"),
         ],
         [
             ("id", "l2"),
-            ("href",
-             "mock-inter-book-link"),
-            ("data-book-uuid",
-             "mock-inter-book-uuid")
+            ("href", "mock-inter-book-link"),
+            ("data-book-uuid", "mock-inter-book-uuid"),
         ],
-        [
-            ("id", "l3"),
-            ("href", "/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e")
-        ],
+        [("id", "l3"), ("href", "/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e")],
         [
             ("id", "l4"),
             ("href", "mock-inter-book-link"),
-            ("data-book-uuid",
-             "mock-inter-book-uuid")
-        ]
+            ("data-book-uuid", "mock-inter-book-uuid"),
+        ],
     ]
 
     tree = etree.parse(str(linked_xhtml))
@@ -3244,43 +3112,56 @@ def test_link_single_with_flag(tmp_path, mocker):
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
 
-    check_links = [
-        link.items() for link in parsed_links
-    ]
+    check_links = [link.items() for link in parsed_links]
 
     assert check_links == expected_links
 
-    with pytest.raises(
-        Exception,
-        match=r'Could not find canonical book'
-    ):
+    with pytest.raises(Exception, match=r"Could not find canonical book"):
         mocker.patch(
             "sys.argv",
-            ["", str(baked_dir), str(baked_meta_dir), source_book_slug,
-             str(linked_xhtml), str("testversion")]
+            [
+                "",
+                str(baked_dir),
+                str(baked_meta_dir),
+                source_book_slug,
+                str(linked_xhtml),
+                str("testversion"),
+            ],
         )
         link_single.main()
 
 
 def test_ensure_isoformat():
     """Test ensure_isoformat utility function"""
-    assert utils.ensure_isoformat("2021-03-22T14:14:33.17588-05:00") == \
-        "2021-03-22T14:14:33.17588-05:00"
-    assert utils.ensure_isoformat("2021-03-23T11:34:33.989606-05:00") == \
-        "2021-03-23T11:34:33.989606-05:00"
-    assert utils.ensure_isoformat("2018/10/01 14:04:45 -0500") == \
-        "2018-10-01T14:04:45-05:00"
-    assert utils.ensure_isoformat("2020/12/21 16:05:52.185 US/Central") == \
-        "2020-12-21T16:05:52.185000-06:00"
-    assert utils.ensure_isoformat("2020/09/15 13:39:55.802 GMT-5") == \
-        "2020-09-15T13:39:55.802000-05:00"
-    assert utils.ensure_isoformat("2018/09/25 06:57:44 GMT-5") == \
-        "2018-09-25T06:57:44-05:00"
+    assert (
+        utils.ensure_isoformat("2021-03-22T14:14:33.17588-05:00")
+        == "2021-03-22T14:14:33.17588-05:00"
+    )
+    assert (
+        utils.ensure_isoformat("2021-03-23T11:34:33.989606-05:00")
+        == "2021-03-23T11:34:33.989606-05:00"
+    )
+    assert (
+        utils.ensure_isoformat("2018/10/01 14:04:45 -0500")
+        == "2018-10-01T14:04:45-05:00"
+    )
+    assert (
+        utils.ensure_isoformat("2020/12/21 16:05:52.185 US/Central")
+        == "2020-12-21T16:05:52.185000-06:00"
+    )
+    assert (
+        utils.ensure_isoformat("2020/09/15 13:39:55.802 GMT-5")
+        == "2020-09-15T13:39:55.802000-05:00"
+    )
+    assert (
+        utils.ensure_isoformat("2018/09/25 06:57:44 GMT-5")
+        == "2018-09-25T06:57:44-05:00"
+    )
     with pytest.raises(
-        Exception,
-        match="Could not convert non ISO8601 timestamp: unexpectedtimeformat"
+        Exception, match="Could not convert non ISO8601 timestamp: unexpectedtimeformat"
     ):
         utils.ensure_isoformat("unexpectedtimeformat")
+
 
 # Profiler test
 
@@ -3293,16 +3174,21 @@ def test_convert_ms():
 
 # CNX EPUB Tests
 
+
 class HTMLParsingTestCase(unittest.TestCase):
     maxDiff = None
 
     def test_metadata_parsing(self):
         """Verify the parsing of metadata from an HTML document."""
         html_doc_filepath = os.path.join(
-            TEST_DATA_DIR, 'cnx_test', 'book', 'content',
-            'e78d4f90-e078-49d2-beac-e95e8be70667@3.xhtml')
+            TEST_DATA_DIR,
+            "cnx_test",
+            "book",
+            "content",
+            "e78d4f90-e078-49d2-beac-e95e8be70667@3.xhtml",
+        )
 
-        with open(html_doc_filepath, 'r') as fb:
+        with open(html_doc_filepath, "r") as fb:
             html = etree.parse(fb)
             metadata = html_parser.parse_metadata(html)
 
@@ -3360,7 +3246,7 @@ class BaseModelTestCase(unittest.TestCase):
             binder = cnx_models.Binder(id, nodes, metadata)
         return binder
 
-    def make_document(self, id, content=b'', metadata={}):
+    def make_document(self, id, content=b"", metadata={}):
         return cnx_models.Document(id, io.BytesIO(content), metadata=metadata)
 
     def make_document_pointer(self, ident_hash, metadata={}):
@@ -3373,260 +3259,343 @@ class BaseModelTestCase(unittest.TestCase):
 class ModelAttributesTestCase(BaseModelTestCase):
 
     def test_binder_attribs(self):
-        binder = self.make_binder('8d75ea29@3')
+        binder = self.make_binder("8d75ea29@3")
 
-        self.assertEqual(binder.id, '8d75ea29')
-        self.assertEqual(binder.ident_hash, '8d75ea29@3')
-        self.assertEqual(binder.metadata['version'], '3')
+        self.assertEqual(binder.id, "8d75ea29")
+        self.assertEqual(binder.ident_hash, "8d75ea29@3")
+        self.assertEqual(binder.metadata["version"], "3")
 
-        binder.ident_hash = '67e4ag@4.5'
-        self.assertEqual(binder.id, '67e4ag')
-        self.assertEqual(binder.ident_hash, '67e4ag@4.5')
-        self.assertEqual(binder.metadata['version'], '4.5')
+        binder.ident_hash = "67e4ag@4.5"
+        self.assertEqual(binder.id, "67e4ag")
+        self.assertEqual(binder.ident_hash, "67e4ag@4.5")
+        self.assertEqual(binder.metadata["version"], "4.5")
 
         with self.assertRaises(ValueError) as caughtexception:
-            binder.ident_hash = '67e4ag'
-            self.assertContains(caughtexception, 'requires version')
+            binder.ident_hash = "67e4ag"
+            self.assertContains(caughtexception, "requires version")
 
         del binder.id
         with self.assertRaises(AttributeError) as caughtexception:
             _ = binder.id
-            self.assertContains(caughtexception, 'object has no attribute')
+            self.assertContains(caughtexception, "object has no attribute")
 
-        binder.id = '456@2'
-        self.assertEqual(binder.id, '456')
-        self.assertEqual(binder.ident_hash, '456@2')
-        self.assertEqual(binder.metadata['version'], '2')
+        binder.id = "456@2"
+        self.assertEqual(binder.id, "456")
+        self.assertEqual(binder.ident_hash, "456@2")
+        self.assertEqual(binder.metadata["version"], "2")
 
     def test_document_attribs(self):
-        document = self.make_document('8d75ea29@3')
+        document = self.make_document("8d75ea29@3")
 
-        self.assertEqual(document.id, '8d75ea29')
-        self.assertEqual(document.ident_hash, '8d75ea29@3')
-        self.assertEqual(document.metadata['version'], '3')
+        self.assertEqual(document.id, "8d75ea29")
+        self.assertEqual(document.ident_hash, "8d75ea29@3")
+        self.assertEqual(document.metadata["version"], "3")
 
-        document.ident_hash = '67e4ag@4.5'
-        self.assertEqual(document.id, '67e4ag')
-        self.assertEqual(document.ident_hash, '67e4ag@4.5')
-        self.assertEqual(document.metadata['version'], '4.5')
+        document.ident_hash = "67e4ag@4.5"
+        self.assertEqual(document.id, "67e4ag")
+        self.assertEqual(document.ident_hash, "67e4ag@4.5")
+        self.assertEqual(document.metadata["version"], "4.5")
 
         with self.assertRaises(ValueError) as caughtexception:
-            document.ident_hash = '67e4ag'
-            self.assertContains(caughtexception, 'requires version')
+            document.ident_hash = "67e4ag"
+            self.assertContains(caughtexception, "requires version")
 
         del document.id
         with self.assertRaises(AttributeError) as caughtexception:
             _ = document.id
-            self.assertContains(caughtexception, 'object has no attribute')
+            self.assertContains(caughtexception, "object has no attribute")
 
-        document.id = '456@2'
-        self.assertEqual(document.id, '456')
-        self.assertEqual(document.ident_hash, '456@2')
-        self.assertEqual(document.metadata['version'], '2')
+        document.id = "456@2"
+        self.assertEqual(document.id, "456")
+        self.assertEqual(document.ident_hash, "456@2")
+        self.assertEqual(document.metadata["version"], "2")
 
 
 class TreeUtilityTestCase(BaseModelTestCase):
 
     def test_binder_to_tree(self):
         binder = self.make_binder(
-            '8d75ea29',
-            metadata={'version': '3', 'title': "Book One"},
+            "8d75ea29",
+            metadata={"version": "3", "title": "Book One"},
             nodes=[
                 self.make_binder(
                     None,
-                    metadata={'title': "Part One"},
+                    metadata={"title": "Part One"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter One"},
+                            metadata={"title": "Chapter One"},
                             nodes=[
                                 self.make_document(
                                     id="e78d4f90",
-                                    metadata={'version': '3',
-                                              'title': "Document One"})]),
+                                    metadata={"version": "3", "title": "Document One"},
+                                )
+                            ],
+                        ),
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Two"},
+                            metadata={"title": "Chapter Two"},
                             nodes=[
                                 self.make_document(
                                     id="3c448dc6",
-                                    metadata={'version': '1',
-                                              'title': "Document Two"})])]),
+                                    metadata={"version": "1", "title": "Document Two"},
+                                )
+                            ],
+                        ),
+                    ],
+                ),
                 self.make_binder(
                     None,
-                    metadata={'title': "Part Two"},
+                    metadata={"title": "Part Two"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Three"},
+                            metadata={"title": "Chapter Three"},
                             nodes=[
                                 self.make_document(
                                     id="ad17c39c",
-                                    metadata={'version': '2',
-                                              'title': "Document Three"})])]),
+                                    metadata={
+                                        "version": "2",
+                                        "title": "Document Three",
+                                    },
+                                )
+                            ],
+                        )
+                    ],
+                ),
                 self.make_binder(
-                    '4e5390a5@2',
-                    metadata={'title': "Part Three"},
+                    "4e5390a5@2",
+                    metadata={"title": "Part Three"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Four"},
+                            metadata={"title": "Chapter Four"},
                             nodes=[
                                 self.make_document(
                                     id="7c52af05",
-                                    metadata={'version': '1',
-                                              'title': "Document Four"})])])])
+                                    metadata={"version": "1", "title": "Document Four"},
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            ],
+        )
 
         expected_tree = {
-            'id': '8d75ea29@3',
-            'shortId': None,
-            'contents': [
-                {'id': 'subcol',
-                 'shortId': None,
-                 'contents': [
-                     {'id': 'subcol',
-                      'shortId': None,
-                      'contents': [
-                          {'id': 'e78d4f90@3',
-                           'shortId': None,
-                           'title': 'Document One'}],
-                      'title': 'Chapter One'},
-                     {'id': 'subcol',
-                      'shortId': None,
-                      'contents': [
-                          {'id': '3c448dc6@1',
-                           'shortId': None,
-                           'title': 'Document Two'}],
-                      'title': 'Chapter Two'}],
-                 'title': 'Part One'},
-                {'id': 'subcol',
-                 'shortId': None,
-                 'contents': [
-                     {'id': 'subcol',
-                      'shortId': None,
-                      'contents': [
-                          {'id': 'ad17c39c@2',
-                           'shortId': None,
-                           'title': 'Document Three'}],
-                      'title': 'Chapter Three'}],
-                 'title': 'Part Two'},
-                {'id': '4e5390a5@2',
-                 'shortId': None,
-                 'contents': [
-                     {'id': 'subcol',
-                      'shortId': None,
-                      'contents': [
-                          {'id': '7c52af05@1',
-                           'shortId': None,
-                           'title': 'Document Four'}],
-                      'title': 'Chapter Four'}],
-                 'title': 'Part Three'}],
-            'title': 'Book One'}
+            "id": "8d75ea29@3",
+            "shortId": None,
+            "contents": [
+                {
+                    "id": "subcol",
+                    "shortId": None,
+                    "contents": [
+                        {
+                            "id": "subcol",
+                            "shortId": None,
+                            "contents": [
+                                {
+                                    "id": "e78d4f90@3",
+                                    "shortId": None,
+                                    "title": "Document One",
+                                }
+                            ],
+                            "title": "Chapter One",
+                        },
+                        {
+                            "id": "subcol",
+                            "shortId": None,
+                            "contents": [
+                                {
+                                    "id": "3c448dc6@1",
+                                    "shortId": None,
+                                    "title": "Document Two",
+                                }
+                            ],
+                            "title": "Chapter Two",
+                        },
+                    ],
+                    "title": "Part One",
+                },
+                {
+                    "id": "subcol",
+                    "shortId": None,
+                    "contents": [
+                        {
+                            "id": "subcol",
+                            "shortId": None,
+                            "contents": [
+                                {
+                                    "id": "ad17c39c@2",
+                                    "shortId": None,
+                                    "title": "Document Three",
+                                }
+                            ],
+                            "title": "Chapter Three",
+                        }
+                    ],
+                    "title": "Part Two",
+                },
+                {
+                    "id": "4e5390a5@2",
+                    "shortId": None,
+                    "contents": [
+                        {
+                            "id": "subcol",
+                            "shortId": None,
+                            "contents": [
+                                {
+                                    "id": "7c52af05@1",
+                                    "shortId": None,
+                                    "title": "Document Four",
+                                }
+                            ],
+                            "title": "Chapter Four",
+                        }
+                    ],
+                    "title": "Part Three",
+                },
+            ],
+            "title": "Book One",
+        }
 
         tree = cnx_models.model_to_tree(binder)
         self.assertEqual(tree, expected_tree)
 
     def test_flatten_model(self):
         binder = self.make_binder(
-            '8d75ea29',
-            metadata={'version': '3', 'title': "Book One"},
+            "8d75ea29",
+            metadata={"version": "3", "title": "Book One"},
             nodes=[
                 self.make_binder(
                     None,
-                    metadata={'title': "Part One"},
+                    metadata={"title": "Part One"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter One"},
+                            metadata={"title": "Chapter One"},
                             nodes=[
                                 self.make_document(
                                     id="e78d4f90",
-                                    metadata={'version': '3',
-                                              'title': "Document One"})]),
+                                    metadata={"version": "3", "title": "Document One"},
+                                )
+                            ],
+                        ),
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Two"},
+                            metadata={"title": "Chapter Two"},
                             nodes=[
                                 self.make_document(
                                     id="3c448dc6",
-                                    metadata={'version': '1',
-                                              'title': "Document Two"})])]),
+                                    metadata={"version": "1", "title": "Document Two"},
+                                )
+                            ],
+                        ),
+                    ],
+                ),
                 self.make_binder(
                     None,
-                    metadata={'title': "Part Two"},
+                    metadata={"title": "Part Two"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Three"},
+                            metadata={"title": "Chapter Three"},
                             nodes=[
                                 self.make_document(
                                     id="ad17c39c",
-                                    metadata={'version': '2',
-                                              'title': "Document Three"})])])])
+                                    metadata={
+                                        "version": "2",
+                                        "title": "Document Three",
+                                    },
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            ],
+        )
         expected_titles = [
-            'Book One',
-            'Part One',
-            'Chapter One', 'Document One',
-            'Chapter Two', 'Document Two',
-            'Part Two',
-            'Chapter Three', 'Document Three']
+            "Book One",
+            "Part One",
+            "Chapter One",
+            "Document One",
+            "Chapter Two",
+            "Document Two",
+            "Part Two",
+            "Chapter Three",
+            "Document Three",
+        ]
 
-        titles = [m.metadata['title']
-                  for m in cnx_models.flatten_model(binder)]
+        titles = [m.metadata["title"] for m in cnx_models.flatten_model(binder)]
         self.assertEqual(titles, expected_titles)
 
     def test_flatten_to_documents(self):
         binder = self.make_binder(
-            '8d75ea29',
-            metadata={'version': '3', 'title': "Book One"},
+            "8d75ea29",
+            metadata={"version": "3", "title": "Book One"},
             nodes=[
                 self.make_binder(
                     None,
-                    metadata={'title': "Part One"},
+                    metadata={"title": "Part One"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter One"},
+                            metadata={"title": "Chapter One"},
                             nodes=[
                                 self.make_document(
                                     id="e78d4f90",
-                                    metadata={'version': '3',
-                                              'title': "Document One"})]),
+                                    metadata={"version": "3", "title": "Document One"},
+                                )
+                            ],
+                        ),
                         self.make_document_pointer(
-                            ident_hash='844a99e5@1',
-                            metadata={'title': "Pointing"}),
+                            ident_hash="844a99e5@1", metadata={"title": "Pointing"}
+                        ),
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Two"},
+                            metadata={"title": "Chapter Two"},
                             nodes=[
                                 self.make_document(
                                     id="3c448dc6",
-                                    metadata={'version': '1',
-                                              'title': "Document Two"})])]),
+                                    metadata={"version": "1", "title": "Document Two"},
+                                )
+                            ],
+                        ),
+                    ],
+                ),
                 self.make_binder(
                     None,
-                    metadata={'title': "Part Two"},
+                    metadata={"title": "Part Two"},
                     nodes=[
                         self.make_binder(
                             None,
-                            metadata={'title': "Chapter Three"},
+                            metadata={"title": "Chapter Three"},
                             nodes=[
                                 self.make_document(
                                     id="ad17c39c",
-                                    metadata={'version': '2',
-                                              'title': "Document Three"})])])])
+                                    metadata={
+                                        "version": "2",
+                                        "title": "Document Three",
+                                    },
+                                )
+                            ],
+                        )
+                    ],
+                ),
+            ],
+        )
 
         # Test for default, Document only results.
-        expected_titles = ['Document One', 'Document Two', 'Document Three']
-        titles = [d.metadata['title']
-                  for d in cnx_models.flatten_to_documents(binder)]
+        expected_titles = ["Document One", "Document Two", "Document Three"]
+        titles = [d.metadata["title"] for d in cnx_models.flatten_to_documents(binder)]
         self.assertEqual(titles, expected_titles)
 
         # Test for included DocumentPointer results.
-        expected_titles = ['Document One', 'Pointing', 'Document Two',
-                           'Document Three']
-        titles = [d.metadata['title']
-                  for d in cnx_models.flatten_to_documents(binder, include_pointers=True)]
+        expected_titles = ["Document One", "Pointing", "Document Two", "Document Three"]
+        titles = [
+            d.metadata["title"]
+            for d in cnx_models.flatten_to_documents(binder, include_pointers=True)
+        ]
         self.assertEqual(titles, expected_titles)
 
 
@@ -3636,10 +3605,11 @@ class ModelBehaviorTestCase(unittest.TestCase):
         """Documents are loaded then parsed to show their
         references within the HTML content.
         """
-        expected_uris = ["http://example.com/people/old-mcdonald",
-                         "http://cnx.org/contents/5f3acd92@3",
-                         "../resources/nyan-cat.gif"
-                         ]
+        expected_uris = [
+            "http://example.com/people/old-mcdonald",
+            "http://cnx.org/contents/5f3acd92@3",
+            "../resources/nyan-cat.gif",
+        ]
         content = """\
 <body>
 <h1> McDonald Bio </h1>
@@ -3647,27 +3617,30 @@ class ModelBehaviorTestCase(unittest.TestCase):
 <img src="{}"/>
 <span>Ei ei O.</span>
 </body>
-""".format(*expected_uris)
+""".format(
+            *expected_uris
+        )
 
-        document = cnx_models.Document('mcdonald', content)
+        document = cnx_models.Document("mcdonald", content)
 
         self.assertEqual(len(document.references), 3)
-        are_external = [r.remote_type == 'external'
-                        for r in document.references]
+        are_external = [r.remote_type == "external" for r in document.references]
         self.assertEqual([True, True, False], are_external)
         self.assertEqual(expected_uris, [r.uri for r in document.references])
 
         # reload the content
         document.content = content
         # update some references
-        document.references[0].uri = 'https://example.com/people/old-mcdonald'
-        self.assertTrue(b'<a href="https://example.com/people/old-mcdonald">'
-                        in document.content)
+        document.references[0].uri = "https://example.com/people/old-mcdonald"
+        self.assertTrue(
+            b'<a href="https://example.com/people/old-mcdonald">' in document.content
+        )
 
     def test_document_w_bound_references(self):
-        starting_uris = ["../resources/openstax.png",
-                         "m23409.xhtml",
-                         ]
+        starting_uris = [
+            "../resources/openstax.png",
+            "m23409.xhtml",
+        ]
         content = """\
 <body>
 <h1>Reference replacement test-case</h1>
@@ -3675,19 +3648,20 @@ class ModelBehaviorTestCase(unittest.TestCase):
 <img src="{}"/>
 <p>Fin.</p>
 </body>
-""".format(*starting_uris)
+""".format(
+            *starting_uris
+        )
 
-        document = cnx_models.Document('document', content)
+        document = cnx_models.Document("document", content)
 
         self.assertEqual(len(document.references), 2)
-        are_external = [r.remote_type == 'external'
-                        for r in document.references]
+        are_external = [r.remote_type == "external" for r in document.references]
         self.assertEqual([False, False], are_external)
         self.assertEqual(starting_uris, [r.uri for r in document.references])
 
         # Now bind the model to the reference.
         resource_uri_tmplt = "/resources/{}"
-        resource_name = '36ad78c3'
+        resource_name = "36ad78c3"
         resource = mock.Mock()
         resource.id = resource_name
         document.references[0].bind(resource, "/resources/{}")
@@ -3699,7 +3673,7 @@ class ModelBehaviorTestCase(unittest.TestCase):
         self.assertEqual(expected_uris, [r.uri for r in document.references])
 
         # And change it the resource identifier
-        changed_resource_name = 'smoo.png'
+        changed_resource_name = "smoo.png"
         resource.id = changed_resource_name
         expected_uris = [
             resource_uri_tmplt.format(changed_resource_name),
@@ -3709,10 +3683,13 @@ class ModelBehaviorTestCase(unittest.TestCase):
 
     def test_document_content(self):
         with open(
-            os.path.join(TEST_DATA_DIR, 'cnx_test',
-                         'fb74dc89-47d4-4e46-aac1-b8682f487bd5@1.json'),
-                'r') as f:
+            os.path.join(
+                TEST_DATA_DIR, "cnx_test", "fb74dc89-47d4-4e46-aac1-b8682f487bd5@1.json"
+            ),
+            "r",
+        ) as f:
             metadata = json.loads(f.read())
-        document = cnx_models.Document('document', metadata['content'])
-        self.assertTrue(b'To demonstrate the potential of online publishing'
-                        in document.content)
+        document = cnx_models.Document("document", metadata["content"])
+        self.assertTrue(
+            b"To demonstrate the potential of online publishing" in document.content
+        )
