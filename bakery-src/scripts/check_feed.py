@@ -1,14 +1,23 @@
 import json
 import sys
 from datetime import datetime
-
-# from pathlib import Path
+from operator import itemgetter
 
 import boto3
 import botocore
 from .profiler import timed
 
 import requests
+
+
+def unique(it, *, key=hash):
+    seen = set()
+    for entry in it:
+        entry_id = key(entry)
+        if entry_id not in seen:
+            seen.add(entry_id)
+            yield entry
+
 
 # replace the book feed from github with the accepted books from the ABL endpoint
 # somewhere in the pipeline code api_root has the url to the ABL endpoint
@@ -22,9 +31,10 @@ def get_abl(api_root, code_version):
     response = requests.get(url)
     response.raise_for_status()
     abl_json = response.json()
+    entries = unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
     results = [
         {"repo": entry["repository_name"], "version": entry["commit_sha"]}
-        for entry in abl_json
+        for entry in entries
     ]
     return results
 

@@ -1140,6 +1140,26 @@ def test_check_feed(tmp_path, mocker):
             "consumer": "REX",
             "commit_sha": "247752b30f009818f9ae90b0e6fe1a0b0fdbac4e",
         },
+        # It should queue this version
+        {
+            "repository_name": "osbooks-introduction-sociology",
+            "code_version": "20210224.204120",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1e",
+            "slug": "introduction-sociology-not-2e",
+            "committed_at": "2022-02-09T17:32:00+00:00",
+            "consumer": "REX",
+            "commit_sha": "ffffffffffffffffffffffffffffffffffffffff",
+        },
+        # It should not try to queue this version: repo and commit match prev
+        {
+            "repository_name": "osbooks-introduction-sociology",
+            "code_version": "20210224.204120",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1e",
+            "slug": "introduction-sociology-not-2e",
+            "committed_at": "2022-02-09T17:32:00+00:00",
+            "consumer": "REX",
+            "commit_sha": "247752b30f009818f9ae90b0e6fe1a0b0fdbac4e",
+        },
     ]
 
     api_root = "https://mock.corgi"
@@ -1218,17 +1238,22 @@ def test_check_feed(tmp_path, mocker):
         "version": input_book_feed[0]["commit_sha"],
     }
 
-    book_slug = book["repo"]
-    book_vers = book["version"]
+    repo1 = input_book_feed[0]["repository_name"]
+    vers1 = input_book_feed[0]["commit_sha"]
+    repo2 = input_book_feed[1]["repository_name"]
+    vers2 = input_book_feed[1]["commit_sha"]
+    # entry skipped because it is included in the first
+    # repo3 = input_book_feed[2]["repository_name"]
+    # vers3 = input_book_feed[2]["commit_sha"]
 
     # Book: Check for .complete file
     _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.complete"
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.complete"
     )
 
     # Book: Check for .pending file
     _stubber_add_head_object_404(
-        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.pending"
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.pending"
     )
 
     # Book: Put book data
@@ -1236,13 +1261,18 @@ def test_check_feed(tmp_path, mocker):
 
     # Book: Put book .pending
     _stubber_add_put_object(
-        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.pending",
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.pending",
         botocore.stub.ANY,
     )
 
     # Book: Check for .complete file
     _stubber_add_head_object(
-        f"{code_version}/.{state_prefix}.{book_slug}@{book_vers}.complete"
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.complete"
+    )
+
+    # Book repo 2: This one is complete, no action
+    _stubber_add_head_object(
+        f"{code_version}/.{state_prefix}.{repo2}@{vers2}.complete"
     )
 
     s3_stubber.activate()
