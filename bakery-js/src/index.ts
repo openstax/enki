@@ -244,26 +244,44 @@ epubCommand
     }
   })
 
-const sourceFileArg = program.createArgument(
-  '<source_file>',
-  'Source XML filename (e.g. modules/m123/index.cnxml'
+const inplaceOption = program.createOption(
+  '-i, --in-place',
+  'Modify the file in-place'
 )
-const destinationFileArg = program.createArgument(
-  '<destination_file>',
-  'Destination XML filename (e.g. modules/m123/index.cnxml'
-)
+
+async function* progressSpinner<T>(iter: AsyncIterable<T> | Iterable<T>) {
+  const spinner = '\\|/-'
+  let i = 0
+  // Move right 1 and save position
+  process.stderr.write('\u001b[1C')
+  process.stderr.write('\u001b[s')
+  for await (const item of iter) {
+    // Restore position
+    process.stderr.write('\u001b[u')
+    process.stderr.write(`${spinner[i++ % spinner.length]} `)
+    yield item
+  }
+  process.stderr.write('\n')
+}
 
 program
   .command('add-sourcemap-info')
-  .addArgument(sourceFileArg)
-  .addArgument(destinationFileArg)
-  .action(async (sourceFile: string, destinationFile: string) => {
-    const $doc = dom(await readXmlWithSourcemap(sourceFile))
-    $doc.forEach('//*[not(@data-sm)]', (el) => {
-      const p = getPos(el.node)
-      el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
-    })
-    await writeXmlWithSourcemap(destinationFile, $doc.node)
+  .addOption(inplaceOption)
+  .action(async (options) => {
+    const log = (msg: string) => process.stderr.write(msg)
+    const inPlace = options.inPlace !== undefined
+    const readline = createInterface({ input: process.stdin })
+    log('Annotating XML files with source map information (data-sm="...")')
+    for await (const sourceFile of progressSpinner(readline)) {
+      const destinationFile = inPlace ? sourceFile : `${sourceFile}.mapped`
+      const $doc = dom(await readXmlWithSourcemap(sourceFile))
+      $doc.forEach('//*[not(@data-sm)]', (el) => {
+        const p = getPos(el.node)
+        el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+      })
+      await writeXmlWithSourcemap(destinationFile, $doc.node)
+    }
+    log('XML files annotated successfully!\n')
   })
 
 const schemaArg = program.createArgument(
