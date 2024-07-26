@@ -23,7 +23,7 @@ def class_xpath(class_name: str):
 
 
 def try_find_nearest_sm(elem):
-    sm_results = elem.xpath('ancestor-or-self::*[@data-sm]/@data-sm')
+    sm_results = elem.xpath('ancestor-or-self::*[@data-sm][1]/@data-sm')
     if not sm_results:
         return "N/A"
     return sm_results[0]
@@ -357,7 +357,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                         parent_page_id = fig.element.xpath(
                             'ancestor::*[@data-type = "page"]/@id'
                         )[0]
-                        data_sm = try_find_nearest_sm(fig.element)
+                        data_sm = try_find_nearest_sm(fig.get_img())
                         raise Exception(
                             f"Figure missing {name}\n"
                             f"Page ID: {parent_page_id}\n"

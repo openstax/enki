@@ -4368,6 +4368,8 @@ def test_slide_transformations(mocker):
     child_div = E.div()
     parent_div.append(child_div)
     assert pptify_book.try_find_nearest_sm(child_div) == "20"
+    child_div.set("data-sm", "30")
+    assert pptify_book.try_find_nearest_sm(child_div) == "30"
 
 
 def test_pptify_book(mocker, tmp_path):
