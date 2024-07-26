@@ -244,26 +244,33 @@ epubCommand
     }
   })
 
-const sourceFileArg = program.createArgument(
-  '<source_file>',
-  'Source XML filename (e.g. modules/m123/index.cnxml'
-)
-const destinationFileArg = program.createArgument(
-  '<destination_file>',
-  'Destination XML filename (e.g. modules/m123/index.cnxml'
+const inplaceOption = program.createOption(
+  '-i, --in-place',
+  'Modify the file in-place'
 )
 
 program
   .command('add-sourcemap-info')
-  .addArgument(sourceFileArg)
-  .addArgument(destinationFileArg)
-  .action(async (sourceFile: string, destinationFile: string) => {
-    const $doc = dom(await readXmlWithSourcemap(sourceFile))
-    $doc.forEach('//*[not(@data-sm)]', (el) => {
-      const p = getPos(el.node)
-      el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
-    })
-    await writeXmlWithSourcemap(destinationFile, $doc.node)
+  .addOption(inplaceOption)
+  .action(async (options) => {
+    process.stderr.write(
+      'Annotating XML files with source map information (data-sm="...") \x1b7'
+    )
+    const inPlace = options.inPlace !== undefined
+    const spinner = '\\|/-'
+    let i = 0
+    const readline = createInterface({ input: process.stdin })
+    for await (const sourceFile of readline) {
+      process.stderr.write(`\x1b8${spinner[i++ % spinner.length]} `)
+      const destinationFile = inPlace ? sourceFile : `${sourceFile}.mapped`
+      const $doc = dom(await readXmlWithSourcemap(sourceFile))
+      $doc.forEach('//*[not(@data-sm)]', (el) => {
+        const p = getPos(el.node)
+        el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+      })
+      await writeXmlWithSourcemap(destinationFile, $doc.node)
+    }
+    process.stderr.write('\x1b8XML files annotated successfully!\n')
   })
 
 const schemaArg = program.createArgument(
