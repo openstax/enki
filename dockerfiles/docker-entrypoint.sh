@@ -241,6 +241,13 @@ function parse_book_dir() {
 
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
+    if [[ $LOCAL_ATTIC_DIR ]]; then
+        ARG_ENVIRONMENT=local
+    elif [[ -f $IO_BOOK/job_id ]]; then
+        ARG_ENVIRONMENT=corgi
+    else
+        ARG_ENVIRONMENT=webhosting
+    fi
 }
 
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
@@ -248,6 +255,7 @@ function parse_book_dir() {
 function unset_book_vars() {
     unset ARG_REPO_NAME
     unset ARG_GIT_REF
+    unset ARG_ENVIRONMENT
 }
 
 function do_step() {
