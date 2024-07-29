@@ -259,13 +259,7 @@ export const wrapGenericCorgiJob = (env: KeyValue, jobName: string, resource: RE
     }
 }
 
-
-export enum PDF_OR_WEB {
-    PDF = 'pdf',
-    WEB = 'web'
-}
-
-  export const taskMaker = (env: KeyValue, pdfOrWeb: PDF_OR_WEB, step: Step) => toConcourseTask(env, step.name, step.inputs, [...step.outputs, IO.COMMON_LOG], { TASK_NAME: step.name, CODE_VERSION: true, ...step.env }, readScript('script/run_task.bash'))
+  export const taskMaker = (env: KeyValue, step: Step) => toConcourseTask(env, step.name, step.inputs, [...step.outputs, IO.COMMON_LOG], { TASK_NAME: step.name, CODE_VERSION: true, ...step.env }, readScript('script/run_task.bash'))
   
 
 type Settings = { 
@@ -313,8 +307,8 @@ export function loadEnv(pathToJson: string) {
     return env
 }
 
-export function stepsToTasks(env: KeyValue, pdfOrWeb: PDF_OR_WEB, steps: Step[]): ConcourseTask[] {
-    return steps.map(step => taskMaker(env, pdfOrWeb, step))
+export function stepsToTasks(env: KeyValue, steps: Step[]): ConcourseTask[] {
+    return steps.map(step => taskMaker(env, step))
 }
 
 export type KeyValue = {

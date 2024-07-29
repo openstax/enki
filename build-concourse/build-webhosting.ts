@@ -7,7 +7,6 @@ import {
     RESOURCES,
     toConcourseTask,
     expect,
-    PDF_OR_WEB,
     stepsToTasks,
 } from "./util";
 import { GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from "./step-definitions";
@@ -72,7 +71,6 @@ function makePipeline(envValues: KeyValue) {
             },
             ...stepsToTasks(
                 envValues,
-                PDF_OR_WEB.WEB,
                 GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD
             ),
         ],
