@@ -3,7 +3,7 @@
     "MAX_INFLIGHT_JOBS": 5,
     "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
     "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
-    "CORGI_API_URL": "https://corgi.ce.sandbox.openstax.org",
+    "CORGI_API_URL": "https://corgi.ce.openstax.org",
     "CORGI_ARTIFACTS_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
     "WEB_S3_BUCKET": "openstax-sandbox-web-hosting-content-gatekeeper",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
