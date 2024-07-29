@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { buildLookUpBook, GIT_PDF_STEPS, GIT_WEB_STEPS, GIT_GDOC_STEPS, GIT_EPUB_STEPS } from './step-definitions'
-import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToCorgi, Status, RESOURCES, IO, readScript, PDF_OR_WEB, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
+import { KeyValue, JobType, toConcourseTask, loadEnv, wrapGenericCorgiJob, reportToCorgi, Status, RESOURCES, IO, readScript, randId, RANDOM_DEV_CODEVERSION_PREFIX, taskMaker, toDockerSourceSection, stepsToTasks } from './util'
 
 const commonLogFile = `${IO.COMMON_LOG}/log`
 const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
@@ -52,7 +52,7 @@ function makePipeline(env: KeyValue) {
     const buildPdfJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
+        const lookupBookTask = taskMaker(env, lookupBookDef)
         return wrapGenericCorgiJob(env, `build-pdf`, resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -76,7 +76,7 @@ function makePipeline(env: KeyValue) {
     const buildWebJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
+        const lookupBookTask = taskMaker(env, lookupBookDef)
         return wrapGenericCorgiJob(env, `web-preview`, resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -101,8 +101,7 @@ function makePipeline(env: KeyValue) {
     const buildGitDocxJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
-        // PDF_OR_WEB argument does not seem to actually do anything
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
+        const lookupBookTask = taskMaker(env, lookupBookDef)
         return wrapGenericCorgiJob(env, `build-docx`, resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -126,8 +125,7 @@ function makePipeline(env: KeyValue) {
     const buildGitEpubJob = (resource: RESOURCES, tasks: any[]) => {
         const report = reportToCorgi(resource)
         const lookupBookDef = buildLookUpBook(resource)
-        // PDF_OR_WEB argument does not seem to actually do anything
-        const lookupBookTask = taskMaker(env, PDF_OR_WEB.PDF, lookupBookDef)
+        const lookupBookTask = taskMaker(env, lookupBookDef)
         return wrapGenericCorgiJob(env, 'build-epub', resource, {
             do: [
                 report(Status.ASSIGNED, {
@@ -146,10 +144,10 @@ function makePipeline(env: KeyValue) {
         })
     }
 
-    const gitPdfJob = buildPdfJob(RESOURCES.CORGI_GIT_PDF, stepsToTasks(env, PDF_OR_WEB.PDF, GIT_PDF_STEPS))
-    const gitWeb = buildWebJob(RESOURCES.CORGI_GIT_WEB, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_WEB_STEPS))
-    const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_GDOC_STEPS))
-    const gitEpub = buildGitEpubJob(RESOURCES.CORGI_GIT_EPUB, stepsToTasks(env, PDF_OR_WEB.WEB, GIT_EPUB_STEPS))
+    const gitPdfJob = buildPdfJob(RESOURCES.CORGI_GIT_PDF, stepsToTasks(env, GIT_PDF_STEPS))
+    const gitWeb = buildWebJob(RESOURCES.CORGI_GIT_WEB, stepsToTasks(env, GIT_WEB_STEPS))
+    const gitDocx = buildGitDocxJob(RESOURCES.CORGI_GIT_DOCX, stepsToTasks(env, GIT_GDOC_STEPS))
+    const gitEpub = buildGitEpubJob(RESOURCES.CORGI_GIT_EPUB, stepsToTasks(env, GIT_EPUB_STEPS))
 
     const resourceTypes = [
         {
