@@ -4362,6 +4362,7 @@ def test_slide_transformations(mocker):
     mock_pres.slides.add_slide.assert_called_once()
     mocker.stopall()
 
+    # Test try_find_nearest_sm
     assert pptify_book.try_find_nearest_sm(E.div()) == "N/A"
     assert pptify_book.try_find_nearest_sm(E.div(**{"data-sm": "1"})) == "1"
     parent_div = E.div(**{"data-sm": "20"})
@@ -4370,6 +4371,69 @@ def test_slide_transformations(mocker):
     assert pptify_book.try_find_nearest_sm(child_div) == "20"
     child_div.set("data-sm", "30")
     assert pptify_book.try_find_nearest_sm(child_div) == "30"
+
+    # Test rename_images_to_type
+    get_mime_type_stub = mocker.patch("bakery_scripts.pptify_book.get_mime_type")
+    path_exists_stub = mocker.patch("bakery_scripts.pptify_book.Path.exists")
+    os_link_stub = mocker.patch("bakery_scripts.pptify_book.os.link")
+    get_mime_type_stub.start()
+    path_exists_stub.start()
+    os_link_stub.start()
+    slide_contents = [
+        pptify_book.FigureSlideContent(
+            title="Figure 1",
+            src="test",
+            alt="",
+            caption=""
+        )
+    ]
+    get_mime_type_stub.return_value = "image/jpeg"
+    result = list(pptify_book.rename_images_to_type(slide_contents, "/resources"))
+    assert result == [
+        pptify_book.FigureSlideContent(
+            title="Figure 1",
+            notes=None,
+            src="test.jpg",
+            alt="",
+            caption=""
+        ) 
+    ]
+    path_exists_stub.assert_called()
+    os_link_stub.assert_called_once_with(Path("/resources/test"), Path("/resources/test.jpg"))
+
+    # Test rename_images_to_type when no action should be taken
+    os_link_stub.reset_mock()
+    path_exists_stub.reset_mock()
+    get_mime_type_stub.return_value = ""
+    slide_contents_with_typed_image = slide_contents + [
+        pptify_book.FigureSlideContent(
+            title="Figure 2",
+            notes=None,
+            src="test.jpg",
+            alt="",
+            caption=""
+        ) 
+    ]
+    result = list(pptify_book.rename_images_to_type(slide_contents_with_typed_image, "/resources"))
+    assert result == [
+        pptify_book.FigureSlideContent(
+            title="Figure 1",
+            notes=None,
+            src="test",
+            alt="",
+            caption=""
+        ),
+        pptify_book.FigureSlideContent(
+            title="Figure 2",
+            notes=None,
+            src="test.jpg",
+            alt="",
+            caption=""
+        )
+    ]
+    assert path_exists_stub.call_count == 2
+    os_link_stub.assert_not_called()
+    mocker.stopall()
 
 
 def test_pptify_book(mocker, tmp_path):

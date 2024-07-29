@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
+import os
 
 from lxml import etree
 from lxml.builder import ElementMaker
@@ -16,6 +17,7 @@ from pptx.shapes.picture import Picture
 from pptx.shapes.base import BaseShape
 from pptx.slide import Slide
 from slugify import slugify
+from bakery_scripts.utils import get_mime_type
 
 
 def class_xpath(class_name: str):
@@ -23,7 +25,7 @@ def class_xpath(class_name: str):
 
 
 def try_find_nearest_sm(elem):
-    sm_results = elem.xpath('ancestor-or-self::*[@data-sm][1]/@data-sm')
+    sm_results = elem.xpath("ancestor-or-self::*[@data-sm][1]/@data-sm")
     if not sm_results:
         return "N/A"
     return sm_results[0]
@@ -315,6 +317,37 @@ def handle_nested_tables(slide_contents: Iterable[SlideContent]):
         yield slide_content
 
 
+def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
+    extension_by_mime_type = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/gif": ".gif",
+        "image/tiff": ".tiff",
+        "image/svg+xml": ".svg",
+    }
+    for slide_content in slide_contents:
+        if isinstance(slide_content, FigureSlideContent):
+            fig = slide_content
+            resource_name = Path(fig.src).name
+            resource_src = Path(resource_dir) / resource_name
+            assert resource_src.exists(), f"Missing resource: {resource_src}"
+            if resource_src.suffix == "":
+                mime_type = get_mime_type(str(resource_src))
+                ext = extension_by_mime_type.get(mime_type, "")
+                if ext != "":
+                    resource_dst = resource_src.with_suffix(ext)
+                    os.link(resource_src, resource_dst)
+                    yield FigureSlideContent(
+                        title=fig.title,
+                        notes=fig.notes,
+                        src=fig.src.replace(resource_name, resource_name + ext),
+                        alt=fig.alt,
+                        caption=fig.caption,
+                    )
+                    continue
+        yield slide_content
+
+
 def chapter_to_slide_contents(chapter: Chapter):
     if chapter.get_chapter_outline():
         yield OutlineSlideContent(
@@ -580,6 +613,7 @@ def main():
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
         slide_contents = handle_nested_tables(slide_contents)
+        slide_contents = rename_images_to_type(slide_contents, resource_dir)
         slides_etree = slide_contents_to_html(
             book.get_title(),
             f"Chapter {chapter.get_number()} {chapter.get_title()}",
