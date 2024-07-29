@@ -9,6 +9,19 @@ media_root="$(set +x && echo "$repo_info" | jq -r '.container.media_root')"
 not_found="$(grep -vFxf <(read_book_slugs --from-repo) <(read_book_slugs) || echo -n)"
 [[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-repo)"
 
+if $ARG_ENABLE_SOURCEMAPS; then
+    echo 'Annotating XML files with source map information (data-sm="...")'
+    pushd $IO_FETCH_META > /dev/null
+    find . -name '*.cnxml' -or -name '*.collection.xml' | \
+        node \
+            --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" \
+            "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" \
+            add-sourcemap-info \
+            --in-place
+    echo "XML files annotated successfully!"
+    popd > /dev/null
+fi
+
 neb pre-assemble "$IO_FETCH_META"
 commit_sha="$(set +x && git -C "$IO_FETCH_META" log --format="%h" -1)"
 rm -rf "$IO_FETCH_META/.git"
@@ -84,19 +97,6 @@ parse_book_dir
 cp -r "$IO_INITIAL_RESOURCES/." "$IO_RESOURCES"
 
 repo_root=$IO_FETCH_META
-
-if [[ $ARG_ENVIRONMENT != webhosting ]]; then
-    echo 'Annotating XML files with source map information (data-sm="...")'
-    pushd $IO_FETCH_META > /dev/null
-    find . -name '*.cnxml' -or -name '*.collection.xml' | \
-        node \
-            --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" \
-            "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" \
-            add-sourcemap-info \
-            --in-place
-    echo "XML files annotated successfully!"
-    popd > /dev/null
-fi
 
 neb assemble "$repo_root" "$IO_ASSEMBLED" "$IO_RESOURCES"
 

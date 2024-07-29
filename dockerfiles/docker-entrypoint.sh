@@ -241,12 +241,11 @@ function parse_book_dir() {
 
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
-    if [[ $LOCAL_ATTIC_DIR ]]; then
-        ARG_ENVIRONMENT=local
-    elif [[ -f $IO_BOOK/job_id ]]; then
-        ARG_ENVIRONMENT=corgi
-    else
-        ARG_ENVIRONMENT=webhosting
+    ARG_ENABLE_CORGI_UPLOAD=false
+    ARG_ENABLE_SOURCEMAPS=false
+    if [[ -f $IO_BOOK/job_id ]]; then
+        ARG_ENABLE_CORGI_UPLOAD=true
+        ARG_ENABLE_SOURCEMAPS=true
     fi
 }
 
