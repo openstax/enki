@@ -41,7 +41,7 @@ from bakery_scripts import (
     check_feed,
     download_exercise_images,
     gdocify_book,
-    mathmltable2png,
+    mathml2png,
     copy_resources_s3,
     fetch_map_resources,
     link_single,
@@ -1851,8 +1851,8 @@ async def test_gdocify_book(tmp_path, mocker):
         os.chdir(old_dir)
 
 
-def test_mathmltable2png(tmp_path, mocker):
-    """Test python parts of mathmltable2png"""
+def test_mathml2png(tmp_path, mocker):
+    """Test python parts of mathml2png"""
 
     # ==================================
     # test mathjax svg invalid xml patch
@@ -1860,7 +1860,7 @@ def test_mathmltable2png(tmp_path, mocker):
 
     invalid_svg_parts = """<svg><g data-semantic-operator="<"/></svg>"""
     supposed_patched_svg_parts = """<svg><g data-semantic-operator="&lt;"/></svg>"""
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathml2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # real world svg parts
@@ -1870,7 +1870,7 @@ def test_mathmltable2png(tmp_path, mocker):
     supposed_patched_svg_parts = """<svg>
     <g data-semantic-operator="relseq,&lt;" data-mml-node="mo" data-semantic-type="relation" data-semantic-role="inequality" data-semantic-id="9" data-semantic-parent="19" transform="translate(3260.3, 0)" />
     </svg>"""  # noqa: E501
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathml2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # does not happen in real world but test the regEx patching anyway with multiple lines
@@ -1890,7 +1890,7 @@ def test_mathmltable2png(tmp_path, mocker):
     <g data-semantic-operator=">donothingright" />
     <g data-semantic-operator="donothing>inbetween" />
     </svg>"""
-    patched_svg_parts = mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+    patched_svg_parts = mathml2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
     assert patched_svg_parts == supposed_patched_svg_parts
 
     # Multiple operators should not happen to my knowledge. (therealmarv)
@@ -1899,12 +1899,12 @@ def test_mathmltable2png(tmp_path, mocker):
     <g data-semantic-operator="<<" />
     </svg>"""
     with pytest.raises(Exception, match=r"^Failed to generate valid XML out of SVG.*"):
-        mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+        mathml2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
 
     # Invalid unpatchable XML should also break the execution
     invalid_svg_parts = "<svg><HelloImNotValid></svg>"
     with pytest.raises(Exception, match=r"^Failed to generate valid XML out of SVG.*"):
-        mathmltable2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
+        mathml2png.patch_mathjax_svg_invalid_xml(invalid_svg_parts)
 
 
 # The ANY_VALUE and ANY_PARAM classes contain some shenanigans to allow us to use
