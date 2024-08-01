@@ -44,15 +44,17 @@ def try_find_nearest_sm(elem):
 class Element:
     def __init__(self, element):
         self._element = element
+    
+    def has_class(self, class_name: str):
+        class_list = self.element.get("class", "").strip()
+        return f" {class_name} " in f" {class_list} "
 
     @property
     def element(self):
         return self._element
     
-    @property
-    def doc_dir(self):
-        root_tree = self._element.getroottree()
-        return Path(root_tree.docinfo.URL).parent
+    def get_doc_dir(self):
+        return Path(self.element.getroottree().docinfo.URL).parent
 
     def xpath(self, p: str, *, namespaces=None):
         _namespaces = {"h": "http://www.w3.org/1999/xhtml"}
@@ -138,10 +140,16 @@ class Table(Captioned):
 
 
 class Page(BookElement):
-    def __init__(self, parent_chapter: "Chapter", number: str, elem):
+    def __init__(self, parent_chapter: "Chapter", number: int, elem):
         super().__init__(elem)
         self.parent_chapter = parent_chapter
-        self.number = number
+        self._number_in_chapter = number
+
+    @property
+    def number_less_intro(self):
+        if self.parent_chapter.has_introduction:
+            return self._number_in_chapter - 1
+        return self._number_in_chapter
 
     def get_learning_objectives(self):
         sections = self.xpath(".//h:section")
@@ -161,7 +169,7 @@ class Page(BookElement):
         return [Figure(elem) for elem in figure_elems]
 
     def get_number(self):
-        return f"{self.parent_chapter.get_number()}.{self.number}"
+        return f"{self.parent_chapter.get_number()}.{self.number_less_intro}"
 
     def get_tables(self):
         # Get all tables that are not nested in other tables
@@ -172,7 +180,7 @@ class Page(BookElement):
 
     @property
     def is_introduction(self):
-        return self.get_title().lower() == "introduction"
+        return self.has_class("introduction")
 
     @property
     def is_summary(self):
@@ -183,14 +191,26 @@ class Chapter(BookElement):
     def __init__(self, number, elem):
         super().__init__(elem)
         self.number = number
+        self._pages = []
+        self._has_introduction = None
+
+    @property
+    def has_introduction(self):
+        if self._has_introduction is None:
+            self._has_introduction = any(
+                p.is_introduction for p in self.get_pages()
+            )
+        return self._has_introduction
 
     def get_number(self):
-        return self.number
+        return str(self.number)
 
     def get_pages(self):
-        page_elems = self.xpath('.//*[@data-type="page"]')
-        pages = enumerate(page_elems, start=1)
-        return [Page(self, str(i), elem) for i, elem in pages]
+        if not self._pages:
+            page_elems = self.xpath('.//*[@data-type="page"]')
+            pages = enumerate(page_elems, start=1)
+            self._pages = [Page(self, i, elem) for i, elem in pages]
+        return self._pages
 
     def get_chapter_outline(
         self, *, include_introduction=False, include_summary=False
@@ -208,7 +228,7 @@ class Chapter(BookElement):
 class Book(Element):
     def get_chapters(self):
         chapters = enumerate(self.xpath('//*[@data-type="chapter"]'), start=1)
-        return [Chapter(str(i), el) for i, el in chapters]
+        return [Chapter(i, el) for i, el in chapters]
 
     def get_title(self):
         title_text = self.xpath(".//h:title//text()")
@@ -264,7 +284,7 @@ class TableSlideContent(SlideContent):
 @dataclass(kw_only=True)
 class HTMLTableSlideContent(SlideContent):
     html: etree.ElementBase
-    caption: str
+    caption: str = ""
 
 
 def chunk_bullets(bullets: list[str], max_bullets: int, max_characters: int):
@@ -356,7 +376,7 @@ def auto_crop_img(img, bg=None):
     return img.crop(box)
 
 
-def xhtml_to_img(elem, *, css=[], resource_dir=None, format=None):
+def xhtml_to_img(elem, *, css=[], resource_dir=None):
     options = {
         "format": "png",
         "log-level": "error"
@@ -364,8 +384,6 @@ def xhtml_to_img(elem, *, css=[], resource_dir=None, format=None):
     if resource_dir is not None:
         options["enable-local-file-access"] = ""
         options["allow"] = resource_dir
-    if format is not None:
-        options["format"] = format
     with BytesIO() as img_file:
         serialized = etree.tostring(elem, encoding="unicode")
         assert serialized, "Cannot convert empty element"
@@ -380,7 +398,7 @@ def xhtml_to_img(elem, *, css=[], resource_dir=None, format=None):
 
 
 def element_to_image(
-    elem: etree.ElementBase, doc_dir: Path,resource_dir: Path, css: list[str]
+    elem: etree.ElementBase, doc_dir: Path, resource_dir: Path, css: list[str]
 ) -> Image.Image:
     math_nodes = elem.xpath(
         "//m:math", namespaces={"m": "http://www.w3.org/1998/Math/MathML"}
@@ -392,7 +410,7 @@ def element_to_image(
     for resource in elem.xpath('.//*[@src]'):
         attr = "src"
         rel_p = resource.get(attr)
-        abs_p = (doc_dir / rel_p).resolve(strict=True)
+        abs_p = (doc_dir / rel_p).resolve()
         resource.set(attr, str(abs_p))
     img = xhtml_to_img(elem, resource_dir=resource_dir, css=css)
     img = auto_crop_img(img)
@@ -402,7 +420,7 @@ def element_to_image(
 def os_table_to_image(
     os_table: Table, resource_dir: Path, css: list[str]
 ) -> Image.Image:
-    doc_dir = os_table.doc_dir
+    doc_dir = os_table.get_doc_dir()
     # Clone the .os-table div. The div tends to be part of the css selector.
     table_clone = deepcopy(os_table.element)
     # Remove everything other than the table from the div (we do not want the
@@ -429,7 +447,7 @@ def handle_tables(
                 len(os_table.xpath(".//h:table")) > 1 or  # nested tables
                 len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0 
             ):
-                doc_dir = os_table.doc_dir
+                doc_dir = os_table.get_doc_dir()
                 img_name = slugify(title.replace("'", "")) + ".png"
                 img_path = resource_dir / img_name
                 img.save(img_path)
@@ -437,7 +455,7 @@ def handle_tables(
                     title=title,
                     src=os.path.relpath(img_path, doc_dir),
                     caption=os_table.get_caption(),
-                    alt=title,
+                    alt="",
                 )
             else:
                 yield HTMLTableSlideContent(
@@ -516,7 +534,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                     src = fig.get_src()
                     title = f"Figure {fig.get_number()}"
                     caption = fig.get_caption() or fig.get_alt() or "None"
-                    alt = fig.get_alt() or caption
+                    alt = fig.get_alt() or ""
                     if not src:  # pragma: no cover
                         name = "src"
                         parent_page_id = fig.element.xpath(
@@ -742,7 +760,7 @@ def main():
     # For xhtml_to_img
     os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
-    book = Book(tree)
+    book = Book(tree.getroot())
     for chapter in book.get_chapters():
         title = f"{chapter.get_number()} {chapter.get_title()}".replace("'", "")
         slug = slugify(title)
