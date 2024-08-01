@@ -193,7 +193,8 @@
                 "IO_BOOK",
                 "IO_FETCH_META",
                 "IO_LINKED",
-                "IO_RESOURCES"
+                "IO_RESOURCES",
+                "IO_BAKED"
             ],
             "outputDirs": [
                 "IO_PPTX"

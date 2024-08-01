@@ -7,17 +7,27 @@ from typing import Iterable
 import re
 from zipfile import ZipFile, ZIP_DEFLATED
 import os
+from io import BytesIO
+from copy import deepcopy
 
 from lxml import etree
 from lxml.builder import ElementMaker
+
 import pptx  # python-pptx
 import pptx.util
 import pptx.shapes
 from pptx.shapes.picture import Picture
 from pptx.shapes.base import BaseShape
 from pptx.slide import Slide
+
 from slugify import slugify
+
 from bakery_scripts.utils import get_mime_type
+from bakery_scripts import mathml2png
+
+import imgkit
+
+from PIL import Image
 
 
 def class_xpath(class_name: str):
@@ -38,6 +48,11 @@ class Element:
     @property
     def element(self):
         return self._element
+    
+    @property
+    def doc_dir(self):
+        root_tree = self._element.getroottree()
+        return Path(root_tree.docinfo.URL).parent
 
     def xpath(self, p: str, *, namespaces=None):
         _namespaces = {"h": "http://www.w3.org/1999/xhtml"}
@@ -111,14 +126,12 @@ class Figure(Captioned):
 class Table(Captioned):
     def get_title(self):
         title = super().get_title()
-        if self.has_number():
-            number = self.get_number()
-            if title:
-                return f"Table {number} {title}"
-            else:
-                return f"Table {number}"
-        else:  # pragma: no cover
-            return f"Table {title}"
+        number = self.get_number()
+        full_title = " ".join(
+            part for part in ("Table", number, title) if part
+        )
+        assert full_title != "Table", "Failed to generate unique table title"
+        return full_title
 
     def get_table_elem(self):
         return self.xpath1(".//h:table")
@@ -245,7 +258,13 @@ class FigureSlideContent(SlideContent):
 
 @dataclass(kw_only=True)
 class TableSlideContent(SlideContent):
+    os_table: Table
+
+
+@dataclass(kw_only=True)
+class HTMLTableSlideContent(SlideContent):
     html: etree.ElementBase
+    caption: str
 
 
 def chunk_bullets(bullets: list[str], max_bullets: int, max_characters: int):
@@ -297,24 +316,137 @@ def split_large_bullet_lists(slide_contents: Iterable[SlideContent]):
         yield slide_content
 
 
-def handle_nested_tables(slide_contents: Iterable[SlideContent]):
+def index_to_coord(idx, image_width):
+    coord_raw = idx / image_width
+    row = int(coord_raw)
+    col = round((coord_raw - row) * image_width)
+    return col, row
+
+
+def image_to_pixels(img: Image.Image):
+    b = img.tobytes()
+    stride = len(img.getpixel((0, 0)))
+    pixels = zip(*(b[offset::stride] for offset in range(stride)))
+    enumerated_pixels = enumerate(pixels)
+    return enumerated_pixels
+
+
+def auto_crop_img(img, bg=None):
+    img_width = img.width
+    pixels = image_to_pixels(img)
+    if bg is None:
+        bg = img.getpixel((0, 0))
+    non_bg_coords = (
+        index_to_coord(idx, img_width)
+        for idx, _ in (p for p in pixels if p[1] != bg)
+    )
+    # Intentionally reversed so we can find the min/max
+    right, bottom, left, top = img.getbbox()
+    # Create largest box that contains any non-background pixels
+    for col, row in non_bg_coords:
+        if col < left:
+            left = col
+        elif col > right:
+            right = col
+        if row < top:
+            top = row
+        elif row > bottom:
+            bottom = row
+    box = (left, top, right + 1, bottom + 1)
+    return img.crop(box)
+
+
+def xhtml_to_img(elem, *, css=[], resource_dir=None, format=None):
+    options = {
+        "format": "png",
+        "log-level": "error"
+    }
+    if resource_dir is not None:
+        options["enable-local-file-access"] = ""
+        options["allow"] = resource_dir
+    if format is not None:
+        options["format"] = format
+    with BytesIO() as img_file:
+        serialized = etree.tostring(elem, encoding="unicode")
+        assert serialized, "Cannot convert empty element"
+        img_bytes = imgkit.from_string(
+            serialized, None, css=css, options=options
+        )
+        img_file.write(img_bytes)
+        img_file.seek(0)
+        img = Image.open(img_file)
+        img.load()  # load eagerly (the BytesIO will close)
+    return img
+
+
+def element_to_image(
+    elem: etree.ElementBase, doc_dir: Path,resource_dir: Path, css: list[str]
+) -> Image.Image:
+    math_nodes = elem.xpath(
+        "//m:math", namespaces={"m": "http://www.w3.org/1998/Math/MathML"}
+    )
+    # NOTE: Requires mathjax json rpc to be running
+    # This replaces mathml with imgs that have relative paths
+    mathml2png.convert_math(math_nodes, resource_dir)
+    # NOTE: wkhtmltoimage requires absolute paths
+    for resource in elem.xpath('.//*[@src]'):
+        attr = "src"
+        rel_p = resource.get(attr)
+        abs_p = (doc_dir / rel_p).resolve(strict=True)
+        resource.set(attr, str(abs_p))
+    img = xhtml_to_img(elem, resource_dir=resource_dir, css=css)
+    img = auto_crop_img(img)
+    return img
+
+
+def os_table_to_image(
+    os_table: Table, resource_dir: Path, css: list[str]
+) -> Image.Image:
+    doc_dir = os_table.doc_dir
+    # Clone the .os-table div. The div tends to be part of the css selector.
+    table_clone = deepcopy(os_table.element)
+    # Remove everything other than the table from the div (we do not want the
+    # caption in the image)
+    for elem in list(table_clone):
+        if elem.tag != "{http://www.w3.org/1999/xhtml}table":
+            table_clone.remove(elem)
+    return element_to_image(table_clone, doc_dir, resource_dir, css)
+
+
+def handle_tables(
+    slide_contents: Iterable[SlideContent], resource_dir: Path, css: list[str]
+):
     for slide_content in slide_contents:
         if isinstance(slide_content, TableSlideContent):
-            table = slide_content
-            nested_tables = table.html.xpath(
-                ".//h:table", namespaces={"h": "http://www.w3.org/1999/xhtml"}
-            )
-            if nested_tables:
-                title = slide_content.title
-                tables = [table.html] + nested_tables
-                count = len(tables)
-                for i, tbl in enumerate(tables, start=1):
-                    yield TableSlideContent(
-                        title=f"{title} ({i} of {count})", html=tbl
-                    )
-                continue
-        # Default to yielding original content
-        yield slide_content
+            table_slide = slide_content
+            os_table = table_slide.os_table
+            title = table_slide.title
+            img = os_table_to_image(os_table, resource_dir, css)
+            w, h = img.size
+            if (
+                h > 250 or
+                w * h > 200000 or
+                len(os_table.xpath(".//h:table")) > 1 or  # nested tables
+                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0 
+            ):
+                doc_dir = os_table.doc_dir
+                img_name = slugify(title.replace("'", "")) + ".png"
+                img_path = resource_dir / img_name
+                img.save(img_path)
+                yield FigureSlideContent(
+                    title=title,
+                    src=os.path.relpath(img_path, doc_dir),
+                    caption=os_table.get_caption(),
+                    alt=title,
+                )
+            else:
+                yield HTMLTableSlideContent(
+                    title=title,
+                    html=os_table.get_table_elem(),
+                    caption=os_table.get_caption()
+                )
+        else:
+            yield slide_content
 
 
 def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
@@ -382,11 +514,11 @@ def chapter_to_slide_contents(chapter: Chapter):
                     if not fig.has_number():
                         continue
                     src = fig.get_src()
-                    alt = fig.get_alt()
                     title = f"Figure {fig.get_number()}"
                     caption = fig.get_caption() or fig.get_alt() or "None"
-                    if not src or not alt:  # pragma: no cover
-                        name = "src" if not src else "alt"
+                    alt = fig.get_alt() or caption
+                    if not src:  # pragma: no cover
+                        name = "src"
                         parent_page_id = fig.element.xpath(
                             'ancestor::*[@data-type = "page"]/@id'
                         )[0]
@@ -408,7 +540,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                     if not table.has_number():  # pragma: no cover
                         continue
                     yield TableSlideContent(
-                        title=table.get_title(), html=table.get_table_elem()
+                        title=table.get_title(), os_table=table,
                     )
 
 
@@ -440,12 +572,16 @@ def slide_contents_to_html(
                         title=slide_content.alt,
                     )
                 )
-            elif isinstance(slide_content, TableSlideContent):
+            elif isinstance(slide_content, HTMLTableSlideContent):
                 yield E.h2(slide_content.title)
-                yield slide_content.html
+                table_elem = slide_content.html
+                if slide_content.caption:
+                    table_caption = E.caption(slide_content.caption)
+                    table_elem.insert(0, table_caption)
+                yield table_elem
             else:  # pragma: no cover
                 raise TypeError(
-                    f"Unknown slide content type: {type(slide_content)}"
+                    f"Cannot convert slide content type: {type(slide_content)}"
                 )
             if slide_content.notes is not None:
                 notes = slide_content.notes
@@ -529,10 +665,12 @@ def fix_image_alt_text(slides: Iterable[Slide]):
 
 def adjust_figure_caption_font(slides: Iterable[Slide]):
     for slide in slides:
-        if slide.shapes.title.text.lower().startswith("figure"):
+        title = slide.shapes.title.text.lower()
+        if title.startswith("figure") or title.startswith("table"):
             caption = slide.shapes[-1]
-            for p in caption.text_frame.paragraphs:
-                p.font.size = pptx.util.Pt(12)
+            if caption.has_text_frame:
+                for p in caption.text_frame.paragraphs:
+                    p.font.size = pptx.util.Pt(12)
         yield slide
 
 
@@ -599,7 +737,10 @@ def main():
     resource_dir = Path(sys.argv[2]).resolve(strict=True)
     reference_doc = Path(sys.argv[3]).resolve(strict=True)
     cover_image = Path(sys.argv[4]).resolve()
-    out_fmt = sys.argv[5]
+    css = [sys.argv[5]]
+    out_fmt = sys.argv[6]
+    # For xhtml_to_img
+    os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
     book = Book(tree)
     for chapter in book.get_chapters():
@@ -612,7 +753,7 @@ def main():
         print(f"Working on: {slug}", file=sys.stderr)
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
-        slide_contents = handle_nested_tables(slide_contents)
+        slide_contents = handle_tables(slide_contents, resource_dir, css)
         slide_contents = rename_images_to_type(slide_contents, resource_dir)
         slides_etree = slide_contents_to_html(
             book.get_title(),

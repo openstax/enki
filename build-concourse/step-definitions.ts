@@ -51,7 +51,7 @@ set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASS
 set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // PPT_STEPS
-set({name: 'step-pptx', inputs: [IO.BOOK, IO.FETCH_META, IO.LINKED, IO.RESOURCES], outputs: [IO.PPTX], env: {}})
+set({name: 'step-pptx', inputs: [IO.BOOK, IO.FETCH_META, IO.LINKED, IO.RESOURCES, IO.BAKED], outputs: [IO.PPTX], env: {}})
 set({name: 'step-upload-pptx', inputs: [IO.BOOK, IO.FETCHED, IO.PPTX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps

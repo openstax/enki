@@ -210,6 +210,7 @@ RUN set -x \
     mime-support wget xsltproc lsb-release git \
     imagemagick icc-profiles-free curl unzip \
     libgit2-dev \
+    wkhtmltopdf \
     # ... for neb:
     wget libmagic1 mime-support \
     # ... for mathify:
