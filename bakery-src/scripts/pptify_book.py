@@ -44,7 +44,7 @@ def try_find_nearest_sm(elem):
 class Element:
     def __init__(self, element):
         self._element = element
-    
+
     def has_class(self, class_name: str):
         class_list = self.element.get("class", "").strip()
         return f" {class_name} " in f" {class_list} "
@@ -52,7 +52,7 @@ class Element:
     @property
     def element(self):
         return self._element
-    
+
     def get_doc_dir(self):
         return Path(self.element.getroottree().docinfo.URL).parent
 
@@ -445,7 +445,7 @@ def handle_tables(
                 h > 250 or
                 w * h > 200000 or
                 len(os_table.xpath(".//h:table")) > 1 or  # nested tables
-                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0 
+                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
             ):
                 doc_dir = os_table.get_doc_dir()
                 img_name = slugify(title.replace("'", "")) + ".png"
@@ -486,7 +486,8 @@ def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
                 ext = extension_by_mime_type.get(mime_type, "")
                 if ext != "":
                     resource_dst = resource_src.with_suffix(ext)
-                    os.link(resource_src, resource_dst)
+                    if not resource_dst.exists():
+                        os.link(resource_src, resource_dst)
                     yield FigureSlideContent(
                         title=fig.title,
                         notes=fig.notes,

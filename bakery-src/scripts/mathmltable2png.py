@@ -25,7 +25,7 @@ def main():  # pragma: no cover
 
     xpath = '//h:math[descendant::h:mtable]|//m:math[descendant::m:mtable]'
     convert_math(xhtml.xpath(xpath, namespaces=ns), resources_dir)
-    
+
     with open(result_xhtml_file, 'wb') as out:
         out.write(etree.tostring(xhtml, encoding='utf8', pretty_print=False))
 

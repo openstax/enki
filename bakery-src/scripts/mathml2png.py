@@ -9,6 +9,7 @@ from .profiler import timed
 import requests
 from lxml import etree
 
+
 DENSITY_DPI = 900
 IMG_SNIPPET = '<img src="{}" alt="{}" width="{}" height="{}" />'
 JSONRPC_URL = 'http://127.0.0.1:33001/jsonrpc'

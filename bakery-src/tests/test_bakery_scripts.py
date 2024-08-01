@@ -20,7 +20,7 @@ import threading
 from urllib.parse import urlparse
 from tempfile import TemporaryDirectory
 from distutils.dir_util import copy_tree
-from PIL import Image
+from PIL import Image, ImageDraw
 from pathlib import Path
 from filecmp import cmp
 import unittest
@@ -3731,8 +3731,10 @@ class ModelBehaviorTestCase(unittest.TestCase):
 def test_ppt_parsing(mocker):
     input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.mathified.xhtml")
     tree = etree.parse(str(input_baked_xhtml), None)
-    book = pptify_book.Book(tree)
+    book = pptify_book.Book(tree.getroot())
     chapters = book.get_chapters()
+    assert str(book.get_doc_dir()) == os.path.dirname(input_baked_xhtml)
+    assert book.get_title() == "University Physics Volume 2"
     assert [(ch.get_title(), ch.get_number()) for ch in chapters] == [
         ("Temperature and Heat", "1"),
         ("The Kinetic Theory of Gases", "2"),
@@ -3978,13 +3980,17 @@ def test_ppt_slide_content(mocker):
         *,
         number="1",
         has_caption=True,
-        html=E.div(E.table(E.tr(E.td("test"))))
+        html=E.div(E.table(E.tr(E.td("test")))),
+        caption="caption",
+        doc_dir="/doc_dir"
     ):
         table = pptify_book.Table(html)
         table.has_number = lambda: number is not None
         table.get_number = lambda: number
         table.get_title = lambda: f"Table {number}"
+        table.get_caption = lambda: caption
         table.has_caption = lambda: has_caption
+        table.get_doc_dir = lambda: doc_dir
         return table
 
     def page_maker(
@@ -3993,14 +3999,21 @@ def test_ppt_slide_content(mocker):
         title="test-page",
         number="1",
         learning_objectives=None,
+        is_introduction=False,
         figures=None,
         tables=None,
     ):
         page = pptify_book.Page(parent_chapter, number, mocker.stub())
+        class_list = []
+        if is_introduction:
+            class_list.append("introduction")
         page.get_title = lambda: title
         page.get_learning_objectives = lambda: learning_objectives or []
         page.get_figures = lambda: figures or []
         page.get_tables = lambda: tables or []
+        page.element.get = lambda k, d=None: (
+            " ".join(class_list) if k == "class" else d
+        )
         return page
 
     def chapter_maker(*, title="test-chapter", number="1", pages=[]):
@@ -4073,6 +4086,7 @@ def test_ppt_slide_content(mocker):
     ]
 
     table_elem = E.table()
+    table = table_maker(html=E.div(table_elem))
     pages = []
     chapter = chapter_maker(pages=pages)
     pages.append(
@@ -4083,9 +4097,7 @@ def test_ppt_slide_content(mocker):
                 figure_maker(has_caption=False),  # unnumbered figures should be ignored
                 figure_maker(src="a.png"),
             ],
-            tables=[
-                table_maker(html=E.div(table_elem))
-            ]
+            tables=[table]
         )
     )
     slide_contents = pptify_book.chapter_to_slide_contents(chapter)
@@ -4116,7 +4128,7 @@ def test_ppt_slide_content(mocker):
         pptify_book.TableSlideContent(
             title='Table 1',
             notes=None,
-            html=table_elem,
+            os_table=table,
         )
     ]
 
@@ -4207,7 +4219,7 @@ def test_ppt_slide_content(mocker):
             caption="123",
             notes="Figure slide",
         ),
-        pptify_book.TableSlideContent(
+        pptify_book.HTMLTableSlideContent(
             title='Table 1',
             notes=None,
             html=table_elem,
@@ -4221,36 +4233,51 @@ def test_ppt_slide_content(mocker):
     expected = """<html xmlns="http://www.w3.org/1999/xhtml"><head><title>title</title><meta name="subtitle" content="subtitle"/></head><body><h2>Chapter outline</h2><ol start="1"><li>test-page</li></ol><h2>1.1 test-page</h2><strong>Learning Objectives</strong><ul><li>one</li><li>two</li><li>three</li></ul><h2>test</h2><figure><img src="a.png" alt="123" title="ing"/></figure><div class="notes"><div>Figure slide</div></div><h2>Table 1</h2><table/></body></html>"""
     assert etree.tostring(slides_etree, encoding="unicode") == expected
 
-    tbl = E.table(
-        E.tr(
-            E.td(E.table(E.tr(E.td("nested")))),
-            E.td("Col 2"),
-        ),
-    )
-    tbl2 = E.table(
-        E.tr(
-            E.td("not nested")
-        )
-    )
+    # Test table transformation
+    os_table_to_image_stub = mocker.patch("bakery_scripts.pptify_book.os_table_to_image")
+    image_save_stub = mocker.patch("bakery_scripts.pptify_book.Image.Image.save")
+    # Table is too large, use image instead
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    os_table_to_image_stub.start()
+    image_save_stub.start()
     slides = [
         pptify_book.TableSlideContent(
             title="Test",
-            html=tbl,
+            os_table=table_maker(),
         ),
         pptify_book.TableSlideContent(
             title="Test 2",
-            html=tbl2,
-        )
+            os_table=table_maker(),
+        ),
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
     ]
-    slides = pptify_book.handle_nested_tables(slides)
-    slides = list(slides)
-    assert len(slides) == 3
-    assert slides[0].title == "Test (1 of 2)"
-    assert slides[1].title == "Test (2 of 2)"
-    assert slides[2].title == "Test 2"
+    results = pptify_book.handle_tables(slides, Path("/resources"), [])
+    results = list(results)[:-1]
+    assert image_save_stub.mock_calls[1].args == (Path("/resources/test.png"),)
+    assert image_save_stub.mock_calls[2].args == (Path("/resources/test-2.png"),)
+    assert len(results) == 2
+    assert all(isinstance(s, pptify_book.FigureSlideContent) for s in results)
+
+    image_save_stub.reset_mock()
+    # Table should fit, use HTML
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 100))
+    results = pptify_book.handle_tables(slides, Path("/resources"), [])
+    results = list(results)[:-1]
+    assert len(results) == 2
+    image_save_stub.assert_not_called()
+    assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
+
+    mocker.stopall()
 
 
-def test_slide_transformations(mocker):
+def test_slide_transformations(mocker, tmp_path):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
 
@@ -4372,67 +4399,195 @@ def test_slide_transformations(mocker):
     child_div.set("data-sm", "30")
     assert pptify_book.try_find_nearest_sm(child_div) == "30"
 
+    resource_src = tmp_path / "src"
+    resource_src.touch()
+    resource_dst = resource_src.with_suffix(".jpg")
+    existing_renamed_resource = tmp_path / "existing.jpg"
+    existing_renamed_resource.touch()
+
     # Test rename_images_to_type
     get_mime_type_stub = mocker.patch("bakery_scripts.pptify_book.get_mime_type")
-    path_exists_stub = mocker.patch("bakery_scripts.pptify_book.Path.exists")
     os_link_stub = mocker.patch("bakery_scripts.pptify_book.os.link")
     get_mime_type_stub.start()
-    path_exists_stub.start()
     os_link_stub.start()
     slide_contents = [
         pptify_book.FigureSlideContent(
             title="Figure 1",
-            src="test",
+            src=str(resource_src),
+            alt="",
+            caption=""
+        ),
+        pptify_book.FigureSlideContent(
+            title="Figure 2",
+            src=str(existing_renamed_resource),
             alt="",
             caption=""
         )
     ]
     get_mime_type_stub.return_value = "image/jpeg"
-    result = list(pptify_book.rename_images_to_type(slide_contents, "/resources"))
+    resource_dir = tmp_path
+    result = list(pptify_book.rename_images_to_type(slide_contents, resource_dir))
     assert result == [
         pptify_book.FigureSlideContent(
             title="Figure 1",
             notes=None,
-            src="test.jpg",
-            alt="",
-            caption=""
-        ) 
-    ]
-    path_exists_stub.assert_called()
-    os_link_stub.assert_called_once_with(Path("/resources/test"), Path("/resources/test.jpg"))
-
-    # Test rename_images_to_type when no action should be taken
-    os_link_stub.reset_mock()
-    path_exists_stub.reset_mock()
-    get_mime_type_stub.return_value = ""
-    slide_contents_with_typed_image = slide_contents + [
-        pptify_book.FigureSlideContent(
-            title="Figure 2",
-            notes=None,
-            src="test.jpg",
-            alt="",
-            caption=""
-        ) 
-    ]
-    result = list(pptify_book.rename_images_to_type(slide_contents_with_typed_image, "/resources"))
-    assert result == [
-        pptify_book.FigureSlideContent(
-            title="Figure 1",
-            notes=None,
-            src="test",
+            src=str(resource_dst),
             alt="",
             caption=""
         ),
         pptify_book.FigureSlideContent(
             title="Figure 2",
             notes=None,
-            src="test.jpg",
+            src=str(existing_renamed_resource),
             alt="",
             caption=""
         )
     ]
-    assert path_exists_stub.call_count == 2
+    os_link_stub.assert_called_once_with(resource_src, resource_dst)
+
+    # Test rename_images_to_type when no action should be taken
+    resource_dst.touch()
+    os_link_stub.reset_mock()
+    get_mime_type_stub.return_value = ""
+    slide_contents_with_typed_image = slide_contents + [
+        pptify_book.FigureSlideContent(
+            title="Figure 3",
+            notes=None,
+            src=str(resource_dst),
+            alt="",
+            caption=""
+        ) 
+    ]
+    result = list(pptify_book.rename_images_to_type(slide_contents_with_typed_image, resource_dir))
+    assert result == [
+        pptify_book.FigureSlideContent(
+            title="Figure 1",
+            notes=None,
+            src=str(resource_src),
+            alt="",
+            caption=""
+        ),
+        pptify_book.FigureSlideContent(
+            title="Figure 2",
+            notes=None,
+            src=str(existing_renamed_resource),
+            alt="",
+            caption=""
+        ),
+        pptify_book.FigureSlideContent(
+            title="Figure 3",
+            notes=None,
+            src=str(resource_dst),
+            alt="",
+            caption=""
+        )
+    ]
     os_link_stub.assert_not_called()
+
+    slide_contents = [
+        pptify_book.HTMLTableSlideContent(
+            title="Table",
+            html=E.table(E.tr(E.td("stuff"))),
+            caption="Test"
+        )
+    ]
+    slides_etree = pptify_book.slide_contents_to_html("test_table", "subtitle", slide_contents)
+    assert slides_etree.xpath('//*[local-name() = "caption"]/parent::*')[0].tag == "{http://www.w3.org/1999/xhtml}table"
+    mocker.stopall()
+
+
+def test_ppt_image_transforms(mocker):
+    namespace = "http://www.w3.org/1999/xhtml"
+    E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    img = Image.new("RGB", (100, 100), (0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((20, 20, 40, 40), (255, 255, 255))
+    cropped = pptify_book.auto_crop_img(img)
+    assert img.size != cropped.size
+    assert cropped.size == (21, 21)
+
+    img = Image.new("RGB", (100, 100), (0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.line([(5, 5), (10, 10)], (255, 255, 255))
+    draw.line([(25, 5), (50, 10)], (255, 255, 255))
+    cropped = pptify_book.auto_crop_img(img)
+    assert img.size != cropped.size
+    assert cropped.size == (46, 6)
+
+    with io.BytesIO() as img_file:
+        img.save(img_file, "JPEG")
+        img_file.seek(0)
+        img_bytes = img_file.read()
+
+    imgkit_from_string_stub = mocker.patch("bakery_scripts.pptify_book.imgkit.from_string")
+    imgkit_from_string_stub.return_value = img_bytes
+    imgkit_from_string_stub.start()
+    xhtml = E.html()
+    result = pptify_book.xhtml_to_img(xhtml)
+    imgkit_from_string_stub.assert_called_once_with(
+        etree.tostring(xhtml, encoding="unicode"),
+        None,
+        css=[],
+        options={
+            "format": "png",
+            "log-level": "error"
+        },
+    )
+    assert result.size == img.size
+
+    imgkit_from_string_stub.reset_mock()
+    result = pptify_book.xhtml_to_img(xhtml, resource_dir="test")
+    imgkit_from_string_stub.assert_called_once_with(
+        etree.tostring(xhtml, encoding="unicode"),
+        None,
+        css=[],
+        options={
+            "allow": "test",
+            "enable-local-file-access": "",
+            "format": "png",
+            "log-level": "error"
+        },
+    )
+    assert result.size == img.size
+
+    imgkit_from_string_stub.reset_mock()
+    convert_math_stub = mocker.patch("bakery_scripts.pptify_book.mathml2png.convert_math")
+    convert_math_stub.start()
+    img = E.img(src="../resources/fake-image")
+    table = E.table(
+        E.tr(
+            E.td("test"),
+            E.td(img)
+        )
+    )
+    document_dir, resource_dir = Path("/IO_LINKED"), Path("/resource_dir")
+    result = pptify_book.element_to_image(table, document_dir, resource_dir, [])
+    assert img.get("src") == "/resources/fake-image"
+    convert_math_stub.assert_called_once_with([], resource_dir)
+
+    imgkit_from_string_stub.reset_mock()
+    class FakeTable:
+        element = E.div(
+           table,
+            E.div("Caption and stuff")
+        )
+        def get_doc_dir(self):
+            return document_dir
+    
+    os_table = FakeTable()
+    result = pptify_book.os_table_to_image(os_table, resource_dir, [])
+    expected_elem = E.div(table)
+    imgkit_from_string_stub.assert_called_once_with(
+        etree.tostring(expected_elem, encoding="unicode"),
+        None,
+        css=[],
+        options={
+            "allow": resource_dir,
+            "enable-local-file-access": "",
+            "format": "png",
+            "log-level": "error"
+        },
+    )
     mocker.stopall()
 
 
@@ -4448,6 +4603,7 @@ def test_pptify_book(mocker, tmp_path):
         str(resource_dir),
         str(reference_doc),
         str(cover_image),
+        "css-file",
         f"{tmp_path}/ppt-{{slug}}.{{extension}}",
     ]
 
