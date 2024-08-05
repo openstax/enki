@@ -3934,13 +3934,14 @@ def test_ppt_parsing(mocker):
     sorted_pages = list(pptify_book.sort_by_document_index(shuffled_pages))
     assert sorted_pages == test_pages
 
-    # The test document does not have learning objectives
+    # First scenario: Section without learning-objectives class
+    # In this case, we guess based on title text
     test_page_xhtml = etree.fromstring(
         """
         <html xmlns="http://www.w3.org/1999/xhtml">
             <div data-type="page">
                 <section>
-                    <h2>Learning Objectives</h2>
+                    <h2 data-type="title">Learning Objectives</h2>
                     <p>By the end of this section you should be able to</p>
                     <ul>
                         <li>a</li>
@@ -3952,7 +3953,57 @@ def test_ppt_parsing(mocker):
         """,
         None
     )
-    test_page = pptify_book.Page(mocker.stub(), '1', test_page_xhtml)
+    page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
+    test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
+    assert test_page.get_learning_objectives() == ['a', 'b']
+
+    # Second scenario: abstract
+    # In this case, if the section is inside an abstract, we assume it is LO
+    test_page_xhtml = etree.fromstring(
+        """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+            <div data-type="page">
+                <div data-type="abstract">
+                    <header>
+                        <h2 data-type="title">Learning Objectives</h2>
+                    </header>
+                    <section>
+                        <p>By the end of this section you should be able to</p>
+                        <ul>
+                            <li>a</li>
+                            <li>b</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </html>
+        """,
+        None
+    )
+    page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
+    test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
+    assert test_page.get_learning_objectives() == ['a', 'b']
+
+    # Third scenario: Ideal case of LO with learning-objectices class
+    test_page_xhtml = etree.fromstring(
+        """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+            <div data-type="page">
+                <section class="learning-objectives">
+                    <h2 data-type="title">Learning Objectives</h2>
+                    <p>By the end of this section you should be able to</p>
+                    <ul>
+                        <li>a</li>
+                        <li>b</li>
+                    </ul>
+                </section>
+            </div>
+        </html>
+        """,
+        None
+    )
+    page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
+    test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
     assert test_page.get_learning_objectives() == ['a', 'b']
 
 

@@ -152,16 +152,24 @@ class Page(BookElement):
         return self._number_in_chapter
 
     def get_learning_objectives(self):
+        learning_objectives = []
         sections = self.xpath(".//h:section")
         if sections:
-            lis = sections[0].xpath(
-                ".//h:li", namespaces={"h": "http://www.w3.org/1999/xhtml"}
-            )
-            learning_objectives = [
-                "".join(li.xpath(".//text()")) for li in lis
-            ]
-        else:
-            learning_objectives = []
+            section = Element(sections[0])
+            if (
+                # Ideal case
+                section.has_class("learning-objectives") or
+                # If the section is inside an abstract
+                section.xpath1_or_none(
+                    'ancestor::*[@data-type = "abstract"]'
+                ) is not None or
+                # Last chance: check title
+                "".join(
+                    section.xpath('.//*[@data-type = "title"][1]//text()')
+                ).strip().lower() == "learning objectives"
+            ):
+                lis = section.xpath(".//h:li")
+                learning_objectives = ["".join(li.itertext()) for li in lis]
         return learning_objectives
 
     def get_figures(self):
