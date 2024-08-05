@@ -4,11 +4,10 @@ set -Eeuo pipefail
 {
     while read -r book_slug; do
         zip_path="$(realpath "$IO_ARTIFACTS/$book_slug.zip")"
-        (
-            cd "$IO_PPTX"
-            [[ -d "$book_slug" ]] || die "Could not find \"$book_slug\""
-            >&2 zip -0r "$zip_path" "$book_slug" -x \*.html
-        )
+        pushd "$IO_PPTX" > /dev/null
+        [[ -d "$book_slug" ]] || die "Could not find \"$book_slug\""
+        >&2 zip -0r "$zip_path" "$book_slug" -x \*.html
+        popd > /dev/null
         echo "$zip_path|$book_slug"
     done < <(read_book_slugs) # LCOV_EXCL_LINE
 } | sort | upload_book_artifacts "application/zip" "$IO_ARTIFACTS"

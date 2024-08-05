@@ -218,12 +218,7 @@ function mathml2png_rpc() {
             done
             # LCOV_EXCL_STOP
         else
-            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" \
-                start \
-                mml2svg2png-json-rpc.js \
-                --node-args="-r esm" \
-                --wait-ready \
-                --listen-timeout 8000
+            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
         fi
         popd > /dev/null
     elif [[ $command == stop ]]; then
@@ -237,8 +232,10 @@ function mathml2png_rpc() {
             "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" kill
         fi
     else
+        # LCOV_EXCL_START
         yell "mathml2png_rpc: unknown command: $command"
         return 1
+        # LCOV_EXCL_STOP
     fi
 }
 
