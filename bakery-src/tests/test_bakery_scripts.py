@@ -1624,9 +1624,9 @@ async def test_gdocify_book(tmp_path, mocker):
             text_len = len(node.text)
             assert text_len > 0
             if text_len == 1:
-                assert node.text in gdocify_book.CHARLISTS["mo_single"]
+                assert node.text in utils.CHARLISTS["mo_single"]
             else:
-                assert node.text in gdocify_book.CHARLISTS["mo_multi"]
+                assert node.text in utils.CHARLISTS["mo_multi"]
 
     # Are all mi tags free of blacklisted characters?
     for node in updated_doc.xpath(
@@ -1635,7 +1635,7 @@ async def test_gdocify_book(tmp_path, mocker):
     ):
         if node.text is not None:
             assert not any(
-                char in node.text for char in gdocify_book.CHARLISTS["mi_blacklist"]
+                char in node.text for char in utils.CHARLISTS["mi_blacklist"]
             )
 
     unwanted_nodes = updated_doc.xpath(

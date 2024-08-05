@@ -22,7 +22,7 @@ from pptx.slide import Slide
 
 from slugify import slugify
 
-from bakery_scripts.utils import get_mime_type
+from bakery_scripts.utils import get_mime_type, patch_math_for_pandoc
 from bakery_scripts import mathml2png
 
 import imgkit
@@ -770,6 +770,7 @@ def main():
     os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
     book = Book(tree.getroot())
+    patch_math_for_pandoc(book.element, "http://www.w3.org/1998/Math/MathML")
     for chapter in book.get_chapters():
         title = f"{chapter.get_number()} {chapter.get_title()}".replace("'", "")
         slug = slugify(title)
