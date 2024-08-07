@@ -181,6 +181,16 @@ class Page(BookElement):
             ):
                 lis = section.xpath(".//h:li")
                 learning_objectives = ["".join(li.itertext()) for li in lis]
+        if not learning_objectives:
+            abstracts = self.xpath('//*[@data-type = "abstract"]')
+            if abstracts:
+                abstract = abstracts[0]
+                abstract_contents = abstract.xpath(
+                    f'//*[{class_xpath("os-abstract-content")}]'
+                )
+                learning_objectives = [
+                    "".join(ac.itertext()) for ac in abstract_contents
+                ]
         return learning_objectives
 
     def get_figures(self):
