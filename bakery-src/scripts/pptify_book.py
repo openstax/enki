@@ -9,6 +9,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import os
 from io import BytesIO
 from copy import deepcopy
+from uuid import uuid4
 
 from lxml import etree
 from lxml.builder import ElementMaker
@@ -28,6 +29,10 @@ from bakery_scripts import mathml2png
 import imgkit
 
 from PIL import Image
+
+
+namespace = "http://www.w3.org/1999/xhtml"
+E = ElementMaker(namespace=namespace, nsmap={None: namespace})
 
 
 def class_xpath(class_name: str):
@@ -113,6 +118,18 @@ class Captioned(Element):
         )
         return "".join(title_text).strip()
 
+    def get_title_elem(self, prefix):
+        title_query = self.get_caption_elem().xpath(
+            f'./*[{class_xpath("os-title")}]'
+        )
+        number = self.get_number()
+        span = E.span()
+        span.text = " ".join(part for part in (prefix, number) if part)
+        if title_query:
+            span.text += " "
+            span.append(title_query[0])
+        return span
+
 
 class Figure(Captioned):
     def get_img(self):
@@ -127,13 +144,7 @@ class Figure(Captioned):
 
 class Table(Captioned):
     def get_title(self):
-        title = super().get_title()
-        number = self.get_number()
-        full_title = " ".join(
-            part for part in ("Table", number, title) if part
-        )
-        assert full_title != "Table", "Failed to generate unique table title"
-        return full_title
+        return super().get_title_elem("Table")
 
     def get_table_elem(self):
         return self.xpath1(".//h:table")
@@ -265,7 +276,7 @@ def sort_by_document_index(elems: Iterable[Element]):
 
 @dataclass(kw_only=True)
 class SlideContent:
-    title: str
+    title: str | etree.ElementBase
     notes: str | None = None
 
 
@@ -456,7 +467,7 @@ def handle_tables(
                 len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
             ):
                 doc_dir = os_table.get_doc_dir()
-                img_name = slugify(title.replace("'", "")) + ".png"
+                img_name = f"{uuid4()}.png"
                 img_path = resource_dir / img_name
                 img.save(img_path)
                 yield FigureSlideContent(
@@ -574,9 +585,6 @@ def chapter_to_slide_contents(chapter: Chapter):
 def slide_contents_to_html(
     title: str, subtitle: str, slide_contents: Iterable[SlideContent]
 ):
-    namespace = "http://www.w3.org/1999/xhtml"
-    E = ElementMaker(namespace=namespace, nsmap={None: namespace})
-
     def slide_content_to_html_parts(slide_contents: Iterable[SlideContent]):
         for slide_content in slide_contents:
             if isinstance(slide_content, (OutlineSlideContent,)):
