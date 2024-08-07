@@ -31,8 +31,57 @@ import imgkit
 from PIL import Image
 
 
-namespace = "http://www.w3.org/1999/xhtml"
-E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+NS_XHTML = "http://www.w3.org/1999/xhtml"
+E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+BLOCKISH_TAGS = (
+    f"{{{NS_XHTML}}}address",
+    f"{{{NS_XHTML}}}article",
+    f"{{{NS_XHTML}}}aside",
+    f"{{{NS_XHTML}}}blockquote",
+    f"{{{NS_XHTML}}}details",
+    f"{{{NS_XHTML}}}dialog",
+    f"{{{NS_XHTML}}}dd",
+    f"{{{NS_XHTML}}}div",
+    f"{{{NS_XHTML}}}dl",
+    f"{{{NS_XHTML}}}dt",
+    f"{{{NS_XHTML}}}fieldset",
+    f"{{{NS_XHTML}}}figcaption",
+    f"{{{NS_XHTML}}}figure",
+    f"{{{NS_XHTML}}}footer",
+    f"{{{NS_XHTML}}}form",
+    f"{{{NS_XHTML}}}h1",
+    f"{{{NS_XHTML}}}h2",
+    f"{{{NS_XHTML}}}h3",
+    f"{{{NS_XHTML}}}h4",
+    f"{{{NS_XHTML}}}h5",
+    f"{{{NS_XHTML}}}h6",
+    f"{{{NS_XHTML}}}header",
+    f"{{{NS_XHTML}}}hgroup",
+    f"{{{NS_XHTML}}}hr",
+    f"{{{NS_XHTML}}}li",
+    f"{{{NS_XHTML}}}main",
+    f"{{{NS_XHTML}}}nav",
+    f"{{{NS_XHTML}}}ol",
+    f"{{{NS_XHTML}}}p",
+    f"{{{NS_XHTML}}}pre",
+    f"{{{NS_XHTML}}}section",
+    f"{{{NS_XHTML}}}table",
+    f"{{{NS_XHTML}}}tr",
+    f"{{{NS_XHTML}}}td"
+    f"{{{NS_XHTML}}}ul",
+)
+
+
+def info(msg):
+    sys.stderr.write(msg)
+    sys.stderr.flush()
+
+
+def replace_blockish(elem: etree.ElementBase):
+    blockish_elements = (e for e in elem.iter(None) if e.tag in BLOCKISH_TAGS)
+    for blockish in blockish_elements:
+        blockish.tag = f"{{{NS_XHTML}}}span"
+    return elem
 
 
 def class_xpath(class_name: str):
@@ -127,7 +176,7 @@ class Captioned(Element):
         span.text = " ".join(part for part in (prefix, number) if part)
         if title_query:
             span.text += " "
-            span.append(title_query[0])
+            span.append(replace_blockish(title_query[0]))
         return span
 
 
@@ -182,11 +231,11 @@ class Page(BookElement):
                 lis = section.xpath(".//h:li")
                 learning_objectives = ["".join(li.itertext()) for li in lis]
         if not learning_objectives:
-            abstracts = self.xpath('//*[@data-type = "abstract"]')
+            abstracts = self.xpath('.//*[@data-type = "abstract"]')
             if abstracts:
                 abstract = abstracts[0]
                 abstract_contents = abstract.xpath(
-                    f'//*[{class_xpath("os-abstract-content")}]'
+                    f'.//*[{class_xpath("os-abstract-content")}]'
                 )
                 learning_objectives = [
                     "".join(ac.itertext()) for ac in abstract_contents
@@ -536,6 +585,7 @@ def chapter_to_slide_contents(chapter: Chapter):
             numbered=True,
         )
     for page in chapter.get_pages():
+        info(".")
         learning_objectives = page.get_learning_objectives()
         figures = page.get_figures()
         tables = page.get_tables()
@@ -796,7 +846,7 @@ def main():
             Path(out_fmt.format(slug=slug, extension="pptx")),
             Path(out_fmt.format(slug=slug, extension="html")),
         )
-        print(f"Working on: {slug}", file=sys.stderr)
+        info(f"Working on: {slug}")
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
         slide_contents = handle_tables(slide_contents, resource_dir, css)
@@ -817,3 +867,4 @@ def main():
             insert_cover_image(pres, str(cover_image))
         pres.save(str(tmp_path))
         tmp_path.rename(ppt_output)
+        info("Done!\n")
