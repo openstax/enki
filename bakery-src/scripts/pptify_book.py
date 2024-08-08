@@ -211,10 +211,8 @@ class Page(BookElement):
             return self._number_in_chapter - 1
         return self._number_in_chapter
 
-    def get_learning_objectives(self):
-        learning_objectives: list[str | etree.ElementBase] = []
+    def try_find_lo_container(self):
         sections = self.xpath(".//h:section")
-        lo_elements = []
         if sections:
             section = Element(sections[0])
             if (
@@ -225,18 +223,25 @@ class Page(BookElement):
                     section.xpath('.//*[@data-type = "title"][1]//text()')
                 ).strip().lower() == "learning objectives"
             ):
-                lo_elements = section.xpath(".//h:li")
-        if not lo_elements:
-            abstracts = self.xpath('.//*[@data-type = "abstract"]')
-            if abstracts:
-                abstract = abstracts[0]
-                lo_elements = abstract.xpath(
-                    f'.//*[{class_xpath("os-abstract-content")}]'
-                )
-        for lo_elem in lo_elements:
-            span = E.span(*lo_elem)
-            span.text = lo_elem.text
-            learning_objectives.append(span)
+                return section
+        abstracts = self.xpath('.//*[@data-type = "abstract"]')
+        if abstracts:
+            return Element(abstracts[0])
+        return None
+
+    def get_learning_objectives(self):
+        learning_objectives: list[str | etree.ElementBase] = []
+        lo_container = self.try_find_lo_container()
+        if lo_container is not None:
+            lo_elements = lo_container.xpath(
+                f'.//*[{class_xpath("os-abstract-content")}]'
+            )
+            if not lo_elements:
+                lo_elements = lo_container.xpath(".//h:li")
+            for lo_elem in lo_elements:
+                span = E.span(*lo_elem)
+                span.text = lo_elem.text
+                learning_objectives.append(span)
         return learning_objectives
 
     def get_figures(self):
