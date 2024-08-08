@@ -48,52 +48,7 @@ fi
 # LCOV_EXCL_START
 set -Eeuo pipefail
 
-json_rpc() {
-    case $1 in
-        "start")
-            pushd "$BAKERY_SCRIPTS_ROOT/scripts/"  # for -r esm to work
-            if [[ $JS_DEBUG == 1 ]]; then
-                node -r esm \
-                    $NODE_OPTIONS \
-                    $BAKERY_SCRIPTS_ROOT/scripts/mml2svg2png-json-rpc.js \
-                    &
-                rpc_pid=$!
-                sleep 0.5
-                grep node <(ps -p $rpc_pid) || {
-                    die "Could not start JSON RPC in debug mode"
-                }
-                say "JSON RPC started in debug mode!"
-                say "Please attach a debugger to continue!"
-                # When there are 2 connections on the node debug port, it is
-                # assumed there is:
-                # 1. A listening connection
-                # 2. A debugger connection
-                hex_port=$(printf "%X" $NODE_DEBUG_PORT)
-                while [[ $(grep -c ":$hex_port" /proc/net/tcp) != 2 ]]; do
-                    sleep 0.1
-                done
-            else
-                "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" \
-                    start \
-                    mml2svg2png-json-rpc.js \
-                    --node-args="-r esm" \
-                    --wait-ready \
-                    --listen-timeout 8000
-            fi
-            popd
-        ;;
-        "stop")
-            if [[ $JS_DEBUG == 1 ]]; then
-                kill $rpc_pid
-            else
-                "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
-                "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" kill
-            fi
-        ;;
-    esac
-}
-
-json_rpc start
+mathml2png_rpc start
 
 book_slugs_file="$(realpath "$IO_DOCX/book-slugs.json")"
 book_dir="$(realpath "$IO_DOCX/content")"
@@ -120,5 +75,6 @@ while read -r line; do
         pandoc --fail-if-warnings --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
-json_rpc stop
+
+mathml2png_rpc stop
 # LCOV_EXCL_STOP

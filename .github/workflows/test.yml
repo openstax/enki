@@ -60,6 +60,8 @@ jobs:
         run: CI_TEST=true ./test/test-step-05.bash
       - name: Run the last step of all-docx (git-convert-docx)
         run: CI_TEST=true ./test/test-step-06.bash
+      - name: Run all-pptx
+        run: CI_TEST=true ./test/test-step-07.bash
       - name: Run all-epub
         run: CI_TEST=true ./test/test-step-11.bash
       - name: Run Bakery Scripts Tests

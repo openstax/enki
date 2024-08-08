@@ -64,7 +64,8 @@ setup(
             'fetch-map-resources = bakery_scripts.fetch_map_resources:main',
             'fetch-update-meta = bakery_scripts.fetch_update_metadata:main',
             'patch-same-book-links = bakery_scripts.patch_same_book_links:main',
-            'link-rex = bakery_scripts.link_rex:main'
+            'link-rex = bakery_scripts.link_rex:main',
+            'pptify = bakery_scripts.pptify_book:main'
         ]
     },
     **SETUP_KWARGS,
