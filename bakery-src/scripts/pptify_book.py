@@ -84,6 +84,12 @@ def replace_blockish(elem: etree.ElementBase):
     return elem
 
 
+def to_slide_safe(content: str | etree.ElementBase):
+    if isinstance(content, str):
+        return content
+    return replace_blockish(content)
+
+
 def class_xpath(class_name: str):
     return f'contains(concat(" ", @class, " "), " {class_name} ")'
 
@@ -176,7 +182,7 @@ class Captioned(Element):
         span.text = " ".join(part for part in (prefix, number) if part)
         if title_query:
             span.text += " "
-            span.append(replace_blockish(title_query[0]))
+            span.append(title_query[0])
         return span
 
 
@@ -212,34 +218,31 @@ class Page(BookElement):
         return self._number_in_chapter
 
     def get_learning_objectives(self):
-        learning_objectives = []
+        learning_objectives: list[str | etree.ElementBase] = []
         sections = self.xpath(".//h:section")
+        lo_elements = []
         if sections:
             section = Element(sections[0])
             if (
                 # Ideal case
                 section.has_class("learning-objectives") or
-                # If the section is inside an abstract
-                section.xpath1_or_none(
-                    'ancestor::*[@data-type = "abstract"]'
-                ) is not None or
                 # Last chance: check title
                 "".join(
                     section.xpath('.//*[@data-type = "title"][1]//text()')
                 ).strip().lower() == "learning objectives"
             ):
-                lis = section.xpath(".//h:li")
-                learning_objectives = ["".join(li.itertext()) for li in lis]
-        if not learning_objectives:
+                lo_elements = section.xpath(".//h:li")
+        if not lo_elements:
             abstracts = self.xpath('.//*[@data-type = "abstract"]')
             if abstracts:
                 abstract = abstracts[0]
-                abstract_contents = abstract.xpath(
+                lo_elements = abstract.xpath(
                     f'.//*[{class_xpath("os-abstract-content")}]'
                 )
-                learning_objectives = [
-                    "".join(ac.itertext()) for ac in abstract_contents
-                ]
+        for lo_elem in lo_elements:
+            span = E.span(*lo_elem)
+            span.text = lo_elem.text
+            learning_objectives.append(span) 
         return learning_objectives
 
     def get_figures(self):
@@ -341,7 +344,7 @@ class SlideContent:
 
 @dataclass(kw_only=True)
 class OutlineSlideContent(SlideContent):
-    bullets: list[str]
+    bullets: list[str | etree.ElementBase]
     heading: str | None = None
     numbered: bool = False
     number_offset: int = 1
@@ -365,13 +368,27 @@ class HTMLTableSlideContent(SlideContent):
     caption: str = ""
 
 
-def chunk_bullets(bullets: list[str], max_bullets: int, max_characters: int):
+def guess_str_len_html(item: str | etree.ElementBase) -> int:
+    if isinstance(item, str):
+        content = item
+    else:
+        content = "".join(item.itertext(None))
+    html_like_whitespace = re.sub(r"\s+", " ", content)
+    return len(html_like_whitespace)
+
+
+def chunk_bullets(
+    bullets: list[str | etree.ElementBase],
+    max_bullets: int,
+    max_characters: int
+):
     character_count = 0
     buffer = []
-    avg_line_length = sum(len(b) for b in bullets) / len(bullets)
-    for bullet in bullets:
-        bullet_len = len(bullet)
-        bullet_len *= bullet_len / avg_line_length
+    length_by_bullet_idx = [guess_str_len_html(b) for b in bullets]
+    avg_bullet_length = sum(length_by_bullet_idx) / len(bullets)
+    for i, bullet in enumerate(bullets):
+        bullet_len = length_by_bullet_idx[i]
+        bullet_len *= bullet_len / avg_bullet_length
         if buffer and (
             len(buffer) >= max_bullets or
             character_count + bullet_len >= max_characters
@@ -454,6 +471,10 @@ def auto_crop_img(img, bg=None):
     return img.crop(box)
 
 
+# NOTE: Sometimes this can cause a 399 response from Google Fonts. This may be
+# due to some kind of rate limiting. If this becomes a problem, a possible 
+# workaround is to download the font css once and update the references in the
+# pdf css so that the font is read from the local copy
 def xhtml_to_img(elem, *, css=[], resource_dir=None):
     options = {
         "format": "png",
@@ -647,11 +668,13 @@ def slide_contents_to_html(
 ):
     def slide_content_to_html_parts(slide_contents: Iterable[SlideContent]):
         for slide_content in slide_contents:
+            yield E.h2(to_slide_safe(slide_content.title))
             if isinstance(slide_content, (OutlineSlideContent,)):
-                yield E.h2(slide_content.title)
                 if slide_content.heading is not None:
                     yield E.strong(slide_content.heading)
-                list_items = [E.li(item) for item in slide_content.bullets]
+                list_items = [
+                    E.li(to_slide_safe(item)) for item in slide_content.bullets
+                ]
                 if slide_content.numbered:
                     yield E.ol(
                         *list_items, start=str(slide_content.number_offset)
@@ -659,7 +682,6 @@ def slide_contents_to_html(
                 else:
                     yield E.ul(*list_items)
             elif isinstance(slide_content, FigureSlideContent):
-                yield E.h2(slide_content.title)
                 yield E.figure(
                     E.img(
                         src=slide_content.src,
@@ -668,7 +690,6 @@ def slide_contents_to_html(
                     )
                 )
             elif isinstance(slide_content, HTMLTableSlideContent):
-                yield E.h2(slide_content.title)
                 table_elem = slide_content.html
                 if slide_content.caption:
                     table_caption = E.caption(slide_content.caption)
@@ -714,7 +735,7 @@ def slides_etree_to_ppt(
 
 def get_descr(shape: BaseShape):
     matches = shape.element.xpath("//*[@descr]")
-    assert len(matches) == 1, "Expected only one descr"
+    assert len(matches) == 1, f"Expected one descr, got {len(matches)}"
     return matches[0]
 
 

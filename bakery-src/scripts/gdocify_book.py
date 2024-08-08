@@ -235,6 +235,7 @@ async def run_async():
                     book_uuid,
                     book_slugs_by_uuid
                 )
+                # Disassemble puts all math into xhtml namespace
                 patch_math_for_pandoc(doc, "http://www.w3.org/1999/xhtml")
                 remove_iframes(doc)
                 for img_filename in get_img_resources(doc, out_dir):
