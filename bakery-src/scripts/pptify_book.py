@@ -167,12 +167,6 @@ class Captioned(Element):
         )
         return "".join(caption_text).strip()
 
-    def get_title(self):
-        title_text = self.get_caption_elem().xpath(
-            f'./*[{class_xpath("os-title")}]//text()'
-        )
-        return "".join(title_text).strip()
-
     def get_title_elem(self, prefix):
         title_query = self.get_caption_elem().xpath(
             f'./*[{class_xpath("os-title")}]'
@@ -242,7 +236,7 @@ class Page(BookElement):
         for lo_elem in lo_elements:
             span = E.span(*lo_elem)
             span.text = lo_elem.text
-            learning_objectives.append(span) 
+            learning_objectives.append(span)
         return learning_objectives
 
     def get_figures(self):
@@ -472,7 +466,7 @@ def auto_crop_img(img, bg=None):
 
 
 # NOTE: Sometimes this can cause a 399 response from Google Fonts. This may be
-# due to some kind of rate limiting. If this becomes a problem, a possible 
+# due to some kind of rate limiting. If this becomes a problem, a possible
 # workaround is to download the font css once and update the references in the
 # pdf css so that the font is read from the local copy
 def xhtml_to_img(elem, *, css=[], resource_dir=None):

@@ -3729,6 +3729,9 @@ class ModelBehaviorTestCase(unittest.TestCase):
 
 
 def test_ppt_parsing(mocker):
+    def text_content(elem):
+        return "".join(elem.itertext(None)).strip()
+
     input_baked_xhtml = os.path.join(TEST_DATA_DIR, "collection.mathified.xhtml")
     tree = etree.parse(str(input_baked_xhtml), None)
     book = pptify_book.Book(tree.getroot())
@@ -3888,7 +3891,7 @@ def test_ppt_parsing(mocker):
     assert len(all_pages) == 111
     assert len(all_figures) == 447
     assert len(all_tables) == 40
-    assert [table.get_title() for table in all_tables if table.has_number()] == [
+    assert [text_content(table.get_title()) for table in all_tables if table.has_number()] == [
         'Table 1.1 Temperature Conversions',
         'Table 1.2 Thermal Expansion Coefficients',
         'Table 1.3 Specific Heats of Various Substances[1]',
@@ -3955,36 +3958,9 @@ def test_ppt_parsing(mocker):
     )
     page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
     test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
-    assert test_page.get_learning_objectives() == ['a', 'b']
+    assert list(map(text_content, test_page.get_learning_objectives())) == ['a', 'b']
 
-    # Second scenario: abstract
-    # In this case, if the section is inside an abstract, we assume it is LO
-    test_page_xhtml = etree.fromstring(
-        """
-        <html xmlns="http://www.w3.org/1999/xhtml">
-            <div data-type="page">
-                <div data-type="abstract">
-                    <header>
-                        <h2 data-type="title">Learning Objectives</h2>
-                    </header>
-                    <section>
-                        <p>By the end of this section you should be able to</p>
-                        <ul>
-                            <li>a</li>
-                            <li>b</li>
-                        </ul>
-                    </section>
-                </div>
-            </div>
-        </html>
-        """,
-        None
-    )
-    page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
-    test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
-    assert test_page.get_learning_objectives() == ['a', 'b']
-
-    # Third scenario: Ideal case of LO with learning-objectices class
+    # Second scenario: Ideal case of LO with learning-objectices class
     test_page_xhtml = etree.fromstring(
         """
         <html xmlns="http://www.w3.org/1999/xhtml">
@@ -4004,7 +3980,34 @@ def test_ppt_parsing(mocker):
     )
     page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
     test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
-    assert test_page.get_learning_objectives() == ['a', 'b']
+    assert list(map(text_content, test_page.get_learning_objectives())) == ['a', 'b']
+
+    # Third scenario: abstract
+    test_page_xhtml = etree.fromstring(
+        """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+            <div data-type="page">
+                <div data-type="abstract">
+                    <h3 data-type="title">Learning Objectives</h3>
+                    <ul>
+                        <li>
+                            <span class="os-abstract-token">1.1.1</span>
+                            <span class="os-abstract-content">a</span>
+                        </li>
+                        <li>
+                            <span class="os-abstract-token">1.1.2</span>
+                            <span class="os-abstract-content">b</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </html>
+        """,
+        None
+    )
+    page_elem = test_page_xhtml.xpath('descendant::*[@data-type = "page"]')[0]
+    test_page = pptify_book.Page(mocker.stub(), '1', page_elem)
+    assert list(map(text_content, test_page.get_learning_objectives())) == ['a', 'b']
 
 
 def test_ppt_slide_content(mocker):
@@ -4287,10 +4290,13 @@ def test_ppt_slide_content(mocker):
     # Test table transformation
     os_table_to_image_stub = mocker.patch("bakery_scripts.pptify_book.os_table_to_image")
     image_save_stub = mocker.patch("bakery_scripts.pptify_book.Image.Image.save")
+    uuid4_stub = mocker.patch("bakery_scripts.pptify_book.uuid4")
+    uuid4_stub.return_value = "00000000-0000-0000-0000-000000000000"
     # Table is too large, use image instead
     os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
     os_table_to_image_stub.start()
     image_save_stub.start()
+    uuid4_stub.start()
     slides = [
         pptify_book.TableSlideContent(
             title="Test",
@@ -4311,8 +4317,8 @@ def test_ppt_slide_content(mocker):
     ]
     results = pptify_book.handle_tables(slides, Path("/resources"), [])
     results = list(results)[:-1]
-    assert image_save_stub.mock_calls[1].args == (Path("/resources/test.png"),)
-    assert image_save_stub.mock_calls[2].args == (Path("/resources/test-2.png"),)
+    assert image_save_stub.mock_calls[1].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
+    assert image_save_stub.mock_calls[2].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
     assert len(results) == 2
     assert all(isinstance(s, pptify_book.FigureSlideContent) for s in results)
 
@@ -4324,6 +4330,17 @@ def test_ppt_slide_content(mocker):
     assert len(results) == 2
     image_save_stub.assert_not_called()
     assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
+
+    # Test guess_str_len_html
+    elem = E.div(E.span(E.span("test")))
+    list(elem)[0].text = "ing  "
+    assert "".join(elem.itertext(None)) == "ing  test"
+    # Should replace double space with one, meaning length of 8
+    assert pptify_book.guess_str_len_html(elem) == 8
+    
+    # Test to_slide_safe
+    elem = E.div(E.span(E.div("test")))
+    assert etree.tostring(pptify_book.to_slide_safe(elem), encoding="unicode") == '<span xmlns="http://www.w3.org/1999/xhtml"><span><span>test</span></span></span>'
 
     mocker.stopall()
 
