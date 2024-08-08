@@ -4598,7 +4598,8 @@ def test_ppt_image_transforms(mocker):
         css=[],
         options={
             "format": "png",
-            "log-level": "error"
+            "log-level": "error",
+            "quality": "100",
         },
     )
     assert result.size == img.size
@@ -4613,7 +4614,8 @@ def test_ppt_image_transforms(mocker):
             "allow": "test",
             "enable-local-file-access": "",
             "format": "png",
-            "log-level": "error"
+            "log-level": "error",
+            "quality": "100",
         },
     )
     assert result.size == img.size
@@ -4631,7 +4633,7 @@ def test_ppt_image_transforms(mocker):
     document_dir, resource_dir = Path("/IO_LINKED"), Path("/resource_dir")
     result = pptify_book.element_to_image(table, document_dir, resource_dir, [])
     assert img.get("src") == "/resources/fake-image"
-    convert_math_stub.assert_called_once_with([], resource_dir)
+    convert_math_stub.assert_called_once_with([], resource_dir, use_svg=True)
 
     imgkit_from_string_stub.reset_mock()
     class FakeTable:
@@ -4653,7 +4655,8 @@ def test_ppt_image_transforms(mocker):
             "allow": resource_dir,
             "enable-local-file-access": "",
             "format": "png",
-            "log-level": "error"
+            "log-level": "error",
+            "quality": "100",
         },
     )
     mocker.stopall()

@@ -162,7 +162,7 @@ def svg2png_jsonrpc(svg):  # pragma: no cover
         return ''
 
 
-def convert_math(math_nodes, resources_dir):  # pragma: no cover
+def convert_math(math_nodes, resources_dir, *, use_svg=False):  # pragma: no cover
     for math_node in math_nodes:
         math_etree = force_math_namespace_only(math_node)
         bytes_equation = etree.tostring(
@@ -173,6 +173,10 @@ def convert_math(math_nodes, resources_dir):  # pragma: no cover
 
         # do not replace if conversion failed
         if svg:
+            if use_svg:
+                svg_elem = etree.fromstring(svg, None)
+                math_node.getparent().replace(math_node, svg_elem)
+                continue
             png = svg2png_jsonrpc(svg)
             if png:
                 png_width, png_height = get_png_dimensions(png)

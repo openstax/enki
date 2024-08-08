@@ -477,7 +477,8 @@ def auto_crop_img(img, bg=None):
 def xhtml_to_img(elem, *, css=[], resource_dir=None):
     options = {
         "format": "png",
-        "log-level": "error"
+        "log-level": "error",
+        "quality": "100",
     }
     if resource_dir is not None:
         options["enable-local-file-access"] = ""
@@ -503,7 +504,7 @@ def element_to_image(
     )
     # NOTE: Requires mathjax json rpc to be running
     # This replaces mathml with imgs that have relative paths
-    mathml2png.convert_math(math_nodes, resource_dir)
+    mathml2png.convert_math(math_nodes, resource_dir, use_svg=True)
     # NOTE: wkhtmltoimage requires absolute paths
     for resource in elem.xpath('.//*[@src]'):
         attr = "src"
