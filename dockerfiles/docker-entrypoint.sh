@@ -188,6 +188,57 @@ function read_book_slugs() {
     fi
 }
 
+
+function mathml2png_rpc() {
+    command="$1"
+    : "${command:?}"
+    if [[ $command == start  ]]; then
+        pushd "$BAKERY_SCRIPTS_ROOT/scripts/" > /dev/null
+        if [[ $JS_DEBUG == 1 ]]; then
+            # LCOV_EXCL_START
+            node -r esm \
+                $NODE_OPTIONS \
+                $BAKERY_SCRIPTS_ROOT/scripts/mml2svg2png-json-rpc.js \
+                &
+            mathml2png_rpc_pid=$!
+            sleep 0.5
+            grep node <(ps -p $mathml2png_rpc_pid) || {
+                die "Could not start JSON RPC in debug mode"
+            }
+            say "JSON RPC started in debug mode!"
+            say "Please attach a debugger to continue!"
+            # When there are 2 connections on the node debug port, it is
+            # assumed there is:
+            # 1. A listening connection
+            # 2. A debugger connection
+            local hex_port
+            hex_port=$(printf "%X" $NODE_DEBUG_PORT)
+            while [[ $(grep -c ":$hex_port" /proc/net/tcp) != 2 ]]; do
+                sleep 0.1
+            done
+            # LCOV_EXCL_STOP
+        else
+            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
+        fi
+        popd > /dev/null
+    elif [[ $command == stop ]]; then
+        if [[ $JS_DEBUG == 1 ]]; then
+            # LCOV_EXCL_START
+            kill $mathml2png_rpc_pid
+            unset mathml2png_rpc_pid
+            # LCOV_EXCL_STOP
+        else
+            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" stop mml2svg2png-json-rpc
+            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" kill
+        fi
+    else
+        # LCOV_EXCL_START
+        yell "mathml2png_rpc: unknown command: $command"
+        return 1
+        # LCOV_EXCL_STOP
+    fi
+}
+
 function expect_value() {
   if [[ -z "$1" ]]; then
     die "${2:-"Missing required argument"}"  # LCOV_EXCL_LINE
