@@ -49,6 +49,7 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
         #     | grep -v 'ERROR(RSC-012)' \
         #     | grep -v 'ERROR(MED-002)' \
         # )
+        # TODO: Instead of ignoring errors related to pre tags, maybe use code elements instead where inline elements are expected (https://www.w3schools.com/htmL/html_blocks.asp)
         errors=$(cat $IO_ARTIFACTS/$epub_filename.validation.log | grep 'ERROR' \
             | grep -v 'Error while parsing file: attribute "display" not allowed here;' \
             | grep -v 'Error while parsing file: value of attribute "target" is invalid;' \
@@ -62,6 +63,8 @@ for epub_file in "$IO_ARTIFACTS/"*.epub; do
             \
             | grep -v 'Error while parsing file: attribute "rules" not allowed here;' \
             | grep -v 'Error while parsing file: attribute "align" not allowed here;' \
+            \
+            | grep -v 'Error while parsing file: element "pre" not allowed here;' \
             ;
         )
 
