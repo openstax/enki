@@ -2,7 +2,7 @@
 parse_book_dir
 
 # Style needed because mathjax will size converted math according to surrounding text
-cp "$IO_BAKED/the-style-pdf.css" "$IO_LINKED"
+cp "$IO_BAKED/"*-pdf.css "$IO_LINKED"
 cp -R "$IO_BAKED/downloaded-fonts" "$IO_LINKED"
 shopt -s globstar nullglob
 for collection in "$IO_LINKED/"*.linked.xhtml; do
