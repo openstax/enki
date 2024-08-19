@@ -2,6 +2,7 @@ parse_book_dir
 
 set -Eeuo pipefail
 
+cp -R "$IO_BAKED/downloaded-fonts" "/tmp"
 mathml2png_rpc start
 for book in "$IO_LINKED/"*.xhtml; do
     lang=en
