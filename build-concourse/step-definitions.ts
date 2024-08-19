@@ -55,8 +55,8 @@ set({name: 'step-pptx', inputs: [IO.BOOK, IO.FETCH_META, IO.LINKED, IO.RESOURCES
 set({name: 'step-upload-pptx', inputs: [IO.BOOK, IO.FETCHED, IO.PPTX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // Concourse-specific steps
-set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true }})
-set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
+set({name: 'git-dequeue-book', inputs: [RESOURCES.S3_GIT_QUEUE], outputs: [IO.BOOK], env: { S3_QUEUE: RESOURCES.S3_GIT_QUEUE, CODE_VERSION: true, QUEUE_SUFFIX: true }})
+set({name: 'git-report-book-complete', inputs: [IO.BOOK], outputs: [], env: {CODE_VERSION: true, WEB_QUEUE_STATE_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, STATE_PREFIX: true}})
 
 export const CLI_GIT_PDF_STEPS = [
     get('step-fetch'),
