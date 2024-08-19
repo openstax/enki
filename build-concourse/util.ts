@@ -338,4 +338,6 @@ export type KeyValue = {
     AWS_ACCESS_KEY_ID: string
     AWS_SECRET_ACCESS_KEY: string
     AWS_SESSION_TOKEN?: string
+    QUEUE_SUFFIX: string
+    STATE_PREFIX: string
 }

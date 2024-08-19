@@ -1,6 +1,6 @@
 # LCOV_EXCL_START
 exec 2> >(tee $IO_BOOK/stderr >&2)
-book="$S3_QUEUE/$CODE_VERSION.web-hosting-git-queue.json"
+book="$S3_QUEUE/$CODE_VERSION.$QUEUE_SUFFIX"
 if [[ ! -s "$book" ]]; then
     echo "Book is empty"
     exit 1

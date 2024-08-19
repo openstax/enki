@@ -2,6 +2,6 @@ check-feed \
 "$CORGI_API_URL" \
 "$CODE_VERSION" \
 "$WEB_QUEUE_STATE_S3_BUCKET" \
-"$CODE_VERSION.web-hosting-git-queue.json" \
+"$CODE_VERSION.$QUEUE_SUFFIX" \
 "$MAX_BOOKS_PER_TICK" \
-"corgi"
+"$STATE_PREFIX"

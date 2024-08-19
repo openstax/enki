@@ -21,7 +21,7 @@ function makePipeline(envValues: KeyValue) {
                 session_token: envValues.AWS_SESSION_TOKEN,
                 bucket: envValues.WEB_QUEUE_STATE_S3_BUCKET,
                 initial_version: "initializing",
-                versioned_file: `${envValues.CODE_VERSION}.web-hosting-git-queue.json`,
+                versioned_file: `${envValues.CODE_VERSION}.${envValues.QUEUE_SUFFIX}`,
             },
             type: "s3",
         },
@@ -54,6 +54,8 @@ function makePipeline(envValues: KeyValue) {
                     CODE_VERSION: true,
                     WEB_QUEUE_STATE_S3_BUCKET: true,
                     MAX_BOOKS_PER_TICK: true,
+                    STATE_PREFIX: true,
+                    QUEUE_SUFFIX: true,
                 },
                 readScript("script/check_feed.sh")
             ),

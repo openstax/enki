@@ -8,5 +8,7 @@
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-sandbox-web-hosting-content-queue-state",
     "PREVIEW_APP_URL_PREFIX": "apps/archive-localdev",
     "PIPELINE_TICK_INTERVAL": "1h",
-    "MAX_BOOKS_PER_TICK": "1"
+    "MAX_BOOKS_PER_TICK": "1",
+    "STATE_PREFIX": "git-dist",
+    "QUEUE_SUFFIX": "web-hosting-git-queue.json"
 }
