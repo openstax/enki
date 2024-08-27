@@ -292,6 +292,12 @@ function parse_book_dir() {
 
     [[ -f $IO_BOOK/repo ]] && ARG_REPO_NAME="$(cat $IO_BOOK/repo)"
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
+    ARG_ENABLE_CORGI_UPLOAD=0
+    ARG_ENABLE_SOURCEMAPS=0
+    if [[ -f $IO_BOOK/job_id ]]; then
+        ARG_ENABLE_CORGI_UPLOAD=1
+        ARG_ENABLE_SOURCEMAPS=1
+    fi
 }
 
 # Concourse-CI runs each step in a separate process so parse_book_dir() needs to
@@ -299,6 +305,8 @@ function parse_book_dir() {
 function unset_book_vars() {
     unset ARG_REPO_NAME
     unset ARG_GIT_REF
+    unset ARG_ENABLE_CORGI_UPLOAD
+    unset ARG_ENABLE_SOURCEMAPS
 }
 
 function do_step() {
