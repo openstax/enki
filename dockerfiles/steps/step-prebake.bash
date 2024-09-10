@@ -33,6 +33,8 @@ fi
 style_resource_root="$IO_INITIAL_RESOURCES/styles"
 generic_style="webview-generic.css"
 [[ ! -e "$style_resource_root" ]] && mkdir -p "$style_resource_root"
+# Disable upload to S3
+# cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$style_resource_root"
 while read -r slug_name; do
     style_name=$(read_style "$slug_name")
     web_style="$style_name-web.css"

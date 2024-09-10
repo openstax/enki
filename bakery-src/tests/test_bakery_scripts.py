@@ -4598,24 +4598,24 @@ def test_ppt_image_transforms(mocker):
         css=[],
         options={
             "format": "png",
-            "log-level": "error",
+            "log-level": "warn",
             "quality": "100",
+            "enable-local-file-access": "",
         },
     )
     assert result.size == img.size
 
     imgkit_from_string_stub.reset_mock()
-    result = pptify_book.xhtml_to_img(xhtml, resource_dir="test")
+    result = pptify_book.xhtml_to_img(xhtml)
     imgkit_from_string_stub.assert_called_once_with(
         etree.tostring(xhtml, encoding="unicode"),
         None,
         css=[],
         options={
-            "allow": "test",
-            "enable-local-file-access": "",
             "format": "png",
-            "log-level": "error",
+            "log-level": "warn",
             "quality": "100",
+            "enable-local-file-access": "",
         },
     )
     assert result.size == img.size
@@ -4652,11 +4652,10 @@ def test_ppt_image_transforms(mocker):
         None,
         css=[],
         options={
-            "allow": resource_dir,
-            "enable-local-file-access": "",
             "format": "png",
-            "log-level": "error",
+            "log-level": "warn",
             "quality": "100",
+            "enable-local-file-access": "",
         },
     )
     mocker.stopall()

@@ -474,15 +474,13 @@ def auto_crop_img(img, bg=None):
 # due to some kind of rate limiting. If this becomes a problem, a possible
 # workaround is to download the font css once and update the references in the
 # pdf css so that the font is read from the local copy
-def xhtml_to_img(elem, *, css=[], resource_dir=None):
+def xhtml_to_img(elem, *, css=[]):
     options = {
         "format": "png",
-        "log-level": "error",
+        "log-level": "warn",
         "quality": "100",
+        "enable-local-file-access": "",
     }
-    if resource_dir is not None:
-        options["enable-local-file-access"] = ""
-        options["allow"] = resource_dir
     with BytesIO() as img_file:
         serialized = etree.tostring(elem, encoding="unicode")
         assert serialized, "Cannot convert empty element"
@@ -511,7 +509,7 @@ def element_to_image(
         rel_p = resource.get(attr)
         abs_p = (doc_dir / rel_p).resolve()
         resource.set(attr, str(abs_p))
-    img = xhtml_to_img(elem, resource_dir=resource_dir, css=css)
+    img = xhtml_to_img(elem, css=css)
     img = auto_crop_img(img)
     return img
 

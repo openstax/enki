@@ -1,6 +1,7 @@
 parse_book_dir
 
 shopt -s globstar nullglob
+cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$IO_BAKED"
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
