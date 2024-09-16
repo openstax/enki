@@ -4,7 +4,7 @@ require 'json'
 require 'set'
 
 # Files
-base_dir = 'cross-lib/book-data'
+base_dir = 'batch-builder/book-data'
 out_file = "#{base_dir}/AUTO_books.txt"
 ubl = "#{base_dir}/USER_ubl.txt"
 `mkdir -p #{base_dir}; touch #{out_file}; touch #{ubl}`
