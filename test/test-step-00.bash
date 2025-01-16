@@ -19,4 +19,4 @@ sed -i.bak "s@SF:@SF:$(cd ../build-concourse;pwd)/@" ../coverage/lcov.info
 
 
 npm --prefix ../bakery-js/ install
-# npm --prefix ../bakery-js/ test
+npm --prefix ../bakery-js/ test
