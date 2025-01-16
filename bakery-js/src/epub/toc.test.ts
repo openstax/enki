@@ -1,9 +1,17 @@
-import { describe, expect, it, afterEach, beforeEach } from '@jest/globals'
+import {
+  describe,
+  expect,
+  it,
+  afterEach,
+  beforeEach,
+  beforeAll,
+  afterAll,
+} from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { TocFile, OpfFile, NcxFile } from './toc'
+import { TmpFs, type Files } from '../test-helpers'
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,
@@ -15,10 +23,10 @@ async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
 }
 
 describe('TocFile and Friends', () => {
-  const tocPath = '/foo/thebook.toc.xhtml'
-  const destPath = '/output/thebooktoc.xhtml'
-  const metadataPath = '/foo/thebook.toc-metadata.json'
-  const collxmlPath = '/IO_FETCHED/collections/bookslug.collection.xml'
+  const tocPath = 'foo/thebook.toc.xhtml'
+  const destPath = 'output/thebooktoc.xhtml'
+  const metadataPath = 'foo/thebook.toc-metadata.json'
+  const collxmlPath = 'IO_FETCHED/collections/bookslug.collection.xml'
   const metadataJSON = {
     title: 'booktitle',
     revised: '2022-12-13',
@@ -31,6 +39,7 @@ describe('TocFile and Friends', () => {
     '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
 
   describe('with an empty book', () => {
+    let mockfs: TmpFs
     const emptyToc = `<html xmlns="http://www.w3.org/1999/xhtml">
             <body>
                 <nav/>
@@ -38,11 +47,11 @@ describe('TocFile and Friends', () => {
         </html>`
 
     beforeEach(() => {
-      const fs: any = {}
+      const fs: Files = {}
       fs[tocPath] = emptyToc
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
-      mockfs(fs)
+      mockfs = new TmpFs(fs).attach()
     })
     afterEach(() => {
       mockfs.restore()
@@ -72,11 +81,11 @@ describe('TocFile and Friends', () => {
   })
 
   describe('Cover image with TocFile and Friends', () => {
-    const tocPath = '/foo/thebook.toc.xhtml'
-    const destPath = '/output/thebooktoc.xhtml'
-    const metadataPath = '/foo/thebook.toc-metadata.json'
-    const collxmlPath = '/IO_FETCHED/collections/bookslug.collection.xml'
-    const coverImagePath = '/IO_FETCHED/cover/bookslug-cover.jpg'
+    const tocPath = 'foo/thebook.toc.xhtml'
+    const destPath = 'output/thebooktoc.xhtml'
+    const metadataPath = 'foo/thebook.toc-metadata.json'
+    const collxmlPath = 'IO_FETCHED/collections/bookslug.collection.xml'
+    const coverImagePath = 'IO_FETCHED/cover/bookslug-cover.jpg'
     const metadataJSON = {
       title: 'booktitle',
       revised: '2022-12-13',
@@ -89,6 +98,7 @@ describe('TocFile and Friends', () => {
       '<collection authors="howdy" xmlns="http://cnx.rice.edu/collxml"/>'
 
     describe('with an empty book', () => {
+      let mockfs: TmpFs
       const emptyToc = `<html xmlns="http://www.w3.org/1999/xhtml">
               <body>
                   <nav/>
@@ -96,12 +106,12 @@ describe('TocFile and Friends', () => {
           </html>`
 
       beforeEach(() => {
-        const fs: any = {}
+        const fs: Files = {}
         fs[tocPath] = emptyToc
         fs[metadataPath] = JSON.stringify(metadataJSON)
         fs[collxmlPath] = collxmlContent
         fs[coverImagePath] = 'here should be cover image JPEG data'
-        mockfs(fs)
+        mockfs = new TmpFs(fs).attach()
       })
       afterEach(() => {
         mockfs.restore()
@@ -132,6 +142,7 @@ describe('TocFile and Friends', () => {
   })
 
   describe('with a small book', () => {
+    let mockfs: TmpFs
     const unitTitle = 'UnitTitle'
     const chapterTitle = 'ChapterTitle'
     const pageTitle = 'PageTitle'
@@ -181,18 +192,18 @@ describe('TocFile and Friends', () => {
       mime_type: 'image/jpeg',
     }
 
-    beforeEach(() => {
-      const fs: any = {}
+    beforeAll(() => {
+      const fs: Files = {}
       fs[tocPath] = smallToc
-      fs[`/foo/${pageName}`] = pageContent
-      fs[`/foo/${pageNotInTocName}`] = pageNotInTocContent
-      fs[`/foo/${imageName}.json`] = JSON.stringify(imageMetadata)
+      fs[`foo/${pageName}`] = pageContent
+      fs[`foo/${pageNotInTocName}`] = pageNotInTocContent
+      fs[`foo/${imageName}.json`] = JSON.stringify(imageMetadata)
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
-      fs['/IO_BAKED/downloaded-fonts/hi.ttf'] = 'not-real-TTF-bits'
-      mockfs(fs)
+      fs['IO_BAKED/downloaded-fonts/hi.ttf'] = 'not-real-TTF-bits'
+      mockfs = new TmpFs(fs).attach()
     })
-    afterEach(() => {
+    afterAll(() => {
       mockfs.restore()
     })
 
