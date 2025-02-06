@@ -594,7 +594,27 @@
   </xsl:attribute>
 </xsl:template>
 
-<xsl:template match="c:note">
+<xsl:template match="c:note[c:title]">
+  <div data-type="{local-name()}">
+    <xsl:if test="c:label">
+      <xsl:attribute name="data-has-label">true</xsl:attribute>
+    </xsl:if>
+    <xsl:apply-templates select="@*"/>
+    <xsl:if test="c:label">
+      <xsl:call-template name="apply-template-no-selfclose">
+        <xsl:with-param name="selection" select="c:label"/>
+      </xsl:call-template>
+    </xsl:if>
+    <xsl:apply-templates select="c:title"/>
+    <xsl:apply-templates mode="footnote-dumpsite" select="c:title"/>
+    <xsl:call-template name="apply-template-no-selfclose">
+      <xsl:with-param name="selection" select="node()[not(self::c:title or self::c:label)]"/>
+    </xsl:call-template>
+    <xsl:apply-templates mode="footnote-dumpsite" select="."/>
+  </div>
+</xsl:template>
+
+<xsl:template match="c:note[not(c:title)]">
   <div data-type="{local-name()}">
     <xsl:if test="c:label">
       <xsl:attribute name="data-has-label">true</xsl:attribute>
@@ -951,6 +971,7 @@
     | c:section
     | c:section/c:title
     | c:note
+    | c:note/c:title
     | c:example
     | c:problem
     | c:solution
@@ -972,6 +993,7 @@
     | c:section
     | c:section/c:title
     | c:note
+    | c:note/c:title
     | c:example
     | c:problem
     | c:solution
