@@ -382,3 +382,7 @@ def patch_math_for_pandoc(doc, math_el_namespace):
     ):
         print("Found \\u0338 in math: converting to mtext", file=sys.stderr)
         node.tag = f"{{{math_el_namespace}}}mtext"
+
+
+def build_rex_url(book, page):
+    return f"http://openstax.org/books/{book}/pages/{page}"

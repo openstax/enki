@@ -2857,6 +2857,7 @@ def test_link_single(tmp_path, mocker):
         <div data-type="metadata" style="display: none;">
         <h1 data-type="document-title" itemprop="name">Page1</h1>
         <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
         </div>
         <p><a id="l1"
             href="/contents/4aa9351c-019f-4c06-bb40-d58262ea7ec7"
@@ -2869,6 +2870,7 @@ def test_link_single(tmp_path, mocker):
         <div data-type="metadata" style="display: none;">
         <h1 data-type="document-title" itemprop="name">Page2</h1>
         <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
         </div>
         <p><a id="l3"
             href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
@@ -3008,6 +3010,28 @@ def test_link_single(tmp_path, mocker):
 
     check_links = [link.items() for link in parsed_links]
 
+    assert check_links == expected_links
+    # GIVEN: Anchors marked to be updated with rex links
+    rex_links = tree.xpath(
+        '//x:a[@data-check-rex-link = "true"]',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    )
+    _ = [link.attrib.pop("data-check-rex-link", None) for link in rex_links]
+    # WHEN: The links are updated
+    # THEN: 1. Their href changes
+    #       2. The marker attribute is removed
+    #       3. their text is unchanged (this text may be localized)
+    check_links = [list(link.items()) + [link.text] for link in rex_links]
+    expected_links = [
+        [
+            ('href', 'http://openstax.org/books/book1/pages/book1-page1'),
+            'LINK 1'
+        ],
+        [
+            ('href', 'http://openstax.org/books/book1/pages/book1-page2'),
+            'LINK 2'
+        ],
+    ]
     assert check_links == expected_links
 
 
