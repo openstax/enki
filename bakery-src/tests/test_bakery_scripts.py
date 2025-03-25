@@ -3016,20 +3016,22 @@ def test_link_single(tmp_path, mocker):
         '//x:a[@data-check-rex-link = "true"]',
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
-    _ = [link.attrib.pop("data-check-rex-link", None) for link in rex_links]
     # WHEN: The links are updated
     # THEN: 1. Their href changes
     #       2. The marker attribute is removed
-    #       3. their text is unchanged (this text may be localized)
-    check_links = [list(link.items()) + [link.text] for link in rex_links]
+    #       3. Their text is unchanged (this text may be localized)
+    #       4. Other attributes are unchanged
+    check_links = [list(link.items()) + [('text', link.text)] for link in rex_links]
     expected_links = [
         [
+            ('data-check-rex-link', 'true'),
             ('href', 'http://openstax.org/books/book1/pages/book1-page1'),
-            'LINK 1'
+            ('text', 'LINK 1'),
         ],
         [
+            ('data-check-rex-link', 'true'),
             ('href', 'http://openstax.org/books/book1/pages/book1-page2'),
-            'LINK 2'
+            ('text', 'LINK 2'),
         ],
     ]
     assert check_links == expected_links
