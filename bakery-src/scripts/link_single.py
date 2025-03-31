@@ -158,21 +158,25 @@ def transform_links(
         '//x:a[@data-needs-rex-link="true"]',
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     ):
-        target_module_uuid = node.xpath(
-            'ancestor::*[@data-type="page"]/@id',
-            namespaces={"x": "http://www.w3.org/1999/xhtml"},
-        )[0]
-        if target_module_uuid.startswith("page_"):
-            target_module_uuid = target_module_uuid[5:]
-        canonical_book_uuid = canonical_map.get(target_module_uuid)
-        assert canonical_book_uuid, \
-            f'Could not find book for page: {target_module_uuid}'
-        book_slug = slug_by_uuid.get(canonical_book_uuid)
-        assert book_slug, f'Could not find slug for book: {canonical_book_uuid}'
-        page_slug = page_slug_resolver(canonical_book_uuid, target_module_uuid)
-        assert page_slug, f'Could not find slug for page: {target_module_uuid}'
-        node.attrib['href'] = build_rex_url(book_slug, page_slug)
-        del node.attrib['data-needs-rex-link']
+        try:
+            page_uuid = node.xpath('ancestor::*[@data-type="page"]/@id')[0]
+            if page_uuid.startswith("page_"):
+                page_uuid = page_uuid[5:]
+            book_uuid = canonical_map.get(page_uuid)
+            assert book_uuid, f'Could not find book for page: {page_uuid}'
+            book_slug = slug_by_uuid.get(book_uuid)
+            assert book_slug, f'Could not find slug for book: {book_uuid}'
+            page_slug = page_slug_resolver(book_uuid, page_uuid)
+            assert page_slug, f'Could not find slug for page: {page_uuid}'
+            node.attrib['href'] = build_rex_url(book_slug, page_slug)
+        except Exception as e:
+            parent_link = node.xpath('parent::*[@src]/@src')
+            assert parent_link, \
+                f'Could not find link for element: {etree.tostring(node)}'
+            node.attrib['href'] = parent_link[0]
+            print(f"[WARNING]: {e} (used '{parent_link}' instead)")
+        finally:
+            del node.attrib['data-needs-rex-link']
 
     # look up uuids for external module links
     for node in doc.xpath(

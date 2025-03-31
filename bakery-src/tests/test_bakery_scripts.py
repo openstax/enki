@@ -2853,6 +2853,9 @@ def test_link_single(tmp_path, mocker):
         </li>
         </ol>
         </nav>
+        <iframe src="http://example.com">
+            <a data-check-rex-link="true" data-needs-rex-link="true">outside page/chapter</a>
+        </iframe>
         <div data-type="page" id="9f049b16-15e9-4725-8c8b-4908a3e2be5e">
         <div data-type="metadata" style="display: none;">
         <h1 data-type="document-title" itemprop="name">Page1</h1>
@@ -3023,6 +3026,11 @@ def test_link_single(tmp_path, mocker):
     #       4. Other attributes are unchanged
     check_links = [list(link.items()) + [('text', link.text)] for link in rex_links]
     expected_links = [
+        [
+            ('data-check-rex-link', 'true'),
+            ('href', 'http://example.com'),
+            ('text', 'outside page/chapter'),
+        ],
         [
             ('data-check-rex-link', 'true'),
             ('href', 'http://openstax.org/books/book1/pages/book1-page1'),
