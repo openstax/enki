@@ -101,7 +101,7 @@ class BookPart:
         parent_stack = []
 
         def handler(event, elm):
-            nonlocal parent_part, current_part, parent_stack
+            nonlocal parent_part, current_part
             if elm.tag == TITLE_TAG and event == "start":
                 title = elm.text
                 assert (
