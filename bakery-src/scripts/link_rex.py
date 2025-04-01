@@ -4,16 +4,13 @@ from pathlib import Path
 
 from lxml import etree
 
-from .utils import unformatted_rex_links
+from .utils import unformatted_rex_links, build_rex_url
 from .profiler import timed
 
 
 @timed
 def update_doc_links(doc, book_slugs_by_uuid=None):
     """Modify links in doc"""
-
-    def _rex_url_builder(book, page):
-        return f"http://openstax.org/books/{book}/pages/{page}"
 
     external_link_elems = unformatted_rex_links(doc)
 
@@ -27,7 +24,7 @@ def update_doc_links(doc, book_slugs_by_uuid=None):
             external_book_slug = book_slugs_by_uuid[
                 external_book_uuid] if book_slugs_by_uuid else node.attrib["data-book-slug"]
             external_page_slug = node.attrib["data-page-slug"]
-            node.attrib["href"] = _rex_url_builder(
+            node.attrib["href"] = build_rex_url(
                 external_book_slug, external_page_slug
             )
             print('AFTER!!:')

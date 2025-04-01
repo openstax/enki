@@ -46,7 +46,6 @@ help :
 	@echo "  * pyenv -- ${_SHORT_DESC_PYENV}"
 	@echo "  * test -- ${_SHORT_DESC_TEST}"
 	@echo "  * check-dist -- ${_SHORT_DESC_CHECK_DIST}"
-	@echo "  * version -- Print the version"
 	@echo ""
 	@echo "Where <VAR> can be:"  # alphbetical please
 	@echo ""
@@ -88,26 +87,6 @@ test : $(STATEDIR)/env/pyvenv.cfg
 	$(BINDIR)/python -m pytest --cov=nebu --cov-report=html --cov-report=term --cov-report=xml:cov.xml  $(filter-out $@, $(MAKECMDGOALS)) $(TEST_EXTRA_ARGS) $(TEST) --snapshot-update
 
 # /Test
-
-# ###
-#  Version
-# ###
-
-
-curr_tag := $(shell git describe --tags $$(git rev-list --tags --max-count=1))
-curr_tag_rev := $(shell git rev-parse "$(curr_tag)^0")
-head_rev := $(shell git rev-parse HEAD)
-head_short_rev := $(shell git rev-parse --short HEAD)
-ifeq ($(curr_tag_rev),$(head_rev))
-	version := $(curr_tag)
-else
-	version := $(curr_tag)-dev$(head_short_rev)
-endif
-
-version help-version : .git
-	@echo $(version)
-
-# /Version
 
 
 # ###

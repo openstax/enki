@@ -13,6 +13,7 @@ from .html_parser import reconstitute
 from .cnx_models import flatten_to_documents
 from lxml import etree
 from .profiler import timed
+from .utils import build_rex_url
 
 
 @timed
@@ -144,6 +145,7 @@ def transform_links(
     book_metadata = parse_book_metadata(binders, baked_meta_dir)
 
     uuid_by_slug = {entry["slug"]: entry["id"] for entry in book_metadata}
+    slug_by_uuid = dict(zip(*list(zip(*uuid_by_slug.items()))[::-1]))
     book_tree_by_uuid = {
         entry["id"]: entry["tree"] for entry in book_metadata
     }
@@ -151,6 +153,30 @@ def transform_links(
     page_slug_resolver = gen_page_slug_resolver(
         book_tree_by_uuid
     )
+
+    for node in doc.xpath(
+        '//x:a[@data-needs-rex-link="true"]',
+        namespaces={"x": "http://www.w3.org/1999/xhtml"},
+    ):
+        try:
+            page_uuid = node.xpath('ancestor::*[@data-type="page"]/@id')[0]
+            if page_uuid.startswith("page_"):
+                page_uuid = page_uuid[5:]
+            book_uuid = canonical_map.get(page_uuid)
+            assert book_uuid, f'Could not find book for page: {page_uuid}'
+            book_slug = slug_by_uuid.get(book_uuid)
+            assert book_slug, f'Could not find slug for book: {book_uuid}'
+            page_slug = page_slug_resolver(book_uuid, page_uuid)
+            assert page_slug, f'Could not find slug for page: {page_uuid}'
+            node.attrib['href'] = build_rex_url(book_slug, page_slug)
+        except Exception as e:
+            parent_link = node.xpath('parent::*[@src]/@src')
+            assert parent_link, \
+                f'Could not find link for element: {etree.tostring(node)}'
+            node.attrib['href'] = parent_link[0]
+            print(f"[WARNING]: {e} (used '{parent_link}' instead)")
+        finally:
+            del node.attrib['data-needs-rex-link']
 
     # look up uuids for external module links
     for node in doc.xpath(
@@ -173,9 +199,7 @@ def transform_links(
             raise Exception(
                 f"Could not find canonical book for {target_module_uuid}"
             )
-        canonical_book_slug = next(
-            (slug for slug, uuid in uuid_by_slug.items()
-             if uuid == canonical_book_uuid))
+        canonical_book_slug = slug_by_uuid[canonical_book_uuid]
 
         page_slug = page_slug_resolver(canonical_book_uuid, target_module_uuid)
         if page_slug is None:
