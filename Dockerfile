@@ -94,6 +94,22 @@ COPY ./bakery-js/tsconfig*.json /workspace/enki/bakery-js/
 RUN npm --prefix=/workspace/enki/bakery-js run build
 
 
+COPY ./poet/package.json ./poet/package-lock.json ./poet/tsconfig*.json /workspace/enki/poet/
+# Maybe don't need the client files
+COPY ./poet/client/package.json ./poet/client/package-lock.json /workspace/enki/poet/client/
+COPY ./poet/server/package.json ./poet/server/package-lock.json /workspace/enki/poet/server/
+
+RUN npm --prefix=/workspace/enki/poet install
+
+COPY ./poet/server/src/ /workspace/enki/poet/server/src/
+COPY ./poet/common/src/ /workspace/enki/poet/common/src/
+COPY ./poet/server/tsconfig*.json /workspace/enki/poet/server/
+COPY ./poet/server/webpack.config.js /workspace/enki/poet/server/
+
+# Just for notes: cd /workspace/enki/poet && ./node_modules/.bin/ts-node server/src/model/_cli.ts validate /tmp/build/0000000/_attic/IO_FETCHED
+# RUN npm --prefix=/workspace/enki/poet run build:server
+
+
 # ===========================
 # Install Python Packages
 # ===========================
@@ -339,6 +355,8 @@ COPY --from=build-python-stage \
     /usr/local/bin/pptify \
     /usr/local/bin/aws \
     /usr/local/bin/
+
+COPY --from=build-bakery-js-stage /workspace/enki/poet/ /workspace/enki/poet/
 
 
 # Copy ce-styles
