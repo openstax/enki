@@ -2,6 +2,22 @@ parse_book_dir
 
 s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
+if [[ $(tee /dev/stderr | wc -l) -gt 0 ]]; then
+    echo "Duplicate slugs found"
+    exit 1
+fi < <(
+    for collection in "$IO_JSONIFIED/"*.toc.json; do
+        jq -r '.tree.contents | .. | select(.slug?) | .slug' "$collection" |
+        sort |
+        uniq -c |
+        awk -v "col=$(basename "$collection")" '
+            $1 > 1 {
+                printf("%s appeared %d times in %s\n", $2, $1, col)
+            }
+        '
+    done
+)
+
 for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
 for xhtmlfile in "$IO_JSONIFIED/"*@*:*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(basename "$xhtmlfile")"; done;
 aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
