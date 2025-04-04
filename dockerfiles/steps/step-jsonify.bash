@@ -43,5 +43,23 @@ shopt -u globstar nullglob
 find "$IO_JSONIFIED" -name '*.toc.json' | do_json_validate "$JS_UTILS_STUFF_ROOT/schemas/book-schema.json"
 find "$IO_JSONIFIED" -name '*@*:*.json' | do_json_validate "$JS_UTILS_STUFF_ROOT/schemas/page-schema.json"
 
+# LCOV_EXCL_START
+if [[ $(tee /dev/stderr | wc -l) -gt 0 ]]; then
+    echo "Duplicate slugs found"
+    exit 1
+fi < <(
+    for collection in "$IO_JSONIFIED/"*.toc.json; do
+        jq -r '.tree.contents | .. | select(.slug?) | .slug' "$collection" |
+        sort |
+        uniq -c |
+        awk -v "col=$(basename "$collection")" '
+            $1 > 1 {
+                printf("%s appeared %d times in %s\n", $2, $1, col)
+            }
+        '
+    done
+)
+# LCOV_EXCL_STOP
+
 # Formerly git-validate-xhtml-jsonify
 do_xhtml_validate $IO_JSONIFIED "*.xhtml" duplicate-id 
