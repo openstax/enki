@@ -49,7 +49,7 @@ if [[ $(tee /dev/stderr | wc -l) -gt 0 ]]; then
     exit 1
 fi < <(
     for collection in "$IO_JSONIFIED/"*.toc.json; do
-        jq -r '.tree.contents | .. | select(.slug?) | .slug' "$collection" |
+        jq -r '.tree.contents | .. | select(.toc_type? == "book-content" and .slug?) | .slug' "$collection" |
         sort |
         uniq -c |
         awk -v "col=$(basename "$collection")" '
