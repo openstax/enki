@@ -51,12 +51,8 @@ fi < <(
     for collection in "$IO_JSONIFIED/"*.toc.json; do
         jq -r '.tree.contents | .. | select(.toc_type? == "book-content" and .slug?) | .slug' "$collection" |
         sort |
-        uniq -c |
-        awk -v "col=$(basename "$collection")" '
-            $1 > 1 {
-                printf("%s appeared %d times in %s\n", $2, $1, col)
-            }
-        '
+        uniq --repeated --count |
+        awk -v "col=$(basename "$collection")" '$0=$2" appeared "$1" times in "col'
     done
 )
 # LCOV_EXCL_STOP
