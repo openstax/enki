@@ -159,7 +159,14 @@ def adapt_single_html(html):
 @timed
 def _adapt_single_html_tree(parent, elem, nav_tree, top_metadata,
                             id_map=None, depth=0):
-    title_overrides = [i.get('title') for i in nav_tree['contents']]
+    contents = nav_tree.get('contents', None)
+    assert contents, "\n".join((
+        "Nav tree contents not found",
+        "This usually happens when a page is where a subcollection should be",
+        f"id = {nav_tree.get('id')}",
+        f"title = {nav_tree.get('title')}"  
+    ))
+    title_overrides = [i.get('title') for i in contents]
 
     # A dictionary to allow look up of a document and new id using the old html
     # element id
