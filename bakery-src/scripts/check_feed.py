@@ -1,13 +1,121 @@
+import os
 import json
 import sys
+from typing import NamedTuple, Any, Optional
 from datetime import datetime
 from operator import itemgetter
 
 import boto3
 import botocore
 from .profiler import timed
-
 import requests
+
+
+COMPLETION_MESSAGE = """
+WebHosting Pipeline Status Update
+
+Version: {code_version}
+Build Status: Complete ✅
+Completion Time: {completion_time}
+Total Books Built: {books_complete}
+""".strip()
+
+REVIVAL_MESSAGE = """
+WebHosting Pipeline Status Update
+
+Version: {code_version}
+Build Status: Running ▶️
+Start Time: {start_time}
+Books Queued: {books_queued}
+""".strip()
+
+
+def is_status_code(error, status_code):
+    return error.response["Error"]["Code"] == status_code
+
+
+def send_slack_message(message: str):
+    api_url = "https://slack.com/api/chat.postMessage"
+
+    def _handle_errors(
+        response: requests.Response,
+    ) -> Optional[requests.Response]:
+        try:
+            response.raise_for_status()
+            return response
+        except Exception as e:
+            print(f"Error sending message: {e}", file=sys.stderr)
+            return None
+
+    webhooks = (
+        webhook.strip()
+        for webhook in os.getenv("SLACK_WEBHOOKS", "").split(",")
+        if webhook.strip()
+    )
+
+    for webhook in webhooks:
+        _handle_errors(requests.post(webhook, json={"text": message}))
+
+    post_params_str = os.getenv("SLACK_POST_PARAMS", "")
+    if post_params_str:
+        try:
+            loaded = json.loads(post_params_str)
+            if not isinstance(loaded, list):
+                post_params_list = [loaded]
+            else:
+                post_params_list = loaded
+            for post_params in post_params_list:
+                if not isinstance(post_params, dict):
+                    print(
+                        f"Invalid post params: {post_params}", file=sys.stderr
+                    )
+                    continue
+
+                data = {**post_params, "text": message}
+                _handle_errors(requests.post(api_url, data=data))
+        except json.JSONDecodeError as e:
+            print(f"Invalid JSON in SLACK_POST_PARAMS: {e}", file=sys.stderr)
+
+
+class QueueNotifier(NamedTuple):
+    s3_client: Any
+    queue_state_bucket: str
+    notification_key: str
+
+    def reset(self):
+        if self.did_notify:
+            try:
+                self.s3_client.delete_object(
+                    Bucket=self.queue_state_bucket, Key=self.notification_key
+                )
+            except botocore.exceptions.ClientError as error: # pragma: no cover
+                if not is_status_code(error, "404"):
+                    raise
+
+    @property
+    def did_notify(self):
+        try:
+            self.s3_client.head_object(
+                Bucket=self.queue_state_bucket, Key=self.notification_key
+            )
+            return True
+        except botocore.exceptions.ClientError as error:
+            if is_status_code(error, "404"):
+                return False
+            else:
+                raise  # pragma: no cover
+
+    def notify(self, message: str):
+        send_slack_message(message)
+
+    def notify_once(self, message: str):
+        if not self.did_notify:
+            self.notify(message)
+            self.s3_client.put_object(
+                Bucket=self.queue_state_bucket,
+                Key=self.notification_key,
+                Body=datetime.now().astimezone().isoformat(timespec="seconds"),
+            )
 
 
 def unique(it, *, key=hash):
@@ -50,6 +158,7 @@ def main():
 
     s3_client = boto3.client("s3")
     books_queued = 0
+    books_complete = 0
 
     flattened_feed = get_abl(corgi_api_url, code_version)
 
@@ -73,11 +182,11 @@ def main():
         try:
             print(f"Checking for s3://{queue_state_bucket}/{complete_key}")
             s3_client.head_object(Bucket=queue_state_bucket, Key=complete_key)
+            books_complete += 1
             # Book is complete, move along to next book
             continue
         except botocore.exceptions.ClientError as error:
-            error_code = error.response["Error"]["Code"]
-            if error_code != "404":  # pragma: no cover
+            if not is_status_code(error, "404"):  # pragma: no cover
                 # Not an expected 404 error
                 raise
             # Otherwise, book is not complete and we check other states
@@ -91,9 +200,9 @@ def main():
                 print(f"Checking for s3://{queue_state_bucket}/{state_key}")
                 s3_client.head_object(Bucket=queue_state_bucket, Key=state_key)
             except botocore.exceptions.ClientError as error:
-                error_code = error.response["Error"]["Code"]
-                if error_code == "404":
+                if is_status_code(error, "404"):
                     print(f"Found feed entry to build: {book}")
+                    # Create new queue version for this book
                     s3_client.put_object(
                         Bucket=queue_state_bucket,
                         Key=queue_filename,
@@ -103,7 +212,9 @@ def main():
                     s3_client.put_object(
                         Bucket=queue_state_bucket,
                         Key=state_key,
-                        Body=datetime.now().astimezone().isoformat(timespec="seconds"),
+                        Body=datetime.now()
+                        .astimezone()
+                        .isoformat(timespec="seconds"),
                     )
                     books_queued += 1
                     # Book was queued, don't try to queue it again
@@ -112,6 +223,26 @@ def main():
                     # Not an expected 404 error
                     raise
 
+    notifier = QueueNotifier(
+        s3_client=s3_client,
+        queue_state_bucket=queue_state_bucket,
+        notification_key=f"{code_version}/notification.complete",
+    )
+    if books_queued == 0:
+        message = COMPLETION_MESSAGE.format(
+            code_version=code_version,
+            completion_time=datetime.now().astimezone().isoformat(),
+            books_complete=books_complete,
+        )
+        notifier.notify_once(message)
+    elif notifier.did_notify:
+        message = REVIVAL_MESSAGE.format(
+            code_version=code_version,
+            start_time=datetime.now().astimezone().isoformat(),
+            books_queued=books_queued,
+        )
+        notifier.notify(message)
+        notifier.reset()
     print(f"Queued {books_queued} books")
 
 
