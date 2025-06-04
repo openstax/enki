@@ -8,10 +8,12 @@ import {
     toConcourseTask,
     expect,
     stepsToTasks,
+    reportToSlack,
 } from "./util";
 import { GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from "./step-definitions";
 
 function makePipeline(envValues: KeyValue) {
+    const reporter = reportToSlack(RESOURCES.SLACK_CE_STREAM)
     const resources = [
         {
             name: RESOURCES.S3_GIT_QUEUE,
@@ -32,6 +34,13 @@ function makePipeline(envValues: KeyValue) {
                 interval: envValues.PIPELINE_TICK_INTERVAL,
             },
         },
+        {
+            name: RESOURCES.SLACK_CE_STREAM,
+            type: "registry-image",
+            source: {
+                repository: "arbourd/concourse-slack-alert-resource"
+            }
+        }
     ];
 
     const gitFeeder = {
@@ -56,6 +65,8 @@ function makePipeline(envValues: KeyValue) {
                     MAX_BOOKS_PER_TICK: true,
                     STATE_PREFIX: true,
                     QUEUE_SUFFIX: true,
+                    SLACK_WEBHOOK_CE_STREAM: false,
+                    SLACK_WEBHOOK_UNIFIED: false,
                 },
                 readScript("script/check_feed.sh")
             ),
@@ -76,6 +87,7 @@ function makePipeline(envValues: KeyValue) {
                 GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD
             ),
         ],
+        on_failure: reporter({ alert_type: 'failed' })
     };
 
     return { jobs: [gitFeeder, gitWebBaker], resources };
