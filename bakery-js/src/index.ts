@@ -270,13 +270,17 @@ program
     const readline = createInterface({ input: process.stdin })
     log('Annotating XML files with source map information (data-sm="...")')
     for await (const sourceFile of progressSpinner(readline)) {
-      const destinationFile = inPlace ? sourceFile : `${sourceFile}.mapped`
-      const $doc = dom(await readXmlWithSourcemap(sourceFile))
-      $doc.forEach('//*[not(@data-sm)]', (el) => {
-        const p = getPos(el.node)
-        el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
-      })
-      await writeXmlWithSourcemap(destinationFile, $doc.node)
+      try {
+        const destinationFile = inPlace ? sourceFile : `${sourceFile}.mapped`
+        const $doc = dom(await readXmlWithSourcemap(sourceFile))
+        $doc.forEach('//*[not(@data-sm)]', (el) => {
+          const p = getPos(el.node)
+          el.attr('data-sm', `${sourceFile}:${p.lineNumber}:${p.columnNumber}`)
+        })
+        await writeXmlWithSourcemap(destinationFile, $doc.node)
+      } catch (e) {
+        log(`\n[ERROR] Failed to annotate ${sourceFile}: ${e}\n`)
+      }
     }
     log('XML files annotated successfully!\n')
   })
