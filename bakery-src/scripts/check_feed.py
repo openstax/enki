@@ -88,7 +88,7 @@ class QueueNotifier(NamedTuple):
                 self.s3_client.delete_object(
                     Bucket=self.queue_state_bucket, Key=self.notification_key
                 )
-            except botocore.exceptions.ClientError as error: # pragma: no cover
+            except botocore.exceptions.ClientError as error:  # pragma: no cover
                 if not is_status_code(error, "404"):
                     raise
 
