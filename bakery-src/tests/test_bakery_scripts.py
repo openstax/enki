@@ -1155,11 +1155,11 @@ def test_check_feed(mocker):
             "consumer": "REX",
             "commit_sha": "ffffffffffffffffffffffffffffffffffffffff",
         },
-        # It should not try to queue this version: repo and commit match prev
+        # It should NOT try to queue this version: repo and commit match prev
         {
             "repository_name": "osbooks-introduction-sociology",
             "code_version": "20210224.204120",
-            "uuid": "02040312-72c8-441e-a685-20e9333f3e1e",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1d",
             "slug": "introduction-sociology-not-2e",
             "committed_at": "2022-02-09T17:32:00+00:00",
             "consumer": "REX",
@@ -1346,7 +1346,9 @@ def test_check_feed(mocker):
             'Version: 20210101.00000001\n'
             'Build Status: Complete ✅\n'
             'Completion Time: 1970-01-01T00:00:00+00:00\n'
-            'Total Books Built: 2',
+            'Books Built: 2\n'
+            'Total Books: 2\n'
+            'Failed Builds: 0',
         ),
     ]
 
@@ -1415,8 +1417,7 @@ def test_check_feed(mocker):
 
     # We did notify
     _stubber_add_head_object(f"{code_version}/notification.complete")
-    # We want to notify again
-    _stubber_add_head_object(f"{code_version}/notification.complete")
+    # We want to reset
     _stubber_delete_object(f"{code_version}/notification.complete")
 
     # Book repo 1: Check for .complete file
@@ -1455,6 +1456,11 @@ def test_check_feed(mocker):
         for _ in range(2):
             check_feed.main()
     
+    # Note that the numbers shown for books built are incongruous because
+    # the number is based on the book feed input
+    # In the first test, the feed has 2 books to build
+    # In the second test, the feed has 1 book to build
+    # So the number is actually the count of books on the ABL that are complete
     assert [call.args for call in mock_send_slack_message.call_args_list] == [
         (
             'WebHosting Pipeline Status Update\n'
@@ -1462,7 +1468,9 @@ def test_check_feed(mocker):
             'Version: 20210101.00000001\n'
             'Build Status: Complete ✅\n'
             'Completion Time: 1970-01-01T00:00:00+00:00\n'
-            'Total Books Built: 2',
+            'Books Built: 2\n'
+            'Total Books: 2\n'
+            'Failed Builds: 0',
         ),
         (
             'WebHosting Pipeline Status Update\n'
@@ -1478,7 +1486,9 @@ def test_check_feed(mocker):
             'Version: 20210101.00000001\n'
             'Build Status: Complete ✅\n'
             'Completion Time: 1970-01-01T00:00:00+00:00\n'
-            'Total Books Built: 1',
+            'Books Built: 1\n'
+            'Total Books: 1\n'
+            'Failed Builds: 0',
         ),
     ]
     

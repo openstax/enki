@@ -17,7 +17,9 @@ WebHosting Pipeline Status Update
 Version: {code_version}
 Build Status: Complete ✅
 Completion Time: {completion_time}
-Total Books Built: {books_complete}
+Books Built: {books_built}
+Total Books: {total_books}
+Failed Builds: {failed_count}
 """.strip()
 
 REVIVAL_MESSAGE = """
@@ -83,14 +85,13 @@ class QueueNotifier(NamedTuple):
     notification_key: str
 
     def reset(self):
-        if self.did_notify:
-            try:
-                self.s3_client.delete_object(
-                    Bucket=self.queue_state_bucket, Key=self.notification_key
-                )
-            except botocore.exceptions.ClientError as error:  # pragma: no cover
-                if not is_status_code(error, "404"):
-                    raise
+        try:
+            self.s3_client.delete_object(
+                Bucket=self.queue_state_bucket, Key=self.notification_key
+            )
+        except botocore.exceptions.ClientError as error:  # pragma: no cover
+            if not is_status_code(error, "404"):
+                raise
 
     @property
     def did_notify(self):
@@ -161,6 +162,7 @@ def main():
     books_complete = 0
 
     flattened_feed = get_abl(corgi_api_url, code_version)
+    total_books = len(flattened_feed)
 
     # Iterate through feed and check for a book that is not completed based
     # upon existence of a {code_version}/.{collection_id}@{version}.complete
@@ -232,7 +234,9 @@ def main():
         message = COMPLETION_MESSAGE.format(
             code_version=code_version,
             completion_time=datetime.now().astimezone().isoformat(),
-            books_complete=books_complete,
+            books_built=books_complete,
+            total_books=total_books,
+            failed_count=f"{total_books - books_complete}",
         )
         notifier.notify_once(message)
     elif notifier.did_notify:
