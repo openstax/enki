@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw
 from pathlib import Path
 from filecmp import cmp
 import unittest
+import sys
 
 try:
     from unittest import mock
@@ -1131,7 +1132,7 @@ def test_bake_book_metadata_git(tmp_path, mocker):
     assert book_metadata["language"] == "en"
 
 
-def test_check_feed(tmp_path, mocker):
+def test_check_feed(mocker):
     """Test check_feed script"""
 
     input_book_feed = [
@@ -1154,11 +1155,11 @@ def test_check_feed(tmp_path, mocker):
             "consumer": "REX",
             "commit_sha": "ffffffffffffffffffffffffffffffffffffffff",
         },
-        # It should not try to queue this version: repo and commit match prev
+        # It should NOT try to queue this version: repo and commit match prev
         {
             "repository_name": "osbooks-introduction-sociology",
             "code_version": "20210224.204120",
-            "uuid": "02040312-72c8-441e-a685-20e9333f3e1e",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1d",
             "slug": "introduction-sociology-not-2e",
             "committed_at": "2022-02-09T17:32:00+00:00",
             "consumer": "REX",
@@ -1168,14 +1169,15 @@ def test_check_feed(tmp_path, mocker):
 
     api_root = "https://mock.corgi"
 
-    class MockResponse:
+    class MockBookFeedResponse:
+        def __init__(self, book_feed):
+            self.book_feed = book_feed
+
         def json(self):
-            return input_book_feed
+            return self.book_feed
 
         def raise_for_status(self):
             pass
-
-    check_feed.requests.get = lambda url: MockResponse()
 
     # We'll use the botocore stubber to play out a simple scenario to test the
     # script where we'll trigger multiple invocations to "build" all books
@@ -1203,6 +1205,10 @@ def test_check_feed(tmp_path, mocker):
 
     s3_client = boto3.client("s3")
     s3_stubber = botocore.stub.Stubber(s3_client)
+
+    # Let's not risk creating spam by accident
+    assert os.getenv("SLACK_WEBHOOKS", "") == ""
+    assert os.getenv("SLACK_POST_PARAMS", "") == ""
 
     def _stubber_add_head_object_404(expected_key):
         s3_stubber.add_client_error(
@@ -1232,6 +1238,16 @@ def test_check_feed(tmp_path, mocker):
                 "Bucket": queue_state_bucket,
                 "Key": expected_key,
                 "Body": expected_body,
+            },
+        )
+    
+    def _stubber_delete_object(expected_key):
+        s3_stubber.add_response(
+            "delete_object",
+            {},
+            expected_params={
+                "Bucket": queue_state_bucket,
+                "Key": expected_key,
             },
         )
 
@@ -1269,7 +1285,9 @@ def test_check_feed(tmp_path, mocker):
         botocore.stub.ANY,
     )
 
-    # Book: Check for .complete file
+    _stubber_add_head_object_404(f"{code_version}/notification.complete")
+
+    # Book repo 1: Check for .complete file
     _stubber_add_head_object(
         f"{code_version}/.{state_prefix}.{repo1}@{vers1}.complete"
     )
@@ -1277,6 +1295,12 @@ def test_check_feed(tmp_path, mocker):
     # Book repo 2: This one is complete, no action
     _stubber_add_head_object(
         f"{code_version}/.{state_prefix}.{repo2}@{vers2}.complete"
+    )
+
+    _stubber_add_head_object_404(f"{code_version}/notification.complete")
+    _stubber_add_put_object(
+        f"{code_version}/notification.complete",
+        botocore.stub.ANY
     )
 
     s3_stubber.activate()
@@ -1296,10 +1320,41 @@ def test_check_feed(tmp_path, mocker):
         ],
     )
 
-    for _ in range(2):
-        check_feed.main()
+    send_slack_message = check_feed.send_slack_message
+    mock_send_slack_message = unittest.mock.Mock(wraps=send_slack_message)
+    mock_datetime = unittest.mock.Mock()
+    mock_datetime.now.return_value = datetime.fromtimestamp(0)
+
+    check_feed.requests.get = lambda url: MockBookFeedResponse(input_book_feed)
+
+    with (
+        unittest.mock.patch(
+            'bakery_scripts.check_feed.send_slack_message', mock_send_slack_message
+        ),
+        unittest.mock.patch(
+            'bakery_scripts.check_feed.datetime', mock_datetime
+        )
+    ):
+        for _ in range(2):
+            check_feed.main()
+    
+    # Should try to send one slack notification
+    assert [call.args for call in mock_send_slack_message.call_args_list] == [
+        (
+            'WebHosting Pipeline Status Update\n'
+            '\n'
+            'Version: 20210101.00000001\n'
+            'Build Status: Complete ✅\n'
+            'Completion Time: 1970-01-01T00:00:00+00:00\n'
+            'Books Built: 2\n'
+            'Total Books: 2\n'
+            'Failed Builds: 0',
+        ),
+    ]
 
     s3_stubber.assert_no_pending_responses()
+
+    _stubber_add_head_object(f"{code_version}/notification.complete")    
 
     mocker.patch(
         "sys.argv",
@@ -1313,10 +1368,236 @@ def test_check_feed(tmp_path, mocker):
             state_prefix,
         ],
     )
-
-    check_feed.main()
+    with unittest.mock.patch(
+        'bakery_scripts.check_feed.send_slack_message', mock_send_slack_message
+    ):
+        check_feed.main()
+    
+    # Should not try to send another slack notification
+    assert mock_send_slack_message.call_count == 1
 
     s3_stubber.assert_no_pending_responses()
+
+    second_book_feed = [
+        {
+            "repository_name": "osbooks-introduction-sociology",
+            "code_version": "20210224.204120",
+            "uuid": "02040312-72c8-441e-a685-20e9333f3e1e",
+            "slug": "introduction-sociology-not-2e",
+            "committed_at": "2022-02-09T17:32:00+00:00",
+            "consumer": "REX",
+            "commit_sha": "1" * 40,
+        },
+    ]
+
+    repo1 = second_book_feed[0]["repository_name"]
+    vers1 = second_book_feed[0]["commit_sha"]
+    book = {"repo": repo1, "version": vers1}
+
+    check_feed.requests.get = lambda url: MockBookFeedResponse(second_book_feed)
+
+    # Book: Check for .complete file
+    _stubber_add_head_object_404(
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.complete"
+    )
+
+    # Book: Check for .pending file
+    _stubber_add_head_object_404(
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.pending"
+    )
+
+    # Book: Put book data
+    _stubber_add_put_object(queue_filename, json.dumps(book))
+
+    # Book: Put book .pending
+    _stubber_add_put_object(
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.pending",
+        botocore.stub.ANY,
+    )
+
+    # We did notify
+    _stubber_add_head_object(f"{code_version}/notification.complete")
+    # We want to reset
+    _stubber_delete_object(f"{code_version}/notification.complete")
+
+    # Book repo 1: Check for .complete file
+    _stubber_add_head_object(
+        f"{code_version}/.{state_prefix}.{repo1}@{vers1}.complete"
+    )
+
+    # Now we notify about completion again
+    _stubber_add_head_object_404(f"{code_version}/notification.complete")
+    _stubber_add_put_object(
+        f"{code_version}/notification.complete",
+        botocore.stub.ANY
+    )
+
+    mocker.patch(
+        "sys.argv",
+        [
+            "",
+            api_root,
+            code_version,
+            queue_state_bucket,
+            queue_filename,
+            1,
+            state_prefix,
+        ],
+    )
+
+    with (
+        unittest.mock.patch(
+            'bakery_scripts.check_feed.send_slack_message', mock_send_slack_message
+        ),
+        unittest.mock.patch(
+            'bakery_scripts.check_feed.datetime', mock_datetime
+        )
+    ):
+        for _ in range(2):
+            check_feed.main()
+    
+    # Note that the numbers shown for books built are incongruous because
+    # the number is based on the book feed input
+    # In the first test, the feed has 2 books to build
+    # In the second test, the feed has 1 book to build
+    # So the number is actually the count of books on the ABL that are complete
+    assert [call.args for call in mock_send_slack_message.call_args_list] == [
+        (
+            'WebHosting Pipeline Status Update\n'
+            '\n'
+            'Version: 20210101.00000001\n'
+            'Build Status: Complete ✅\n'
+            'Completion Time: 1970-01-01T00:00:00+00:00\n'
+            'Books Built: 2\n'
+            'Total Books: 2\n'
+            'Failed Builds: 0',
+        ),
+        (
+            'WebHosting Pipeline Status Update\n'
+            '\n'
+            'Version: 20210101.00000001\n'
+            'Build Status: Running ▶️\n'
+            'Start Time: 1970-01-01T00:00:00+00:00\n'
+            'Books Queued: 1',
+        ),
+        (
+            'WebHosting Pipeline Status Update\n'
+            '\n'
+            'Version: 20210101.00000001\n'
+            'Build Status: Complete ✅\n'
+            'Completion Time: 1970-01-01T00:00:00+00:00\n'
+            'Books Built: 1\n'
+            'Total Books: 1\n'
+            'Failed Builds: 0',
+        ),
+    ]
+    
+    s3_stubber.assert_no_pending_responses()
+
+
+@pytest.fixture
+def capsys(capsys):
+    # Override capsys fixture to include stderr
+    class CustomCapture(object):
+        def __init__(self, capsys):
+            self.capsys = capsys
+
+        def write(self, message):
+            self.capsys.write(message)
+
+        def flush(self):
+            pass
+
+    class CustomStderr(object):
+        def __init__(self, capsys):
+            self.capsys = capsys
+
+        def write(self, message):
+            self.capsys.stderr.write(message)
+
+        def flush(self):
+            pass
+
+    sys.stdout = CustomCapture(capsys)
+    sys.stderr = CustomStderr(capsys)
+    yield capsys
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+
+
+@pytest.mark.parametrize("webhook_urls,post_params,status", [
+    (("single_webhook",), [], 200),
+    (("webhook1", "webhook2"), [], 200),
+    (
+        [],
+        [
+            {
+                "token": "1234",
+                "as_user": "slack_user",
+                "link_names": True,
+                "channel": "slack_channel",
+            }
+        ],
+        200
+    ),
+    (("single_webhook",), [], 403),
+    ([], [{}], 400),
+])
+def test_check_feed_slack_messages(capsys, webhook_urls, post_params, status):
+    with (
+        unittest.mock.patch.dict(os.environ, clear=True) as env,
+        unittest.mock.patch('bakery_scripts.check_feed.requests') as mock_requests,
+    ):
+        expected_message = "Test Message"
+        response = unittest.mock.Mock()
+        response.status_code = status
+        if status != 200:
+            def create_error():
+                raise Exception(str(status))
+            response.raise_for_status = create_error
+
+        mock_requests.post.return_value = response
+        if webhook_urls:
+            env.update({"SLACK_WEBHOOKS": ",".join(webhook_urls)})
+        if post_params:
+            env.update({"SLACK_POST_PARAMS": json.dumps(post_params)})
+        
+        check_feed.send_slack_message(expected_message)
+        assert mock_requests.post.call_count == len(webhook_urls) + len(post_params)
+
+        assert [
+            {"args": call.args, "kwargs": call.kwargs}
+            for call in mock_requests.post.call_args_list
+        ] == [
+            {"args": (webhook,), "kwargs": {"json": {"text": expected_message}}}
+            for webhook in webhook_urls
+        ] + [
+            {
+                "args": ("https://slack.com/api/chat.postMessage",),
+                "kwargs": {"data": {**params, "text": expected_message}}
+            }
+            for params in post_params
+        ]
+        if status != 200:
+            captured = capsys.readouterr()
+            assert captured.err.strip() == f"Error sending message: {status}"
+
+
+def test_check_feed_slack_messages_invalid_input(capsys):
+    with (
+        unittest.mock.patch.dict(os.environ, clear=True) as env,
+        unittest.mock.patch('bakery_scripts.check_feed.requests') as mock_requests,
+    ):
+        env.update({"SLACK_POST_PARAMS": "invalid_json"})
+        check_feed.send_slack_message("doesn't matter")
+        captured = capsys.readouterr()
+        assert captured.err.startswith("Invalid JSON in SLACK_POST_PARAMS")
+        assert mock_requests.post.call_count == 0
+        env.update({"SLACK_POST_PARAMS": json.dumps("not a dict")})
+        check_feed.send_slack_message("doesn't matter")
+        captured = capsys.readouterr()
+        assert captured.err.startswith("Invalid post params")
+        assert mock_requests.post.call_count == 0
 
 
 def test_patch_same_book_links(tmp_path, mocker):
@@ -1675,7 +1956,7 @@ async def test_gdocify_book(tmp_path, mocker):
     assert len(unwanted_nodes) == 0
 
     unwanted_nodes = updated_doc.xpath(
-        f'//x:mi[contains(text(), "\u0338")]|//x:mn[contains(text(), "\u0338")]',
+        '//x:mi[contains(text(), "\u0338")]|//x:mn[contains(text(), "\u0338")]',
         namespaces={"x": "http://www.w3.org/1999/xhtml"},
     )
     assert len(unwanted_nodes) == 0
