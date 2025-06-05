@@ -8,7 +8,7 @@
     "WEB_S3_BUCKET": "openstax-web-hosting-content-gatekeeper",
     "WEB_QUEUE_STATE_S3_BUCKET": "openstax-web-hosting-content-queue-state",
     "PREVIEW_APP_URL_PREFIX": "apps/archive",
-    "PIPELINE_TICK_INTERVAL": "12h",
+    "PIPELINE_TICK_INTERVAL": "4h",
     "MAX_BOOKS_PER_TICK": "50",
     "GH_SECRET_CREDS": "git:((github-api-token))",
     "STATE_PREFIX": "git-dist",
