@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from .html_parser import reconstitute
-from .cnx_models import flatten_to_documents
+from .cnx_models import flatten_to_documents, flatten_model, CompositeDocument
 from lxml import etree
 from .profiler import timed
 from .utils import build_rex_url
@@ -104,6 +104,46 @@ def gen_page_slug_resolver(book_tree_by_uuid):
 
 
 @timed
+def gen_composite_page_slug_resolver(binders_by_book_uuid, page_slug_resolver):
+    """Generate a composite page slug resolver function"""
+
+    parsed_by_id = {}
+
+    def _get_composite_page_uuid(book_uuid, composite_page_id):
+        """Get composite page uuid from binder"""
+
+        binder = binders_by_book_uuid.get(book_uuid)
+        if binder:
+            encoded_page_id = composite_page_id.encode("utf-8")
+            for model in flatten_model(binder):
+                if not isinstance(model, CompositeDocument):
+                    continue
+
+                model_id, content = model.id, model.content
+                if encoded_page_id in content:
+                    parsed = parsed_by_id.setdefault(
+                        model_id, etree.fromstring(content)
+                    )
+                    id_search = parsed.xpath(
+                        './/*[@data-type="composite-page"]/@id'
+                    )
+                    if id_search and id_search[0] == composite_page_id:
+                        return model_id
+
+        return None
+
+    def _get_composite_page_slug(book_uuid, composite_page_id):
+        composite_page_uuid = _get_composite_page_uuid(
+            book_uuid, composite_page_id
+        )
+        if not composite_page_uuid:
+            return None
+        return page_slug_resolver(book_uuid, composite_page_uuid)
+    
+    return _get_composite_page_slug
+
+
+@timed
 def patch_link(node, source_book_uuid, canonical_book_uuid,
                canonical_book_slug, page_slug, version):
     """replace legacy link"""
@@ -137,6 +177,64 @@ def save_linked_collection(output_path, doc):
 
 
 @timed
+def transform_rex_links(
+    doc, slug_by_uuid, page_slug_resolver, composite_page_slug_resolver
+):
+    """
+    Transform Rex links in an XHTML document.
+
+    Assumptions:
+    - Each document contains exactly one book (canonical-book-uuid)
+    - Page slugs stored by page id
+    - Composite page slugs stored by generated title sequence id
+    - Composite page ids are unique within a single book
+
+    """
+    # TODO: If the plan to remove metadata elements ever happens, this query
+    # would probably become '//x:body/@canonical-book-uuid'
+    # Alternatively, we could get the book id from canonical_map using the
+    # first page's id. Then we don't need to query directly, but that approach
+    # may be less readable
+    book_uuid_search = doc.xpath(
+        '//*[@data-type="canonical-book-uuid"]/@data-value'
+    )
+    assert book_uuid_search, 'Could no find book uuid'
+    book_uuid = book_uuid_search[0]
+    book_slug = slug_by_uuid.get(book_uuid)
+    assert book_slug, f'Could not find slug for book: {book_uuid}'
+    for node in doc.xpath(
+        '//x:a[@data-needs-rex-link="true"]',
+        namespaces={'x': 'http://www.w3.org/1999/xhtml'},
+    ):
+        try:
+            parent_page_search = node.xpath(
+                'ancestor::*[@data-type="page" or @data-type="composite-page"]'
+            )
+            assert parent_page_search, 'Could not find parent page'
+            parent_page = parent_page_search[0]
+            data_type = parent_page.attrib['data-type']
+            page_id = parent_page.attrib['id']
+            page_id = page_id[5:] if page_id.startswith('page_') else page_id
+            if data_type == 'page':
+                page_slug = page_slug_resolver(book_uuid, page_id)
+            else:
+                page_slug = composite_page_slug_resolver(book_uuid, page_id)
+            assert page_slug, f'Could not find slug for page: {page_id}'
+            node.attrib['href'] = build_rex_url(book_slug, page_slug)
+        except Exception as e:
+            # If we cannot formulate the link, try to link directly to the
+            # element's src
+            # The assumption is the the href's parent also contains the iframe
+            # the href is meant to link to
+            parent_link = node.xpath('parent::*//*[@src]/@src')
+            assert parent_link, \
+                f'Could not find link for element: {etree.tostring(node)}'
+            node.attrib['href'] = parent_link[0]
+            print(f"[WARNING]: {e} (used '{parent_link}' instead)")
+        finally:
+            del node.attrib['data-needs-rex-link']
+
+@timed
 def transform_links(
         baked_content_dir, baked_meta_dir, source_book_slug, output_path, version, mock_otherbook):
     doc = load_baked_collection(baked_content_dir, source_book_slug)
@@ -153,30 +251,14 @@ def transform_links(
     page_slug_resolver = gen_page_slug_resolver(
         book_tree_by_uuid
     )
+    binders_by_book_uuid = {binder.id: binder for binder in binders}
+    composite_page_slug_resolver = gen_composite_page_slug_resolver(
+        binders_by_book_uuid, page_slug_resolver,
+    )
 
-    for node in doc.xpath(
-        '//x:a[@data-needs-rex-link="true"]',
-        namespaces={"x": "http://www.w3.org/1999/xhtml"},
-    ):
-        try:
-            page_uuid = node.xpath('ancestor::*[@data-type="page"]/@id')[0]
-            if page_uuid.startswith("page_"):
-                page_uuid = page_uuid[5:]
-            book_uuid = canonical_map.get(page_uuid)
-            assert book_uuid, f'Could not find book for page: {page_uuid}'
-            book_slug = slug_by_uuid.get(book_uuid)
-            assert book_slug, f'Could not find slug for book: {book_uuid}'
-            page_slug = page_slug_resolver(book_uuid, page_uuid)
-            assert page_slug, f'Could not find slug for page: {page_uuid}'
-            node.attrib['href'] = build_rex_url(book_slug, page_slug)
-        except Exception as e:
-            parent_link = node.xpath('parent::*[@src]/@src')
-            assert parent_link, \
-                f'Could not find link for element: {etree.tostring(node)}'
-            node.attrib['href'] = parent_link[0]
-            print(f"[WARNING]: {e} (used '{parent_link}' instead)")
-        finally:
-            del node.attrib['data-needs-rex-link']
+    transform_rex_links(
+        doc, slug_by_uuid, page_slug_resolver, composite_page_slug_resolver
+    )
 
     # look up uuids for external module links
     for node in doc.xpath(
