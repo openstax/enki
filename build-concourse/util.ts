@@ -81,6 +81,9 @@ export enum RESOURCES {
     CORGI_GIT_PPTX = 'corgi-git-pptx',
     SLACK_CE_STREAM = 'slack-notifier-ce-stream'
 }
+export enum RESOURCE_TYPES {
+    SLACK_NOTIFY = 'slack-notifier'
+}
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file
 export enum IO {
