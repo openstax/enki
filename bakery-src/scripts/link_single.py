@@ -222,6 +222,12 @@ def transform_rex_links(
             assert page_slug, f'Could not find slug for page: {page_id}'
             node.attrib['href'] = build_rex_url(book_slug, page_slug)
         except Exception as e:
+            data_sm_query = node.xpath('ancestor-or-self::*[@data-sm]/@data-sm')
+            data_sm = data_sm_query[0] if data_sm_query else None
+            print(
+                f"[WARNING] (data-sm: {data_sm}): {e}",
+                "attempting to generate fallback link"
+            )
             # If we cannot formulate the link, try to link directly to the
             # element's src
             # The assumption is the the href's parent also contains the iframe
@@ -230,7 +236,6 @@ def transform_rex_links(
             assert parent_link, \
                 f'Could not find link for element: {etree.tostring(node)}'
             node.attrib['href'] = parent_link[0]
-            print(f"[WARNING]: {e} (used '{parent_link}' instead)")
         finally:
             del node.attrib['data-needs-rex-link']
 
