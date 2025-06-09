@@ -121,9 +121,10 @@ def gen_composite_page_slug_resolver(binders_by_book_uuid, page_slug_resolver):
 
                 model_id, content = model.id, model.content
                 if encoded_page_id in content:
-                    parsed = parsed_by_id.setdefault(
-                        model_id, etree.fromstring(content)
-                    )
+                    parsed = parsed_by_id.get(model_id, None)
+                    if parsed is None:
+                        parsed = etree.fromstring(content)
+                        parsed_by_id[model_id] = parsed
                     id_search = parsed.xpath(
                         './/*[@data-type="composite-page"]/@id'
                     )
@@ -139,7 +140,7 @@ def gen_composite_page_slug_resolver(binders_by_book_uuid, page_slug_resolver):
         if not composite_page_uuid:
             return None
         return page_slug_resolver(book_uuid, composite_page_uuid)
-    
+
     return _get_composite_page_slug
 
 

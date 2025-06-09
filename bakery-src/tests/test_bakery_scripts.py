@@ -2859,6 +2859,10 @@ def test_link_single(tmp_path, mocker):
         <a href="">
         </a>
         </li>
+        <li cnx-archive-uri="composite-page-3">
+        <a href="">
+        </a>
+        </li>
         </ol>
         </nav>
         <div>
@@ -2912,6 +2916,24 @@ def test_link_single(tmp_path, mocker):
             </h1>
             <div data-type="metadata" style="display: none;">
                 <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+            <div class="os-has-iframe os-has-link" data-type="switch">
+                <a class="os-is-link" href="/404" data-check-rex-link="true" data-needs-rex-link="true" target="_blank" rel="noopener nofollow" data-media="print">Access multimedia content</a>
+                <iframe width="660" height="371.4" src="https://edge-case-shared-composite-page-uuid.com" data-sm="./modules/m00033/index.cnxml:13:9" class="os-is-iframe" data-media="screen"><!-- no-selfclose --></iframe>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="not-index" id="composite-page-3" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Not Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Not Index</h1>
                 <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
                     <p class="license">
                     Licensed:
@@ -3093,6 +3115,17 @@ def test_link_single(tmp_path, mocker):
         [
             ('class', 'os-is-link'),
             ('href', 'http://openstax.org/books/book1/pages/index'),
+            ('data-check-rex-link', 'true'),
+            ('target', '_blank'),
+            ('rel', 'noopener nofollow'),
+            ('data-media', 'print'),
+            ('text', 'Access multimedia content'),
+        ],
+        [
+            # This edge case occurs when two composite pages have the same
+            # uuid-key. In such a case, they have the same uuid (RIP)
+            ('class', 'os-is-link'),
+            ('href', 'https://edge-case-shared-composite-page-uuid.com'),
             ('data-check-rex-link', 'true'),
             ('target', '_blank'),
             ('rel', 'noopener nofollow'),
