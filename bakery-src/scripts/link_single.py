@@ -213,8 +213,16 @@ def transform_rex_links(
             assert parent_page_search, 'Could not find parent page'
             parent_page = parent_page_search[0]
             data_type = parent_page.attrib['data-type']
-            page_id = parent_page.attrib['id']
-            page_id = page_id[5:] if page_id.startswith('page_') else page_id
+            id_value = parent_page.attrib['id']
+            # Possible values: page_<uuid> or composite-page-<number>
+            uuid_search = re.search(
+                r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+                id_value
+            )
+            # Use the uuid if we find it, else assume it's a composite page id
+            page_id = uuid_search.group(0) if uuid_search else id_value
+            assert data_type in ('page', 'composite-page'), \
+                f'Unexpected data type: {data_type}'
             if data_type == 'page':
                 page_slug = page_slug_resolver(book_uuid, page_id)
             else:
@@ -225,19 +233,20 @@ def transform_rex_links(
             data_sm_query = node.xpath('ancestor-or-self::*[@data-sm]/@data-sm')
             data_sm = data_sm_query[0] if data_sm_query else None
             print(
-                f"[WARNING] (data-sm: {data_sm}): {e}",
-                "attempting to generate fallback link"
+                f'[WARNING] (data-sm: {data_sm}): {e}',
+                'attempting to get fallback link'
             )
             # If we cannot formulate the link, try to link directly to the
             # element's src
             # The assumption is the the href's parent also contains the iframe
             # the href is meant to link to
-            parent_link = node.xpath('parent::*//*[@src]/@src')
-            assert parent_link, \
+            fallback_link = node.xpath('parent::*//*[@src]/@src')
+            assert fallback_link, \
                 f'Could not find link for element: {etree.tostring(node)}'
-            node.attrib['href'] = parent_link[0]
+            node.attrib['href'] = fallback_link[0]
         finally:
             del node.attrib['data-needs-rex-link']
+
 
 @timed
 def transform_links(
@@ -260,7 +269,6 @@ def transform_links(
     composite_page_slug_resolver = gen_composite_page_slug_resolver(
         binders_by_book_uuid, page_slug_resolver,
     )
-
     transform_rex_links(
         doc, slug_by_uuid, page_slug_resolver, composite_page_slug_resolver
     )
