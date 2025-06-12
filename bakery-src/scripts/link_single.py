@@ -3,17 +3,23 @@ Replaces legacy module ids in links to external modules with
 uuids from the target module and corresponding canonical book       .
 """
 
+import sys
 import argparse
 import json
 import re
 from pathlib import Path
 from urllib.parse import unquote
 
+from lxml import etree
+
 from .html_parser import reconstitute
 from .cnx_models import flatten_to_documents
-from lxml import etree
 from .profiler import timed
 from .utils import build_rex_url
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed

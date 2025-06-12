@@ -30,6 +30,11 @@ import imgkit
 
 from PIL import Image
 
+from . import excepthook
+
+
+excepthook.attach(sys)
+
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
