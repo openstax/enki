@@ -7,11 +7,15 @@ import json
 import re
 import sys
 from urllib.parse import unquote
-from .profiler import timed
 
-import requests
 from lxml import etree
+import requests
 
+from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 MAX_RETRIES = 2
 
 

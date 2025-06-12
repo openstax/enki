@@ -9,10 +9,16 @@ import requests
 import shutil
 import hashlib
 from pathlib import Path
-from lxml import etree
 from tempfile import SpooledTemporaryFile
+
+from lxml import etree
+
 from .utils import get_checksums, get_size, create_json_metadata, get_mime_type
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 EXERCISE_IMAGE_URL_PREFIX = 'http'
 

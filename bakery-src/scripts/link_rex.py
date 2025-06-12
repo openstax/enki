@@ -6,6 +6,10 @@ from lxml import etree
 
 from .utils import unformatted_rex_links, build_rex_url
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed
