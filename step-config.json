@@ -225,7 +225,8 @@
             ],
             "requiredEnv": [
                 "S3_QUEUE",
-                "CODE_VERSION"
+                "CODE_VERSION",
+                "QUEUE_SUFFIX"
             ]
         },
         "git-report-book-complete": {
@@ -237,7 +238,8 @@
                 "CODE_VERSION",
                 "WEB_QUEUE_STATE_S3_BUCKET",
                 "AWS_ACCESS_KEY_ID",
-                "AWS_SECRET_ACCESS_KEY"
+                "AWS_SECRET_ACCESS_KEY",
+                "STATE_PREFIX"
             ]
         }
     },

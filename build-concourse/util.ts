@@ -78,7 +78,11 @@ export enum RESOURCES {
     CORGI_GIT_WEB = 'corgi-git-dist-preview',
     CORGI_GIT_DOCX = 'corgi-git-docx',
     CORGI_GIT_EPUB = 'corgi-git-epub',
-    CORGI_GIT_PPTX = 'corgi-git-pptx'
+    CORGI_GIT_PPTX = 'corgi-git-pptx',
+    SLACK_CE_STREAM = 'slack-notifier-ce-stream'
+}
+export enum RESOURCE_TYPES {
+    SLACK_NOTIFY = 'slack-notifier'
 }
 // Note: toConcourseTask converts these into IO_BOOK-style environment variables for the tasks to use
 // so that the scripts do not have to hardcode these directories into the script file
@@ -187,6 +191,20 @@ export const reportToCorgi = (resource: RESOURCES) => {
                 ...extras
             }
         }
+    }
+}
+
+export type SlackNotifyOptions = {
+    alert_type?: 'default' | 'success' | 'failed' | 'started' | 'aborted'
+    channel?: string
+    message?: string
+    text?: string
+    color?: string
+}
+
+export const reportToSlack = (resource: RESOURCES) => {
+    return (params: SlackNotifyOptions) => {
+        return { put: resource, params }
     }
 }
 
@@ -340,4 +358,6 @@ export type KeyValue = {
     AWS_SESSION_TOKEN?: string
     QUEUE_SUFFIX: string
     STATE_PREFIX: string
+    SLACK_WEBHOOK_CE_STREAM: string
+    SLACK_WEBHOOK_UNIFIED: string
 }
