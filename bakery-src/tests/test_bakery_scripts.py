@@ -5082,7 +5082,7 @@ def test_excepthook(capsys):
 
     # test_attach_detach
     class MockSys:
-        pass
+        __slots__ = ("excepthook",)
     def stub1(*args):
         return None
     def stub2(*args):
@@ -5102,12 +5102,6 @@ def test_excepthook(capsys):
         assert mock_sys.excepthook == stub2
     assert mock_sys.excepthook == stub1
     
-
-    # Test _handle_tracebacks
-    # Create a simple exception for testing
-    class TestException(Exception):
-        pass
-
     class MockCode:
         """Simple mock code object"""
         def __init__(

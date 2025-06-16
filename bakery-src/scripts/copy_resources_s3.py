@@ -11,10 +11,7 @@ import boto3.session
 import botocore
 
 from .profiler import timed
-from . import excepthook
 
-
-excepthook.attach(sys)
 
 # After research and benchmarking 64 seems to be the best speed without big
 # trade-offs.

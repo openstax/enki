@@ -33,7 +33,7 @@ _secret_name_patterns = [
     "jwt",
 ]
 
-_all_patterns = _secret_patterns + _secret_name_patterns
+_all_patterns = _secret_name_patterns + _secret_patterns
 
 
 def _log(*msgs: str):
