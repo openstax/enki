@@ -8,11 +8,24 @@ import {
     toConcourseTask,
     expect,
     stepsToTasks,
+    reportToSlack,
+    RESOURCE_TYPES,
+    ConcourseTask,
+    SlackNotifyOptions,
 } from "./util";
 import { GIT_WEB_STEPS_WITH_DEQUEUE_AND_UPLOAD } from "./step-definitions";
 
 function makePipeline(envValues: KeyValue) {
-    const resources = [
+    const resourceTypes: {
+        name: string
+        type: string
+        source: Record<string, any>
+    }[] = []
+    const resources: {
+        name: string
+        source: Record<string, any>
+        type: string
+    }[] = [
         {
             name: RESOURCES.S3_GIT_QUEUE,
             source: {
@@ -56,13 +69,23 @@ function makePipeline(envValues: KeyValue) {
                     MAX_BOOKS_PER_TICK: true,
                     STATE_PREFIX: true,
                     QUEUE_SUFFIX: true,
+                    SLACK_WEBHOOK_CE_STREAM: false,
+                    SLACK_WEBHOOK_UNIFIED: false,
                 },
                 readScript("script/check_feed.sh")
             ),
         ],
     };
 
-    const gitWebBaker = {
+    const gitWebBaker: {
+        name: string
+        max_in_flight: number
+        plan: ConcourseTask[]
+        on_failure?: {
+            put: RESOURCES;
+            params: SlackNotifyOptions;
+        }
+    } = {
         name: "git-bakery",
         max_in_flight: expect(envValues.MAX_INFLIGHT_JOBS),
         plan: [
@@ -78,7 +101,33 @@ function makePipeline(envValues: KeyValue) {
         ],
     };
 
-    return { jobs: [gitFeeder, gitWebBaker], resources };
+    if (envValues.SLACK_WEBHOOK_CE_STREAM) {
+        const reporter = reportToSlack(RESOURCES.SLACK_CE_STREAM)
+        resourceTypes.push({
+            name: RESOURCE_TYPES.SLACK_NOTIFY,
+            type: "registry-image",
+            source: {
+                repository: "arbourd/concourse-slack-alert-resource"
+            }
+        });
+        resources.push({
+            name: RESOURCES.SLACK_CE_STREAM,
+            source: {
+                url: envValues.SLACK_WEBHOOK_CE_STREAM,
+            },
+            type: RESOURCE_TYPES.SLACK_NOTIFY
+        });
+        gitWebBaker.on_failure = reporter({ alert_type: 'failed' })
+    }
+
+    return {
+        jobs: [gitFeeder, gitWebBaker],
+        resources,
+        ...(resourceTypes.length > 0
+            ? { resource_types: resourceTypes }
+            : undefined
+        ),
+    };
 }
 
 export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {

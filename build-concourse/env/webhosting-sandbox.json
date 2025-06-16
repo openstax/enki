@@ -12,5 +12,6 @@
     "MAX_BOOKS_PER_TICK": "50",
     "GH_SECRET_CREDS": "git:((github-api-token))",
     "STATE_PREFIX": "git-dist",
-    "QUEUE_SUFFIX": "web-hosting-git-queue.json"
+    "QUEUE_SUFFIX": "web-hosting-git-queue.json",
+    "SLACK_WEBHOOK_CE_STREAM": "((slack-webhook-cestream))"
 }
