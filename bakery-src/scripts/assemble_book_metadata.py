@@ -6,6 +6,10 @@ from .cnx_models import flatten_to_documents
 from .html_parser import reconstitute
 from .profiler import timed
 from .utils import ensure_isoformat
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed

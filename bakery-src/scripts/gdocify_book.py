@@ -12,6 +12,10 @@ from lxml import etree
 
 from .utils import get_mime_type, patch_math_for_pandoc
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 # folder where all resources are saved in checksum step
 RESOURCES_FOLDER = '../resources/'

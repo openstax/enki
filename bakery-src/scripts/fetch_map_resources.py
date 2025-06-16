@@ -8,6 +8,10 @@ from lxml import etree
 
 from .utils import get_checksums, get_mime_type, get_size, create_json_metadata
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 def get_resource_dir_name_env():
