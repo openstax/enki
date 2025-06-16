@@ -13,6 +13,7 @@ const config: JestConfigWithTsJest = {
   verbose: true,
   moduleNameMapper: {
     'myjsx/jsx-dev-runtime': '<rootDir>/src/minidom',
+    '^fs$': '<rootDir>/src/__mocks__/fs',
   },
 }
 
