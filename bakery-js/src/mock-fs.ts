@@ -119,7 +119,6 @@ export class FS {
   }
 
   private setupFiles(fs: MockFileSystem): void {
-    this.mkdirSync(process.cwd(), { recursive: true })
     const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
       Object.entries(fs).forEach(([path, content]) => {
         const newPathParts = [...pathParts, path]
@@ -138,6 +137,7 @@ export class FS {
         }
       })
     }
+    this.mkdirSync(process.cwd(), { recursive: true })
     recursiveMapFs(fs, [])
   }
 
