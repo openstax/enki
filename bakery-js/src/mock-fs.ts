@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import fs from 'fs'
-import { dirname, resolve, normalize } from 'path'
+import { dirname, resolve } from 'path'
 import { Writable } from 'stream'
 
 type FileContent = string | Buffer
@@ -109,8 +109,11 @@ export class FS {
     let ptr = this._tree
     for (const part of parts) {
       const entry = assertValue(ptr[part], `Path does not exist: ${path}`)
-      assertTrue(!isFileContent(entry), `File exists: ${path}`)
-      ptr = entry as MockDirectory
+      if (!isFileContent(entry)) {
+        ptr = entry
+      } else {
+        throw new Error(`File exists: ${path}`)
+      }
     }
     return ptr
   }
@@ -167,7 +170,7 @@ export class FS {
     const name = parts[parts.length - 1]
     try {
       const parentDir = this.getLeaf(norm, parts.slice(0, -1))
-      return !isFileContent(parentDir) && parentDir[name] !== undefined
+      return parentDir[name] !== undefined
     } catch (_) {
       return false
     }
@@ -224,7 +227,7 @@ export class FS {
 
   public rmSync(path: string, options: { recursive?: boolean } = {}) {
     const { recursive = false } = options
-    const norm = normalize(path)
+    const norm = this.normPath(path)
     const parts = norm.split('/').filter((part) => part)
     const name = parts[parts.length - 1]
     const leaf = this.getLeaf(path, parts.slice(0, -1))
@@ -257,7 +260,7 @@ export class FS {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public getFsModule(): Record<string, any> {
+  public getFsModule(): Record<string, (...args: any[]) => any> {
     return {
       existsSync: this.existsSync.bind(this),
       readFileSync: this.readFileSync.bind(this),
