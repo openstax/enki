@@ -22,10 +22,6 @@ jobs:
       #     key: ${{ github.workflow }}-${{ env.WEEK }}-{hash}
       #     restore-keys: |
       #       ${{ github.workflow }}-${{ env.WEEK }}-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
       - name: Install Problem Matchers
         if: ${{ github.event_name == 'pull_request' }}
         run: echo "::add-matcher::.github/problem-matcher.json"
