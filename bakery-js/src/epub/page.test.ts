@@ -7,7 +7,7 @@ import {
   jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
-import { mockfs } from '../mock-fs'
+import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { PageFile } from './page'
@@ -84,7 +84,7 @@ describe('Pages', () => {
 
   beforeEach(() => {
     process.chdir('/')
-    const fs: any = {}
+    const fs: MockFileSystem = {}
     fs[otherPageFilename] = 'contentsdoesnotmatterjustexistence'
     mockfs(fs)
   })

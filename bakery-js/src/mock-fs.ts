@@ -13,12 +13,9 @@ interface MockDirectory {
   [key: string]: FileContent | MockDirectory
 }
 
-type MockFileSystem = MockFile | MockDirectory
+export type MockFileSystem = MockFile | MockDirectory
 
 const constants = fs.constants
-
-type EncodingOptions = { encoding?: BufferEncoding }
-type ReadFileOptions = EncodingOptions
 
 const assertTrue = (v: boolean, message: string) => {
   /* istanbul ignore if */
@@ -73,13 +70,13 @@ class MockWritable extends Writable {
     encoding: BufferEncoding | 'buffer',
     callback: (error?: Error | null) => void
   ): void {
-    /* istanbul ignore else */
+    /* istanbul ignore else (not sure why encoding is always 'buffer') */
     if (encoding === 'buffer') {
       this._data += chunk.toString(this._encoding)
     } else {
       this._data += chunk
     }
-    // Simulate disk writes by calling your existing writeFileSync method
+    // Simulate disk writes by calling our existing writeFileSync method
     this.fsMock.writeFileSync(this.path, this._data)
     callback()
   }
@@ -178,9 +175,10 @@ export class FS {
 
   public readFileSync(
     path: string,
-    options: ReadFileOptions = {}
+    options?: { encoding?: null | undefined; flag?: string | undefined } | null
   ): string | Buffer {
-    const { encoding } = options
+    const encoding = options?.encoding
+    const flag = options?.flag
     const norm = this.normPath(path)
     const parts = norm.split('/').filter((part) => part)
     const leaf = this.getLeaf(norm, parts.slice(0, -1))
@@ -188,15 +186,22 @@ export class FS {
       leaf[parts[parts.length - 1]],
       `Path does not exist: ${path}`
     )
+    // TODO: better flag support
+    assertTrue(flag === undefined, 'Flag unsupported')
     assertTrue(isFileContent(contents), `Not a file: ${path}`)
-    if (Buffer.isBuffer(contents) && encoding !== undefined) {
+    if (Buffer.isBuffer(contents) && encoding != null) {
       return contents.toString(encoding)
     }
     return contents as string | Buffer
   }
 
-  public writeFileSync(path: string, content: string | Buffer) {
-    // TODO: options with flags
+  public writeFileSync(
+    path: string,
+    content: string | Buffer,
+    options?: fs.WriteFileOptions
+  ) {
+    // TODO: options with flag and mode
+    assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
     const parts = norm.split('/').filter((part) => part)
     const name = parts[parts.length - 1]
@@ -231,7 +236,14 @@ export class FS {
     delete leaf[name]
   }
 
-  public readdirSync(path: string, options = undefined) {
+  public readdirSync(
+    path: string,
+    options?:
+      | { encoding: BufferEncoding | null; withFileTypes?: false | undefined }
+      | BufferEncoding
+      | null
+  ) {
+    // TODO: support options like `withFileTypes`
     assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
     const parts = norm.split('/').filter((part) => part)
@@ -240,6 +252,7 @@ export class FS {
   }
 
   public createWriteStream(path: string, options: WritableOptions = {}) {
+    // TODO: better support for options
     return new MockWritable(path, this, options)
   }
 
@@ -260,7 +273,7 @@ export class FS {
 
 const getMock = (target: object, key: string) => {
   const fsMock = Reflect.get(target, key)
-  /* istanbul ignore if */
+  /* istanbul ignore if (for type inference) */
   if (!jest.isMockFunction(fsMock)) {
     throw new Error(`Not a jest mock: ${key}`)
   }
@@ -280,8 +293,7 @@ const defaultFS = new FS()
 export const mockfs = Object.assign(_mockfs, {
   restore: () => {
     for (const key in defaultFS.getFsModule()) {
-      const fsMock = Reflect.get(fs, key) as jest.Mock
-      fsMock.mockRestore()
+      getMock(fs, key).mockRestore()
     }
   },
 })

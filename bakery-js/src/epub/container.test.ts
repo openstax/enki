@@ -7,7 +7,7 @@ import {
   jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
-import { mockfs } from '../mock-fs'
+import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { ContainerFile } from './container'
@@ -34,7 +34,7 @@ describe('Container File', () => {
 
   describe('with an empty book', () => {
     beforeEach(() => {
-      const fs: any = {}
+      const fs: MockFileSystem = {}
       fs[containerPath] = containerContent
       mockfs(fs)
     })

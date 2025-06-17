@@ -7,7 +7,7 @@ import {
   jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
-import { mockfs } from '../mock-fs'
+import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from '../epub/singletons'
 import { ResourceFile } from './file'
 
@@ -36,7 +36,7 @@ describe('ResourceFile', () => {
   })
 
   beforeEach(() => {
-    const fs: any = {}
+    const fs: MockFileSystem = {}
     fs[resourcePath] = resourceContents
     fs[metadataPath] = JSON.stringify(metadataJSON)
     mockfs(fs)
