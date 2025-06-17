@@ -96,9 +96,7 @@ export class FS {
   constructor(filesystem?: MockFileSystem) {
     this._tree = {}
 
-    if (filesystem) {
-      this.setupFiles(filesystem)
-    }
+    this.setupFiles(filesystem)
   }
 
   private normPath(path: string) {
@@ -118,7 +116,7 @@ export class FS {
     return ptr
   }
 
-  private setupFiles(fs: MockFileSystem): void {
+  private setupFiles(fs?: MockFileSystem): void {
     const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
       Object.entries(fs).forEach(([path, content]) => {
         const newPathParts = [...pathParts, path]
@@ -138,7 +136,9 @@ export class FS {
       })
     }
     this.mkdirSync(process.cwd(), { recursive: true })
-    recursiveMapFs(fs, [])
+    if (fs) {
+      recursiveMapFs(fs, [])
+    }
   }
 
   public mkdirSync(path: string, options: { recursive?: boolean } = {}) {
@@ -284,7 +284,7 @@ const getMock = (target: object, key: string) => {
   return fsMock
 }
 
-const _mockfs = (mockFileSystem: MockFileSystem) => {
+const _mockfs = (mockFileSystem?: MockFileSystem) => {
   const store = new FS(mockFileSystem)
   const fsModule = store.getFsModule()
   for (const key in fsModule) {

@@ -39,7 +39,7 @@ describe('mockfs', () => {
   })
 
   it('can mkdirSync', () => {
-    mockfs({})
+    mockfs()
     writeFileSync('a', 'something')
     expect(() => mkdirSync('a/b')).toThrow(/file/i)
     expect(() => mkdirSync('x/y/z/w')).toThrow(/exist/i)
@@ -92,7 +92,7 @@ describe('mockfs', () => {
   })
 
   it('can createWriteStream', () => {
-    mockfs({})
+    mockfs()
     const writer = createWriteStream('a', { encoding: 'utf8' })
     writer.write('stuff')
     writer.end()
