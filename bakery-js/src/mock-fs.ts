@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 import fs from 'fs'
-import { dirname, resolve } from 'path'
+import { dirname, resolve, sep } from 'path'
 import { Writable } from 'stream'
 
 type FileContent = string | Buffer
@@ -102,7 +102,7 @@ export class FS {
   }
 
   private normPath(path: string) {
-    return resolve('/', path)
+    return resolve(sep, path)
   }
 
   private getLeaf(path: string, parts: string[]): MockDirectory {
@@ -122,7 +122,7 @@ export class FS {
     const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
       Object.entries(fs).forEach(([path, content]) => {
         const newPathParts = [...pathParts, path]
-        const fullPath = this.normPath(newPathParts.join('/'))
+        const fullPath = this.normPath(newPathParts.join(sep))
         if (isFileContent(content)) {
           const parent = dirname(fullPath)
           // Create parent directory if it does not exist
@@ -143,7 +143,7 @@ export class FS {
   public mkdirSync(path: string, options: { recursive?: boolean } = {}) {
     const { recursive = false } = options
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const lastPart = parts[parts.length - 1]
     let ptr = this._tree
     for (const part of parts) {
@@ -166,7 +166,7 @@ export class FS {
 
   public existsSync(path: string) {
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
     try {
       const parentDir = this.getLeaf(norm, parts.slice(0, -1))
@@ -183,7 +183,7 @@ export class FS {
     const encoding = options?.encoding
     const flag = options?.flag
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const leaf = this.getLeaf(norm, parts.slice(0, -1))
     const contents = assertValue(
       leaf[parts[parts.length - 1]],
@@ -206,7 +206,7 @@ export class FS {
     // TODO: options with flag and mode
     assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
     const directory = this.getLeaf(path, parts.slice(0, -1))
     assertTrue(
@@ -228,7 +228,7 @@ export class FS {
   public rmSync(path: string, options: { recursive?: boolean } = {}) {
     const { recursive = false } = options
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
     const leaf = this.getLeaf(path, parts.slice(0, -1))
     assertTrue(leaf[name] !== undefined, `Path does not exist: ${path}`)
@@ -249,7 +249,7 @@ export class FS {
     // TODO: support options like `withFileTypes`
     assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
-    const parts = norm.split('/').filter((part) => part)
+    const parts = norm.split(sep).filter((part) => part)
     const directory = this.getLeaf(path, parts)
     return Object.keys(directory)
   }
