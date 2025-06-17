@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach } from '@jest/globals'
+import { describe, expect, it, afterEach, jest } from '@jest/globals'
 import { mockfs } from './mock-fs'
 import {
   writeFileSync,
@@ -12,18 +12,18 @@ import {
   createWriteStream,
 } from 'fs'
 
+jest.mock('fs')
+
 describe('mockfs', () => {
   afterEach(() => {
     mockfs.restore()
   })
 
   it('can attach, read, write, and restore', async () => {
-    expect(() => existsSync('/')).toThrow(/not implemented/i)
     mockfs({
       a: { b: 'test' },
     })
     expect(readFileSync('/a/b')).toStrictEqual('test')
-    // mockfs.restore()
     writeFileSync('b', Buffer.from('something'))
     expect(() => writeFileSync('a/b/c', Buffer.from('something'))).toThrow(
       /file/i
@@ -31,8 +31,8 @@ describe('mockfs', () => {
     expect(() => writeFileSync('/z/c', '\n')).toThrow(/does not exist/i)
     expect(() => writeFileSync('/a', '\n')).toThrow(/directory/i)
     expect(readFileSync('b', { encoding: 'utf8' })).toStrictEqual('something')
+
     mockfs.restore()
-    expect(() => readFileSync('b')).toThrow(/not implemented/i)
     mockfs({ b: 'test' })
     expect(() => readFileSync('b')).not.toThrow()
     expect(existsSync('path/that/does/not/exist')).toBe(false)
@@ -93,6 +93,20 @@ describe('mockfs', () => {
 
   it('can createWriteStream', () => {
     mockfs({})
-    const writer = createWriteStream('a')
+    const writer = createWriteStream('a', { encoding: 'utf8' })
+    writer.write('stuff')
+    writer.end()
+    expect(existsSync('a')).toBe(true)
+    expect(readFileSync('a')).toStrictEqual('stuff')
+    const writer2 = createWriteStream('b', 'utf-8')
+    writer2.write('test')
+    writer2.end()
+    expect(readFileSync('b')).toStrictEqual('test')
+    const writer3 = createWriteStream('c')
+    writer3.write('1'.repeat(1 << 20))
+    writer3.end()
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    writer3.close(() => {})
+    expect(readFileSync('c')).toHaveLength(1 << 20)
   })
 })

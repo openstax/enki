@@ -1,9 +1,18 @@
-import { describe, expect, it, afterEach, beforeEach } from '@jest/globals'
+import {
+  jest,
+  describe,
+  expect,
+  it,
+  afterEach,
+  beforeEach,
+} from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { TocFile, OpfFile, NcxFile } from './toc'
+
+jest.mock('fs')
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,

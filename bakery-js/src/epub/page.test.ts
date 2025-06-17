@@ -7,12 +7,13 @@ import {
   jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { PageFile } from './page'
 import { parseXml } from '../utils'
-import mock from 'mock-fs'
+
+jest.mock('fs')
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,

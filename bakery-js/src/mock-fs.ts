@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'
 import fs from 'fs'
 import { dirname, resolve, normalize } from 'path'
+import { Writable } from 'stream'
 
 type FileContent = string | Buffer
 
@@ -14,11 +15,7 @@ interface MockDirectory {
 
 type MockFileSystem = MockFile | MockDirectory
 
-const constants = {
-  COPYFILE_EXCL: 1,
-  R_OK: 1 << 1,
-  W_OK: 1 << 2,
-} as const
+const constants = fs.constants
 
 type EncodingOptions = { encoding?: BufferEncoding }
 type ReadFileOptions = EncodingOptions
@@ -40,6 +37,62 @@ const isFileContent = (
   fs: FileContent | MockDirectory
 ): fs is string | Buffer => typeof fs === 'string' || Buffer.isBuffer(fs)
 
+type WritableOptions =
+  | BufferEncoding
+  | {
+      flags?: string | undefined
+      encoding?: BufferEncoding | undefined
+      fd?: number | undefined
+      mode?: number | undefined
+      autoClose?: boolean | undefined
+      emitClose?: boolean | undefined
+      start?: number | undefined
+      highWaterMark?: number | undefined
+    }
+
+class MockWritable extends Writable {
+  private _data = ''
+  private _encoding: BufferEncoding = 'utf8'
+
+  constructor(
+    private path: string,
+    private fsMock: FS,
+    options: WritableOptions
+  ) {
+    super({ highWaterMark: 16 * 1024 })
+    if (typeof options === 'object' && options.encoding) {
+      this._encoding = options.encoding
+    } else if (typeof options === 'string') {
+      this._encoding = options
+    }
+  }
+
+  override _write(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    chunk: any,
+    encoding: BufferEncoding | 'buffer',
+    callback: (error?: Error | null) => void
+  ): void {
+    /* istanbul ignore else */
+    if (encoding === 'buffer') {
+      this._data += chunk.toString(this._encoding)
+    } else {
+      this._data += chunk
+    }
+    // Simulate disk writes by calling your existing writeFileSync method
+    this.fsMock.writeFileSync(this.path, this._data)
+    callback()
+  }
+
+  // override _final(callback?: () => void): void {
+  //   if (callback) callback()
+  // }
+
+  close(callback?: () => void): void {
+    if (callback) callback()
+  }
+}
+
 export class FS {
   _tree: MockFileSystem
 
@@ -51,12 +104,8 @@ export class FS {
     }
   }
 
-  private resolve(...path: string[]) {
-    return resolve('/', ...path)
-  }
-
   private normPath(path: string) {
-    return normalize(path)
+    return resolve('/', path)
   }
 
   private getLeaf(path: string, parts: string[]): MockDirectory {
@@ -73,7 +122,7 @@ export class FS {
     const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
       Object.entries(fs).forEach(([path, content]) => {
         const newPathParts = [...pathParts, path]
-        const fullPath = this.resolve(normalize(newPathParts.join('/')))
+        const fullPath = this.normPath(newPathParts.join('/'))
         if (isFileContent(content)) {
           const parent = dirname(fullPath)
           // Create parent directory if it does not exist
@@ -190,6 +239,10 @@ export class FS {
     return Object.keys(directory)
   }
 
+  public createWriteStream(path: string, options: WritableOptions = {}) {
+    return new MockWritable(path, this, options)
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public getFsModule(): Record<string, any> {
     return {
@@ -200,129 +253,10 @@ export class FS {
       copyFileSync: this.copyFileSync.bind(this),
       mkdirSync: this.mkdirSync.bind(this),
       rmSync: this.rmSync.bind(this),
+      createWriteStream: this.createWriteStream.bind(this),
     }
   }
 }
-
-// const memoryFS = (fs: MockFileSystem) => {
-//   const tree: MockFileSystem = {}
-//   const getLeaf = (path: string, parts: string[]) => {
-//     let ptr = tree
-//     for (const part of parts) {
-//       const entry = assertValue(ptr[part], `Path does not exist: ${path}`)
-//       assertTrue(!isFileContent(entry), `File exists: ${path}`)
-//       ptr = entry as MockDirectory
-//     }
-//     return ptr
-//   }
-//   const normPath = (path: string) => normalize(path)
-//   const existsSync = (path: string) => {
-//     const norm = normPath(path)
-//     const parts = norm.split('/').filter((part) => part)
-//     return getLeaf(norm, parts) !== undefined
-//   }
-//   const readFileSync = (path: string, options: ReadFileOptions = {}) => {
-//     const { encoding } = options
-//     const norm = normPath(path)
-//     const parts = norm.split('/').filter((part) => part)
-//     const leaf = getLeaf(norm, parts.slice(0, -1))
-//     const contents = assertValue(leaf[parts[parts.length - 1]])
-//     assertTrue(isFileContent(contents), `Not a file: ${path}`)
-//     if (Buffer.isBuffer(contents) && encoding !== undefined) {
-//       return contents.toString(encoding)
-//     }
-//     return contents as string | Buffer
-//   }
-//   const writeFileSync = (path: string, content: string | Buffer) => {
-//     // TODO: options with flags
-//     const norm = normPath(path)
-//     const parts = norm.split('/').filter((part) => part)
-//     const name = parts[parts.length - 1]
-//     const leaf = getLeaf(path, parts.slice(0, -1))
-//     const directory = assertValue(!isFileContent(leaf) ? leaf : undefined)
-//     assertTrue(
-//       directory[name] === undefined || isFileContent(directory[name]),
-//       `Directory exists: ${path}`
-//     )
-//     directory[parts[parts.length - 1]] = content
-//   }
-//   const mkdirSync = (path: string, options: { recursive?: boolean } = {}) => {
-//     const { recursive = false } = options
-//     const parts = path.split('/').filter((part) => part)
-//     const lastPart = parts[parts.length - 1]
-//     let ptr = tree
-//     for (const part of parts) {
-//       const entry = ptr[part]
-//       if (isFileContent(entry)) {
-//         throw new Error(`File exists: ${path}`)
-//       }
-//       if (entry === undefined) {
-//         if (recursive || part === lastPart) {
-//           ptr[part] = {}
-//           ptr = ptr[part] as MockDirectory
-//         } else {
-//           throw new Error(`Directory does not exist: ${path}`)
-//         }
-//       } else {
-//         ptr = entry
-//       }
-//     }
-//   }
-//   const rmSync = (path: string, options: { recursive?: boolean } = {}) => {
-//     const { recursive = false } = options
-//     const norm = normalize(path)
-//     const parts = norm.split('/').filter((part) => part)
-//     const name = parts[parts.length - 1]
-//     const leaf = getLeaf(path, parts.slice(0, -1))
-//     assertTrue(leaf[name] !== undefined, `Path does not exist: ${path}`)
-//     assertTrue(
-//       recursive || isFileContent(leaf[name]),
-//       `Path is a directory: ${path}`
-//     )
-//     delete leaf[name]
-//   }
-//   const copyFileSync = (src: string, dst: string, flags = 0) => {
-//     // TODO: other flags
-//     const { COPYFILE_EXCL: exclusive } = constants
-//     assertTrue(
-//       (flags & exclusive) !== exclusive || !existsSync(dst),
-//       `File exists: ${dst}`
-//     )
-//     writeFileSync(dst, readFileSync(src))
-//   }
-//   const readdirSync = (path: string, options = undefined) => {
-//     assertTrue(options === undefined, 'Options not supported')
-//     const norm = normalize(path)
-//     const parts = norm.split('/').filter((part) => part)
-//     const leaf = getLeaf(path, parts)
-//     const directory = assertValue(!isFileContent(leaf) ? leaf : undefined)
-//     return Object.keys(directory)
-//   }
-//   const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
-//     Object.entries(fs).forEach(([path, content]) => {
-//       const newPathParts = [...pathParts, path]
-//       const fullPath = resolve('/', normalize(newPathParts.join('/')))
-//       if (isFileContent(content)) {
-//         const parent = dirname(fullPath)
-//         // Create parent directory if it does not exist
-//         mkdirSync(parent, { recursive: true })
-//         writeFileSync(fullPath, content)
-//       } else {
-//         recursiveMapFs(content, newPathParts)
-//       }
-//     })
-//   }
-//   recursiveMapFs(fs, [])
-//   return {
-//     existsSync,
-//     readFileSync,
-//     writeFileSync,
-//     mkdirSync,
-//     rmSync,
-//     copyFileSync,
-//     readdirSync,
-//   }
-// }
 
 const getMock = (target: object, key: string) => {
   const fsMock = Reflect.get(target, key)
@@ -336,19 +270,10 @@ const getMock = (target: object, key: string) => {
 const _mockfs = (mockFileSystem: MockFileSystem) => {
   const store = new FS(mockFileSystem)
   const fsModule = store.getFsModule()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // const fsModule = memoryFS(mockFileSystem) as Record<string, any>
   for (const key in fsModule) {
     const fn = fsModule[key]
     getMock(fs, key).mockImplementation(fn)
   }
-  getMock(fs, 'constantsGetter').mockImplementation((key) => {
-    if (typeof key === 'string' && Object.keys(constants).includes(key)) {
-      return constants[key as keyof typeof constants]
-    }
-    /* istanbul ignore next */
-    return undefined
-  })
 }
 
 const defaultFS = new FS()
@@ -358,50 +283,5 @@ export const mockfs = Object.assign(_mockfs, {
       const fsMock = Reflect.get(fs, key) as jest.Mock
       fsMock.mockRestore()
     }
-    getMock(fs, 'constantsGetter').mockRestore()
   },
 })
-
-// const fs = new FS({
-//   '/a/b/c': 'test',
-//   'a/d': 'test2',
-//   a: {
-//     b: {
-//       z: 'test3',
-//     },
-//   },
-//   'x/y/z/w': 'something',
-// })
-
-/*
-{
-  a: {
-    b: {
-      c: 'test'
-    }
-  }
-}
-*/
-
-// fs.mkdirSync('/t/r/e/e/e/e', { recursive: true })
-// console.log(fs._tree)
-
-// fs.writeFileSync('/t/r/e/e/e/e/a.txt', 'some text')
-// console.log(fs.readFileSync('/a/b/z'))
-// console.log(fs.readFileSync('/a/b/c'))
-// console.log(fs.readFileSync('/x/y/z/w'))
-// console.log(fs.readFileSync('/t/r/e/e/e/e/a.txt'))
-// console.log(fs.existsSync('/t/r/e/e/e/e/a.txt'))
-// fs.mkdirSync('/b')
-// fs.copyFileSync('/a/d', '/b/c')
-// console.log(fs._tree)
-// console.log(fs.readFileSync('/b/c'))
-// fs.rmSync('/b', { recursive: true })
-// console.log(fs._tree)
-
-// console.log(fs.readdirSync('/a/b'))
-
-/*
-WriteStream
-createWriteStream
-*/

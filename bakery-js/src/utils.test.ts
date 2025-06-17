@@ -1,7 +1,16 @@
-import { describe, expect, it, beforeEach, afterEach } from '@jest/globals'
+import {
+  describe,
+  expect,
+  it,
+  beforeEach,
+  afterEach,
+  jest,
+} from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { mockfs } from './mock-fs'
 import { parseXml, writeXmlWithSourcemap } from './utils'
+
+jest.mock('fs')
 
 async function writeAndCheckSnapshot<T>(n: Node) {
   const destPath = 'out.xml'

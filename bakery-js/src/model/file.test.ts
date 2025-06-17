@@ -7,9 +7,11 @@ import {
   jest,
 } from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { mockfs } from '../mock-fs'
 import { factorio } from '../epub/singletons'
 import { ResourceFile } from './file'
+
+jest.mock('fs')
 
 describe('ResourceFile', () => {
   const resourceHref = '/foo/resources/fakepath'
