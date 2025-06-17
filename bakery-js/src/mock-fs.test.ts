@@ -21,11 +21,11 @@ describe('mockfs', () => {
 
   it('can attach, read, write, and restore', async () => {
     mockfs({
-      a: { b: 'test' },
+      '/': { a: { b: 'test' } },
     })
     expect(readFileSync('/a/b')).toStrictEqual('test')
     writeFileSync('b', Buffer.from('something'))
-    expect(() => writeFileSync('a/b/c', Buffer.from('something'))).toThrow(
+    expect(() => writeFileSync('/a/b/c', Buffer.from('something'))).toThrow(
       /file/i
     )
     expect(() => writeFileSync('/z/c', '\n')).toThrow(/does not exist/i)
@@ -50,7 +50,7 @@ describe('mockfs', () => {
 
   it('can rmSync', () => {
     mockfs({
-      'a/b/c': 'test',
+      '/a/b/c': 'test',
     })
     expect(existsSync('/a/b/c')).toBe(true)
     expect(() => rmSync('/a/b')).toThrow(/directory/i)

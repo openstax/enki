@@ -422,7 +422,7 @@ export async function readXmlWithSourcemap(filename: string) {
 }
 
 export async function writeXmlWithSourcemap(filename: string, root: Node) {
-  const dir = resolve(dirname(filename))
+  const dir = dirname(filename)
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
   const w = new XMLSerializer(filename, root)
   await w.writeFiles()

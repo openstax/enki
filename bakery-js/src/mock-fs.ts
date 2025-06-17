@@ -102,7 +102,7 @@ export class FS {
   }
 
   private normPath(path: string) {
-    return resolve(sep, path)
+    return resolve(process.cwd(), path)
   }
 
   private getLeaf(path: string, parts: string[]): MockDirectory {
@@ -119,6 +119,7 @@ export class FS {
   }
 
   private setupFiles(fs: MockFileSystem): void {
+    this.mkdirSync(process.cwd(), { recursive: true })
     const recursiveMapFs = (fs: MockFileSystem, pathParts: string[]) => {
       Object.entries(fs).forEach(([path, content]) => {
         const newPathParts = [...pathParts, path]
