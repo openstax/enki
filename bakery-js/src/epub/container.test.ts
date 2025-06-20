@@ -1,9 +1,18 @@
-import { describe, expect, it, afterEach, beforeEach } from '@jest/globals'
+import {
+  describe,
+  expect,
+  it,
+  afterEach,
+  beforeEach,
+  jest,
+} from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { ContainerFile } from './container'
+
+jest.mock('fs')
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,
@@ -25,7 +34,7 @@ describe('Container File', () => {
 
   describe('with an empty book', () => {
     beforeEach(() => {
-      const fs: any = {}
+      const fs: MockFileSystem = {}
       fs[containerPath] = containerContent
       mockfs(fs)
     })

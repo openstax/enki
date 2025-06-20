@@ -1,9 +1,18 @@
-import { describe, expect, it, afterEach, beforeEach } from '@jest/globals'
+import {
+  jest,
+  describe,
+  expect,
+  it,
+  afterEach,
+  beforeEach,
+} from '@jest/globals'
 import { readFileSync } from 'fs'
-import mockfs from 'mock-fs'
+import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { TocFile, OpfFile, NcxFile } from './toc'
+
+jest.mock('fs')
 
 async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n: XmlFile<T, TBook, TPage, TResource>,
@@ -38,7 +47,7 @@ describe('TocFile and Friends', () => {
         </html>`
 
     beforeEach(() => {
-      const fs: any = {}
+      const fs: MockFileSystem = {}
       fs[tocPath] = emptyToc
       fs[metadataPath] = JSON.stringify(metadataJSON)
       fs[collxmlPath] = collxmlContent
@@ -96,7 +105,7 @@ describe('TocFile and Friends', () => {
           </html>`
 
       beforeEach(() => {
-        const fs: any = {}
+        const fs: MockFileSystem = {}
         fs[tocPath] = emptyToc
         fs[metadataPath] = JSON.stringify(metadataJSON)
         fs[collxmlPath] = collxmlContent
@@ -182,7 +191,7 @@ describe('TocFile and Friends', () => {
     }
 
     beforeEach(() => {
-      const fs: any = {}
+      const fs: MockFileSystem = {}
       fs[tocPath] = smallToc
       fs[`/foo/${pageName}`] = pageContent
       fs[`/foo/${pageNotInTocName}`] = pageNotInTocContent
