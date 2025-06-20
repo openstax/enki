@@ -30,9 +30,8 @@ const assertValue = <T>(v: T | null | undefined, message: string) => {
   throw new Error(`BUG: assertValue. Message: ${message}`)
 }
 
-const isFileContent = (
-  fs: FileContent | MockDirectory
-): fs is string | Buffer => typeof fs === 'string' || Buffer.isBuffer(fs)
+const isFileContent = (fs: FileContent | MockDirectory): fs is FileContent =>
+  typeof fs === 'string' || Buffer.isBuffer(fs)
 
 type WritableOptions =
   | BufferEncoding
@@ -103,7 +102,7 @@ export class FS {
     return resolve(process.cwd(), path)
   }
 
-  private getLeaf(path: string, parts: string[]): MockDirectory {
+  private getDirectory(path: string, parts: string[]): MockDirectory {
     let ptr = this._tree
     for (const part of parts) {
       const entry = assertValue(ptr[part], `Path does not exist: ${path}`)
@@ -170,8 +169,8 @@ export class FS {
     const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
     try {
-      const parentDir = this.getLeaf(norm, parts.slice(0, -1))
-      return parentDir[name] !== undefined
+      const directory = this.getDirectory(norm, parts.slice(0, -1))
+      return directory[name] !== undefined
     } catch (_) {
       return false
     }
@@ -185,9 +184,9 @@ export class FS {
     const flag = options?.flag
     const norm = this.normPath(path)
     const parts = norm.split(sep).filter((part) => part)
-    const leaf = this.getLeaf(norm, parts.slice(0, -1))
+    const directory = this.getDirectory(norm, parts.slice(0, -1))
     const contents = assertValue(
-      leaf[parts[parts.length - 1]],
+      directory[parts[parts.length - 1]],
       `Path does not exist: ${path}`
     )
     // TODO: better flag support
@@ -209,12 +208,12 @@ export class FS {
     const norm = this.normPath(path)
     const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
-    const directory = this.getLeaf(path, parts.slice(0, -1))
+    const directory = this.getDirectory(path, parts.slice(0, -1))
     assertTrue(
       directory[name] === undefined || isFileContent(directory[name]),
       `Directory exists: ${path}`
     )
-    directory[parts[parts.length - 1]] = content
+    directory[name] = content
   }
 
   public copyFileSync(src: string, dst: string, flags = 0) {
@@ -231,13 +230,13 @@ export class FS {
     const norm = this.normPath(path)
     const parts = norm.split(sep).filter((part) => part)
     const name = parts[parts.length - 1]
-    const leaf = this.getLeaf(path, parts.slice(0, -1))
-    assertTrue(leaf[name] !== undefined, `Path does not exist: ${path}`)
+    const directory = this.getDirectory(path, parts.slice(0, -1))
+    assertTrue(directory[name] !== undefined, `Path does not exist: ${path}`)
     assertTrue(
-      recursive || isFileContent(leaf[name]),
+      recursive || isFileContent(directory[name]),
       `Path is a directory: ${path}`
     )
-    delete leaf[name]
+    delete directory[name]
   }
 
   public readdirSync(
@@ -251,7 +250,7 @@ export class FS {
     assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
     const parts = norm.split(sep).filter((part) => part)
-    const directory = this.getLeaf(path, parts)
+    const directory = this.getDirectory(path, parts)
     return Object.keys(directory)
   }
 
