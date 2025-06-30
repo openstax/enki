@@ -3,13 +3,15 @@ import json
 import os
 import sys
 from pathlib import Path
-from .profiler import timed
 
 from timeit import default_timer as timer
 
 import boto3
 import boto3.session
 import botocore
+
+from .profiler import timed
+
 
 # After research and benchmarking 64 seems to be the best speed without big
 # trade-offs.

@@ -3,14 +3,18 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .html_parser import reconstitute, HTML_DOCUMENT_NAMESPACES
-from .cnx_models import flatten_to_documents, content_to_etree, etree_to_content
-from .cnx_formatters import DocumentContentFormatter
 from lxml import etree
 from lxml.builder import ElementMaker, E
 
+from .html_parser import reconstitute, HTML_DOCUMENT_NAMESPACES
+from .cnx_models import flatten_to_documents, content_to_etree, etree_to_content
+from .cnx_formatters import DocumentContentFormatter
 from .utils import model_to_tree
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed
