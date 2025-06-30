@@ -55,6 +55,7 @@ function visit(n: Node, visitor: (n: Node) => void) {
   for (const c of Array.from(n.childNodes || [])) {
     visit(c, visitor)
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const attrs = (n as any).attributes
   for (const attr of Array.from(attrs || [])) {
     visitor(attr as Node)

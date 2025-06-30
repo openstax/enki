@@ -3133,17 +3133,30 @@ def test_link_single(tmp_path, mocker):
         <li cnx-archive-uri="cffe96ff-cab6-453c-9996-ed6abe5d9b13@">
         <a href="">Page2</a>
         </li>
+        <li cnx-archive-uri="composite-page-1">
+        <a href="">
+        </a>
+        </li>
+        <li cnx-archive-uri="composite-page-2">
+        <a href="">
+        </a>
+        </li>
+        <li cnx-archive-uri="composite-page-3">
+        <a href="">
+        </a>
+        </li>
         </ol>
         </nav>
-        <iframe src="http://example.com">
-            <a data-check-rex-link="true" data-needs-rex-link="true">outside page/chapter</a>
-        </iframe>
+        <div>
+            <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
+            <iframe src="https://outside-the-page.com"><!-- no-selfclose --></iframe>
+        </div>
         <div data-type="page" id="9f049b16-15e9-4725-8c8b-4908a3e2be5e">
         <div data-type="metadata" style="display: none;">
         <h1 data-type="document-title" itemprop="name">Page1</h1>
         <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
-        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
         </div>
+        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
         <p><a id="l1"
             href="/contents/4aa9351c-019f-4c06-bb40-d58262ea7ec7"
             >Inter-book module link</a></p>
@@ -3160,6 +3173,60 @@ def test_link_single(tmp_path, mocker):
         <p><a id="l3"
             href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
             >Intra-book module link</a></p>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-1" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+            <div class="os-has-iframe os-has-link" data-type="switch">
+                <a class="os-is-link" href="/404" data-check-rex-link="true" data-needs-rex-link="true" target="_blank" rel="noopener nofollow" data-media="print">Access multimedia content</a>
+                <iframe width="660" height="371.4" src="https://example.com" data-sm="./modules/m00033/index.cnxml:13:9" class="os-is-iframe" data-media="screen"><!-- no-selfclose --></iframe>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-2" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+            <div class="os-has-iframe os-has-link" data-type="switch">
+                <a class="os-is-link" href="/404" data-check-rex-link="true" data-needs-rex-link="true" target="_blank" rel="noopener nofollow" data-media="print">Access multimedia content</a>
+                <iframe width="660" height="371.4" src="https://edge-case-shared-composite-page-uuid.com" data-sm="./modules/m00033/index.cnxml:13:9" class="os-is-iframe" data-media="screen"><!-- no-selfclose --></iframe>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="not-index" id="composite-page-3" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Not Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Not Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+            <div class="os-has-iframe os-has-link" data-type="switch">
+                <a class="os-is-link" href="/404" data-check-rex-link="true" data-needs-rex-link="true" target="_blank" rel="noopener nofollow" data-media="print">Access multimedia content</a>
+                <iframe width="660" height="371.4" src="https://failed-to-resolve-composite-page-slug.com" data-sm="./modules/m00033/index.cnxml:13:9" class="os-is-iframe" data-media="screen"><!-- no-selfclose --></iframe>
+            </div>
         </div>
         </body>
         </html>
@@ -3180,6 +3247,10 @@ def test_link_single(tmp_path, mocker):
                         "id": "cffe96ff-cab6-453c-9996-ed6abe5d9b13e@",
                         "slug": "book1-page2",
                     },
+                    {
+                        "id": "459ec6c7-761f-532c-942b-d66d3e0f5fc4@",
+                        "slug": "index"
+                    }
                 ],
             },
         }
@@ -3310,8 +3381,8 @@ def test_link_single(tmp_path, mocker):
     expected_links = [
         [
             ('data-check-rex-link', 'true'),
-            ('href', 'http://example.com'),
-            ('text', 'outside page/chapter'),
+            ('href', 'https://outside-the-page.com'),
+            ('text', 'LINK 1'),
         ],
         [
             ('data-check-rex-link', 'true'),
@@ -3323,6 +3394,35 @@ def test_link_single(tmp_path, mocker):
             ('href', 'http://openstax.org/books/book1/pages/book1-page2'),
             ('text', 'LINK 2'),
         ],
+        [
+            ('class', 'os-is-link'),
+            ('href', 'http://openstax.org/books/book1/pages/index'),
+            ('data-check-rex-link', 'true'),
+            ('target', '_blank'),
+            ('rel', 'noopener nofollow'),
+            ('data-media', 'print'),
+            ('text', 'Access multimedia content'),
+        ],
+        [
+            # This edge case occurs when two composite pages have the same
+            # uuid-key. In such a case, they have the same uuid (RIP)
+            ('class', 'os-is-link'),
+            ('href', 'https://edge-case-shared-composite-page-uuid.com'),
+            ('data-check-rex-link', 'true'),
+            ('target', '_blank'),
+            ('rel', 'noopener nofollow'),
+            ('data-media', 'print'),
+            ('text', 'Access multimedia content'),
+        ],
+        [
+            ('class', 'os-is-link'),
+            ('href', 'https://failed-to-resolve-composite-page-slug.com'),
+            ('data-check-rex-link', 'true'),
+            ('target', '_blank'),
+            ('rel', 'noopener nofollow'),
+            ('data-media', 'print'),
+            ('text', 'Access multimedia content'),
+        ]
     ]
     assert check_links == expected_links
 
