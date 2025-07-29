@@ -1,0 +1,26 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="id6723023" module-id="" cnxml-version="0.7" class="super">
+  <title>A Super Document</title>
+  <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+  <md:content-id>m50001</md:content-id>
+  <md:title>A Super Document</md:title>
+  <md:uuid>0c641ba1-5fab-4a9b-b272-5b64cb45dce1</md:uuid>
+  <md:canonical-book-uuid>30189442-6998-4686-ac05-ed152b91b9de</md:canonical-book-uuid>
+  <md:revised>2018/08/27 16:05:26 -0500</md:revised>
+  <md:super>
+  </md:super>
+</metadata>
+
+<content class="super">
+<figure id="eip-idp25549888"><media id="id44761709a" alt="This is a dot plot showing average hours of sleep. The number line is marked in intervals of 1 from 5 to 9. Dots above the line show 1 person reporting 5 hours, 1 with 5.5, 3 with 6, 4 with 6.5, 2 with 7, 2 with 8, and 1 with 9 hours." longdesc="m16020_DotPlot_description.html">
+<image src="fig-ch01_02_01n.png" mime-type="image/png" width="380">
+<param name="longdesc" value="m16020_DotPlot_description.html"/></image></media>
+</figure>
+<para id="id10326643">Does your dot plot look the same as or different from the example? Why? If you did the same example in an English class with the same number of students, do you think the results would be the same? Why or why not?</para>
+</content>
+<glossary>
+<definition id="average">
+<term>Average</term>
+<meaning id="id16316921">also called mean; a number that describes the central tendency of the data</meaning>
+</definition>
+</glossary>
+</document>
