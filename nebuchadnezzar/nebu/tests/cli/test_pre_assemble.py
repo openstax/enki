@@ -252,4 +252,3 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
     assert_match(super_collection.read_text(), super_collection.name)
     assert_match(normal_collection.read_text(), normal_collection.name)
     assert_match(super_doc_meta.read_text(), super_doc_meta.name)
-    

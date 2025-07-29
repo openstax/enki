@@ -158,7 +158,7 @@ def parse_super_metadata(elm_tree):
         return None
 
     tags = [
-        { 
+        {
             k: v
             for k, v in (
                 ("type", _safe_strip(elem.get("type"))),
