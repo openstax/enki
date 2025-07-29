@@ -321,3 +321,28 @@ def test_parse_no_title():
 
     with pytest.raises(IndexError):
         _ = parse_metadata(xml)
+
+
+def test_parse_super_metadata(snapshot):
+    cnxml = """
+        <document xmlns="http://cnx.rice.edu/cnxml">
+            <title>something</title>
+            <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+                <md:content-id>col11406</md:content-id>
+                <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27ebee</md:uuid>
+                <md:super>
+                    <md:subject-name>Subject Name</md:subject-name>
+                    <md:tags>
+                        <md:tag type="preparedness">A tag</md:tag>
+                        <md:tag type="practice">B tag</md:tag>
+                        <md:tag type="practice" link="https://...">C tag</md:tag>
+                    </md:tags>
+                </md:super>
+            </metadata>
+        </document>
+    """
+
+    xml = etree.fromstring(cnxml)
+    props = parse_metadata(xml)
+
+    assert_props_match(snapshot, props)

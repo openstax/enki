@@ -222,7 +222,8 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
         lambda container: Path(container.pages_root).glob("**/*.cnxml"),
         lambda s: re_first_or_default(r"m[0-9]+", s),
     )
-    handle_super_documents(container, path_resolver, books_xml)
+    super_path = tmp_book_dir_with_super / "super"
+    handle_super_documents(container, path_resolver, books_xml, super_path)
     all_documents = []
     for book in container.books:
         collection = path_resolver.get_collection_path(book.slug)
@@ -232,6 +233,7 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
         )
         all_documents.extend(documents)
     file_names = [p.name for p in tmp_book_dir_with_super.iterdir()]
+    super_module_id = "m50001"
     super_doc_uuid = "0c641ba1-5fab-4a9b-b272-5b64cb45dce1"
     super_collection = next(
         (
@@ -240,11 +242,14 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
         ),
         None
     )
+    super_doc_meta = super_path / f"{super_doc_uuid}.metadata.json"
     normal_collection = tmp_book_dir_with_super / "collection.xml"
     assert super_collection is not None
     assert super_collection.suffix == ".xml"
-    assert all_documents and "m50001" not in all_documents
+    assert all_documents and super_module_id not in all_documents
     assert 1 == sum(1 for name in file_names if super_doc_uuid in name)
     assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_collection.read_text(), super_collection.name)
     assert_match(normal_collection.read_text(), normal_collection.name)
+    assert_match(super_doc_meta.read_text(), super_doc_meta.name)
+    

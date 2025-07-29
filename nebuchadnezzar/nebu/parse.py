@@ -145,6 +145,43 @@ def _parse_license(license_el, language):
     return (text, url)
 
 
+def parse_super_metadata(elm_tree):
+    def _xpath(elem, query):
+        return elem.xpath(query, namespaces=NSMAP)
+
+    def _safe_strip(maybe_str):
+        return None if maybe_str is None else maybe_str.strip()
+
+    super_elm = _maybe(_xpath(elm_tree, '//md:super'))
+
+    if super_elm is None:
+        return None
+
+    tags = [
+        { 
+            k: v
+            for k, v in (
+                ("type", _safe_strip(elem.get("type"))),
+                ("link", _safe_strip(elem.get("link"))),
+                ("text", _safe_strip(elem.text))
+            )
+            if v
+        }
+        for elem in _xpath(super_elm, '//md:tags//md:tag')
+    ]
+    assert all(t.get("text", None) is not None for t in tags)
+    subject_name = _safe_strip(
+        _maybe(_xpath(super_elm, '//md:subject-name/text()'))
+    )
+    return {
+        k: v for k, v in (
+            ("subject_name", subject_name),
+            ("tags", tags),
+        )
+        if v
+    }
+
+
 def parse_metadata(elm_tree):
     """Given an element-like object (:mod:`lxml.etree`)
     lookup the metadata and return the found elements
@@ -183,6 +220,7 @@ def parse_metadata(elm_tree):
             remove_namespaces=True,
         ),
         # cnx-archive-uri is used extensively in enki/bakery-src
-        'cnx-archive-uri': f"{uuid}@{version or ''}"
+        'cnx-archive-uri': f"{uuid}@{version or ''}",
+        'super_metadata': parse_super_metadata(elm_tree)
     }
     return props

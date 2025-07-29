@@ -1,5 +1,6 @@
 """Inject / modify metadata for book CNXML from git"""
 
+import json
 from pathlib import Path
 from datetime import timezone
 from typing import Optional
@@ -154,7 +155,7 @@ def patch_paths(container, path_resolver, canonical_mapping):
 
 def looks_like_super_document(p: str):
     with open(p, "rb") as fin:
-        # should see the word super in the first KiB of the doc
+        # should see the word "super" in the first KiB of the doc
         return b"super" in fin.read(1 << 10)
 
 
@@ -240,9 +241,34 @@ def append_super_collections_to_container(
         container_tree.write(f, encoding="utf-8", xml_declaration=False)
 
 
-def handle_super_documents(
-    container: BookContainer, path_resolver: PathResolver, books_xml: Path
+def save_super_metadata(
+    super_path: Path, super_documents_by_id: dict[str, BookPart]
 ):
+    for module_id, doc in super_documents_by_id.items():
+        module_uuid = doc.metadata["uuid"]
+        assert (
+            module_uuid is not None
+        ), f"Expected module uuid for: {module_id}"
+        out_path = super_path / f"{module_uuid}.metadata.json"
+        doc_meta = doc.metadata
+        super_meta = doc_meta["super_metadata"]
+        meta = {
+            "id": module_uuid,
+            "name": doc_meta["title"],
+            "description": doc_meta["abstract"],
+            **(super_meta if isinstance(super_meta, dict) else {})
+        }
+        with out_path.open("w") as f:
+            json.dump(meta, f, ensure_ascii=False)
+
+
+def handle_super_documents(
+    container: BookContainer,
+    path_resolver: PathResolver,
+    books_xml: Path,
+    super_path: Path,
+):
+    # super_metadata_dir = Path.cwd() / "super_metadata"
     super_documents_by_id = {
         module_id: doc
         for module_id, doc in (
@@ -262,6 +288,8 @@ def handle_super_documents(
         for module_id in super_documents_by_id.keys()
     )
 
+    super_path.mkdir(parents=True, exist_ok=True)
+
     # Step 1: Remove super documents from normal collections
     remove_super_documents(container, path_resolver, query)
 
@@ -275,18 +303,25 @@ def handle_super_documents(
         container, books_xml, collection_paths
     )
 
+    # Step 4: Save metadata for easy use later
+    save_super_metadata(super_path, super_documents_by_id)
+
 
 @click.command(name="pre-assemble")
 @common_params
 @click.argument("input-dir", type=click.Path(exists=True))
 @click.option("--repo-dir", default=None, type=Optional[str])
-def pre_assemble(input_dir, repo_dir):
+@click.option("--super-dir", default=None, type=Optional[str])
+def pre_assemble(input_dir, repo_dir, super_dir):
     """Prepares litezip structure data for single-page-html file conversion."""
 
     canonical_mapping = {}
 
     with unknown_progress("Handling super documents"):
-        handle_super_documents(*get_repo_context(input_dir))
+        super_path = (
+            Path.cwd() / "super" if super_dir is None else Path(super_dir)
+        )
+        handle_super_documents(*get_repo_context(input_dir), super_path)
 
     # Re-read the context since we modified the container
     container, path_resolver, _ = get_repo_context(input_dir)

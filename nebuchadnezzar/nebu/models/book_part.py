@@ -20,7 +20,7 @@ class PartType(Enum):
 
 class BookPart:
     type: PartType
-    metadata: dict[str, Optional[str]]
+    metadata: dict[str, Optional[str | dict]]
     children: list["BookPart"]
     content: Optional[Elementish]
 

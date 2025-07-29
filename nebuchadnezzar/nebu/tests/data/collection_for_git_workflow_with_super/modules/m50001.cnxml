@@ -7,6 +7,10 @@
   <md:canonical-book-uuid>30189442-6998-4686-ac05-ed152b91b9de</md:canonical-book-uuid>
   <md:revised>2018/08/27 16:05:26 -0500</md:revised>
   <md:super>
+    <md:subject-name>Name</md:subject-name>
+    <md:tags>
+      <md:tag type="preparedness">orn or uuid</md:tag>
+    </md:tags>
   </md:super>
 </metadata>
 
