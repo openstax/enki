@@ -155,10 +155,20 @@ function do_json_validate() {
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
 }
 
+function get_repo() {
+    for name in IO_FETCH_META IO_FETCHED; do
+        path="${!name}"
+        if [[ -d "$path" ]]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    die "get_repo: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
+}
+
 function read_style() {
     slug_name=$1
-    style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-    echo $style_name
+    xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < "$(get_repo)/META-INF/books.xml"
 }
 
 function read_book_slugs() {
@@ -177,14 +187,7 @@ function read_book_slugs() {
         # Exclude blank lines
         awk '$0 { print }' "$IO_BOOK/slugs"
     else
-        fetched="$IO_FETCHED"
-        if [[ ! -d "$fetched" ]]; then
-            fetched="$IO_FETCH_META"
-        fi
-        if [[ ! -d "$fetched" ]]; then
-            die "read_book_slugs: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
-        fi
-        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$fetched/META-INF/books.xml"
+        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$(get_repo)/META-INF/books.xml"
     fi
 }
 
