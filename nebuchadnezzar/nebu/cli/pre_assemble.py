@@ -191,7 +191,7 @@ def make_super_collection(super_document: SuperDocument) -> Elementish:
     col_uuid = str(uuid.uuid5(uuid.NAMESPACE_OID, module_uuid))
     license_url = super_document.original_collection_meta["license_url"]
     license_text = super_document.original_collection_meta["license_text"]
-    
+
     metadata = E(
         "metadata",
         E(f"{{{NS_MDML}}}uuid", col_uuid),
