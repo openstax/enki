@@ -155,6 +155,10 @@ function do_json_validate() {
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
 }
 
+function is_super_document() {
+    [[ "$(basename "$1")" =~ super-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12} ]]
+}
+
 function get_repo() {
     for name in IO_FETCH_META IO_FETCHED; do
         path="${!name}"

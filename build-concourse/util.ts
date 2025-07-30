@@ -105,7 +105,9 @@ export enum IO {
     JSONIFIED = 'jsonified', // 'jsonified-single',
     EPUB = 'epub',
     DOCX = 'docx', // 'docx-single'
-    PPTX = 'pptx'
+    PPTX = 'pptx',
+    SUPER = 'super',
+    ANCILLARY = 'ancillary',
 }
 
 export type TaskNode = {

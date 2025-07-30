@@ -45,7 +45,8 @@
             ],
             "outputDirs": [
                 "IO_BAKE_META",
-                "IO_LINKED"
+                "IO_LINKED",
+                "IO_SUPER"
             ],
             "requiredEnv": []
         },
@@ -129,6 +130,18 @@
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]
+        },
+        "step-prepare-ancillaries": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META",
+                "IO_SUPER",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_ANCILLARY"
+            ],
+            "requiredEnv": []
         },
         "step-epub": {
             "inputDirs": [
@@ -256,6 +269,7 @@
             "step-prebake",
             "step-bake-web",
             "step-postbake",
+            "step-prepare-ancillaries",
             "step-disassemble",
             "step-jsonify"
         ],

@@ -27,13 +27,13 @@ function set(step: Step) {
     }
 }
 
-// GIT_PDF_STEPS
 set({name: 'step-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
 set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
 set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: {}})
-set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED], env: {}})
+set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED, IO.SUPER], env: {}})
 
 
+// GIT_PDF_STEPS
 set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'step-upload-pdf', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
@@ -42,6 +42,7 @@ set({name: 'step-bake-web', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RE
 set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
 set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCH_META, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
 set({name: 'step-upload-book', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {CODE_VERSION: true, CORGI_ARTIFACTS_S3_BUCKET: true, PREVIEW_APP_URL_PREFIX: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false, CORGI_CLOUDFRONT_URL: false, REX_PROD_PREVIEW_URL: false}})
+set({name: 'step-prepare-ancillaries', inputs: [IO.BOOK, IO.FETCH_META, IO.SUPER, IO.RESOURCES], outputs: [IO.ANCILLARY], env: {}})
 
 // GIT_EPUB_STEPS
 set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: {}})
@@ -76,6 +77,7 @@ export const CLI_GIT_WEB_STEPS = [
     get('step-prebake'),
     get('step-bake-web'),
     get('step-postbake'),
+    get('step-prepare-ancillaries'),
     get('step-disassemble'),
     get('step-jsonify'),
 ]
