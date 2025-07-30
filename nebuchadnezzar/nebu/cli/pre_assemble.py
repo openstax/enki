@@ -189,6 +189,9 @@ def make_super_collection(super_document: SuperDocument) -> Elementish:
         namespace=NS_COLLXML, nsmap={None: NS_COLLXML, "md": NS_MDML}
     )
     col_uuid = str(uuid.uuid5(uuid.NAMESPACE_OID, module_uuid))
+    license_url = super_document.original_collection_meta["license_url"]
+    license_text = super_document.original_collection_meta["license_text"]
+    
     metadata = E(
         "metadata",
         E(f"{{{NS_MDML}}}uuid", col_uuid),
@@ -196,6 +199,9 @@ def make_super_collection(super_document: SuperDocument) -> Elementish:
         E(f"{{{NS_MDML}}}slug", super_document.slug),
         E(f"{{{NS_MDML}}}language", language),
     )
+    if isinstance(license_url, str) and isinstance(license_text, str):
+        license_el = E(f"{{{NS_MDML}}}license", license_text, url=license_url)
+        metadata.append(license_el)
     content = E("content", E("module", document=module_id))
     collection = E("collection", metadata, content)
     return collection
