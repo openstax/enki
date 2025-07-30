@@ -41,7 +41,7 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
         --value-of '.' \
         --nl \
         "$collection" || true | \
-    awk '{ sub("../resources", "../IO_RESOURCES"); print }' | \
+    awk -v "resources_dir=$IO_RESOURCES" '{ sub("../resources", resources_dir); print }' | \
     xargs -d$'\n' bash -c '[[ $# -eq 0 ]] || cp -rv "$@" "'"$resources_dir"'"' bash
 
     cp "$metadata_file" "$ancillary_dir"
