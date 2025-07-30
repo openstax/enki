@@ -319,7 +319,7 @@ def pre_assemble(input_dir, repo_dir, super_dir):
 
     with unknown_progress("Handling super documents"):
         super_path = (
-            Path.cwd() / "super" if super_dir is None else Path(super_dir)
+            Path(input_dir) / "super" if super_dir is None else Path(super_dir)
         )
         handle_super_documents(*get_repo_context(input_dir), super_path)
 
