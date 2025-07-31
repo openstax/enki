@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from datetime import timezone
-from typing import Optional
+from typing import Any, Optional
 import os
 import logging
 import uuid
@@ -189,13 +189,15 @@ def make_super_collection(super_document: SuperDocument) -> Elementish:
         namespace=NS_COLLXML, nsmap={None: NS_COLLXML, "md": NS_MDML}
     )
     col_uuid = str(uuid.uuid5(uuid.NAMESPACE_OID, module_uuid))
+    title = super_document.parsed.metadata["title"]
     license_url = super_document.original_collection_meta["license_url"]
     license_text = super_document.original_collection_meta["license_text"]
+    assert isinstance(title, str), "Invalid document title"
 
     metadata = E(
         "metadata",
         E(f"{{{NS_MDML}}}uuid", col_uuid),
-        E(f"{{{NS_MDML}}}title", col_uuid),
+        E(f"{{{NS_MDML}}}title", title),
         E(f"{{{NS_MDML}}}slug", super_document.slug),
         E(f"{{{NS_MDML}}}language", language),
     )
