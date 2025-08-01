@@ -121,8 +121,10 @@ export class AncillariesContext {
     const okRange = options.accept ?? defaultAcceptRange
     for (let tries = (options.retries ?? 2) + 1; tries-- > 0; ) {
       try {
-        const response = await fetch(input, options?.init)
-        acceptStatus(response, okRange)
+        const response = await acceptStatus(
+          await fetch(input, options?.init),
+          okRange
+        )
         return response
       } catch (e) {
         const hi = 2000
@@ -137,15 +139,19 @@ export class AncillariesContext {
 
   async getType(typeId: string) {
     const url = this.buildApiPathV0(['ancillary-types', typeId])
-    const response = await this.fetch(url, { withAuth: true })
-    acceptStatus(response, [200])
+    const response = await acceptStatus(
+      await this.fetch(url, { withAuth: true }),
+      [200]
+    )
     return await response.json()
   }
 
   async authorizeUpload() {
     const url = this.buildApiPathV0(['files', 'authorize-upload'])
-    const response = await this.fetch(url, { withAuth: true })
-    acceptStatus(response, [200])
+    const response = await acceptStatus(
+      await this.fetch(url, { withAuth: true }),
+      [200]
+    )
     return await response.json()
   }
 
@@ -193,17 +199,19 @@ export class AncillariesContext {
 
   async writeAncillary(id: string, ancillaryJSON: string) {
     const url = this.buildApiPathV0(['ancillaries', id])
-    const response = await this.fetch(url, {
-      init: {
-        method: 'POST',
-        body: ancillaryJSON,
-        headers: {
-          'Content-Type': 'application/json',
+    const response = await acceptStatus(
+      await this.fetch(url, {
+        init: {
+          method: 'POST',
+          body: ancillaryJSON,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      },
-      withAuth: true,
-    })
-    acceptStatus(response, [200, 201])
+        withAuth: true,
+      }),
+      [200, 201]
+    )
     return response.json()
   }
 

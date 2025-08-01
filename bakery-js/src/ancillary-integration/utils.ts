@@ -27,7 +27,7 @@ export const listDirectory = (directory: string): DirectoryListing => {
   return { root: path.resolve(directory), listing }
 }
 
-const mimetypeByExtension = new Map([
+export const mimetypeByExtension = new Map([
   ['.json', 'application/json'],
   ['.pdf', 'application/pdf'],
   ['.swf', 'application/x-shockwave-flash'],
@@ -58,7 +58,8 @@ export const getMimeType = (filePath: string) => {
     if (fs.existsSync(metadataFile)) {
       try {
         const metadata = JSON.parse(fs.readFileSync(metadataFile, 'utf-8'))
-        return metadata['mime_type']
+        const { mime_type: mimeType } = metadata
+        return typeof mimeType === 'string' ? mimeType : undefined
       } catch (e) {
         console.error(e)
       }
@@ -74,11 +75,23 @@ export const hadUnexpectedError = (
   return !accept.includes(response.status)
 }
 
-export const acceptStatus = (response: Response, accept: number[]) => {
+export const acceptStatus = async (response: Response, accept: number[]) => {
   if (hadUnexpectedError(response, accept)) {
-    if (!response.bodyUsed) {
-      response.text().then(console.log)
+    let responseBody
+    try {
+      responseBody = await response.text()
+    } catch (error) {
+      responseBody = 'Failed to read response body'
     }
-    throw new Error(`${response.status}: ${response.statusText}`)
+
+    if (responseBody.length > 1024) {
+      responseBody = responseBody.slice(0, 1024)
+    }
+
+    throw new Error(
+      `${response.status}: ${response.statusText}\nBody: ${responseBody}`
+    )
   }
+
+  return response
 }
