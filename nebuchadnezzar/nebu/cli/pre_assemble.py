@@ -303,10 +303,11 @@ def save_super_metadata(
         out_path = super_path / f"{module_uuid}.metadata.json"
         doc_meta = doc.parsed.metadata
         super_meta = doc_meta["super_metadata"]
+        abstract = doc_meta["abstract"]
         meta = {
             "id": module_uuid,
             "name": doc_meta["title"],
-            "description": doc_meta["abstract"],
+            **({"description": abstract} if abstract else {}),
             **(super_meta if isinstance(super_meta, dict) else {}),
         }
         with out_path.open("w") as f:
