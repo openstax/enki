@@ -25,6 +25,7 @@ import { getPos, readXmlWithSourcemap, writeXmlWithSourcemap } from './utils'
 import { dom } from './minidom'
 import Ajv from 'ajv'
 import { createInterface } from 'readline'
+import { AncillariesContext, upload } from './ancillary-integration'
 sourceMapSupport.install()
 
 const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -319,6 +320,13 @@ program
           throw err
         })
     }
+  })
+
+program
+  .command('ancillary')
+  .argument('<ancillaries-dir>', 'directory containing ancillaries to upload')
+  .action(async (ancillariesDir) => {
+    await upload(AncillariesContext.fromEnv(), ancillariesDir)
   })
 
 program.parse()
