@@ -81,6 +81,7 @@ export const acceptStatus = async (response: Response, accept: number[]) => {
     try {
       responseBody = await response.text()
     } catch (error) {
+      /* istanbul ignore next (not worth testing) */
       responseBody = 'Failed to read response body'
     }
 
