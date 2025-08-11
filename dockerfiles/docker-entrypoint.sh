@@ -99,7 +99,21 @@ if [[ $STUB_UPLOAD ]]; then
         copy_resouce_s3_calls=$(find "${!pointer}" -name 'copy_resources_s3_args_*' | wc -l)
         echo "$@" > "${!pointer}/copy_resources_s3_args_$((copy_resouce_s3_calls+1))"
     }
+
+    function upload_ancillaries() {
+        pointer=$(get_stub_output_dir)
+        upload_ancillaries_calls=$(find "${!pointer}" -name 'upload_ancillaries_args_*' | wc -l)
+        echo "$@" > "${!pointer}/upload_ancillaries_args_$((upload_ancillaries_calls+1))"
+    }
+# LCOV_EXCL_START
+else
+    function upload_ancillaries() {
+        if [[ -n "${ANCILLARY_TYPE_CONFIG:-}" ]]; then
+            node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" ancillary "$1"
+        fi
+    }
 fi
+# LCOV_EXCL_END
 
 function ensure_arg() {
     local arg_name

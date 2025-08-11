@@ -118,7 +118,8 @@
                 "IO_BOOK",
                 "IO_FETCHED",
                 "IO_JSONIFIED",
-                "IO_RESOURCES"
+                "IO_RESOURCES",
+                "IO_ANCILLARY"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"

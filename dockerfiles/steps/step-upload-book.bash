@@ -70,6 +70,9 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
     echo "View web preview here: $rex_prod_url"
+else
+    # Do not do this in CORGI builds
+    upload_ancillaries "$IO_ANCILLARY"
 fi
 
 shopt -u globstar nullglob
