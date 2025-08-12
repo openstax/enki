@@ -92,6 +92,7 @@ STUB_UPLOAD="corgi" \
 rm "$BOOK_DIR/_attic/IO_BOOK/job_id"
 SKIP_DOCKER_BUILD=1 \
 STUB_UPLOAD="webhosting" \
+KCOV_DIR=_kcov03-c \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
 
 [[ ! -f "$ARTIFACTS_URL_PATH" ]] || {
