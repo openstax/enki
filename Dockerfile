@@ -337,6 +337,7 @@ COPY --from=build-python-stage \
     /usr/local/bin/patch-same-book-links \
     /usr/local/bin/link-rex \
     /usr/local/bin/pptify \
+    /usr/local/bin/smart-copy \
     /usr/local/bin/aws \
     /usr/local/bin/
 

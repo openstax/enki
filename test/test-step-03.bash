@@ -12,12 +12,12 @@ rm -f $BOOK_DIR/_attic/IO_ARTIFACTS/upload_ancillaries_args_*
 # Test from the start with book slug
 SKIP_DOCKER_BUILD=1 \
 KCOV_DIR=_kcov03-a \
-../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
+../enki --keep-data --data-dir $BOOK_DIR --command all-web --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
 SKIP_DOCKER_BUILD=1 \
 STUB_UPLOAD="corgi" \
 KCOV_DIR=_kcov03-b \
-../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
 if [[ $(find $BOOK_DIR/_attic/IO_ARTIFACTS -type f -name 'upload_ancillaries_args_*' | wc -l) -gt 0 ]]; then
     echo "Should not upload ancillaries for CORGI builds"
@@ -37,10 +37,10 @@ while IFS=$'\n' read -r expected_contents; do
     fi
 done <<EOF
 s3 cp --recursive /tmp/build/0000000/artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
-s3 cp --recursive /tmp/build/0000000/resources/8ac07a3/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/8ac07a3
+s3 cp --recursive /tmp/build/0000000/resources/03e68a5/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/03e68a5
 s3 cp --recursive /tmp/build/0000000/resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
-s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@8ac07a3.json
-s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@8ac07a3.xhtml
+s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.json
+s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.xhtml
 EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/aws_args_*` and copy/paste :)
 
@@ -62,7 +62,7 @@ EOF
 
 
 expected_book_slug="book-slug1"
-expected_ref=8ac07a3
+expected_ref=03e68a5
 expected_url="https://rex-test/apps/rex/books/00000000-0000-0000-0000-000000000000@$expected_ref/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
 expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"}]'
 actual_contents="$(cat $ARTIFACTS_URL_PATH)"
@@ -76,11 +76,11 @@ fi
 # Test without book slug
 rm $BOOK_DIR/_attic/IO_BOOK/slugs
 SKIP_DOCKER_BUILD=1 \
-../enki --data-dir $BOOK_DIR --command all-web --start-at step-disassemble --repo 'philschatz/tiny-book' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
+../enki --data-dir $BOOK_DIR --command all-web --start-at step-disassemble --repo 'philschatz/tiny-book' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
 SKIP_DOCKER_BUILD=1 \
 STUB_UPLOAD="corgi" \
-../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
 [[ -f "$ARTIFACTS_URL_PATH" ]] || {
     echo "Expected $ARTIFACTS_URL_PATH to exist"
@@ -93,7 +93,7 @@ rm "$BOOK_DIR/_attic/IO_BOOK/job_id"
 SKIP_DOCKER_BUILD=1 \
 STUB_UPLOAD="webhosting" \
 KCOV_DIR=_kcov03-c \
-../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '8ac07a3b576d3c2605548e6eeed1b8155ec59f71'
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
 [[ ! -f "$ARTIFACTS_URL_PATH" ]] || {
     echo "Did not expect $ARTIFACTS_URL_PATH to exist"

@@ -52,26 +52,19 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
     ancillary_dir="$IO_ANCILLARY/$module_uuid"
     resources_dir="$ancillary_dir/resources"
     mkdir -p "$ancillary_dir" "$resources_dir"
-    { 
+    mapfile -t dom_resources < <({
         xmlstarlet sel \
             -N "x=http://www.w3.org/1999/xhtml" \
             --template \
-            --match '//x:*[@src][starts-with(@src, ".")]/@src' \
+            --match '//x:*[@src][starts-with(@src, "../resources/")]/@src' \
             --value-of '.' \
             --nl \
             "$collection" || true
-    } | \
-    awk \
-        -v "resources_dir=$IO_RESOURCES" \
-        -v "dom_resource_path=../resources" \
-        '{ sub(dom_resource_path, resources_dir); print }' | \
-    xargs -d$'\n' bash -ec '[[ $# -eq 0 ]] || cp -rv "$@" "'"$resources_dir"'"' bash
-
-    for f in "$resources_dir"/*; do
-        resource_metadata_file="$IO_RESOURCES/$(basename "$f").json"
-        if [[ -f "$resource_metadata_file" ]]; then
-            cp "$resource_metadata_file" "$resources_dir"
-        fi
+    })
+    for dom_resource in "${dom_resources[@]}"; do
+        rel_path="${dom_resource#'../resources/'}"
+        resource_path="$IO_RESOURCES/$rel_path"
+        smart-copy "$resource_path" "$IO_RESOURCES" "$resources_dir"
     done
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
