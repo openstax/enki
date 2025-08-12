@@ -21,7 +21,7 @@ graph TB
     step-bake -- baked --> step-postbake
     step-postbake -- linked --> step-pdf
     step-bake -- baked --> step-pdf
-    step-prebake -- fetch-meta --> step-pdf
+    step-fetch -- fetched --> step-pdf
     step-prebake -- resources --> step-pdf
     step-fetch -- fetched --> step-upload-pdf
     step-pdf -- artifacts --> step-upload-pdf
@@ -90,7 +90,7 @@ graph TB
     step-prebake -- fetch-meta --> step-jsonify
     step-prebake -- resources --> step-jsonify
     step-disassemble -- disassemble-linked --> step-jsonify
-    step-prebake -- fetch-meta --> step-docx
+    step-fetch -- fetched --> step-docx
     step-jsonify -- jsonified --> step-docx
     step-disassemble -- disassemble-linked --> step-docx
     step-prebake -- resources --> step-docx

@@ -55,7 +55,7 @@
                 "IO_BOOK",
                 "IO_LINKED",
                 "IO_BAKED",
-                "IO_FETCH_META",
+                "IO_FETCHED",
                 "IO_RESOURCES"
             ],
             "outputDirs": [
@@ -176,7 +176,7 @@
         "step-docx": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCH_META",
+                "IO_FETCHED",
                 "IO_JSONIFIED",
                 "IO_DISASSEMBLE_LINKED",
                 "IO_RESOURCES"

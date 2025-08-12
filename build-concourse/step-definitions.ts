@@ -34,7 +34,7 @@ set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.B
 
 
 // GIT_PDF_STEPS
-set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCH_META, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
+set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCHED, IO.RESOURCES], outputs: [IO.ARTIFACTS], env: {}})
 set({name: 'step-upload-pdf', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_WEB_STEPS
@@ -49,7 +49,7 @@ set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMB
 set({name: 'step-upload-epub', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_GDOC_STEPS
-set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCH_META, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
+set({name: 'step-docx', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.DISASSEMBLE_LINKED, IO.RESOURCES], outputs: [IO.DOCX, IO.ARTIFACTS], env: {}})
 set({name: 'step-upload-docx', inputs: [IO.BOOK, IO.FETCHED, IO.DOCX], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // PPT_STEPS
