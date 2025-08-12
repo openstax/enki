@@ -137,7 +137,7 @@ graph TB
     step-bake -- baked --> step-postbake
     step-postbake -- linked --> step-pdf
     step-bake -- baked --> step-pdf
-    step-prebake -- fetch-meta --> step-pdf
+    step-fetch -- fetched --> step-pdf
     step-prebake -- resources --> step-pdf
     step-fetch -- fetched --> step-upload-pdf
     step-pdf -- artifacts --> step-upload-pdf
