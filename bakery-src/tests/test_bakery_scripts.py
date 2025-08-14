@@ -53,7 +53,8 @@ from bakery_scripts import (
     cnx_models,
     profiler,
     pptify_book,
-    excepthook
+    excepthook,
+    smart_copy
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -5258,3 +5259,201 @@ def test_excepthook(capsys):
         'Function: mock_function',
         'File: <string>, Line 10',
     ]
+
+
+@pytest.fixture
+def smart_copy_temp_dir(tmp_path) -> tuple[Path, Path]:
+    """Fixture that creates source and destination directories."""
+    src = tmp_path / 'src'
+    dst = tmp_path / 'dst'
+    src.mkdir(parents=True, exist_ok=True)
+    return src, dst
+
+
+def test_smart_copy_single_html_file(smart_copy_temp_dir, mocker, capsys):
+    src_root, dst_root = smart_copy_temp_dir
+
+    _ = [p.mkdir(parents=True, exist_ok=True) for p in (src_root, dst_root)]
+    
+    """Test copying a single HTML file without dependencies."""
+    test_file = src_root / "index.html"
+    test_file.write_text("<html><body>Hello</body></html>")
+
+    copy2_mock = mocker.patch(
+        'bakery_scripts.smart_copy.shutil.copy2',
+        wraps=smart_copy.shutil.copy2,
+    )
+    
+    smart_copy.copy_with_deps(
+        test_file,
+        src_root,
+        dst_root
+    )
+        
+    copy2_mock.assert_called_once()
+    expected_dst = dst_root / "index.html"
+    assert expected_dst.exists()
+    assert expected_dst.read_text() == "<html><body>Hello</body></html>"
+    captured = capsys.readouterr()
+    assert captured.err == f"{test_file} -> {expected_dst}\n"
+
+
+@pytest.mark.parametrize("file_type", [".html", ".xhtml"])
+def test_smart_copy_xhtml_files(smart_copy_temp_dir, mocker, file_type):
+    """Test that both HTML and XHTML files are handled correctly."""
+    src_root, dst_root = smart_copy_temp_dir
+    
+    # Create test file
+    html_file = src_root / f"test{file_type}"
+    html_file.write_text(f"<html><body>{file_type}</body></html>")
+
+    copy2_mock = mocker.patch(
+        'bakery_scripts.smart_copy.shutil.copy2',
+        wraps=smart_copy.shutil.copy2
+    )
+
+    smart_copy.copy_with_deps(
+        html_file,
+        src_root,
+        dst_root
+    )
+
+    copy2_mock.assert_called_once()
+
+
+def test_smart_copy_recursive_dependencies(smart_copy_temp_dir, mocker):
+    """Test recursive copying with multiple levels of dependencies."""
+    src_root, dst_root = smart_copy_temp_dir
+
+    # Create directory structure
+    images_dir = src_root / "images"
+    css_dir = src_root / "css"
+    
+    html_content = """
+    <html>
+        <head>
+           <link rel="stylesheet" type="text/css" href="css/subfolder/style.css" /> 
+        </head>
+        <body>
+            <img src="images/subfolder/image2.png" />
+            <img src="images/image1.png" />
+            <iframe src="secondary.html"></iframe>
+        </body>
+    </html>
+    """
+
+    secondary_html_content = """
+    <html>
+        <head>
+        </head>
+        <body>
+            <img src="images/image3.png" />
+        </body>
+    </html>
+    """
+
+    paths = [
+        (src_root / "main.html", html_content),
+        (src_root / "secondary.html", secondary_html_content),
+        (images_dir / "image1.png", b"image content 1"),
+        (images_dir / "subfolder" / "image2.png", b"image content 2"),
+        (images_dir / "image3.png", b"image content 3"),
+        (css_dir / "subfolder" / "style.css", "<style>/* styles */</style>")
+    ]
+
+    for path, content in paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+            
+        path.write_bytes(content)
+
+    assert [(p, p.exists()) for p, _ in paths] == [(p, True) for p, _ in paths]
+
+    copy2_mock = mocker.patch(
+        "bakery_scripts.smart_copy.shutil.copy2",
+        wraps=smart_copy.shutil.copy2
+    )
+
+    smart_copy.copy_with_deps(
+        src_root / "main.html",
+        src_root,
+        dst_root
+    )
+
+    # Verify files were copied correctly
+    expected_files = [dst_root / path.relative_to(src_root) for path, _ in paths]
+    for expected_file in expected_files:
+        assert expected_file.exists()
+
+    assert copy2_mock.call_count == len(paths)
+
+
+def test_smart_copy_http_links(smart_copy_temp_dir):
+    """Test that HTTP links are ignored but local resources are copied."""
+    src_root, dst_root = smart_copy_temp_dir
+
+    html_content = """
+    <html>
+        <head>
+            <link href="http://example.com/style.css"/>
+            <link href="/css/local.css"/>
+        </head>
+        <body>
+            <img src="http://example.com/image.jpg"/>
+            <img src="images/local_image.png"/>
+        </body>
+    </html>
+    """
+
+    (src_root / "page.html").write_text(html_content)
+
+    images_dir = src_root / "images"
+    images_dir.mkdir()
+    (images_dir / "local_image.png").touch()
+
+    css_dir = src_root / "css"
+    css_dir.mkdir()
+    (css_dir / "local.css").write_text("/* local styles */")
+
+    smart_copy.copy_with_deps(src_root / "page.html", src_root, dst_root)
+
+    # Verify only local resources were copied
+    expected_copied_files = [
+        dst_root / "page.html",  # Original HTML file
+        dst_root / "images" / "local_image.png",
+        dst_root / "css" / "local.css"
+    ]
+    
+    for f in expected_copied_files:
+        assert f.exists()
+
+
+def test_smart_copy_missing_file(smart_copy_temp_dir):
+    """Test handling of missing source files."""
+    src_root, dst_root = smart_copy_temp_dir
+
+    with pytest.raises(FileNotFoundError):
+        smart_copy.copy_with_deps(
+            src_root / 'nonexistent.html', src_root, dst_root
+        )
+
+
+def test_smart_copy_main(smart_copy_temp_dir, mocker):
+    """Test the main function's behavior."""
+    src_root, dst_root = smart_copy_temp_dir
+    html_file = src_root / "test.html"
+    html_file.write_text("<html></html>")
+
+    mock_argv = ['script.py', str(html_file), str(src_root), str(dst_root)]
+    
+    mocker.patch("sys.argv", mock_argv)
+    copy2_mock = mocker.patch(
+        "bakery_scripts.smart_copy.shutil.copy2",
+        wraps=smart_copy.shutil.copy2
+    )
+
+    smart_copy.main()
+
+    copy2_mock.assert_called_once()
