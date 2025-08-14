@@ -66,6 +66,7 @@ export const newAncillaryTypeSuperHandler = async (
     const name = assertValue(metadata['name'])
     const id = assertValue(metadata['id'])
     const description = metadata['description'] ?? 'No description'
+    const relations = metadata['relations'] ?? []
     const filesInputs: FileInput[] = fileListing.map(({ relPath }) => {
       const realPath = path.resolve(path.join(ancillaryListing.root, relPath))
       const mimeType = getMimeType(realPath) ?? ''
@@ -97,6 +98,7 @@ export const newAncillaryTypeSuperHandler = async (
       type: typeId,
       fields: mappedFields,
       formats: mappedFormats,
+      relations,
     }
     const ancillaryJSON = JSON.stringify(payload)
     return await context.writeAncillary(id, ancillaryJSON)

@@ -298,12 +298,45 @@ def append_super_collections_to_container(
 def save_super_metadata(
     super_path: Path, super_documents: list[SuperDocument]
 ):
+    def _prepare_relation(tag, this_book_uuid, module_uuid):
+        text = tag["text"]
+        prefix = "https://openstax.org/orn"
+        if text.startswith(prefix):
+            orn = text
+        else:
+            if ":" in text:
+                book, page = text.split(":")
+                target_book_uuid = uuid.UUID(book)
+                target_page_uuid = uuid.UUID(page)
+            else:
+                target_book_uuid = this_book_uuid
+                target_page_uuid = uuid.UUID(text)
+            orn = f"{prefix}/book:page/{target_book_uuid}:{target_page_uuid}"
+        relation_uuid = str(
+            uuid.uuid5(
+                uuid.NAMESPACE_OID, f"{this_book_uuid}:{module_uuid}:{orn}"
+            )
+        )
+        return (relation_uuid, tag["type"], orn)
+
     for doc in super_documents:
         module_uuid = doc.module_uuid
         out_path = super_path / f"{module_uuid}.metadata.json"
         doc_meta = doc.parsed.metadata
         super_meta = doc_meta["super_metadata"]
         abstract = doc_meta["abstract"]
+        book_uuid = doc.original_collection_meta["uuid"]
+        assert isinstance(super_meta, dict)
+        super_meta["relations"] = [
+            {"id": relation_uuid, "type": relation_type, "orn": orn}
+            for relation_uuid, relation_type, orn in sorted(
+                set(
+                    _prepare_relation(tag, book_uuid, doc.module_uuid)
+                    for tag in super_meta.pop("tags")
+                )
+            )
+        ]
+
         meta = {
             "id": module_uuid,
             "name": doc_meta["title"],
