@@ -45,31 +45,25 @@ cat - > "$xslt_file" <<EOF
 EOF
 
 for collection in "$IO_SUPER/"*.linked.xhtml; do
-    slug_name="$(basename "$collection" .linked.xhtml)"
-    # super-<uuid>
-    module_uuid="${slug_name:6}"
+    module_uuid="$(
+        echo "$collection" |
+        tr '[:upper:]' '[:lower:]' |
+        grep -Eo '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    )"
     metadata_file="$IO_FETCH_META/super/$module_uuid.metadata.json"
     ancillary_dir="$IO_ANCILLARY/$module_uuid"
-    resources_dir="$ancillary_dir/resources"
-    mkdir -p "$ancillary_dir" "$resources_dir"
-    mapfile -t dom_resources < <({
-        xmlstarlet sel \
-            -N "x=http://www.w3.org/1999/xhtml" \
-            --template \
-            --match '//x:*[@src][starts-with(@src, "../resources/")]/@src' \
-            --value-of '.' \
-            --nl \
-            "$collection" || true
-    })
-    for dom_resource in "${dom_resources[@]}"; do
-        rel_path="${dom_resource#'../resources/'}"
-        resource_path="$IO_RESOURCES/$rel_path"
-        smart-copy "$resource_path" "$IO_RESOURCES" "$resources_dir"
-    done
+    resources_dir="${ancillary_dir:?}/resources"
+    mkdir -p "$resources_dir"
+    # Copy collection and all dependencies
+    # Retain paths relative to cwd
+    smart-copy "$collection" "$(pwd)" "$ancillary_dir"
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
     cp "$BOOK_STYLES_ROOT/webview-generic.css" "$resources_dir"
     xsltproc -o "$ancillary_dir/index.html" "$xslt_file" "$collection"
+    # A side-effect of smart-copy is copying the "super" directory
+    # We don't actually need this since we use the index.html created above
+    rm -r "${ancillary_dir:?}/$(realpath --relative-to "$(pwd)" "$IO_SUPER")"
 done
 
 shopt -u nullglob
