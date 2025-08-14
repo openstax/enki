@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from datetime import timezone
-from typing import Any, Optional
+from typing import Optional
 import os
 import logging
 import uuid
