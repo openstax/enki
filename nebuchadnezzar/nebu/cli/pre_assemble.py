@@ -324,15 +324,16 @@ def save_super_metadata(
         out_path = super_path / f"{module_uuid}.metadata.json"
         doc_meta = doc.parsed.metadata
         super_meta = doc_meta["super_metadata"]
+        super_meta = {} if not isinstance(super_meta, dict) else super_meta
         abstract = doc_meta["abstract"]
         book_uuid = doc.original_collection_meta["uuid"]
-        assert isinstance(super_meta, dict)
+        module_uuid = doc.module_uuid
         super_meta["relations"] = [
             {"id": relation_uuid, "type": relation_type, "orn": orn}
             for relation_uuid, relation_type, orn in sorted(
                 set(
-                    _prepare_relation(tag, book_uuid, doc.module_uuid)
-                    for tag in super_meta.pop("tags")
+                    _prepare_relation(tag, book_uuid, module_uuid)
+                    for tag in super_meta.pop("tags", [])
                 )
             )
         ]
@@ -341,7 +342,7 @@ def save_super_metadata(
             "id": module_uuid,
             "name": doc_meta["title"],
             **({"description": abstract} if abstract else {}),
-            **(super_meta if isinstance(super_meta, dict) else {}),
+            **super_meta,
         }
         with out_path.open("w") as f:
             json.dump(meta, f, ensure_ascii=False)
