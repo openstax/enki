@@ -19,6 +19,7 @@ MOCK_TAG_NAME = "my-mock-tag"
 MD_MODULE = 0
 MD_COLLECTION = 1
 NS_COLLXML = CNXML_NSMAP["col"]
+NS_MDML = CNXML_NSMAP["md"]
 
 
 def prepare_directory(directory, tmp_path):
@@ -251,4 +252,51 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
     assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_collection.read_text(), super_collection.name)
     assert_match(normal_collection.read_text(), normal_collection.name)
+    assert_match(super_doc_meta.read_text(), super_doc_meta.name)
+
+
+def test_handle_super_documents_no_meta(tmp_book_dir_with_super, assert_match):
+    books_xml = tmp_book_dir_with_super / "META-INF" / "books.xml"
+    super_doc_uuid = "0c641ba1-5fab-4a9b-b272-5b64cb45dce1"
+    super_module_id = "m50001"
+
+    container = BookContainer.from_str(
+        books_xml.read_bytes(), str(tmp_book_dir_with_super)
+    )
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+    super_doc_path = path_resolver.get_module_path(super_module_id)
+    super_doc = open_xml(super_doc_path)
+    super_meta_elem = super_doc.xpath(
+        '//md:super', namespaces={"md": NS_MDML}
+    )[0]
+    super_meta_elem.getparent().remove(super_meta_elem)
+    super_doc.write(super_doc_path)
+    super_path = tmp_book_dir_with_super / "super"
+    handle_super_documents(container, path_resolver, books_xml, super_path)
+    all_documents = []
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
+        documents = col_tree.xpath(
+            "//col:module/@document", namespaces={"col": NS_COLLXML}
+        )
+        all_documents.extend(documents)
+    file_names = [p.name for p in tmp_book_dir_with_super.iterdir()]
+    super_collection = next(
+        (
+            p for p in tmp_book_dir_with_super.iterdir()
+            if super_doc_uuid in p.name
+        ),
+        None
+    )
+    super_doc_meta = super_path / f"{super_doc_uuid}.metadata.json"
+    assert super_collection is not None
+    assert super_collection.suffix == ".xml"
+    assert all_documents and super_module_id not in all_documents
+    assert 1 == sum(1 for name in file_names if super_doc_uuid in name)
+    assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_doc_meta.read_text(), super_doc_meta.name)
