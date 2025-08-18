@@ -2,18 +2,12 @@ import * as fs from 'fs'
 import { assertValue } from '../utils'
 import path from 'path'
 import { listDirectory, getMimeType } from './utils'
-import { AncillariesContext, FileInput } from './ancillaries-context'
-
-interface FieldConfig {
-  name: string
-  id: string
-}
-
-interface FormatConfig {
-  label: string
-  id: string
-  fields: FieldConfig[]
-}
+import {
+  AncillariesContext,
+  FieldConfig,
+  FileInput,
+  FormatConfig,
+} from './ancillaries-context'
 
 const mapFields = (
   fields: { [key: string]: unknown },
@@ -52,9 +46,9 @@ export const newAncillaryTypeSuperHandler = async (
   const superConfig = assertValue(typeSuper.config)
   const typeDocument = assertValue(await typeSuper.typeDocument)
   const htmlFormatLabel = assertValue(superConfig['htmlFormatLabel'])
-  const typeId = assertValue(typeDocument.id) as string
-  const fieldConfigs = assertValue(typeDocument.fields) as FieldConfig[]
-  const formatConfigs = assertValue(typeDocument.formats) as FormatConfig[]
+  const typeId = assertValue(typeDocument.id)
+  const fieldConfigs = assertValue(typeDocument.fields)
+  const formatConfigs = assertValue(typeDocument.formats)
 
   return async (ancillaryPath: string) => {
     const ancillaryListing = listDirectory(ancillaryPath)

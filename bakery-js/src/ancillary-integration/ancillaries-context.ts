@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import FormData from 'form-data'
 import { assertValue } from '../utils'
 import { acceptStatus } from './utils'
@@ -23,8 +24,25 @@ export interface UploadConfig {
   payload: { [key: string]: string }
 }
 
+export interface FieldConfig {
+  name: string
+  id: string
+}
+
+export interface FormatConfig {
+  label: string
+  id: string
+  fields: FieldConfig[]
+}
+
+export type AncillaryTypeDocument = Partial<{
+  id: string
+  fields: FieldConfig[]
+  formats: FormatConfig[]
+}>;
+
 class AncillaryType {
-  private _typeDocument: { [key: string]: unknown } | undefined = undefined
+  private _typeDocument: AncillaryTypeDocument | undefined = undefined
 
   constructor(
     protected readonly typeId: string,
