@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import FormData from 'form-data'
 import { assertValue } from '../utils'
 import { acceptStatus } from './utils'
@@ -39,7 +38,7 @@ export type AncillaryTypeDocument = Partial<{
   id: string
   fields: FieldConfig[]
   formats: FormatConfig[]
-}>;
+}>
 
 class AncillaryType {
   private _typeDocument: AncillaryTypeDocument | undefined = undefined
