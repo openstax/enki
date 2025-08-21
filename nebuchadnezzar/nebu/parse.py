@@ -162,7 +162,6 @@ def parse_super_metadata(elm_tree):
             k: v
             for k, v in (
                 ("type", _safe_strip(elem.get("type"))),
-                ("link", _safe_strip(elem.get("link"))),
                 ("text", _safe_strip(elem.text))
             )
             if v
