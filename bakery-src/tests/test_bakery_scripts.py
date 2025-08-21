@@ -53,7 +53,8 @@ from bakery_scripts import (
     cnx_models,
     profiler,
     pptify_book,
-    excepthook
+    excepthook,
+    print_customizations
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -5258,3 +5259,227 @@ def test_excepthook(capsys):
         'Function: mock_function',
         'File: <string>, Line 10',
     ]
+
+
+def test_print_customizations(tmp_path, mocker):
+    book1_baked_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+        <body itemscope="itemscope" itemtype="http://schema.org/Book">
+        <div data-type="metadata" style="display: none;">
+        <h1 data-type="document-title" itemprop="name">Book1</h1>
+        <span data-type="slug" data-value="book1"></span>
+        <span data-type="cnx-archive-uri"
+            data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58@version"></span>
+        </div>
+        <nav id="toc">
+            <h1 class="os-toc-title">Stuff</h1>
+            <ol>
+                <li cnx-archive-uri="" cnx-archive-shortid="" class="os-toc-unit" data-toc-type="unit">
+                    <a href="#">
+                        <span data-type="" itemprop="" class="os-text">Unit 1</span>
+                    </a>
+                    <ol class="os-unit">
+                        <li class="os-toc-unit-page" cnx-archive-shortid="" cnx-archive-uri="page_1" data-toc-type="book-content" data-toc-target-type="intro">
+                            <a href="#page_1">
+                                <span data-type="" itemprop="" class="os-text">Page 1</span>
+                            </a>
+                        </li>
+
+                        <li class="os-toc-chapter" cnx-archive-shortid="" cnx-archive-uri="" data-toc-type="chapter">
+                            <a href="#chapTitle1">
+                                <span class="os-text" data-type="" itemprop="">Chapter 1</span>
+                            </a>
+                            <ol class="os-chapter">
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_2" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_2">
+                                        <span data-type="" itemprop="" class="os-text">Page 2</span>
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </li>
+                <li cnx-archive-uri="" cnx-archive-shortid="" class="os-toc-unit" data-toc-type="unit">
+                    <a href="#">
+                        <span data-type="" itemprop="" class="os-text">Unit 2</span>
+                    </a>
+                    <ol class="os-unit">
+                        <li class="os-toc-chapter" cnx-archive-shortid="" cnx-archive-uri="" data-toc-type="chapter">
+                            <a href="#chapTitle2">
+                                <span class="os-text" data-type="" itemprop="">Chapter 2</span>
+                            </a>
+                            <ol class="os-chapter">
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_3" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_3">
+                                        <span data-type="" itemprop="" class="os-text">Page 3</span>
+                                    </a>
+                                </li>
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_4" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_4">
+                                        <span data-type="" itemprop="" class="os-text">Page 4</span>
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </li>
+            </ol>
+        </nav>
+        <div>
+            <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
+            <iframe src="https://outside-the-page.com"><!-- no-selfclose --></iframe>
+        </div>
+        <div data-type="page" id="page_1">
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Page1</h1>
+                <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+            </div>
+            <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
+            <p><a id="l1"
+                href="/contents/4aa9351c-019f-4c06-bb40-d58262ea7ec7"
+                >Inter-book module link</a></p>
+            <p><a id="l2"
+                href="/contents/2e51553f-fde8-43a3-8191-fd8b493a6cfa#foobar"
+                >Inter-book module link with fragment</a></p>
+        </div>
+        <div data-type="unit">
+            <div data-type="document-title" id="unit1">Unit 1</div>
+            <div data-type="chapter">
+                <div data-type="document-title" id="chapTitle1">chapter 1</div>
+                <div data-type="page" id="page_2" class="no-print">
+                    <div data-type="metadata" style="display: none;">
+                        <h1 data-type="document-title" itemprop="name">Page2</h1>
+                        <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                    </div>
+                    <p><a id="l3"
+                        href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                        >Intra-book module link</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div data-type="chapter">
+            <div data-type="document-title" id="chapTitle2">chapter 2</div>
+            <div data-type="page" id="page_3" class="no-print">
+                <div data-type="metadata" style="display: none;">
+                    <h1 data-type="document-title" itemprop="name">Page2</h1>
+                    <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                    <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                </div>
+                <p><a id="l3"
+                    href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                    >Intra-book module link</a>
+                </p>
+            </div>
+            <div data-type="page" id="page_4">
+                <div data-type="metadata" style="display: none;">
+                    <h1 data-type="document-title" itemprop="name">Page2</h1>
+                    <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                    <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                </div>
+                <p><a id="l3"
+                    href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                    >Intra-book module link</a>
+                </p>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-1" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-2" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="not-index" id="composite-page-3" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Not Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Not Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>
+    """
+    baked_content = tmp_path / "test.baked.xhtml"
+    transformed = tmp_path / "print-ready.xhtml"
+    baked_content.write_text(book1_baked_content)
+    mocker.patch(
+        "sys.argv", ["", str(baked_content), str(transformed)]
+    )
+    print_customizations.main()
+    tree = etree.parse(baked_content)
+    assert tree.xpath('//*[@data-type="page" and @id="page_2"]') != []
+    assert tree.xpath('//*[@data-type="chapter"]//*[@id = "chapTitle1"]') != []
+    assert [
+        'Unit 1',
+        'Page 1',
+        'Chapter 1',
+        'Page 2',
+        'Unit 2',
+        'Chapter 2',
+        'Page 3',
+        'Page 4',
+        'Index',
+        'Index',
+        'Not Index'
+    ] == tree.xpath(
+        '//*[@class="os-text"]/text()'
+    )
+    assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
+    tree = etree.parse(transformed)
+    assert tree.xpath('//*[@data-type="page" and @id="page_2"]') == []
+    assert tree.xpath('//*[@data-type="chapter"]//*[@id = "chapTitle1"]/@id') == []
+    assert [
+        'Unit 1',
+        'Page 1',
+        'Unit 2',
+        'Chapter 2',
+        'Page 4',
+        'Index',
+        'Index',
+        'Not Index'
+    ] == tree.xpath(
+        '//*[@class="os-text"]/text()'
+    )
+    assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
+    tree = etree.parse(baked_content)
+    for page in tree.xpath('//*[@data-type="page"]'):
+        page.set("class", " ".join(set((page.get("class", ""), "no-print"))))
+    tree.write(baked_content, encoding="utf-8")
+    print_customizations.main()
+    tree = etree.parse(transformed)
+    assert tree.xpath('//*[@data-type="page"]/@id') == []
+    assert [] == tree.xpath(
+        '//*[@data-toc-type="unit"]//*[@class="os-text"]/text()'
+    )
+
+
