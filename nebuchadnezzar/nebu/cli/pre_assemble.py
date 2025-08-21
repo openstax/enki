@@ -205,7 +205,10 @@ def make_super_collection(super_document: SuperDocument) -> Elementish:
         license_el = E(f"{{{NS_MDML}}}license", license_text, url=license_url)
         metadata.append(license_el)
     content = E("content", E("module", document=module_id))
-    collection = E("collection", metadata, content)
+    subcol_title = E(f"{{{NS_MDML}}}title", title)
+    subcol_content = E("content", content)
+    subcol = E("subcollection", subcol_title, subcol_content)
+    collection = E("collection", metadata, subcol)
     return collection
 
 
@@ -277,7 +280,7 @@ def append_super_collections_to_container(
     books_xml: Path, super_documents: list[SuperDocument]
 ):
     # TODO: maybe need to use a different style
-    super_style = "dummy"
+    super_style = "super"
     container_tree = etree.parse(books_xml)
     # Should always find one since we literally just parsed it
     container_elem = container_tree.xpath(

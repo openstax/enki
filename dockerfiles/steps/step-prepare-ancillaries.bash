@@ -22,13 +22,6 @@ cat - > "$xslt_file" <<EOF
     <!-- Remove nav -->
     <xsl:template match="x:nav" />
 
-    <!-- Promote title to h1 -->
-    <xsl:template match="x:div[@data-type='page']/x:div[@data-type='document-title']">
-        <xsl:element name="h1" namespace="http://www.w3.org/1999/xhtml">
-            <xsl:apply-templates select="@*|node()"/>
-        </xsl:element>
-    </xsl:template>
-
     <!-- Update style -->
     <xsl:template match="x:link[@href[substring(., string-length(.) - 7) = '-pdf.css']]/@href">
         <xsl:attribute name="href">./resources/webview-generic.css</xsl:attribute>
