@@ -5456,7 +5456,7 @@ def test_print_customizations(tmp_path, mocker):
     )
     assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
     tree = etree.parse(transformed)
-    assert tree.xpath('//*[@data-type="page" and @id="page_2"]') == []
+    assert tree.xpath('//*[@data-type="page" and @id="page_2"]/@id') == []
     assert tree.xpath('//*[@data-type="chapter"]//*[@id = "chapTitle1"]/@id') == []
     assert [
         'Unit 1',

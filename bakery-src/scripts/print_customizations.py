@@ -18,19 +18,17 @@ def clean_toc(tree):
     print_exclude_class = "no-print"
     page_query = (
         '//*[@data-type="page"]['
-        f'   contains(@class, "{print_exclude_class}")'
+        f'   contains(concat(" ", @class, " "), " {print_exclude_class} ")'
         ']'
     )
     chapter_query = (
         '//*[@data-type="chapter"]['
-        '    0 = count(.//*[@data-type="page" or @data-type="composite-page"])'
+        '    not(.//*[@data-type="page" or @data-type="composite-page"])'
         ']'
     )
     unit_query = (
         '//*[@data-type="unit"]['
-        '    0 = count('
-        '        .//*[@data-type="chapter" or @data-type="composite-chapter"]'
-        '    )'
+        '    not(.//*[@data-type="chapter" or @data-type="composite-chapter"])'
         ']'
     )
     dirty = False
