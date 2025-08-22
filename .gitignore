@@ -8,8 +8,8 @@
 /build-concourse/webhosting-*.yml
 /build-concourse/corgi-*.yml
 
-cross-lib/book-data
-cross-lib/logs
+batch-builder/book-data
+batch-builder/logs
 
 /bakery-src/scripts/build
 /bakery-src/scripts/cops_bakery_scripts.egg-info
