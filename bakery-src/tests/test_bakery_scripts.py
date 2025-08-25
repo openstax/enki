@@ -52,7 +52,9 @@ from bakery_scripts import (
     html_parser,
     cnx_models,
     profiler,
-    pptify_book
+    pptify_book,
+    excepthook,
+    print_customizations
 )
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -5118,5 +5120,379 @@ def test_pptify_book(mocker, tmp_path):
     assert path_rename_stub.call_count == chapter_count
     assert path_exists_stub.call_count == chapter_count
     assert fix_pptx_file_stub.call_count == chapter_count
+
+
+def test_excepthook(capsys):
+    local = excepthook.Local("token", "secret123")
+    assert isinstance(local.safe_value, str)
+    assert len(local.safe_value) == 24
+    assert local.safe_value == excepthook._safe_value(local.name, local.value)
+
+
+    # Test secret detection
+    assert excepthook._looks_like_secret("password", "123456") is True
+    assert excepthook._looks_like_secret("test", "safe_value") is False
     
+    # Test with different patterns
+    assert excepthook._looks_like_secret(
+        "bearer_token", "Bearer abc123"
+    ) is True
+    assert excepthook._looks_like_secret(
+        "jwt", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    ) is True
+    assert excepthook._looks_like_secret(
+        "out_path", "book.linked.xhtml"
+    ) is False
+
+
+    # test_default_handle_locals
+    from lxml import etree
+    locals_list = [
+        excepthook.Local("secret_key", "123"),
+        excepthook.Local("public_var", "456"),
+        excepthook.Local("sentence", "I am a sentence."),
+        excepthook.Local("other_public_var", dict(secret="hi", x=1, y=2)),
+        excepthook.Local("node", etree.Element("sample", **{"data-sm": "sm"})),
+        excepthook.Local("list", ["bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"]),
+        excepthook.Local("something", repr({"super_secret_value": "1"})),
+        excepthook.Local("long_string", "1" * 1000),
+    ]
+    excepthook.default_handle_locals(locals_list)
+    captured = capsys.readouterr()
+    assert captured.err.splitlines() == [
+        "Local Variables:",
+        "    secret_key = '************************'",
+        "    public_var = '456'",
+        "    sentence = 'I am a sentence.'",
+        "    other_public_var = {'secret': '************************', 'x': 1,"
+        " 'y': 2}",
+        "    node = {'tag': 'sample', 'nearest-data-sm': 'sm'}",
+        "    list = ['************************']",
+        "    something = '************************'",
+        "    long_string = "
+        "'1111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "11111111111111111111111111111111111111111111111111111111111111111111"
+        "111111111111111111111111..."
+    ]
+
+
+    # test_attach_detach
+    class MockSys:
+        __slots__ = ("excepthook",)
+    def stub1(*args):
+        return None
+    def stub2(*args):
+        return None
+    mock_sys = MockSys()
+    mock_sys.excepthook = stub1
+    hook_group = excepthook.HookAttachmentGroup(stub2).attach(mock_sys)
+    assert mock_sys.excepthook == stub2
+    hook_group.detach(mock_sys)
+    assert mock_sys.excepthook == stub1
+    mock_sys.excepthook = stub1
+    excepthook.attach(mock_sys)
+    assert mock_sys.excepthook != stub1
+    excepthook.detach(mock_sys)
+    assert mock_sys.excepthook == stub1
+    with excepthook.attach_hook(stub2, mock_sys):
+        assert mock_sys.excepthook == stub2
+    assert mock_sys.excepthook == stub1
+    
+    class MockCode:
+        """Simple mock code object"""
+        def __init__(
+            self,
+            filename='<string>',
+            name='mock_function',
+            lineno=42
+        ):
+            self.co_filename = filename
+            self.co_name = name
+            self.lineno = lineno
+    
+    class MockFrame:
+        """Simple mock frame"""
+        def __init__(
+            self,
+            filename='<string>',
+            name='mock_function',
+            lineno=42,
+            locals_=None
+        ):
+            self.f_code = MockCode(
+                filename=filename,
+                name=name,
+                lineno=lineno,
+            )
+            self.f_locals = locals_ or {}
+
+    class MockTraceback:
+        """Mock traceback that implements the required API"""
+        def __init__(self, next_tb=None):
+            self.tb_next = next_tb
+        
+        @property
+        def __traceback__(self):
+            return None
+            
+        @property
+        def tb_frame(self):
+            return MockFrame()
+        
+        @property
+        def tb_lineno(self):
+            return 10
+
+    excepthook._handle_tracebacks([MockTraceback()], excepthook.default_handle_locals)
+
+    # Capture output and verify it was called correctly
+    captured = capsys.readouterr()
+    
+    assert captured.err.splitlines() == [
+        '',
+        '### Stack Frame 1 ###',
+        'Function: mock_function',
+        'File: <string>, Line 10',
+    ]
+
+
+def test_print_customizations(tmp_path, mocker):
+    book1_baked_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+        <body itemscope="itemscope" itemtype="http://schema.org/Book">
+        <div data-type="metadata" style="display: none;">
+        <h1 data-type="document-title" itemprop="name">Book1</h1>
+        <span data-type="slug" data-value="book1"></span>
+        <span data-type="cnx-archive-uri"
+            data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58@version"></span>
+        </div>
+        <nav id="toc">
+            <h1 class="os-toc-title">Stuff</h1>
+            <ol>
+                <li cnx-archive-uri="" cnx-archive-shortid="" class="os-toc-unit" data-toc-type="unit">
+                    <a href="#">
+                        <span data-type="" itemprop="" class="os-text">Unit 1</span>
+                    </a>
+                    <ol class="os-unit">
+                        <li class="os-toc-unit-page" cnx-archive-shortid="" cnx-archive-uri="page_1" data-toc-type="book-content" data-toc-target-type="intro">
+                            <a href="#page_1">
+                                <span data-type="" itemprop="" class="os-text">Page 1</span>
+                            </a>
+                        </li>
+
+                        <li class="os-toc-chapter" cnx-archive-shortid="" cnx-archive-uri="" data-toc-type="chapter">
+                            <a href="#chapTitle1">
+                                <span class="os-text" data-type="" itemprop="">Chapter 1</span>
+                            </a>
+                            <ol class="os-chapter">
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_2" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_2">
+                                        <span data-type="" itemprop="" class="os-text">Page 2</span>
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </li>
+                <li cnx-archive-uri="" cnx-archive-shortid="" class="os-toc-unit" data-toc-type="unit">
+                    <a href="#">
+                        <span data-type="" itemprop="" class="os-text">Unit 2</span>
+                    </a>
+                    <ol class="os-unit">
+                        <li class="os-toc-chapter" cnx-archive-shortid="" cnx-archive-uri="" data-toc-type="chapter">
+                            <a href="#chapTitle2">
+                                <span class="os-text" data-type="" itemprop="">Chapter 2</span>
+                            </a>
+                            <ol class="os-chapter">
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_3" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_3">
+                                        <span data-type="" itemprop="" class="os-text">Page 3</span>
+                                    </a>
+                                </li>
+                                <li class="os-toc-chapter-page" cnx-archive-shortid="" cnx-archive-uri="page_4" data-toc-type="book-content" data-toc-target-type="numbered-section">
+                                    <a href="#page_4">
+                                        <span data-type="" itemprop="" class="os-text">Page 4</span>
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </li>
+            </ol>
+        </nav>
+        <div>
+            <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
+            <iframe src="https://outside-the-page.com"><!-- no-selfclose --></iframe>
+        </div>
+        <div data-type="page" id="page_1">
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Page1</h1>
+                <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+            </div>
+            <a data-check-rex-link="true" data-needs-rex-link="true">LINK 1</a>
+            <p><a id="l1"
+                href="/contents/4aa9351c-019f-4c06-bb40-d58262ea7ec7"
+                >Inter-book module link</a></p>
+            <p><a id="l2"
+                href="/contents/2e51553f-fde8-43a3-8191-fd8b493a6cfa#foobar"
+                >Inter-book module link with fragment</a></p>
+        </div>
+        <div data-type="unit">
+            <div data-type="document-title" id="unit1">Unit 1</div>
+            <div data-type="chapter">
+                <div data-type="document-title" id="chapTitle1">chapter 1</div>
+                <div data-type="page" id="page_2" class="no-print">
+                    <div data-type="metadata" style="display: none;">
+                        <h1 data-type="document-title" itemprop="name">Page2</h1>
+                        <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                        <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                    </div>
+                    <p><a id="l3"
+                        href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                        >Intra-book module link</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div data-type="chapter">
+            <div data-type="document-title" id="chapTitle2">chapter 2</div>
+            <div data-type="page" id="page_3" class="no-print">
+                <div data-type="metadata" style="display: none;">
+                    <h1 data-type="document-title" itemprop="name">Page2</h1>
+                    <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                    <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                </div>
+                <p><a id="l3"
+                    href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                    >Intra-book module link</a>
+                </p>
+            </div>
+            <div data-type="page" id="page_4">
+                <div data-type="metadata" style="display: none;">
+                    <h1 data-type="document-title" itemprop="name">Page2</h1>
+                    <span data-type="canonical-book-uuid" data-value="1ba7e813-2d8a-4b73-87a1-876cfb5e7b58"/>
+                    <a data-check-rex-link="true" data-needs-rex-link="true">LINK 2</a>
+                </div>
+                <p><a id="l3"
+                    href="/contents/9f049b16-15e9-4725-8c8b-4908a3e2be5e"
+                    >Intra-book module link</a>
+                </p>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-1" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="index" id="composite-page-2" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="os-eob os-index-container" data-type="composite-page" data-uuid-key="not-index" id="composite-page-3" data-book-content="true">
+            <h1 data-type="document-title">
+                <span class="os-text">Not Index</span>
+            </h1>
+            <div data-type="metadata" style="display: none;">
+                <h1 data-type="document-title" itemprop="name">Not Index</h1>
+                <span data-type="revised" data-value="2025-05-21T14:35:53+00:00"/><span data-type="slug" data-value="algebra-1"/><div class="permissions">
+                    <p class="license">
+                    Licensed:
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" itemprop="dc:license,lrmi:useRightsURL" data-type="license" target="_blank" rel="noopener nofollow">Creative Commons Attribution-NonCommercial-ShareAlike License</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        </body>
+        </html>
+    """
+    baked_content = tmp_path / "test.baked.xhtml"
+    transformed = tmp_path / "print-ready.xhtml"
+    baked_content.write_text(book1_baked_content)
+    mocker.patch(
+        "sys.argv", ["", str(baked_content), str(transformed)]
+    )
+    print_customizations.main()
+    tree = etree.parse(baked_content)
+    assert tree.xpath('//*[@data-type="page" and @id="page_2"]') != []
+    assert tree.xpath('//*[@data-type="chapter"]//*[@id = "chapTitle1"]') != []
+    assert [
+        'Unit 1',
+        'Page 1',
+        'Chapter 1',
+        'Page 2',
+        'Unit 2',
+        'Chapter 2',
+        'Page 3',
+        'Page 4',
+        'Index',
+        'Index',
+        'Not Index'
+    ] == tree.xpath(
+        '//*[@class="os-text"]/text()'
+    )
+    assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
+    tree = etree.parse(transformed)
+    assert tree.xpath('//*[@data-type="page" and @id="page_2"]/@id') == []
+    assert tree.xpath('//*[@data-type="chapter"]//*[@id = "chapTitle1"]/@id') == []
+    assert [
+        'Unit 1',
+        'Page 1',
+        'Unit 2',
+        'Chapter 2',
+        'Page 4',
+        'Index',
+        'Index',
+        'Not Index'
+    ] == tree.xpath(
+        '//*[@class="os-text"]/text()'
+    )
+    assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
+
+    # Should clean everything if all pages are marked as no-print
+    tree = etree.parse(baked_content)
+    for page in tree.xpath('//*[@data-type="page"]'):
+        page.set("class", " ".join(set((page.get("class", ""), "no-print"))))
+    tree.write(baked_content, encoding="utf-8")
+    print_customizations.main()
+    tree = etree.parse(transformed)
+    assert tree.xpath('//*[@data-type="page"]/@id') == []
+    assert [] == tree.xpath(
+        '//*[@data-toc-type="unit"]//*[@class="os-text"]/text()'
+    )
+
+    # Should do nothing if there were no matching pages
+    tree = etree.parse(baked_content)
+    _ = [
+        el.getparent().remove(el)
+        for el in tree.xpath('//*[contains(@class, "no-print")]')
+    ]
+    tree.write(baked_content, encoding="utf-8")
+    print_customizations.main()
+    before = baked_content.read_bytes()
+    after = transformed.read_bytes()
+    assert before == after
 

@@ -57,7 +57,8 @@ shopt -s globstar nullglob
 while read -r book_slug; do
     [[ -f "$IO_LINKED/$book_slug-pdf.css" ]] || books_missing_styles+=("$book_slug")
     link-rex "$IO_LINKED/$book_slug.mathified.xhtml" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
-    prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.rex-linked.xhtml"
+    print-customizations "$IO_LINKED/$book_slug.rex-linked.xhtml" "$IO_LINKED/$book_slug.print-ready.xhtml"
+    prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.print-ready.xhtml"
 done < <(read_book_slugs)
 shopt -u globstar nullglob
 

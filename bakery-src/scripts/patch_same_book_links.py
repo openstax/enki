@@ -5,7 +5,12 @@ import sys
 from pathlib import Path
 
 from lxml import etree
+
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed

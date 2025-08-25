@@ -6,6 +6,10 @@ from lxml import etree
 from .utils import model_to_tree, ensure_isoformat
 from .profiler import timed
 from .html_parser import DocumentMetadataParser, reconstitute
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed

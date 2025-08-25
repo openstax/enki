@@ -4,6 +4,10 @@ from glob import glob
 from os.path import basename
 
 from .profiler import timed
+from . import excepthook
+
+
+excepthook.attach(sys)
 
 
 @timed
