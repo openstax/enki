@@ -1,4 +1,5 @@
 import sys
+import shutil
 from pathlib import Path
 
 from lxml import etree
@@ -73,6 +74,8 @@ def main():
     tree = etree.parse(src, XHTMLParser(recover=True))
     if clean_toc(tree):
         tree.write(str(dst), encoding="utf-8")
+    else:
+        shutil.copy2(src, dst)
 
 
 if __name__ == "__main__":

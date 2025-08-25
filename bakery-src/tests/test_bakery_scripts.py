@@ -5471,6 +5471,8 @@ def test_print_customizations(tmp_path, mocker):
         '//*[@class="os-text"]/text()'
     )
     assert 3 == len(tree.xpath('//*[@data-type="composite-page"]'))
+
+    # Should clean everything if all pages are marked as no-print
     tree = etree.parse(baked_content)
     for page in tree.xpath('//*[@data-type="page"]'):
         page.set("class", " ".join(set((page.get("class", ""), "no-print"))))
@@ -5482,4 +5484,15 @@ def test_print_customizations(tmp_path, mocker):
         '//*[@data-toc-type="unit"]//*[@class="os-text"]/text()'
     )
 
+    # Should do nothing if there were no matching pages
+    tree = etree.parse(baked_content)
+    _ = [
+        el.getparent().remove(el)
+        for el in tree.xpath('//*[contains(@class, "no-print")]')
+    ]
+    tree.write(baked_content, encoding="utf-8")
+    print_customizations.main()
+    before = baked_content.read_bytes()
+    after = transformed.read_bytes()
+    assert before == after
 
