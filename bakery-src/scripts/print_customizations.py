@@ -31,10 +31,11 @@ def clean_toc(tree):
         '    not(.//*[@data-type="chapter" or @data-type="composite-chapter"])'
         ']'
     )
-    dirty = False
+    did_match = False
     # order is important
     for query in (page_query, chapter_query, unit_query):
-        for element in tree.xpath(query):
+        elements = tree.xpath(query)
+        for element in elements:
             el_id = ""
             data_type = element.attrib.get("data-type")
             assert data_type, "Element without data type"
@@ -53,8 +54,8 @@ def clean_toc(tree):
                         say("Removed container parent")
             element.getparent().remove(element)
             say(f'Removed element: "{el_id}"')
-            dirty = True
-    if dirty:
+        did_match = did_match or (query == page_query and len(elements) > 0)
+    if did_match:
         # trash empty units (but only if we made changes)
         empty_unit_query = (
             './/*[@data-toc-type="unit"][not(.//*[@data-toc-type])]'
@@ -62,6 +63,7 @@ def clean_toc(tree):
         for empty_unit in toc.xpath(empty_unit_query):
             empty_unit.getparent().remove(empty_unit)
             say("Removed unit ToC item")
+    return did_match
 
 
 def main():
@@ -69,8 +71,8 @@ def main():
     src = Path(next(args)).resolve(strict=True)
     dst = Path(next(args)).resolve()
     tree = etree.parse(src, XHTMLParser(recover=True))
-    clean_toc(tree)
-    tree.write(str(dst), encoding="utf-8")
+    if clean_toc(tree):
+        tree.write(str(dst), encoding="utf-8")
 
 
 if __name__ == "__main__":
