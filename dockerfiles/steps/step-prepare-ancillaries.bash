@@ -2,7 +2,8 @@ parse_book_dir
 
 shopt -s nullglob
 
-xslt_file="$(realpath ./transform.xslt)"
+xslt_file="/tmp/transform.xslt"
+book_slugs_file="/tmp/book-slugs.json"
 
 # TODO: Maybe move this into a file
 cat - > "$xslt_file" <<EOF
@@ -37,6 +38,20 @@ cat - > "$xslt_file" <<EOF
 </xsl:stylesheet>
 EOF
 
+repo_root=$IO_FETCH_META
+col_sep='|'
+xpath_sel="//*[@slug]" # All the book entries
+while IFS=$col_sep read -r slug href _style; do # Loop over each <book> entry in the META-INF/books.xml manifest
+    path="$repo_root/META-INF/$href"
+
+    uuid=$(xmlstarlet sel -t --match "//*[local-name()='uuid']" --value-of 'text()' < $path)
+    jq -n "{ slug: \"$slug\", uuid: \"$uuid\" }" >> $book_slugs_file
+
+    # --------- Code ends here
+done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'$col_sep'" --value-of '@href' --value-of "'$col_sep'" --value-of '@style' --nl < $repo_root/META-INF/books.xml)
+
+jq -s . $book_slugs_file > $book_slugs_file.tmp && mv $book_slugs_file.tmp $book_slugs_file
+
 for collection in "$IO_SUPER/"*.linked.xhtml; do
     module_uuid="$(
         echo "$collection" |
@@ -53,7 +68,12 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
     cp "$BOOK_STYLES_ROOT/webview-generic.css" "$resources_dir"
-    xsltproc -o "$ancillary_dir/index.html" "$xslt_file" "$collection"
+    link-rex "$collection" "$book_slugs_file" "" "$collection.rex-linked.xhtml"
+    xsltproc -o "$ancillary_dir/index.html" "$xslt_file" "$collection.rex-linked.xhtml"
+    for resource in "$resources_dir"/*; do
+        resource_metadata="$IO_RESOURCES/$(basename "$resource").json"
+        cp -v "$resource_metadata" "$resources_dir" || true
+    done
     # A side-effect of smart-copy is copying the "super" directory
     # We don't actually need this since we use the index.html created above
     rm -r "${ancillary_dir:?}/$(realpath --relative-to "$(pwd)" "$IO_SUPER")"
