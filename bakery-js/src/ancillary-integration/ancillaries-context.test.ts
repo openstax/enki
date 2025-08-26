@@ -371,7 +371,7 @@ describe('AncillariesContext', () => {
       id,
       JSON.stringify({ hey: 'imanancillary' })
     )
-    expect(result).toMatchInlineSnapshot(`
+    expect(await result.json()).toMatchInlineSnapshot(`
       {
         "mock-response": "true",
       }

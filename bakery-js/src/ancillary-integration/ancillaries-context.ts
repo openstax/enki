@@ -181,6 +181,8 @@ export class AncillariesContext {
       filepath: file.name,
     })
 
+    console.log(`Uploading file: name="${file.name}", type="${file.type}"`)
+
     await this.fetch(config.url, {
       init: {
         method: 'POST',
@@ -222,7 +224,7 @@ export class AncillariesContext {
       }),
       [200, 201]
     )
-    return response.json()
+    return response
   }
 
   static fromEnv() {

@@ -107,6 +107,11 @@ export const upload = async (ancillariesDir: string) => {
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.resolve(path.join(ancillariesDir, entry.name)))
   for (const ancillaryPath of ancillaryPaths) {
-    await ancillaryTypeSuperHandler(ancillaryPath)
+    const name = path.basename(ancillaryPath)
+    console.log(`> Uploading ancillary: ${name}`)
+    const response = await ancillaryTypeSuperHandler(ancillaryPath)
+    console.log(
+      `> ${name} - ${response.status === 200 ? 'Unchanged' : 'Updated'}`
+    )
   }
 }
