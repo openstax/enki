@@ -1,4 +1,5 @@
 import sys
+import os
 from pathlib import Path
 import shutil
 
@@ -12,17 +13,22 @@ def copy_with_deps(src_path: Path, src_root: Path, dst_root: Path):
         '//*[local-name()="link"][@href][not(starts-with(@href,"http"))]/@href'
     )
     if src_path.is_file() and src_path.suffix.lower() in (".html", ".xhtml"):
-        parent = src_path.parent
+        doc_path = src_path.parent
         tree = etree.parse(src_path, parser=XHTMLParser(recover=True))
         src_values = tree.xpath(query)
         for src in src_values:
-            resolved_path = (parent / src.lstrip('/')).resolve()
-            if resolved_path.exists():
+            src = src.strip().lstrip(os.sep)
+            resolved_path = (doc_path / src).resolve()
+            if src and resolved_path.exists():
                 copy_with_deps(resolved_path, src_root, dst_root)
+        src_path = doc_path
     dst = dst_root / src_path.relative_to(src_root)
     dst.parent.mkdir(exist_ok=True, parents=True)
     print(f"{src_path} -> {dst}", file=sys.stderr)
-    shutil.copy2(src_path, dst)
+    if src_path.is_dir():
+        shutil.copytree(src_path, dst, copy_function=shutil.copy2, dirs_exist_ok=True)
+    else:
+        shutil.copy2(src_path, dst)
 
 
 def main():
