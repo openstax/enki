@@ -60,7 +60,7 @@ class AncillaryType {
 }
 
 export class AncillariesContext {
-  private readonly baseUrl: string
+  readonly baseUrl: string
   private _ancillaryTypesByName: { [key: string]: AncillaryType } | undefined
 
   constructor(
@@ -181,7 +181,7 @@ export class AncillariesContext {
       filepath: file.name,
     })
 
-    console.log(`Uploading file: name="${file.name}", type="${file.type}"`)
+    console.error(`Uploading file: name="${file.name}", type="${file.type}"`)
 
     await this.fetch(config.url, {
       init: {
@@ -225,6 +225,12 @@ export class AncillariesContext {
       [200, 201]
     )
     return response
+  }
+
+  async getCompiled(id: string) {
+    const url = this.buildApiPathV0(['ancillaries', id, 'compiled'])
+    const response = await acceptStatus(await this.fetch(url), [200])
+    return await response.json()
   }
 
   static fromEnv() {

@@ -379,6 +379,21 @@ describe('AncillariesContext', () => {
     expect(scope.isDone()).toBe(true)
   })
 
+  it('can get compiled ancillaries', async () => {
+    const id = '0'
+    const url = mockApiPath(['ancillaries', id, 'compiled'])
+    const scope = newScope()
+    scope.get(url).reply(200, { 'mock-response': 'true' })
+
+    const result = await context.getCompiled(id)
+    expect(await result).toMatchInlineSnapshot(`
+      {
+        "mock-response": "true",
+      }
+    `)
+    expect(scope.isDone()).toBe(true)
+  })
+
   it('can be created from env', () => {
     process.env.ANCILLARIES_HOST = ''
     process.env.ANCILLARY_TYPE_CONFIG = JSON.stringify({})

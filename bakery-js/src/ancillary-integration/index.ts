@@ -95,7 +95,9 @@ export const newAncillaryTypeSuperHandler = async (
       relations,
     }
     const ancillaryJSON = JSON.stringify(payload)
-    return await context.writeAncillary(id, ancillaryJSON)
+    const writeResponse = await context.writeAncillary(id, ancillaryJSON)
+    const compiled = await context.getCompiled(id)
+    return { updated: writeResponse.status === 201, compiled, id }
   }
 }
 
@@ -108,10 +110,13 @@ export const upload = async (ancillariesDir: string) => {
     .map((entry) => path.resolve(path.join(ancillariesDir, entry.name)))
   for (const ancillaryPath of ancillaryPaths) {
     const name = path.basename(ancillaryPath)
-    console.log(`> Uploading ancillary: ${name}`)
-    const response = await ancillaryTypeSuperHandler(ancillaryPath)
-    console.log(
-      `> ${name} - ${response.status === 200 ? 'Unchanged' : 'Updated'}`
+    console.error(`> Uploading ancillary: ${name}`)
+    const { updated, compiled, id } = await ancillaryTypeSuperHandler(
+      ancillaryPath
     )
+    const defaultFormat = assertValue(compiled.defaultFormat)
+    const url = `${context.baseUrl}${assertValue(defaultFormat.url)}`
+    console.error(`> ${name} - ${updated ? 'Unchanged' : 'Created or Updated'}`)
+    console.log(JSON.stringify({ id, url }))
   }
 }
