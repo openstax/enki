@@ -65,6 +65,8 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
     # Copy collection and all dependencies
     # Retain paths relative to cwd
     smart-copy "$collection" "$(pwd)" "$ancillary_dir"
+    # Use new version of the collection
+    collection="$ancillary_dir/$(basename "$collection")"
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
     cp "$BOOK_STYLES_ROOT/webview-generic.css" "$resources_dir"
@@ -72,11 +74,8 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
     xsltproc -o "$ancillary_dir/index.html" "$xslt_file" "$collection.rex-linked.xhtml"
     for resource in "$resources_dir"/*; do
         resource_metadata="$IO_RESOURCES/$(basename "$resource").json"
-        cp -v "$resource_metadata" "$resources_dir" || true
+        [ ! -e "$resource_metadata" ] || cp -v "$resource_metadata" "$resources_dir"
     done
-    # A side-effect of smart-copy is copying the "super" directory
-    # We don't actually need this since we use the index.html created above
-    rm -r "${ancillary_dir:?}/$(realpath --relative-to "$(pwd)" "$IO_SUPER")"
 done
 
 shopt -u nullglob

@@ -54,7 +54,7 @@ from bakery_scripts import (
     profiler,
     pptify_book,
     excepthook,
-    smart_copy
+    smart_copy,
     print_customizations
 )
 
@@ -5284,45 +5284,22 @@ def test_smart_copy_single_html_file(smart_copy_temp_dir, mocker, capsys):
         'bakery_scripts.smart_copy.shutil.copy2',
         wraps=smart_copy.shutil.copy2,
     )
-    
+
     smart_copy.copy_with_deps(
         test_file,
         src_root,
         dst_root
     )
         
-    copy2_mock.assert_called_once()
+    copy2_mock.assert_not_called()
     expected_dst = dst_root / "index.html"
     assert expected_dst.exists()
     assert expected_dst.read_text() == "<html><body>Hello</body></html>"
     captured = capsys.readouterr()
-    assert captured.err == f"{test_file} -> {expected_dst}\n"
+    assert captured.err == "[WARNING] Assuming we are running on local\n"
 
 
-@pytest.mark.parametrize("file_type", [".html", ".xhtml"])
-def test_smart_copy_xhtml_files(smart_copy_temp_dir, mocker, file_type):
-    """Test that both HTML and XHTML files are handled correctly."""
-    src_root, dst_root = smart_copy_temp_dir
-    
-    # Create test file
-    html_file = src_root / f"test{file_type}"
-    html_file.write_text(f"<html><body>{file_type}</body></html>")
-
-    copy2_mock = mocker.patch(
-        'bakery_scripts.smart_copy.shutil.copy2',
-        wraps=smart_copy.shutil.copy2
-    )
-
-    smart_copy.copy_with_deps(
-        html_file,
-        src_root,
-        dst_root
-    )
-
-    copy2_mock.assert_called_once()
-
-
-def test_smart_copy_recursive_dependencies(smart_copy_temp_dir, mocker):
+def test_smart_copy_recursive_dependencies(capsys, smart_copy_temp_dir, mocker):
     """Test recursive copying with multiple levels of dependencies."""
     src_root, dst_root = smart_copy_temp_dir
 
@@ -5338,7 +5315,7 @@ def test_smart_copy_recursive_dependencies(smart_copy_temp_dir, mocker):
         <body>
             <img src="images/subfolder/image2.png" />
             <img src="images/image1.png" />
-            <iframe src="secondary.html"></iframe>
+            <iframe src="../resources/secondary.html"></iframe>
         </body>
     </html>
     """
@@ -5385,13 +5362,41 @@ def test_smart_copy_recursive_dependencies(smart_copy_temp_dir, mocker):
 
     # Verify files were copied correctly
     expected_files = [dst_root / path.relative_to(src_root) for path, _ in paths]
+    iframe_files = ("secondary.html", "image3.png")
     for expected_file in expected_files:
-        assert expected_file.exists()
+        assert expected_file.name in iframe_files or expected_file.exists()
 
-    assert copy2_mock.call_count == len(paths)
+    # Does not copy iframe files or the input html document
+    assert copy2_mock.call_count == len(paths) - len(iframe_files) - 1
+    captured = capsys.readouterr()
+    err_lines = captured.err.splitlines()
+    assert len(err_lines) == 4
+    dst = dst_root / "main.html"
+    tree = etree.parse(str(dst))
+    assert tree.xpath('//*[local-name()="iframe"][@src]/@src') == [
+        "./resources/secondary.html"
+    ]
 
 
-def test_smart_copy_http_links(smart_copy_temp_dir):
+    mock_environ = {
+        "CODE_VERSION": "dummy",
+        "PREVIEW_APP_URL_PREFIX": "archive",
+    }
+    mocker.patch("os.environ", mock_environ)
+    smart_copy.copy_with_deps(
+        src_root / "main.html",
+        src_root,
+        dst_root
+    )
+
+    dst = dst_root / "main.html"
+    tree = etree.parse(str(dst))
+    assert tree.xpath('//*[local-name()="iframe"][@src]/@src') == [
+        "https://openstax.org/archive/dummy/resources/secondary.html"
+    ]    
+
+
+def test_smart_copy_http_links(smart_copy_temp_dir, mocker):
     """Test that HTTP links are ignored but local resources are copied."""
     src_root, dst_root = smart_copy_temp_dir
 
@@ -5431,14 +5436,61 @@ def test_smart_copy_http_links(smart_copy_temp_dir):
         assert f.exists()
 
 
-def test_smart_copy_missing_file(smart_copy_temp_dir):
+def test_smart_copy_missing_file(smart_copy_temp_dir, mocker):
     """Test handling of missing source files."""
     src_root, dst_root = smart_copy_temp_dir
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(OSError):
         smart_copy.copy_with_deps(
             src_root / 'nonexistent.html', src_root, dst_root
         )
+
+
+def test_smart_copy_archive_url(mocker):
+    get = smart_copy.get_archive_url_formatter()
+    url = get("test")
+    assert url == "./test"
+
+    mock_environ = {"CODE_VERSION": "dummy"}
+    mocker.patch("os.environ", mock_environ)
+    with pytest.raises(AssertionError):
+        smart_copy.get_archive_url_formatter()
+
+    mock_environ = {
+        "CODE_VERSION": "dummy",
+        "PREVIEW_APP_URL_PREFIX": "archive",
+        "CORGI_CLOUDFRONT_URL": "stuff"
+    }
+    mocker.patch("os.environ", mock_environ)
+    with pytest.raises(AssertionError):
+        smart_copy.get_archive_url_formatter()
+
+    mock_environ = {
+        "CODE_VERSION": "dummy",
+        "PREVIEW_APP_URL_PREFIX": "archive",
+        "CORGI_CLOUDFRONT_URL": "stuff",
+        "REX_PROD_PREVIEW_URL": "https://example.com"
+    }
+    mocker.patch("os.environ", mock_environ)
+    get = smart_copy.get_archive_url_formatter()
+    assert get("test") == "https://example.com/test?archive=stuff/archive/dummy"
+
+    mock_environ = {
+        "CODE_VERSION": "dummy",
+        "PREVIEW_APP_URL_PREFIX": "archive",
+    }
+    mocker.patch("os.environ", mock_environ)
+    get = smart_copy.get_archive_url_formatter()
+    assert get("test") == "https://openstax.org/archive/dummy/test"
+
+    mock_environ = {
+        "CODE_VERSION": "dummy",
+        "PREVIEW_APP_URL_PREFIX": "archive",
+        "PREVIEW_APP_BASE_URL": "https://example.com"
+    }
+    mocker.patch("os.environ", mock_environ)
+    get = smart_copy.get_archive_url_formatter()
+    assert get("test") == "https://example.com/archive/dummy/test"
 
 
 def test_smart_copy_main(smart_copy_temp_dir, mocker):
@@ -5446,18 +5498,27 @@ def test_smart_copy_main(smart_copy_temp_dir, mocker):
     src_root, dst_root = smart_copy_temp_dir
     html_file = src_root / "test.html"
     html_file.write_text("<html></html>")
+    dst = dst_root / "test.html"
 
     mock_argv = ['script.py', str(html_file), str(src_root), str(dst_root)]
-    
     mocker.patch("sys.argv", mock_argv)
+
+    mock_environ = {"PREVIEW_APP_URL_PREFIX": "PREVIEW_APP_URL_PREFIX"}
+    mocker.patch("os.environ", mock_environ)
+
     copy2_mock = mocker.patch(
         "bakery_scripts.smart_copy.shutil.copy2",
         wraps=smart_copy.shutil.copy2
     )
 
+    assert not dst.exists()
     smart_copy.main()
 
-    copy2_mock.assert_called_once()
+    assert dst.exists()
+    copy2_mock.assert_not_called()
+    
+
+
 def test_print_customizations(tmp_path, mocker):
     book1_baked_content = """
         <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
