@@ -27,7 +27,7 @@
         "step-bake": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCHED",
+                "IO_FETCH_META",
                 "IO_ASSEMBLED",
                 "IO_RESOURCES"
             ],
@@ -45,7 +45,8 @@
             ],
             "outputDirs": [
                 "IO_BAKE_META",
-                "IO_LINKED"
+                "IO_LINKED",
+                "IO_SUPER"
             ],
             "requiredEnv": []
         },
@@ -54,7 +55,7 @@
                 "IO_BOOK",
                 "IO_LINKED",
                 "IO_BAKED",
-                "IO_FETCH_META",
+                "IO_FETCHED",
                 "IO_RESOURCES"
             ],
             "outputDirs": [
@@ -80,7 +81,7 @@
         "step-bake-web": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCHED",
+                "IO_FETCH_META",
                 "IO_ASSEMBLED",
                 "IO_RESOURCES"
             ],
@@ -103,7 +104,7 @@
         "step-jsonify": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCHED",
+                "IO_FETCH_META",
                 "IO_RESOURCES",
                 "IO_DISASSEMBLE_LINKED"
             ],
@@ -117,7 +118,8 @@
                 "IO_BOOK",
                 "IO_FETCHED",
                 "IO_JSONIFIED",
-                "IO_RESOURCES"
+                "IO_RESOURCES",
+                "IO_ANCILLARY"
             ],
             "outputDirs": [
                 "IO_ARTIFACTS"
@@ -129,6 +131,18 @@
                 "AWS_ACCESS_KEY_ID",
                 "AWS_SECRET_ACCESS_KEY"
             ]
+        },
+        "step-prepare-ancillaries": {
+            "inputDirs": [
+                "IO_BOOK",
+                "IO_FETCH_META",
+                "IO_SUPER",
+                "IO_RESOURCES"
+            ],
+            "outputDirs": [
+                "IO_ANCILLARY"
+            ],
+            "requiredEnv": []
         },
         "step-epub": {
             "inputDirs": [
@@ -162,7 +176,7 @@
         "step-docx": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCH_META",
+                "IO_FETCHED",
                 "IO_JSONIFIED",
                 "IO_DISASSEMBLE_LINKED",
                 "IO_RESOURCES"
@@ -256,6 +270,7 @@
             "step-prebake",
             "step-bake-web",
             "step-postbake",
+            "step-prepare-ancillaries",
             "step-disassemble",
             "step-jsonify"
         ],

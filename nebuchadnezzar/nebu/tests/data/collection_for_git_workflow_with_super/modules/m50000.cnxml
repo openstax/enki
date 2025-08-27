@@ -1,0 +1,19 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:cnxorg="http://cnx.rice.edu/system-info" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:q="http://cnx.rice.edu/qml/1.0" xmlns:bib="http://bibtexml.sf.net/" id="new" module-id="" cnxml-version="0.7" class="introduction">
+    <title>Introduction to Statistics</title>
+    <metadata xmlns:md="http://cnx.rice.edu/mdml" mdml-version="0.5">
+  <md:content-id>m46913</md:content-id>
+  <md:title>Introduction to Statistics</md:title>
+  <md:uuid>d93df8ff-6e4a-4a5e-befc-ba5a1674f309c</md:uuid>
+  <md:canonical-book-uuid>30189442-6998-4686-ac05-ed152b91b9de</md:canonical-book-uuid>
+  <md:revised>2018/07/24 15:48:58 -0500</md:revised>
+</metadata>
+
+<content>
+<figure id="fig-ch01_00_01" class="splash"><media id="fs-id2354221" alt="This photo shows a large open news room with enough space to seat about 200 employees.">
+<image mime-type="image/jpg" src="CNX_Stats_C01_COs.jpg" width="600"/>
+</media>
+</figure>
+
+<para id="eip-1000">Since you will undoubtedly be given statistical information at some point in your life, you need to know some techniques for analyzing the information thoughtfully. Think about buying a house or managing a budget. Think about your chosen profession.   The fields of economics, business, psychology, education, biology, law, computer science, police science, and early childhood development require at least one course in statistics.</para>
+</content>
+</document>

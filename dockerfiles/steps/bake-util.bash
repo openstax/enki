@@ -5,7 +5,6 @@ cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$IO_BAKED"
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
-    # use xmlstarlet to pull out the style file unless this ran in CORGI and the CORGI job has an override
     style_name=$(read_style $slug_name)
     style_file="$BOOK_STYLES_ROOT/$style_name-pdf.css"
     dst_style_name="$slug_name-pdf.css"

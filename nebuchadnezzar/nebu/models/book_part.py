@@ -1,7 +1,8 @@
 from enum import Enum
+from typing import Optional
 
 from ..converters import etree_cnxml_to_full_html
-from ..xml_utils import open_xml, etree_from_str
+from ..xml_utils import open_xml, etree_from_str, Elementish, xpath_html
 from ..parse import parse_metadata
 
 
@@ -18,6 +19,11 @@ class PartType(Enum):
 
 
 class BookPart:
+    type: PartType
+    metadata: dict[str, Optional[str | dict]]
+    children: list["BookPart"]
+    content: Optional[Elementish]
+
     def __init__(self, type, metadata, content=None):
         self.type = type
         self.metadata = metadata
@@ -35,6 +41,12 @@ class BookPart:
     @property
     def is_doc(self):
         return self.type == PartType.DOCUMENT
+
+    @property
+    def is_super(self):
+        return self.is_doc and self.content is not None and 0 != len(
+            xpath_html(self.content, '//xhtml:body[contains(@class, "super")]')
+        )
 
     @property
     def documents(self):

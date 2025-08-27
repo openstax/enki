@@ -7,6 +7,8 @@
 # ###
 """Various standalone utility functions that provide specific outcomes"""
 import re
+from typing import Union
+
 from lxml import etree
 
 
@@ -18,9 +20,12 @@ __all__ = (
 
 
 HTML_DOCUMENT_NAMESPACES = {
-    'xhtml': "http://www.w3.org/1999/xhtml",
-    'epub': "http://www.idpf.org/2007/ops",
+    "xhtml": "http://www.w3.org/1999/xhtml",
+    "epub": "http://www.idpf.org/2007/ops",
 }
+Element = etree._Element
+ElementTree = etree._ElementTree
+Elementish = Union[Element, ElementTree]
 
 XML_PARSER_OPTIONS = {
     'load_dtd': True,

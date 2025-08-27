@@ -72,7 +72,7 @@ pyenv : $(STATEDIR)/env/pyvenv.cfg
 # ###
 
 TEST =
-TEST_EXTRA_ARGS =
+TEST_EXTRA_ARGS = -vv
 
 help-test :
 	@echo "${_SHORT_DESC_TEST}"

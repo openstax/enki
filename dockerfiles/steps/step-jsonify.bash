@@ -2,7 +2,7 @@ parse_book_dir
 
 jsonify "$IO_DISASSEMBLE_LINKED" "$IO_JSONIFIED"
 
-repo_schema_version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCHED/META-INF/books.xml")
+repo_schema_version=$(xmlstarlet sel -t -m '//*[@version]' -v '@version' < "$IO_FETCH_META/META-INF/books.xml")
 style_resource_root="$IO_RESOURCES/styles"
 generic_style="webview-generic.css"
 
@@ -58,4 +58,4 @@ fi < <(
 # LCOV_EXCL_STOP
 
 # Formerly git-validate-xhtml-jsonify
-do_xhtml_validate $IO_JSONIFIED "*.xhtml" duplicate-id 
+do_xhtml_validate $IO_JSONIFIED "*.xhtml" duplicate-id

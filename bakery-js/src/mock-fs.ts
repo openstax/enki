@@ -127,7 +127,7 @@ export class FS {
           this.writeFileSync(fullPath, content)
         } else {
           if (Object.keys(content).length === 0) {
-            this.mkdirSync(fullPath)
+            this.mkdirSync(fullPath, { recursive: true })
           } else {
             recursiveMapFs(content, newPathParts)
           }
@@ -241,17 +241,34 @@ export class FS {
 
   public readdirSync(
     path: string,
-    options?:
-      | { encoding: BufferEncoding | null; withFileTypes?: false | undefined }
-      | BufferEncoding
-      | null
+    options?: Parameters<typeof fs.readdirSync>[1]
   ) {
-    // TODO: support options like `withFileTypes`
-    assertTrue(options === undefined, 'Options not supported')
     const norm = this.normPath(path)
     const parts = norm.split(sep).filter((part) => part)
     const directory = this.getDirectory(path, parts)
-    return Object.keys(directory)
+    const entries = Object.keys(directory)
+    // Maybe add warning if encoding is set
+    if (typeof options === 'object' && options !== null) {
+      if (options.withFileTypes === true) {
+        return entries.map((e) => ({
+          name: e,
+          isFile: () => {
+            const entry = directory[e]
+            return entry !== undefined && isFileContent(entry)
+          },
+          isDirectory: () => {
+            const entry = directory[e]
+            return entry !== undefined && !isFileContent(entry)
+          },
+          isSymbolicLink: () => false,
+          isBlockDevice: () => false,
+          isFIFO: () => false,
+          isSocket: () => false,
+          isCharacterDevice: () => false,
+        }))
+      }
+    }
+    return entries
   }
 
   public createWriteStream(path: string, options: WritableOptions = {}) {

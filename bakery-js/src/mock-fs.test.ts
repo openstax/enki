@@ -77,7 +77,7 @@ describe('mockfs', () => {
     expect(() => copyFileSync('a/b/c', 'a/b/d')).not.toThrow()
   })
 
-  it('can readdirSync', () => {
+  it('can readdirSync (without file types)', () => {
     mockfs({
       a: {
         b: '',
@@ -88,7 +88,54 @@ describe('mockfs', () => {
     })
     expect(readdirSync('a')).toStrictEqual(['b', 'c', 'd', 'e'])
     expect(() => readdirSync('b')).toThrow(/exist/i)
-    expect(() => readdirSync('a', { withFileTypes: true })).toThrow(/options/i)
+  })
+
+  it('can readdirSync (with file types)', () => {
+    mockfs({
+      a: {
+        b: '',
+        c: '',
+        d: '',
+        e: {},
+      },
+    })
+    expect(
+      readdirSync('a', { withFileTypes: true }).map((e) => ({
+        name: e.name,
+        isFile: e.isFile(),
+      }))
+    ).toMatchInlineSnapshot(`
+      [
+        {
+          "isFile": true,
+          "name": "b",
+        },
+        {
+          "isFile": true,
+          "name": "c",
+        },
+        {
+          "isFile": true,
+          "name": "d",
+        },
+        {
+          "isFile": false,
+          "name": "e",
+        },
+      ]
+    `)
+    expect(() => readdirSync('b')).toThrow(/exist/i)
+    expect(readdirSync('a', { withFileTypes: true })[0].isSymbolicLink()).toBe(
+      false
+    )
+    expect(readdirSync('a', { withFileTypes: true })[0].isBlockDevice()).toBe(
+      false
+    )
+    expect(readdirSync('a', { withFileTypes: true })[0].isFIFO()).toBe(false)
+    expect(readdirSync('a', { withFileTypes: true })[0].isSocket()).toBe(false)
+    expect(
+      readdirSync('a', { withFileTypes: true })[0].isCharacterDevice()
+    ).toBe(false)
   })
 
   it('can createWriteStream', () => {
