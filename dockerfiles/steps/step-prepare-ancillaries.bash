@@ -66,7 +66,7 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
     # Retain paths relative to cwd
     smart-copy "$collection" "$(pwd)" "$ancillary_dir"
     # Use new version of the collection
-    collection="$ancillary_dir/$(basename "$collection")"
+    mv "$ancillary_dir/$(basename "$collection")" "$collection"
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
     cp "$BOOK_STYLES_ROOT/webview-generic.css" "$resources_dir"
