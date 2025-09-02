@@ -54,7 +54,12 @@ set({name: 'step-upload-book', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.RE
     ANCILLARY_TYPE_CONFIG: false,
     ANCILLARIES_SHARED_SECRET: false,
 }})
-set({name: 'step-prepare-ancillaries', inputs: [IO.BOOK, IO.FETCH_META, IO.SUPER, IO.RESOURCES], outputs: [IO.ANCILLARY], env: {}})
+set({name: 'step-prepare-ancillaries', inputs: [IO.BOOK, IO.FETCH_META, IO.SUPER, IO.RESOURCES], outputs: [IO.ANCILLARY], env: {
+    CODE_VERSION: false,
+    PREVIEW_APP_URL_PREFIX: false,
+    REX_PROD_PREVIEW_URL: false,
+    CORGI_CLOUDFRONT_URL: false,
+}})
 
 // GIT_EPUB_STEPS
 set({name: 'step-epub', inputs: [IO.BOOK, IO.FETCHED, IO.RESOURCES, IO.DISASSEMBLE_LINKED, IO.BAKED], outputs: [IO.EPUB, IO.ARTIFACTS], env: {}})
