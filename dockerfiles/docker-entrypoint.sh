@@ -103,6 +103,7 @@ if [[ $STUB_UPLOAD ]]; then
     function upload_ancillaries() {
         pointer=$(get_stub_output_dir)
         upload_ancillaries_calls=$(find "${!pointer}" -name 'upload_ancillaries_args_*' | wc -l)
+        jq -nc '{ type: "super", id: "some-id", url: "some-url" }'
         echo "$@" > "${!pointer}/upload_ancillaries_args_$((upload_ancillaries_calls+1))"
     }
 # LCOV_EXCL_START

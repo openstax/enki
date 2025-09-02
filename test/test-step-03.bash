@@ -19,11 +19,6 @@ STUB_UPLOAD="corgi" \
 KCOV_DIR=_kcov03-b \
 ../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --book-slug 'book-slug1' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
 
-if [[ $(find $BOOK_DIR/_attic/IO_ARTIFACTS -type f -name 'upload_ancillaries_args_*' | wc -l) -gt 0 ]]; then
-    echo "Should not upload ancillaries for CORGI builds"
-    exit 1
-fi
-
 # Check that upload was called with expected values
 counter=0
 while IFS=$'\n' read -r expected_contents; do
@@ -64,7 +59,7 @@ EOF
 expected_book_slug="book-slug1"
 expected_ref=03e68a5
 expected_url="https://rex-test/apps/rex/books/00000000-0000-0000-0000-000000000000@$expected_ref/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
-expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"}]'
+expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"},{"url":"some-url","slug":"super-some-id"}]'
 actual_contents="$(cat $ARTIFACTS_URL_PATH)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad artifact urls."
@@ -72,6 +67,20 @@ if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Actual value:   $actual_contents"
     exit 1
 fi
+
+counter=0
+while IFS=$'\n' read -r expected_contents; do
+    counter=$((counter+1))
+    actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/upload_ancillaries_args_$counter)"
+    if [[ "$expected_contents" != "$actual_contents" ]]; then
+        echo "upload_ancillaries args."
+        echo "Expected value: $expected_contents"
+        echo "Actual value:   $actual_contents"
+        exit 1
+    fi
+done <<EOF
+/tmp/build/0000000/ancillary
+EOF
 
 # Test without book slug
 rm $BOOK_DIR/_attic/IO_BOOK/slugs

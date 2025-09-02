@@ -6,7 +6,14 @@ import {
   afterEach,
   beforeEach,
 } from '@jest/globals'
-import { AncillariesContext, FileInput } from './ancillaries-context'
+import {
+  AncillariesContext,
+  FieldConfig,
+  FileInput,
+  FormatConfig,
+  mapFields,
+  mapFormats,
+} from './ancillaries-context'
 import nock from 'nock'
 import { assertValue } from '../utils'
 
@@ -23,6 +30,7 @@ describe('AncillariesContext', () => {
     }
     return url.href.replace(url.origin, '')
   }
+  const logMessages: string[] = []
 
   beforeEach(() => {
     context = new AncillariesContext(
@@ -35,6 +43,10 @@ describe('AncillariesContext', () => {
       .mockImplementation(
         (callback) => (Promise.resolve().then(callback as () => void), 1)
       )
+    logMessages.splice(0, logMessages.length)
+    jest
+      .spyOn(console, 'error')
+      .mockImplementation((message) => logMessages.push(message))
   })
 
   afterEach(() => {
@@ -401,5 +413,105 @@ describe('AncillariesContext', () => {
 
     const context = AncillariesContext.fromEnv()
     expect(context).toBeDefined()
+  })
+})
+
+describe('mapFields', () => {
+  it('maps fields correctly with matching names and IDs', () => {
+    const inputFields = { foo: 'fooValue', bar: 'barValue' }
+    const fieldConfigs = [
+      { name: 'foo', id: 'fooId' },
+      { name: 'bar', id: 'barId' },
+    ]
+
+    const result = mapFields(inputFields, fieldConfigs)
+
+    expect(result).toEqual({
+      fooId: 'fooValue',
+      barId: 'barValue',
+    })
+  })
+
+  it('ignores fields without corresponding configs', () => {
+    const inputFields = { foo: 'fooValue', bar: 'barValue', baz: 'bazValue' }
+    const fieldConfigs = [
+      { name: 'foo', id: 'fooId' },
+      { name: 'bar', id: 'barId' },
+    ]
+
+    const result = mapFields(inputFields, fieldConfigs)
+
+    expect(result).not.toHaveProperty('baz')
+  })
+
+  it('returns empty object when no matching configs are found', () => {
+    const inputFields = { foo: 'fooValue', bar: 'barValue' }
+    const fieldConfigs: FieldConfig[] = []
+
+    const result = mapFields(inputFields, fieldConfigs)
+
+    expect(result).toEqual({})
+  })
+})
+
+describe('mapFormats', () => {
+  it('maps formats correctly with matching labels and IDs', () => {
+    const inputFormats = {
+      format1: { foo: 'fooValue', bar: 'barValue' },
+      format2: { baz: 'bazValue' },
+    }
+    const formatConfigs = [
+      {
+        label: 'format1',
+        id: 'format1Id',
+        fields: [
+          { name: 'foo', id: 'fooId' },
+          { name: 'bar', id: 'barId' },
+        ],
+      },
+      {
+        label: 'format2',
+        id: 'format2Id',
+        fields: [{ name: 'baz', id: 'bazId' }],
+      },
+    ]
+
+    const result = mapFormats(inputFormats, formatConfigs)
+
+    expect(result).toEqual({
+      format1Id: {
+        fields: { fooId: 'fooValue', barId: 'barValue' },
+      },
+      format2Id: {
+        fields: { bazId: 'bazValue' },
+      },
+    })
+  })
+
+  it('ignores formats without corresponding configs', () => {
+    const inputFormats = {
+      format1: { foo: 'fooValue' },
+      format3: { unknown: 'unknownValue' },
+    }
+    const formatConfigs = [
+      {
+        label: 'format1',
+        id: 'format1Id',
+        fields: [{ name: 'foo', id: 'fooId' }],
+      },
+    ]
+
+    const result = mapFormats(inputFormats, formatConfigs)
+
+    expect(result).not.toHaveProperty('format3')
+  })
+
+  it('handles empty formats and configs appropriately', () => {
+    const inputFormats = {}
+    const formatConfigs: FormatConfig[] = []
+
+    const result = mapFormats(inputFormats, formatConfigs)
+
+    expect(result).toEqual({})
   })
 })

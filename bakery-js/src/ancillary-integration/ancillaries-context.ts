@@ -241,3 +241,33 @@ export class AncillariesContext {
     )
   }
 }
+
+export const mapFields = (
+  fields: { [key: string]: unknown },
+  fieldConfigs: FieldConfig[]
+) => {
+  return Object.fromEntries(
+    Object.entries(fields)
+      .map(([k, v]) => {
+        const config = fieldConfigs.find((f) => f.name === k)
+        return config === undefined ? undefined : [config.id, v]
+      })
+      .filter(<T>(t: T | undefined): t is T => t !== undefined)
+  )
+}
+
+export const mapFormats = (
+  formats: { [key: string]: { [key: string]: unknown } },
+  formatConfigs: FormatConfig[]
+) => {
+  return Object.fromEntries(
+    Object.entries(formats)
+      .map(([k, v]) => {
+        const config = formatConfigs.find((f) => f.label === k)
+        return config === undefined
+          ? undefined
+          : [config.id, { fields: mapFields(v, config.fields) }]
+      })
+      .filter(<T>(t: T | undefined): t is T => t !== undefined)
+  )
+}

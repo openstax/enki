@@ -14,8 +14,10 @@ import {
   afterEach,
   beforeEach,
   beforeAll,
+  test,
 } from '@jest/globals'
 import { mockfs } from '../mock-fs'
+import { FieldConfig, FormatConfig } from './ancillaries-context'
 
 const fail = (message: string) => {
   throw new Error(message)
@@ -28,6 +30,7 @@ describe('getMimeType', () => {
   // Setup mock for the mime type map
   // const originalMimeMap = mimetypeByExtension
   const mockMimeMap = new Map()
+  const logMessages: string[] = []
 
   beforeAll(() => {
     jest.clearAllMocks()
@@ -42,6 +45,10 @@ describe('getMimeType', () => {
     jest
       .spyOn(mimetypeByExtension, 'get')
       .mockImplementation((ext) => mockMimeMap.get(ext))
+    logMessages.splice(0, logMessages.length)
+    jest
+      .spyOn(console, 'error')
+      .mockImplementation((message) => logMessages.push(message))
   })
 
   afterEach(() => {

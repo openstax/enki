@@ -4,40 +4,10 @@ import path from 'path'
 import { listDirectory, getMimeType } from './utils'
 import {
   AncillariesContext,
-  FieldConfig,
   FileInput,
-  FormatConfig,
+  mapFields,
+  mapFormats,
 } from './ancillaries-context'
-
-const mapFields = (
-  fields: { [key: string]: unknown },
-  fieldConfigs: FieldConfig[]
-) => {
-  return Object.fromEntries(
-    Object.entries(fields)
-      .map(([k, v]) => {
-        const config = fieldConfigs.find((f) => f.name === k)
-        return config === undefined ? undefined : [config.id, v]
-      })
-      .filter(<T>(t: T | undefined): t is T => t !== undefined)
-  )
-}
-
-const mapFormats = (
-  formats: { [key: string]: { [key: string]: unknown } },
-  formatConfigs: FormatConfig[]
-) => {
-  return Object.fromEntries(
-    Object.entries(formats)
-      .map(([k, v]) => {
-        const config = formatConfigs.find((f) => f.label === k)
-        return config === undefined
-          ? undefined
-          : [config.id, { fields: mapFields(v, config.fields) }]
-      })
-      .filter(<T>(t: T | undefined): t is T => t !== undefined)
-  )
-}
 
 export const newAncillaryTypeSuperHandler = async (
   context: AncillariesContext
@@ -94,10 +64,7 @@ export const newAncillaryTypeSuperHandler = async (
       formats: mappedFormats,
       relations,
     }
-    const ancillaryJSON = JSON.stringify(payload)
-    const writeResponse = await context.writeAncillary(id, ancillaryJSON)
-    const compiled = await context.getCompiled(id)
-    return { updated: writeResponse.status === 201, compiled, id }
+    return { payload, name, id }
   }
 }
 
@@ -109,14 +76,26 @@ export const upload = async (ancillariesDir: string) => {
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.resolve(path.join(ancillariesDir, entry.name)))
   for (const ancillaryPath of ancillaryPaths) {
-    const name = path.basename(ancillaryPath)
-    console.error(`> Uploading ancillary: ${name}`)
-    const { updated, compiled, id } = await ancillaryTypeSuperHandler(
-      ancillaryPath
+    const filename = path.basename(ancillaryPath)
+    console.error(JSON.stringify({ status: 'uploading', filename }))
+    const docType = 'super'
+    const { payload, name, id } = await ancillaryTypeSuperHandler(ancillaryPath)
+    const ancillaryJSON = JSON.stringify(payload)
+    const writeResponse = await context.writeAncillary(id, ancillaryJSON)
+    const changed = writeResponse.status === 201
+    const compiled = await context.getCompiled(id)
+    const defaultFormat = assertValue(
+      compiled.defaultFormat,
+      'failed to get default format'
     )
-    const defaultFormat = assertValue(compiled.defaultFormat)
-    const url = `${context.baseUrl}${assertValue(defaultFormat.url)}`
-    console.error(`> ${name} - ${updated ? 'Unchanged' : 'Created or Updated'}`)
-    console.log(JSON.stringify({ id, url }))
+    const formatUrl = assertValue(
+      defaultFormat.url,
+      'failed to get format url'
+    ).replace(/^\//, '')
+    const url = `${context.baseUrl}/${formatUrl}`
+    console.error(
+      JSON.stringify({ status: 'complete', id, name, changed, type: docType })
+    )
+    console.log(JSON.stringify({ name, type: docType, id, url }))
   }
 }

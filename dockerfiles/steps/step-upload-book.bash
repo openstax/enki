@@ -67,9 +67,9 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
 
-    while IFS='|' read -r id url; do
-        book_slug_urls+=("$(jo url="$url" slug="super-$id")")
-    done < <(upload_ancillaries "$IO_ANCILLARY" | jq -r '.id + "|" + .url')
+    while IFS='|' read -r type id url; do
+        book_slug_urls+=("$(jo url="$url" slug="$type-$id")")
+    done < <(upload_ancillaries "$IO_ANCILLARY" | jq -r '[.type, .id, .url] | join("|")')  # LCOV_EXCL_LINE
 
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
