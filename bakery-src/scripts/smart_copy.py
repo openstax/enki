@@ -23,13 +23,8 @@ def get_archive_url_formatter():
         assert archive_preview
         archive_preview = archive_preview.lstrip("/")
         if corgi_cloudfront_url:
-            preview_url = os.getenv("REX_PROD_PREVIEW_URL")
-            assert preview_url
-            preview_url = preview_url.rstrip("/")
             format_str = (
-                f"{preview_url}/{{url}}"
-                "?archive="
-                f"{corgi_cloudfront_url}/{archive_preview}/{code_version}"
+                f"{corgi_cloudfront_url}/{archive_preview}/{code_version}/{{url}}"
             )
         else:
             archive_base = os.getenv(

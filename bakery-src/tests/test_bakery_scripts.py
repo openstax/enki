@@ -5459,21 +5459,11 @@ def test_smart_copy_archive_url(mocker):
     mock_environ = {
         "CODE_VERSION": "dummy",
         "PREVIEW_APP_URL_PREFIX": "archive",
-        "CORGI_CLOUDFRONT_URL": "stuff"
-    }
-    mocker.patch("os.environ", mock_environ)
-    with pytest.raises(AssertionError):
-        smart_copy.get_archive_url_formatter()
-
-    mock_environ = {
-        "CODE_VERSION": "dummy",
-        "PREVIEW_APP_URL_PREFIX": "archive",
-        "CORGI_CLOUDFRONT_URL": "stuff",
-        "REX_PROD_PREVIEW_URL": "https://example.com"
+        "CORGI_CLOUDFRONT_URL": "http://example.com",
     }
     mocker.patch("os.environ", mock_environ)
     get = smart_copy.get_archive_url_formatter()
-    assert get("test") == "https://example.com/test?archive=stuff/archive/dummy"
+    assert get("test") == "http://example.com/archive/dummy/test"
 
     mock_environ = {
         "CODE_VERSION": "dummy",
