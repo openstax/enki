@@ -235,20 +235,20 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
         all_documents.extend(documents)
     file_names = [p.name for p in tmp_book_dir_with_super.iterdir()]
     super_module_id = "m50001"
-    super_doc_uuid = "0c641ba1-5fab-4a9b-b272-5b64cb45dce1"
+    super_doc_title = "a-super-document"
     super_collection = next(
         (
             p for p in tmp_book_dir_with_super.iterdir()
-            if super_doc_uuid in p.name
+            if super_doc_title in p.name
         ),
         None
     )
-    super_doc_meta = super_path / f"{super_doc_uuid}.metadata.json"
+    super_doc_meta = super_path / f"super--{super_doc_title}.metadata.json"
     normal_collection = tmp_book_dir_with_super / "collection.xml"
     assert super_collection is not None
     assert super_collection.suffix == ".xml"
     assert all_documents and super_module_id not in all_documents
-    assert 1 == sum(1 for name in file_names if super_doc_uuid in name)
+    assert 1 == sum(1 for name in file_names if super_doc_title in name)
     assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_collection.read_text(), super_collection.name)
     assert_match(normal_collection.read_text(), normal_collection.name)
@@ -257,7 +257,7 @@ def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
 
 def test_handle_super_documents_no_meta(tmp_book_dir_with_super, assert_match):
     books_xml = tmp_book_dir_with_super / "META-INF" / "books.xml"
-    super_doc_uuid = "0c641ba1-5fab-4a9b-b272-5b64cb45dce1"
+    super_doc_title = "a-super-document"
     super_module_id = "m50001"
 
     container = BookContainer.from_str(
@@ -289,14 +289,14 @@ def test_handle_super_documents_no_meta(tmp_book_dir_with_super, assert_match):
     super_collection = next(
         (
             p for p in tmp_book_dir_with_super.iterdir()
-            if super_doc_uuid in p.name
+            if super_doc_title in p.name
         ),
         None
     )
-    super_doc_meta = super_path / f"{super_doc_uuid}.metadata.json"
+    super_doc_meta = super_path / f"super--{super_doc_title}.metadata.json"
     assert super_collection is not None
     assert super_collection.suffix == ".xml"
     assert all_documents and super_module_id not in all_documents
-    assert 1 == sum(1 for name in file_names if super_doc_uuid in name)
+    assert 1 == sum(1 for name in file_names if super_doc_title in name)
     assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_doc_meta.read_text(), super_doc_meta.name)

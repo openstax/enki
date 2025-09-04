@@ -103,7 +103,7 @@ if [[ $STUB_UPLOAD ]]; then
     function upload_ancillaries() {
         pointer=$(get_stub_output_dir)
         upload_ancillaries_calls=$(find "${!pointer}" -name 'upload_ancillaries_args_*' | wc -l)
-        jq -nc '{ type: "super", id: "some-id", url: "some-url" }'
+        jq -nc '{ slug: "super--a-b-c", id: "some-id", url: "some-url" }'
         echo "$@" > "${!pointer}/upload_ancillaries_args_$((upload_ancillaries_calls+1))"
     }
 # LCOV_EXCL_START
@@ -170,9 +170,7 @@ function do_json_validate() {
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
 }
 
-function is_super_document() {
-    [[ "$(basename "$1")" =~ super-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12} ]]
-}
+function is_super_document() { [[ "$(basename "$1")" =~ ^super-- ]]; }
 
 function get_repo() {
     for name in IO_FETCH_META IO_FETCHED; do
@@ -191,10 +189,14 @@ function read_style() {
 }
 
 function read_book_slugs() {
+    local no_super=1
     while [[ -n "${1:-}" ]]; do
         case "$1" in
             "--from-repo")
                 local force_from_repo=1
+            ;;
+            "--with-ephemeral")
+                no_super=0
             ;;
             *)
                 die "Unknown option: $1"  # LCOV_EXCL_LINE
@@ -202,12 +204,21 @@ function read_book_slugs() {
         esac
         shift
     done
-    if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
-        # Exclude blank lines
-        awk '$0 { print }' "$IO_BOOK/slugs"
-    else
-        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$(get_repo)/META-INF/books.xml"
-    fi
+    local slugs
+    mapfile -t slugs < <({
+        if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
+            # Exclude blank lines
+            awk '$0 { print }' "$IO_BOOK/slugs"
+        else
+            xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$(get_repo)/META-INF/books.xml"
+        fi
+    })
+    for slug in "${slugs[@]}"; do
+        if [[ $no_super -eq 1 ]] && is_super_document "$slug"; then
+            continue
+        fi
+        echo "$slug"
+    done
 }
 
 

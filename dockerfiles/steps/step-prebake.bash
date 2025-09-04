@@ -16,7 +16,7 @@ neb pre-assemble "$IO_FETCH_META"
 commit_sha="$(set +x && git -C "$IO_FETCH_META" log --format="%h" -1)"
 rm -rf "$IO_FETCH_META/.git"
 
-not_found="$(grep -vFxf <(read_book_slugs --from-repo) <(read_book_slugs) || echo -n)"
+not_found="$(grep -vFxf <(read_book_slugs --from-repo --with-ephemeral) <(read_book_slugs --with-ephemeral) || echo -n)"
 [[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-repo)"
 
 export HACK_CNX_LOOSENESS=1

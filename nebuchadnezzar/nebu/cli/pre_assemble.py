@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from datetime import timezone
+import re
 from typing import Optional
 import os
 import logging
@@ -13,6 +14,7 @@ import click
 from lxml import etree
 from lxml.builder import ElementMaker
 from git import Repo
+from slugify import slugify
 
 from ._common import common_params
 from ..utils import re_first_or_default, unknown_progress
@@ -244,6 +246,9 @@ def remove_super_documents(
             for elem in super_modules:
                 module_id = elem.attrib["document"]
                 document = super_documents_by_id[module_id]
+                title = document.metadata["title"]
+                assert isinstance(title, str)
+                safe_title = slugify(re.sub(r'[\']', '', title))
                 module_uuid = document.metadata["uuid"]
                 assert isinstance(
                     module_uuid, str
@@ -251,7 +256,7 @@ def remove_super_documents(
                 parent = elem.getparent()
                 parent.remove(elem)
                 super_collection_path = os.path.join(
-                    container.books_root, f"super-{module_uuid}.collection.xml"
+                    container.books_root, f"super--{safe_title}.collection.xml"
                 )
                 super_document = SuperDocument(
                     module_id,
@@ -323,8 +328,7 @@ def save_super_metadata(
         return (relation_uuid, tag["type"], orn)
 
     for doc in super_documents:
-        module_uuid = doc.module_uuid
-        out_path = super_path / f"{module_uuid}.metadata.json"
+        out_path = super_path / f"{doc.slug}.metadata.json"
         doc_meta = doc.parsed.metadata
         super_meta = doc_meta["super_metadata"]
         super_meta = {} if not isinstance(super_meta, dict) else super_meta
@@ -344,6 +348,7 @@ def save_super_metadata(
         meta = {
             "id": module_uuid,
             "name": doc_meta["title"],
+            "slug": doc.slug,
             **({"description": abstract} if abstract else {}),
             **super_meta,
         }

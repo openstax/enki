@@ -59,7 +59,7 @@ EOF
 expected_book_slug="book-slug1"
 expected_ref=03e68a5
 expected_url="https://rex-test/apps/rex/books/00000000-0000-0000-0000-000000000000@$expected_ref/pages/subcollection?archive=https://test-cloudfront-url/apps/archive-localdev/test"
-expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"},{"url":"some-url","slug":"super-some-id"}]'
+expected_contents='[{"url":"'"$expected_url"'","slug":"'"$expected_book_slug"'"},{"url":"some-url","slug":"super--a-b-c"}]'
 actual_contents="$(cat $ARTIFACTS_URL_PATH)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad artifact urls."

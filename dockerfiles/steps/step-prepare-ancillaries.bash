@@ -53,13 +53,9 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 jq -s . $book_slugs_file > $book_slugs_file.tmp && mv $book_slugs_file.tmp $book_slugs_file
 
 for collection in "$IO_SUPER/"*.linked.xhtml; do
-    module_uuid="$(
-        echo "$collection" |
-        tr '[:upper:]' '[:lower:]' |
-        grep -Eo '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-    )"
-    metadata_file="$IO_FETCH_META/super/$module_uuid.metadata.json"
-    ancillary_dir="$IO_ANCILLARY/$module_uuid"
+    book_slug="$(basename "$collection" .linked.xhtml)"
+    metadata_file="$IO_FETCH_META/super/$book_slug.metadata.json"
+    ancillary_dir="$IO_ANCILLARY/$book_slug"
     resources_dir="${ancillary_dir:?}/resources"
     mkdir -p "$resources_dir"
     # Copy collection and all dependencies

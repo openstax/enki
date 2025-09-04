@@ -28,6 +28,7 @@ export const newAncillaryTypeSuperHandler = async (
     const metadataFile = path.join(ancillaryPath, 'metadata.json')
     const metadata = JSON.parse(fs.readFileSync(metadataFile, 'utf-8'))
     const name = assertValue(metadata['name'])
+    const slug = assertValue(metadata['slug'])
     const id = assertValue(metadata['id'])
     const description = metadata['description'] ?? 'No description'
     const relations = metadata['relations'] ?? []
@@ -64,7 +65,7 @@ export const newAncillaryTypeSuperHandler = async (
       formats: mappedFormats,
       relations,
     }
-    return { payload, name, id }
+    return { payload, slug, id }
   }
 }
 
@@ -79,7 +80,7 @@ export const upload = async (ancillariesDir: string) => {
     const filename = path.basename(ancillaryPath)
     console.error(JSON.stringify({ status: 'uploading', filename }))
     const docType = 'super'
-    const { payload, name, id } = await ancillaryTypeSuperHandler(ancillaryPath)
+    const { payload, slug, id } = await ancillaryTypeSuperHandler(ancillaryPath)
     const ancillaryJSON = JSON.stringify(payload)
     const writeResponse = await context.writeAncillary(id, ancillaryJSON)
     const changed = writeResponse.status === 201
@@ -94,8 +95,8 @@ export const upload = async (ancillariesDir: string) => {
     ).replace(/^\//, '')
     const url = `${context.baseUrl}/${formatUrl}`
     console.error(
-      JSON.stringify({ status: 'complete', id, name, changed, type: docType })
+      JSON.stringify({ status: 'complete', id, slug, changed, type: docType })
     )
-    console.log(JSON.stringify({ name, type: docType, id, url }))
+    console.log(JSON.stringify({ slug, type: docType, id, url }))
   }
 }
