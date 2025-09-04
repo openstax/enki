@@ -6,6 +6,9 @@ repo_info="$(set +x && neb parse-repo "$IO_FETCH_META")"
 pages_root="$(set +x && echo "$repo_info" | jq -r '.container.pages_root')"
 media_root="$(set +x && echo "$repo_info" | jq -r '.container.media_root')"
 
+not_found="$(grep -vFxf <(read_book_slugs --from-repo) <(read_book_slugs) || echo -n)"
+[[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-repo)"
+
 if [[ $ARG_ENABLE_SOURCEMAPS == 1 ]]; then
     pushd $IO_FETCH_META > /dev/null
     find . -name '*.cnxml' -or -name '*.collection.xml' | node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" add-sourcemap-info --in-place
@@ -16,8 +19,6 @@ neb pre-assemble "$IO_FETCH_META"
 commit_sha="$(set +x && git -C "$IO_FETCH_META" log --format="%h" -1)"
 rm -rf "$IO_FETCH_META/.git"
 
-not_found="$(grep -vFxf <(read_book_slugs --from-repo --with-ephemeral) <(read_book_slugs --with-ephemeral) || echo -n)"
-[[ -z "$not_found" ]] || die "Slug(s) not found in repository:\n$not_found\n\nValid options are:\n$(read_book_slugs --from-repo)"
 
 export HACK_CNX_LOOSENESS=1
 # CNX user books do not always contain media directory
