@@ -250,9 +250,14 @@ def remove_super_documents(
                 assert isinstance(title, str)
                 safe_title = slugify(re.sub(r'[\']', '', title))
                 module_uuid = document.metadata["uuid"]
+                col_uuid = collection_meta["uuid"]
                 assert isinstance(
                     module_uuid, str
                 ), f"Expected module uuid for: {module_id}"
+                assert isinstance(col_uuid, str), "Expected book uuid"
+                module_uuid = str(
+                    uuid.uuid5(uuid.NAMESPACE_OID, f"{col_uuid}:{module_uuid}")
+                )
                 parent = elem.getparent()
                 parent.remove(elem)
                 super_collection_path = os.path.join(
