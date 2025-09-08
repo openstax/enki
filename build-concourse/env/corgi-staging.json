@@ -7,5 +7,8 @@
   "AWS_SECRET_ACCESS_KEY": "((aws-sandbox-secret-access-key))",
   "AWS_ACCESS_KEY_ID": "((aws-sandbox-secret-key-id))",
   "GH_SECRET_CREDS": "git:((github-api-token))",
-  "REX_PROD_PREVIEW_URL": "https://rex-web-production.herokuapp.com"
+  "REX_PROD_PREVIEW_URL": "https://rex-web-production.herokuapp.com",
+  "ANCILLARIES_HOST": "dev.ancillaries.sandbox.openstax.org",
+  "ANCILLARY_TYPE_CONFIG": "{\"super\":{\"id\":\"1b2685ac-0f33-4744-91fd-580df47f3df4\",\"htmlFormatLabel\":\"HTML\"}}",
+  "ANCILLARIES_SHARED_SECRET": "((ancillaries-shared-secret))"
 }

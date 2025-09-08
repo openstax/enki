@@ -1,26 +1,34 @@
 """Inject / modify metadata for book CNXML from git"""
 
+from dataclasses import dataclass
+import json
 from pathlib import Path
 from datetime import timezone
+import re
 from typing import Optional
 import os
 import logging
+import uuid
 
 import click
 from lxml import etree
+from lxml.builder import ElementMaker
 from git import Repo
+from slugify import slugify
 
 from ._common import common_params
 from ..utils import re_first_or_default, unknown_progress
-from ..models.book_container import BookContainer
+from ..models.book_container import CONTAINER_NSMAP, Book, BookContainer
 from ..models.path_resolver import PathResolver
-from ..parse import NSMAP as CNXML_NSMAP
-from ..xml_utils import open_xml
+from ..models.book_part import BookPart
+from ..parse import NSMAP as CNXML_NSMAP, parse_metadata
+from ..xml_utils import Elementish, etree_to_str, open_xml
 
 
 NS_MDML = CNXML_NSMAP["md"]
 NS_COLLXML = CNXML_NSMAP["col"]
 NS_CNXML = CNXML_NSMAP["c"]
+NS_BOOK = CONTAINER_NSMAP["bk"]
 GIT_SHA_PREFIX_LEN = 7
 
 
@@ -148,13 +156,65 @@ def patch_paths(container, path_resolver, canonical_mapping):
             cnxml_doc.write(f, encoding="utf-8", xml_declaration=False)
 
 
-@click.command(name="pre-assemble")
-@common_params
-@click.argument("input-dir", type=click.Path(exists=True))
-@click.option("--repo-dir", default=None, type=Optional[str])
-def pre_assemble(input_dir, repo_dir):
-    """Prepares litezip structure data for single-page-html file conversion."""
+@dataclass
+class SuperDocument:
+    module_id: str
+    module_uuid: str
+    original_book: Book
+    original_collection_meta: dict
+    parsed: BookPart
+    collection_path: str
 
+    @property
+    def collection_name(self):
+        return os.path.basename(self.collection_path)
+
+    @property
+    def slug(self):
+        return os.path.splitext(self.collection_name)[0].replace(
+            ".collection", ""
+        )
+
+
+def looks_like_super_document(p: str):
+    with open(p, "rb") as fin:
+        # should see the word "super" in the first KiB of the doc
+        return b"super" in fin.read(1 << 10)
+
+
+def make_super_collection(super_document: SuperDocument) -> Elementish:
+    module_uuid = super_document.module_uuid
+    module_id = super_document.module_id
+    language = super_document.original_collection_meta["language"]
+    language = language if isinstance(language, str) else "en"
+    E = ElementMaker(
+        namespace=NS_COLLXML, nsmap={None: NS_COLLXML, "md": NS_MDML}
+    )
+    col_uuid = str(uuid.uuid5(uuid.NAMESPACE_OID, module_uuid))
+    title = super_document.parsed.metadata["title"]
+    license_url = super_document.original_collection_meta["license_url"]
+    license_text = super_document.original_collection_meta["license_text"]
+    assert isinstance(title, str), "Invalid document title"
+
+    metadata = E(
+        "metadata",
+        E(f"{{{NS_MDML}}}uuid", col_uuid),
+        E(f"{{{NS_MDML}}}title", title),
+        E(f"{{{NS_MDML}}}slug", super_document.slug),
+        E(f"{{{NS_MDML}}}language", language),
+    )
+    if isinstance(license_url, str) and isinstance(license_text, str):
+        license_el = E(f"{{{NS_MDML}}}license", license_text, url=license_url)
+        metadata.append(license_el)
+    content = E("content", E("module", document=module_id))
+    subcol_title = E(f"{{{NS_MDML}}}title", title)
+    subcol_content = E("content", content)
+    subcol = E("subcollection", subcol_title, subcol_content)
+    collection = E("collection", metadata, subcol)
+    return collection
+
+
+def get_repo_context(input_dir: str):
     books_xml = Path(input_dir) / "META-INF" / "books.xml"
     container = BookContainer.from_str(books_xml.read_bytes(), input_dir)
     path_resolver = PathResolver(
@@ -162,8 +222,200 @@ def pre_assemble(input_dir, repo_dir):
         lambda container: Path(container.pages_root).glob("**/*.cnxml"),
         lambda s: re_first_or_default(r"m[0-9]+", s),
     )
+    return container, path_resolver, books_xml
+
+
+def remove_super_documents(
+    container: BookContainer,
+    path_resolver: PathResolver,
+    super_documents_by_id: dict[str, BookPart],
+):
+    query = "|".join(
+        f'//col:module[@document="{module_id}"]'
+        for module_id in super_documents_by_id.keys()
+    )
+    super_documents = []
+
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
+        super_modules = col_tree.xpath(query, namespaces={"col": NS_COLLXML})
+        # Only update collection files if we need to
+        if super_modules:
+            collection_meta = parse_metadata(col_tree)
+            for elem in super_modules:
+                module_id = elem.attrib["document"]
+                document = super_documents_by_id[module_id]
+                title = document.metadata["title"]
+                assert isinstance(title, str)
+                safe_title = slugify(re.sub(r'[\']', '', title))
+                module_uuid = document.metadata["uuid"]
+                col_uuid = collection_meta["uuid"]
+                assert isinstance(
+                    module_uuid, str
+                ), f"Expected module uuid for: {module_id}"
+                assert isinstance(col_uuid, str), "Expected book uuid"
+                module_uuid = str(
+                    uuid.uuid5(uuid.NAMESPACE_OID, f"{col_uuid}:{module_uuid}")
+                )
+                parent = elem.getparent()
+                parent.remove(elem)
+                super_collection_path = os.path.join(
+                    container.books_root, f"super--{safe_title}.collection.xml"
+                )
+                super_document = SuperDocument(
+                    module_id,
+                    module_uuid,
+                    book,
+                    collection_meta,
+                    document,
+                    super_collection_path,
+                )
+                super_documents.append(super_document)
+            with open(collection, "wb") as f:
+                col_tree.write(f, encoding="utf-8", xml_declaration=False)
+
+    return super_documents
+
+
+def create_super_collections(super_documents: list[SuperDocument]):
+    for super_document in super_documents:
+        super_collection = make_super_collection(super_document)
+        collection_path = super_document.collection_path
+        with open(collection_path, "wb") as f:
+            f.write(etree_to_str(super_collection))
+
+
+def append_super_collections_to_container(
+    books_xml: Path, super_documents: list[SuperDocument]
+):
+    # TODO: maybe need to use a different style
+    super_style = "dummy"
+    container_tree = etree.parse(books_xml)
+    # Should always find one since we literally just parsed it
+    container_elem = container_tree.xpath(
+        "//bk:container", namespaces={"bk": NS_BOOK}
+    )[0]
+    for super_document in super_documents:
+        collection_path = super_document.collection_path
+        href = os.path.relpath(collection_path, books_xml.parent)
+        slug = super_document.slug
+        book = etree.Element(
+            f"{{{NS_BOOK}}}book", slug=slug, style=super_style, href=href
+        )
+        container_elem.append(book)
+    with books_xml.open("wb") as f:
+        container_tree.write(f, encoding="utf-8", xml_declaration=False)
+
+
+def save_super_metadata(
+    super_path: Path, super_documents: list[SuperDocument]
+):
+    def _prepare_relation(tag, this_book_uuid, module_uuid):
+        text = tag["text"]
+        prefix = "https://openstax.org/orn"
+        if text.startswith(prefix):
+            orn = text
+        else:
+            if ":" in text:
+                book, page = text.split(":")
+                target_book_uuid = uuid.UUID(book)
+                target_page_uuid = uuid.UUID(page)
+            else:
+                target_book_uuid = this_book_uuid
+                target_page_uuid = uuid.UUID(text)
+            orn = f"{prefix}/book:page/{target_book_uuid}:{target_page_uuid}"
+        relation_uuid = str(
+            uuid.uuid5(
+                uuid.NAMESPACE_OID, f"{this_book_uuid}:{module_uuid}:{orn}"
+            )
+        )
+        return (relation_uuid, tag["type"], orn)
+
+    for doc in super_documents:
+        out_path = super_path / f"{doc.slug}.metadata.json"
+        doc_meta = doc.parsed.metadata
+        super_meta = doc_meta["super_metadata"]
+        super_meta = {} if not isinstance(super_meta, dict) else super_meta
+        abstract = doc_meta["abstract"]
+        book_uuid = doc.original_collection_meta["uuid"]
+        module_uuid = doc.module_uuid
+        super_meta["relations"] = [
+            {"id": relation_uuid, "type": relation_type, "orn": orn}
+            for relation_uuid, relation_type, orn in sorted(
+                set(
+                    _prepare_relation(tag, book_uuid, module_uuid)
+                    for tag in super_meta.pop("tags", [])
+                )
+            )
+        ]
+
+        meta = {
+            "id": module_uuid,
+            "name": doc_meta["title"],
+            "slug": doc.slug,
+            **({"description": abstract} if abstract else {}),
+            **super_meta,
+        }
+        with out_path.open("w") as f:
+            json.dump(meta, f, ensure_ascii=False)
+
+
+def handle_super_documents(
+    container: BookContainer,
+    path_resolver: PathResolver,
+    books_xml: Path,
+    super_path: Path,
+):
+    super_documents_by_id = {
+        module_id: doc
+        for module_id, doc in (
+            (module_id, BookPart.doc_from_file(path))
+            for module_id, path in path_resolver.module_paths_by_id.items()
+            if looks_like_super_document(path)
+        )
+        if doc.is_super
+    }
+
+    # Step 0: Run away if there are no super documents to handle
+    if not super_documents_by_id:
+        return
+
+    super_path.mkdir(parents=True, exist_ok=True)
+
+    # Step 1: Remove super documents from normal collections
+    super_documents = remove_super_documents(
+        container, path_resolver, super_documents_by_id
+    )
+
+    # Step 2: Create new collections for each super document
+    create_super_collections(super_documents)
+
+    # Step 3: Add collections to container
+    append_super_collections_to_container(books_xml, super_documents)
+
+    # Step 4: Save metadata for easy use later
+    save_super_metadata(super_path, super_documents)
+
+
+@click.command(name="pre-assemble")
+@common_params
+@click.argument("input-dir", type=click.Path(exists=True))
+@click.option("--repo-dir", default=None, type=Optional[str])
+@click.option("--super-dir", default=None, type=Optional[str])
+def pre_assemble(input_dir, repo_dir, super_dir):
+    """Prepares litezip structure data for single-page-html file conversion."""
 
     canonical_mapping = {}
+
+    with unknown_progress("Handling super documents"):
+        super_path = (
+            Path(input_dir) / "super" if super_dir is None else Path(super_dir)
+        )
+        handle_super_documents(*get_repo_context(input_dir), super_path)
+
+    # Re-read the context since we modified the container
+    container, path_resolver, _ = get_repo_context(input_dir)
 
     with unknown_progress("Mapping documents"):
         for book in container.books:

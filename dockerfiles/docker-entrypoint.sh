@@ -99,7 +99,22 @@ if [[ $STUB_UPLOAD ]]; then
         copy_resouce_s3_calls=$(find "${!pointer}" -name 'copy_resources_s3_args_*' | wc -l)
         echo "$@" > "${!pointer}/copy_resources_s3_args_$((copy_resouce_s3_calls+1))"
     }
+
+    function upload_ancillaries() {
+        pointer=$(get_stub_output_dir)
+        upload_ancillaries_calls=$(find "${!pointer}" -name 'upload_ancillaries_args_*' | wc -l)
+        jq -nc '{ slug: "super--a-b-c", id: "some-id", url: "some-url" }'
+        echo "$@" > "${!pointer}/upload_ancillaries_args_$((upload_ancillaries_calls+1))"
+    }
+# LCOV_EXCL_START
+else
+    function upload_ancillaries() {
+        if [[ -n "${ANCILLARY_TYPE_CONFIG:-}" ]]; then
+            node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" ancillary "$1"
+        fi
+    }
 fi
+# LCOV_EXCL_END
 
 function ensure_arg() {
     local arg_name
@@ -155,17 +170,33 @@ function do_json_validate() {
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" jsonschema "$schema_file"
 }
 
+function is_super_document() { [[ "$(basename "$1")" =~ ^super-- ]]; }
+
+function get_repo() {
+    for name in IO_FETCH_META IO_FETCHED; do
+        path="${!name}"
+        if [[ -d "$path" ]]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    die "get_repo: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
+}
+
 function read_style() {
     slug_name=$1
-    style_name=$(xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < $IO_FETCHED/META-INF/books.xml)
-    echo $style_name
+    xmlstarlet sel -t --match "//*[@style][@slug=\"$slug_name\"]" --value-of '@style' < "$(get_repo)/META-INF/books.xml"
 }
 
 function read_book_slugs() {
+    local no_super=1
     while [[ -n "${1:-}" ]]; do
         case "$1" in
             "--from-repo")
                 local force_from_repo=1
+            ;;
+            "--with-ephemeral")
+                no_super=0
             ;;
             *)
                 die "Unknown option: $1"  # LCOV_EXCL_LINE
@@ -173,19 +204,21 @@ function read_book_slugs() {
         esac
         shift
     done
-    if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
-        # Exclude blank lines
-        awk '$0 { print }' "$IO_BOOK/slugs"
-    else
-        fetched="$IO_FETCHED"
-        if [[ ! -d "$fetched" ]]; then
-            fetched="$IO_FETCH_META"
+    local slugs
+    mapfile -t slugs < <({
+        if [[ -f "$IO_BOOK/slugs" && -z "${force_from_repo:-}" ]]; then
+            # Exclude blank lines
+            awk '$0 { print }' "$IO_BOOK/slugs"
+        else
+            xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$(get_repo)/META-INF/books.xml"
         fi
-        if [[ ! -d "$fetched" ]]; then
-            die "read_book_slugs: Could not find books.xml. Make sure you included IO_FETCHED or IO_FETCH_META as an input to this step."  # LCOV_EXCL_LINE
+    })
+    for slug in "${slugs[@]}"; do
+        if [[ $no_super -eq 1 ]] && is_super_document "$slug"; then
+            continue
         fi
-        xmlstarlet sel -t --match "//*[@slug]" --value-of '@slug' --nl < "$fetched/META-INF/books.xml"
-    fi
+        echo "$slug"
+    done
 }
 
 

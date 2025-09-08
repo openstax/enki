@@ -9,3 +9,4 @@ backoff==2.2.1
 GitPython==3.1.40
 filetype==1.2.0
 imagesize==1.4.1
+python-slugify==4.0.1

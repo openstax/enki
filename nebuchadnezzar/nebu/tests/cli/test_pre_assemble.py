@@ -7,6 +7,7 @@ from itertools import chain
 import pytest
 
 from nebu.cli.main import cli
+from nebu.cli.pre_assemble import handle_super_documents
 from nebu.models.book_container import BookContainer
 from nebu.models.path_resolver import PathResolver
 from nebu.utils import re_first_or_default
@@ -17,17 +18,13 @@ from nebu.parse import NSMAP as CNXML_NSMAP
 MOCK_TAG_NAME = "my-mock-tag"
 MD_MODULE = 0
 MD_COLLECTION = 1
+NS_COLLXML = CNXML_NSMAP["col"]
+NS_MDML = CNXML_NSMAP["md"]
 
 
-@pytest.fixture
-def src_data(datadir):
-    return datadir / "collection_for_git_workflow"
-
-
-@pytest.fixture
-def tmp_book_dir(src_data, tmp_path):
+def prepare_directory(directory, tmp_path):
     output_dir = Path(tmp_path) / "pre-assemble"
-    copytree(src_data, output_dir)
+    copytree(directory, output_dir)
     # Remove existing metadata from this copy of the test data
     # This metadata is required for other tests, but it causes problems here
     for f in chain(*map(output_dir.glob, ("**/*.cnxml", "**/*.xml"))):
@@ -44,6 +41,18 @@ def tmp_book_dir(src_data, tmp_path):
         with open(f, "wb") as fout:
             tree.write(fout, encoding="utf-8", xml_declaration=False)
     return output_dir
+
+
+@pytest.fixture
+def tmp_book_dir(datadir, tmp_path):
+    src_data = datadir / "collection_for_git_workflow"
+    return prepare_directory(src_data, tmp_path)
+
+
+@pytest.fixture
+def tmp_book_dir_with_super(datadir, tmp_path):
+    src_data = datadir / "collection_for_git_workflow_with_super"
+    return prepare_directory(src_data, tmp_path)
 
 
 @pytest.fixture
@@ -159,7 +168,7 @@ def test_pre_assemble_patch_paths(
     media_dir_name = Path(container.media_root).name
     # GIVEN: media elements that were patched during pre-assemble step
     selectors = (
-        # These two image have paths that should be updated
+        # These two images have paths that should be updated
         '//c:image[../@id = "image-src-patch-test"]',
         '//c:iframe[../@id = "iframe-src-patch-test"]',
         # This image has a path that was already updated
@@ -201,3 +210,93 @@ def test_pre_assemble_patch_paths(
         ), f"Part of the file path was lost in translation, {src}"
 
     rmtree(tmp_book_dir)
+
+
+def test_handle_super_documents(tmp_book_dir_with_super, assert_match):
+    books_xml = tmp_book_dir_with_super / "META-INF" / "books.xml"
+
+    container = BookContainer.from_str(
+        books_xml.read_bytes(), str(tmp_book_dir_with_super)
+    )
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+    super_path = tmp_book_dir_with_super / "super"
+    handle_super_documents(container, path_resolver, books_xml, super_path)
+    all_documents = []
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
+        documents = col_tree.xpath(
+            "//col:module/@document", namespaces={"col": NS_COLLXML}
+        )
+        all_documents.extend(documents)
+    file_names = [p.name for p in tmp_book_dir_with_super.iterdir()]
+    super_module_id = "m50001"
+    super_doc_title = "a-super-document"
+    super_collection = next(
+        (
+            p for p in tmp_book_dir_with_super.iterdir()
+            if super_doc_title in p.name
+        ),
+        None
+    )
+    super_doc_meta = super_path / f"super--{super_doc_title}.metadata.json"
+    normal_collection = tmp_book_dir_with_super / "collection.xml"
+    assert super_collection is not None
+    assert super_collection.suffix == ".xml"
+    assert all_documents and super_module_id not in all_documents
+    assert 1 == sum(1 for name in file_names if super_doc_title in name)
+    assert_match(books_xml.read_text(), books_xml.name)
+    assert_match(super_collection.read_text(), super_collection.name)
+    assert_match(normal_collection.read_text(), normal_collection.name)
+    assert_match(super_doc_meta.read_text(), super_doc_meta.name)
+
+
+def test_handle_super_documents_no_meta(tmp_book_dir_with_super, assert_match):
+    books_xml = tmp_book_dir_with_super / "META-INF" / "books.xml"
+    super_doc_title = "a-super-document"
+    super_module_id = "m50001"
+
+    container = BookContainer.from_str(
+        books_xml.read_bytes(), str(tmp_book_dir_with_super)
+    )
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+    super_doc_path = path_resolver.get_module_path(super_module_id)
+    super_doc = open_xml(super_doc_path)
+    super_meta_elem = super_doc.xpath(
+        '//md:super', namespaces={"md": NS_MDML}
+    )[0]
+    super_meta_elem.getparent().remove(super_meta_elem)
+    super_doc.write(super_doc_path)
+    super_path = tmp_book_dir_with_super / "super"
+    handle_super_documents(container, path_resolver, books_xml, super_path)
+    all_documents = []
+    for book in container.books:
+        collection = path_resolver.get_collection_path(book.slug)
+        col_tree = open_xml(collection)
+        documents = col_tree.xpath(
+            "//col:module/@document", namespaces={"col": NS_COLLXML}
+        )
+        all_documents.extend(documents)
+    file_names = [p.name for p in tmp_book_dir_with_super.iterdir()]
+    super_collection = next(
+        (
+            p for p in tmp_book_dir_with_super.iterdir()
+            if super_doc_title in p.name
+        ),
+        None
+    )
+    super_doc_meta = super_path / f"super--{super_doc_title}.metadata.json"
+    assert super_collection is not None
+    assert super_collection.suffix == ".xml"
+    assert all_documents and super_module_id not in all_documents
+    assert 1 == sum(1 for name in file_names if super_doc_title in name)
+    assert_match(books_xml.read_text(), books_xml.name)
+    assert_match(super_doc_meta.read_text(), super_doc_meta.name)

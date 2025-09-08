@@ -105,7 +105,9 @@ export enum IO {
     JSONIFIED = 'jsonified', // 'jsonified-single',
     EPUB = 'epub',
     DOCX = 'docx', // 'docx-single'
-    PPTX = 'pptx'
+    PPTX = 'pptx',
+    SUPER = 'super',
+    ANCILLARY = 'ancillary',
 }
 
 export type TaskNode = {
@@ -320,6 +322,8 @@ export function loadEnv(pathToJson: string) {
     defaultEnv(env, 'CODE_VERSION')
     defaultEnv(env, 'AWS_ACCESS_KEY_ID')
     defaultEnv(env, 'AWS_SECRET_ACCESS_KEY')
+    defaultEnv(env, 'ANCILLARIES_HOST')
+    defaultEnv(env, 'ANCILLARY_TYPE_CONFIG')
     defaultEnv(env, 'DOCKER_REPOSITORY', true)
     defaultEnv(env, 'DOCKER_REGISTRY_HOST', true)
     defaultEnv(env, 'GDOC_GOOGLE_FOLDER_ID', true)

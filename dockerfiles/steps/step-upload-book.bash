@@ -67,9 +67,16 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
     done < <(read_book_slugs)  # LCOV_EXCL_LINE
 
+    while IFS='|' read -r url slug; do
+        book_slug_urls+=("$(jo url="$url" slug="$slug")")
+    done < <(upload_ancillaries "$IO_ANCILLARY" | jq -r '[.url, .slug] | join("|")')  # LCOV_EXCL_LINE
+
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
     echo "View web preview here: $rex_prod_url"
+else
+    # Do not do this in CORGI builds
+    upload_ancillaries "$IO_ANCILLARY"
 fi
 
 shopt -u globstar nullglob

@@ -28,7 +28,7 @@ book_slugs_file="/tmp/book-slugs.json"
 # 1. send the slug and uuid as args to jo (https://github.com/jpmens/jo)
 jo_args=''
 
-repo_root=$IO_FETCH_META
+repo_root=$IO_FETCHED
 col_sep='|'
 xpath_sel="//*[@slug]" # All the book entries
 while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest
@@ -59,7 +59,7 @@ while read -r book_slug; do
     link-rex "$IO_LINKED/$book_slug.mathified.xhtml" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
     print-customizations "$IO_LINKED/$book_slug.rex-linked.xhtml" "$IO_LINKED/$book_slug.print-ready.xhtml"
     prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.print-ready.xhtml"
-done < <(read_book_slugs)
+done < <(jq -r '.[].slug' "$book_slugs_file")
 shopt -u globstar nullglob
 
 # Warn about missing styles (prince does not care)

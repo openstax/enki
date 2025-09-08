@@ -66,6 +66,7 @@ setup(
             'patch-same-book-links = bakery_scripts.patch_same_book_links:main',
             'link-rex = bakery_scripts.link_rex:main',
             'pptify = bakery_scripts.pptify_book:main',
+            'smart-copy = bakery_scripts.smart_copy:main',
             'print-customizations = bakery_scripts.print_customizations:main'
         ]
     },

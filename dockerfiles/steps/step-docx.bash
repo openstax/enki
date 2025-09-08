@@ -8,7 +8,7 @@ book_slugs_file="$IO_DOCX/book-slugs.json"
 
 jo_args=''
 
-repo_root=$IO_FETCH_META
+repo_root=$IO_FETCHED
 col_sep='|'
 xpath_sel="//*[@slug]" # All the book entries
 while read -r line; do # Loop over each <book> entry in the META-INF/books.xml manifest

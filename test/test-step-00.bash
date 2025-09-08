@@ -11,6 +11,8 @@ CODE_VERSION=dummycodeversion \
 AWS_ACCESS_KEY_ID=dummyawskey \
 AWS_SECRET_ACCESS_KEY=dummyawssecret \
 GOOGLE_SERVICE_ACCOUNT_CREDENTIALS=dummygoogle \
+ANCILLARIES_HOST=dummyancillarieshost \
+ANCILLARY_TYPE_CONFIG=dummyancillariesconfig \
 npm --prefix ../build-concourse/ run coverage
 
 

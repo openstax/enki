@@ -141,6 +141,7 @@ def get_abl(api_root, code_version):
     response.raise_for_status()
     abl_json = response.json()
     entries = unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
+    entries = sorted(entries, key=itemgetter("committed_at"))
     results = [
         {"repo": entry["repository_name"], "version": entry["commit_sha"]}
         for entry in entries
