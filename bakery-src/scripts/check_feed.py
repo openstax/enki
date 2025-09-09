@@ -140,10 +140,26 @@ def get_abl(api_root, code_version):
     response = requests.get(url)
     response.raise_for_status()
     abl_json = response.json()
-    entries = unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
-    entries = sorted(entries, key=itemgetter("committed_at"))
+    entries = list(
+        unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
+    )
+    latest = {}
+    version_identity = itemgetter("repository_name")
+    version_getter = itemgetter("committed_at")
+    for entry in entries:
+        identity, version = version_identity(entry), version_getter(entry)
+        if version >= latest.setdefault(identity, version):
+            latest[identity] = version
     results = [
-        {"repo": entry["repository_name"], "version": entry["commit_sha"]}
+        {
+            "repo": entry["repository_name"],
+            "version": entry["commit_sha"],
+            "metadata": {
+                "is_latest": (
+                    version_getter(entry) == latest[version_identity(entry)]
+                )
+            }
+        }
         for entry in entries
     ]
     return results

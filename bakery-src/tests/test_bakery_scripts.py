@@ -1259,6 +1259,7 @@ def test_check_feed(mocker):
     book = {
         "repo": input_book_feed[0]["repository_name"],
         "version": input_book_feed[0]["commit_sha"],
+        "metadata": {"is_latest": True}
     }
 
     repo1 = input_book_feed[0]["repository_name"]
@@ -1395,7 +1396,7 @@ def test_check_feed(mocker):
 
     repo1 = second_book_feed[0]["repository_name"]
     vers1 = second_book_feed[0]["commit_sha"]
-    book = {"repo": repo1, "version": vers1}
+    book = {"repo": repo1, "version": vers1, "metadata": {"is_latest": True}}
 
     check_feed.requests.get = lambda url: MockBookFeedResponse(second_book_feed)
 

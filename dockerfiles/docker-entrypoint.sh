@@ -327,6 +327,10 @@ function parse_book_dir() {
     ARG_GIT_REF="$(cat $IO_BOOK/version)"
     ARG_ENABLE_CORGI_UPLOAD=0
     ARG_ENABLE_SOURCEMAPS=0
+    ARG_IS_LATEST=0
+    if [[ -f $IO_BOOK/metadata ]]; then
+        ARG_IS_LATEST="$(jq -r 'if .is_latest 1 else 0 end' $IO_BOOK/metadata)"
+    fi
     if [[ -f $IO_BOOK/job_id ]]; then
         ARG_ENABLE_CORGI_UPLOAD=1
         ARG_ENABLE_SOURCEMAPS=1
@@ -408,7 +412,9 @@ function do_step() {
             if [[ -f "$INPUT_SOURCE_DIR/slugs" ]]; then
                 cp "$INPUT_SOURCE_DIR/slugs" "$IO_BOOK/slugs"
             fi
-
+            if [[ -f "$INPUT_SOURCE_DIR/metadata" ]]; then
+                cp "$INPUT_SOURCE_DIR/metadata" "$IO_BOOK/metadata"
+            fi
             return
         ;;
     esac
