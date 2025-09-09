@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "build:mathjax": "tsc --outDir dist --module es6 --moduleResolution node src/ancillary-integration/helpers/mathjax.ts",
     "prestart": "npm run-script build",
     "start": "./bin/bakery-helper",
     "lint": "prettier --check .",

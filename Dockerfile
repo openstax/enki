@@ -92,6 +92,7 @@ COPY ./bakery-js/src/ /workspace/enki/bakery-js/src/
 COPY ./bakery-js/schemas/ /workspace/enki/bakery-js/schemas/
 COPY ./bakery-js/tsconfig*.json /workspace/enki/bakery-js/
 RUN npm --prefix=/workspace/enki/bakery-js run build
+RUN npm --prefix=/workspace/enki/bakery-js run build:mathjax
 
 
 # ===========================
