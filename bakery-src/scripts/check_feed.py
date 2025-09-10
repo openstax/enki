@@ -144,7 +144,7 @@ def get_abl(api_root, code_version):
         unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
     )
     latest = {}
-    version_identity = itemgetter("repository_name")
+    version_identity = itemgetter("repository_name", "uuid")
     version_getter = itemgetter("committed_at")
     for entry in entries:
         identity, version = version_identity(entry), version_getter(entry)
