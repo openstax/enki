@@ -4,6 +4,7 @@ import sys
 from typing import NamedTuple, Any, Optional
 from datetime import datetime
 from operator import itemgetter
+from itertools import groupby
 
 import boto3
 import botocore
@@ -143,25 +144,25 @@ def get_abl(api_root, code_version):
     entries = list(
         unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
     )
-    latest = {}
-    version_identity = itemgetter("repository_name", "uuid")
+    # Each edition of a book has a unique uuid
+    # This identity scopes to repo + edition
+    identity_getter = itemgetter("repository_name", "uuid")
     version_getter = itemgetter("committed_at")
+    ranked = {
+        identity: list(sorted(group, key=version_getter, reverse=True))
+        for identity, group in groupby(entries, key=identity_getter)
+    }
+
+    results = []
     for entry in entries:
-        identity, version = version_identity(entry), version_getter(entry)
-        if version >= latest.setdefault(identity, version):
-            latest[identity] = version
-    results = [
-        {
-            "repo": entry["repository_name"],
-            "version": entry["commit_sha"],
-            "metadata": {
-                "is_latest": (
-                    version_getter(entry) == latest[version_identity(entry)]
-                )
-            }
-        }
-        for entry in entries
-    ]
+        latest = ranked[identity_getter(entry)][0]
+        book = {}
+        book["repo"] = entry["repository_name"]
+        book["version"] = entry["commit_sha"]
+        book["metadata"] = metadata = {}
+        metadata["is_latest"] = version_getter(latest) == version_getter(entry)
+        results.append(book)
+
     return results
 
 
