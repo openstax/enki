@@ -3,6 +3,7 @@ parse_book_dir
 shopt -s nullglob
 
 xslt_file="/tmp/transform.xslt"
+init_file="/tmp/init.js"
 book_slugs_file="/tmp/book-slugs.json"
 
 # TODO: Maybe move this into a file
@@ -35,7 +36,25 @@ cat - > "$xslt_file" <<EOF
         </xsl:attribute>
     </xsl:template>
 
+    <xsl:template match="/x:html/x:head">
+        <xsl:copy>
+            <xsl:apply-templates />
+
+            <script xmlns="http://www.w3.org/1999/xhtml" type="module" src="./resources/init.js">
+                <xsl:comment> no-selfclose </xsl:comment>
+            </script>
+        </xsl:copy>
+    </xsl:template>
+
 </xsl:stylesheet>
+EOF
+
+cat - > "$init_file" <<EOF
+$(cat "$JS_UTILS_STUFF_ROOT/dist/mathjax.js")
+
+document.addEventListener('DOMContentLoaded', () => {
+    void typesetMath(document.body)
+});
 EOF
 
 repo_root=$IO_FETCH_META
@@ -66,6 +85,7 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
 
     cp "$metadata_file" "$ancillary_dir/metadata.json"
     cp "$BOOK_STYLES_ROOT/webview-generic.css" "$resources_dir"
+    cp "$init_file" "$resources_dir"
     link-rex "$collection" "$book_slugs_file" "" "$collection.rex-linked.xhtml"
     xsltproc -o "$ancillary_dir/index.html" "$xslt_file" "$collection.rex-linked.xhtml"
     for resource in "$resources_dir"/*; do
