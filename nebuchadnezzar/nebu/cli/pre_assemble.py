@@ -290,7 +290,7 @@ def append_super_collections_to_container(
     books_xml: Path, super_documents: list[SuperDocument]
 ):
     # TODO: maybe need to use a different style
-    super_style = "dummy"
+    super_style = "super"
     container_tree = etree.parse(books_xml)
     # Should always find one since we literally just parsed it
     container_elem = container_tree.xpath(
