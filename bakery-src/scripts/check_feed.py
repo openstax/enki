@@ -4,6 +4,7 @@ import sys
 from typing import NamedTuple, Any, Optional
 from datetime import datetime
 from operator import itemgetter
+from itertools import groupby
 
 import boto3
 import botocore
@@ -128,6 +129,18 @@ def unique(it, *, key=hash):
             yield entry
 
 
+def get_latest_code_version(api_root):
+    url = api_root.rstrip("/") + "/api/version/"
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_is_latest_code_version(api_root, code_version):
+    version_json = get_latest_code_version(api_root)
+    return version_json["tag"] == code_version
+
+
 # replace the book feed from github with the accepted books from the ABL endpoint
 # somewhere in the pipeline code api_root has the url to the ABL endpoint
 # and the code version is passed as an argument
@@ -138,14 +151,34 @@ def unique(it, *, key=hash):
 def get_abl(api_root, code_version):
     url = api_root.rstrip("/") + "/api/abl/?code_version=" + code_version
     response = requests.get(url)
+    is_latest_code_version = get_is_latest_code_version(api_root, code_version)
     response.raise_for_status()
     abl_json = response.json()
-    entries = unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
-    entries = sorted(entries, key=itemgetter("committed_at"))
-    results = [
-        {"repo": entry["repository_name"], "version": entry["commit_sha"]}
-        for entry in entries
-    ]
+    entries = list(
+        unique(abl_json, key=itemgetter("repository_name", "commit_sha"))
+    )
+    # Each edition of a book has a unique uuid
+    # This identity scopes to repo + edition
+    identity_getter = itemgetter("repository_name", "uuid")
+    version_getter = itemgetter("committed_at")
+    ranked = {
+        identity: list(sorted(group, key=version_getter, reverse=True))
+        for identity, group in groupby(entries, key=identity_getter)
+    }
+
+    results = []
+    for entry in entries:
+        latest = ranked[identity_getter(entry)][0]
+        book = {}
+        book["repo"] = entry["repository_name"]
+        book["version"] = entry["commit_sha"]
+        book["metadata"] = metadata = {}
+        metadata["is_latest"] = (
+            is_latest_code_version and
+            version_getter(latest) == version_getter(entry)
+        )
+        results.append(book)
+
     return results
 
 

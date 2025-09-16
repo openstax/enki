@@ -8,5 +8,6 @@ fi
 
 echo -n "$(cat $book | jq -r '.repo')" >$IO_BOOK/repo
 echo -n "$(cat $book | jq -r '.version')" >$IO_BOOK/version
+echo -n "$(cat $book | jq -r '.metadata')" >$IO_BOOK/metadata
 
 # LCOV_EXCL_STOP
