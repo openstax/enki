@@ -8,10 +8,6 @@ if [[ $CI = '' && $VIRTUAL_ENV = '' ]]; then
    exit 1
 fi
 
-
-# More details: https://github.com/aws/aws-cli/issues/8036#issuecomment-1638544754
-# and: https://github.com/yaml/pyyaml/issues/601
-# PyYAML installed as dependency here [awscli](https://github.com/aws/aws-cli/blob/dbbf1ce01acec0116710968bbe5a96680e791c1b/setup.py#L30)
 pip install "../bakery-src/scripts/.[test]"
 flake8 --config ../bakery-src/.flake8 ../bakery-src/scripts
 
