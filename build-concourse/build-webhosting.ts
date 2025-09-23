@@ -70,7 +70,7 @@ function makePipeline(envValues: KeyValue) {
                     STATE_PREFIX: true,
                     QUEUE_SUFFIX: true,
                     SLACK_WEBHOOK_CE_STREAM: false,
-                    SLACK_WEBHOOK_UNIFIED: false,
+                    SLACK_POST_PARAMS: false,
                 },
                 readScript("script/check_feed.sh")
             ),
