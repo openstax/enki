@@ -14,8 +14,8 @@
     "STATE_PREFIX": "git-dist",
     "QUEUE_SUFFIX": "web-hosting-git-queue.json",
     "SLACK_WEBHOOK_CE_STREAM": "((slack-webhook-cestream))",
-    "ANCILLARIES_HOST": "dev.ancillaries.sandbox.openstax.org",
-    "ANCILLARY_TYPE_CONFIG": "{\"super\":{\"id\":\"1b2685ac-0f33-4744-91fd-580df47f3df4\",\"htmlFormatLabel\":\"HTML\"}}",
+    "ANCILLARIES_HOST": "ancillaries.openstax.org",
+    "ANCILLARY_TYPE_CONFIG": "{\"super\":{\"id\":\"a33bf835-3e60-4645-853c-c25163d01257\",\"htmlFormatLabel\":\"HTML\"}}",
     "ANCILLARIES_SHARED_SECRET": "((ancillaries-shared-secret))",
     "SLACK_POST_PARAMS": "((slack-post-params))"
 }
