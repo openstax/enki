@@ -170,6 +170,7 @@ while [ -n "$1" ]; do
         --pdb) PYTHON_DEBUG=1 ;;
         --jdb) JAVA_DEBUG=1 ;;
         --jsdb) JS_DEBUG=1 ;;
+        --shorten) shift; export SHORTEN=$1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -220,6 +221,48 @@ if [[ $arg_command == 'local-preview' ]]; then
     echo "cd $data_dir/local-preview/contents"
 
     popd >/dev/null
+    exit 0
+fi
+
+if [[ $arg_command == 'bake-preview' ]]; then
+    [[ -d $data_dir/bake-preview ]] || mkdir $data_dir/bake-preview
+
+    # This helps make the page load MUCH faster
+    echo "Making loadable content lazy with suffix \".lazy.xhtml\"" >&2
+    docker run --rm -it -v $data_dir:/tmp --entrypoint bash enki -ec '
+IO_BAKED=/tmp/_attic/IO_BAKED
+
+for collection in "$IO_BAKED/"*.baked.xhtml; do
+    python3 - "$collection" <<EOF
+import sys
+
+from lxml import etree
+
+doc_path = sys.argv[1]
+t = etree.parse(doc_path)
+namespaces = { "x": "http://www.w3.org/1999/xhtml" }
+loadable = t.xpath("//x:iframe[@src] | //x:img[@src]", namespaces=namespaces)
+_ = [l.set("loading", "lazy") for l in loadable]
+t.write(f"{doc_path}.lazy.xhtml")
+EOF
+done
+' 
+    pushd $data_dir/bake-preview >/dev/null
+    rm -rf ./contents
+    cp -r ../_attic/IO_BAKED contents
+    rm -f ./contents/*.baked.xhtml
+    [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
+    popd >/dev/null
+
+    pushd "$data_dir/bake-preview" &>/dev/null
+    args=("$root_dir/simple_http_server_cors.py" "$rexpreview_port")
+    if command -V python &>/dev/null; then
+        python "${args[@]}"
+    else
+        python3 "${args[@]}"
+    fi
+    popd &>/dev/null
+
     exit 0
 fi
 
@@ -299,6 +342,7 @@ docker run $ports $interactive $enable_tty \
     --env KCOV_DIR \
     --env __CI_KCOV_MERGE_ALL__\
     --env STUB_UPLOAD \
+    --env SHORTEN \
     $envs \
     --rm $image_name "$arg_command" $repo_slug_ref
 
