@@ -1,7 +1,5 @@
 parse_book_dir
 
-# student-sample
-
 shopt -s globstar nullglob
 cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$IO_BAKED"
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
