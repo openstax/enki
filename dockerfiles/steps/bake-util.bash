@@ -17,6 +17,7 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
 
 
     if [[ -f "$style_file" ]]; then
+        # LCOV_EXCL_START
         if [[ -n "${SHORTEN:-}" ]]; then
             if
                 ALLOW_UNKNOWN_ARGS=1 \
@@ -29,6 +30,7 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
                 mv "$collection.short" "$collection"
                 say "Shortened '$collection' ($SHORTEN)"
             fi
+        # LCOV_EXCL_END
         fi
         export VERBOSE=$TRACE_ON
         $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1

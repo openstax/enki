@@ -57,14 +57,7 @@ while read -r book_slug; do
 
     title="$(xpath '/x:html/x:head/x:title/text()' "$mathified")"
     language="$(xpath '/x:html/x:head/x:meta[@data-type="language"]/@content' "$mathified")"
-    prince \
-        --pdf-title "${title:?}" \
-        --pdf-lang "${language:?}" \
-        --tagged-pdf \
-        --pdf-profile PDF/UA-1 \
-        --output="$IO_ARTIFACTS/$book_slug.pdf" \
-        -v \
-        "$IO_LINKED/$book_slug.print-ready.xhtml"
+    prince --pdf-title "${title:?}" --pdf-lang "${language:?}" --tagged-pdf --pdf-profile PDF/UA-1 --output="$IO_ARTIFACTS/$book_slug.pdf" -v "$IO_LINKED/$book_slug.print-ready.xhtml"
 done < <(jq -r '.[].slug' "$book_slugs_file")
 shopt -u globstar nullglob
 
