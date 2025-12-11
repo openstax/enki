@@ -252,11 +252,9 @@ done
     cp -r ../_attic/IO_BAKED contents
     rm -f ./contents/*.baked.xhtml
     [[ -e ./resources ]] || ln -s ../_attic/IO_RESOURCES resources
-    popd >/dev/null
 
-    pushd "$data_dir/bake-preview" &>/dev/null
     args=("$root_dir/simple_http_server_cors.py" "$rexpreview_port")
-    if command -V python &>/dev/null; then
+    if command -v python &>/dev/null; then
         python "${args[@]}"
     else
         python3 "${args[@]}"

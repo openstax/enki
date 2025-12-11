@@ -84,7 +84,7 @@ args+=("--sideload-book" "$BOOK")
 if ! [[ -e "$BOOK" ]]; then
     mkdir -p "$(dirname "$BOOK")"
     pushd "$BOOK" &>/dev/null
-    git clone "https://github.com/openstax/$REPO"
+    git clone "https://github.com/openstax/$REPO" .
     popd &>/dev/null
 fi
 

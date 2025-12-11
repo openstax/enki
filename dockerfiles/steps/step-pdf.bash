@@ -53,8 +53,6 @@ while read -r book_slug; do
     [[ -f "$IO_LINKED/$book_slug-pdf.css" ]] || books_missing_styles+=("$book_slug")
     link-rex "$mathified" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
     print-customizations "$IO_LINKED/$book_slug.rex-linked.xhtml" "$IO_LINKED/$book_slug.print-ready.xhtml"
-    cp "$IO_LINKED/$book_slug.rex-linked.xhtml" "$IO_LINKED/$book_slug.print-ready.xhtml"
-
     title="$(xpath '/x:html/x:head/x:title/text()' "$mathified")"
     language="$(xpath '/x:html/x:head/x:meta[@data-type="language"]/@content' "$mathified")"
     prince --pdf-title "${title:?}" --pdf-lang "${language:?}" --tagged-pdf --pdf-profile PDF/UA-1 --output="$IO_ARTIFACTS/$book_slug.pdf" -v "$IO_LINKED/$book_slug.print-ready.xhtml"

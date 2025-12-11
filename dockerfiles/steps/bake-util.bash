@@ -30,8 +30,8 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
                 mv "$collection.short" "$collection"
                 say "Shortened '$collection' ($SHORTEN)"
             fi
-        # LCOV_EXCL_END
         fi
+        # LCOV_EXCL_END
         export VERBOSE=$TRACE_ON
         $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1
         sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
