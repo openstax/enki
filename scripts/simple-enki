@@ -18,6 +18,11 @@ else
     repos_dir="$REPO_ROOT/books"
 fi
 
+if ! [[ -d "$repos_dir" ]]; then
+    mkdir -p "$repos_dir"
+    touch "$repos_dir/.gitignore"
+fi
+
 : "${COMMAND:?}"
 
 # Default base directory for all data sub‑dirs
@@ -82,10 +87,7 @@ args+=("--sideload-book" "$BOOK")
 [[ -n ${shorten:-} ]] && args+=("--shorten" "$shorten")
 
 if ! [[ -e "$BOOK" ]]; then
-    mkdir -p "$(dirname "$BOOK")"
-    pushd "$BOOK" &>/dev/null
-    git clone "https://github.com/openstax/$REPO" .
-    popd &>/dev/null
+    git clone "https://github.com/openstax/$REPO" "$BOOK"
 fi
 
 # If we’re not keeping local changes, reset to the target ref
