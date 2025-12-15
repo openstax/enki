@@ -1810,6 +1810,9 @@
 <xsl:template match="c:table[count(c:tgroup) = 1]">
   <table>
     <xsl:apply-templates select="@*|c:label"/>
+    <xsl:if test="not(.//c:thead) and not(@aria-label) and not(@summary) and not(c:caption) and not(c:title)">
+      <xsl:attribute name="role">presentation</xsl:attribute>
+    </xsl:if>
     <xsl:if test="c:caption or c:title">
       <caption>
         <xsl:apply-templates select="c:title"/>

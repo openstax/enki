@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$HERE/.." && pwd)"
+
+# First two positional arguments are always the command and the repo
+COMMAND=$1
+REPO=$2
+shift 2
+
+# Resolve the repository path / directory
+if [[ -e "$REPO" ]]; then
+    repos_dir="$(dirname "$REPO")"
+    REPO="$(basename "$REPO")"
+else
+    repos_dir="$REPO_ROOT/books"
+fi
+
+if ! [[ -d "$repos_dir" ]]; then
+    mkdir -p "$repos_dir"
+    touch "$repos_dir/.gitignore"
+fi
+
+: "${COMMAND:?}"
+
+# Default base directory for all data sub‑dirs
+DATA_DIR_BASE="$REPO_ROOT/data"
+
+while test -n "${1:-}"; do
+    case $1 in
+        --ref)
+            shift; ref=$1
+        ;;
+        --start-at)
+            shift; start_at=$1
+        ;;
+        --stop-at)
+            shift; stop_at=$1
+        ;;
+        --book-slug)
+            shift; book_slug=$1
+        ;;
+        --keep-changes)
+            keep_changes=1
+        ;;
+        --repos-dir)
+            shift; repos_dir="$1"
+        ;;
+        --data-dir)
+            shift; DATA_DIR_BASE="$1"
+        ;;
+        --open)
+            open=1
+        ;;
+        --shorten)
+            shift; shorten="$1"
+        ;;
+        *)
+            echo "Unknown option $1" >&2
+            exit 1
+        ;;
+    esac
+    shift
+done
+
+BOOK="${repos_dir:?}/$REPO"
+# The final directory used by the command (kept the same pattern)
+DATA_DIR="${DATA_DIR_BASE:?}/$REPO-$COMMAND"
+
+
+ref=${ref:=origin/main}
+open=${open:=0}
+
+args=()
+args+=("--command" "$COMMAND")
+args+=("--data-dir" "$DATA_DIR")
+args+=("--repo" "$REPO")
+args+=("--ref" "$ref")
+args+=("--sideload-book" "$BOOK")
+
+! [[ -e "$DATA_DIR_BASE" ]] && mkdir -p "$DATA_DIR_BASE"
+[[ -n ${start_at:-} ]] && args+=("--start-at" "$start_at")
+[[ -n ${stop_at:-} ]] && args+=("--stop-at" "$stop_at")
+[[ -n ${book_slug:-} ]] && args+=("--book-slug" "$book_slug")
+[[ -n ${shorten:-} ]] && args+=("--shorten" "$shorten")
+
+if ! [[ -e "$BOOK" ]]; then
+    git clone "https://github.com/openstax/$REPO" "$BOOK"
+fi
+
+# If we’re not keeping local changes, reset to the target ref
+if [[ ${keep_changes:-0} -eq 0 ]]; then
+    pushd "$BOOK" &>/dev/null
+    git fetch -av
+    git checkout -f "$ref"
+    git reset --hard "$ref"
+    popd &>/dev/null
+fi
+
+"$REPO_ROOT/enki" "${args[@]}" </dev/null
+
+# Optionally open the data directory
+if [[ $open -eq 1 ]]; then
+    open "$DATA_DIR"
+fi
