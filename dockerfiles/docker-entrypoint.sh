@@ -310,6 +310,10 @@ function upload_book_artifacts() {
         url="https://$ARG_S3_BUCKET_NAME.s3.amazonaws.com/$s3_name_url_encd"
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
 
+        # TODO: Remove acl option once stack update removes bucket ACLs
+        aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
+            --acl "public-read" \
+            --content-type "$content_type" || \
         aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
             --content-type "$content_type"
     done
