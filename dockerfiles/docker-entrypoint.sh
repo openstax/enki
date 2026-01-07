@@ -311,7 +311,6 @@ function upload_book_artifacts() {
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
 
         aws s3 cp "$file_to_upload" "s3://$ARG_S3_BUCKET_NAME/$s3_name" \
-            --acl "public-read" \
             --content-type "$content_type"
     done
     if [[ ${#book_slug_urls[@]} == 0 ]]; then
