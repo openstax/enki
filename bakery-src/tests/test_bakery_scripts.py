@@ -4864,8 +4864,8 @@ def test_ppt_slide_content(mocker):
     # Alt should not be truncated since it's short
     assert len(result_slide.alt) < 200
     assert not result_slide.alt.endswith("...")
-    # Notes should still contain full text
-    assert result_slide.notes == result_slide.alt
+    # Notes should not contain full text
+    assert result_slide.notes is None
 
     # Test table without thead (no headers)
     table_no_headers = table_maker(

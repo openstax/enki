@@ -596,17 +596,19 @@ def handle_tables(
                 img_path = resource_dir / img_name
                 img.save(img_path)
 
-                alt_text_short = alt_text = os_table.get_alt_text(title)
-                if len(alt_text_short) >= 200:
+                note_text = None
+                alt_text = os_table.get_alt_text(title)
+                if len(alt_text) >= 200:
                     ellipsis = "... (Full description in notes)"
-                    alt_text_short = alt_text[:200 - len(ellipsis)] + ellipsis
+                    note_text = alt_text
+                    alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
 
                 yield FigureSlideContent(
                     title=title,
                     src=os.path.relpath(img_path, doc_dir),
                     caption=os_table.get_caption(),
-                    alt=alt_text_short,
-                    notes=alt_text,
+                    alt=alt_text,
+                    notes=note_text,
                 )
             else:
                 yield HTMLTableSlideContent(
