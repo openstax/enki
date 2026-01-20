@@ -228,10 +228,8 @@ class Table(Captioned):
                 headers = [get_cell_text(cell) for cell in header_cells]
                 caption_parts.append(f"Columns: {', '.join(headers)}")
 
-            # Get data rows from tbody (first 3 rows)
             data_rows = table_elem.xpath(".//h:tbody//h:tr")
         else:
-            # No thead - just get first 3 rows
             data_rows = table_elem.xpath(".//h:tr")
 
         # Extract data from rows
