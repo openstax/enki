@@ -4,4 +4,4 @@ WORKDIR /code
 RUN apt-get update && \
     apt-get install -y curl
 
-COPY [cross-lib, ./cross-lib]
+COPY [batch-builder, ./batch-builder]
