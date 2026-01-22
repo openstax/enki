@@ -106,6 +106,10 @@ def try_find_nearest_sm(elem):
     return sm_results[0]
 
 
+def get_elem_text(cell):
+    return "".join(cell.itertext()).strip()
+
+
 class Element:
     def __init__(self, element):
         self._element = element
@@ -211,11 +215,8 @@ class Table(Captioned):
         # Generate caption from table structure when base_caption is empty
         table_elem = Element(self.get_table_elem())
 
-        def get_cell_text(cell):
-            return "".join(cell.itertext()).strip()
-
         caption_parts = [
-            get_cell_text(slide_title)
+            get_elem_text(slide_title)
             if not isinstance(slide_title, str)
             else slide_title
         ]
@@ -225,7 +226,7 @@ class Table(Captioned):
         if thead_rows:
             header_cells = Element(thead_rows[0]).xpath(".//h:th|.//h:td")
             if header_cells:
-                headers = [get_cell_text(cell) for cell in header_cells]
+                headers = [get_elem_text(cell) for cell in header_cells]
                 caption_parts.append(f"Columns: {', '.join(headers)}")
 
             data_rows = table_elem.xpath(".//h:tbody//h:tr")
@@ -236,7 +237,7 @@ class Table(Captioned):
         for i, row in enumerate(data_rows, start=1):
             cells = Element(row).xpath(".//h:td|.//h:th")
             if cells:
-                row_data = [get_cell_text(cell) for cell in cells]
+                row_data = [get_elem_text(cell) for cell in cells]
                 caption_parts.append(f"Row {i}: {', '.join(row_data)}")
 
         if len(caption_parts) > 1:
@@ -596,7 +597,7 @@ def handle_tables(
 
                 note_text = None
                 alt_text = os_table.get_alt_text(title)
-                if len(alt_text) >= 200:
+                if len(alt_text) > 200:
                     ellipsis = "... (Full description in notes)"
                     note_text = alt_text
                     alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
