@@ -106,6 +106,10 @@ def try_find_nearest_sm(elem):
     return sm_results[0]
 
 
+def get_elem_text(cell):
+    return "".join(cell.itertext()).strip()
+
+
 class Element:
     def __init__(self, element):
         self._element = element
@@ -202,6 +206,43 @@ class Table(Captioned):
 
     def get_table_elem(self):
         return self.xpath1(".//h:table")
+
+    def get_alt_text(self, slide_title) -> str:
+        base_caption = self.get_caption()
+        if base_caption:
+            return base_caption
+
+        # Generate caption from table structure when base_caption is empty
+        table_elem = Element(self.get_table_elem())
+
+        caption_parts = [
+            get_elem_text(slide_title)
+            if not isinstance(slide_title, str)
+            else slide_title
+        ]
+
+        # Try to find headers in thead
+        thead_rows = table_elem.xpath(".//h:thead//h:tr")
+        if thead_rows:
+            header_cells = Element(thead_rows[0]).xpath(".//h:th|.//h:td")
+            if header_cells:
+                headers = [get_elem_text(cell) for cell in header_cells]
+                caption_parts.append(f"Columns: {', '.join(headers)}")
+
+            data_rows = table_elem.xpath(".//h:tbody//h:tr")
+        else:
+            data_rows = table_elem.xpath(".//h:tr")
+
+        # Extract data from rows
+        for i, row in enumerate(data_rows, start=1):
+            cells = Element(row).xpath(".//h:td|.//h:th")
+            if cells:
+                row_data = [get_elem_text(cell) for cell in cells]
+                caption_parts.append(f"Row {i}: {', '.join(row_data)}")
+
+        if len(caption_parts) > 1:
+            return "; ".join(caption_parts)
+        return "Table without data"  # pragma: no cover
 
 
 class Page(BookElement):
@@ -553,11 +594,20 @@ def handle_tables(
                 img_name = f"{uuid4()}.png"
                 img_path = resource_dir / img_name
                 img.save(img_path)
+
+                note_text = None
+                alt_text = os_table.get_alt_text(title)
+                if len(alt_text) > 200:
+                    ellipsis = "... (Full description in notes)"
+                    note_text = alt_text
+                    alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
+
                 yield FigureSlideContent(
                     title=title,
                     src=os.path.relpath(img_path, doc_dir),
                     caption=os_table.get_caption(),
-                    alt="",
+                    alt=alt_text,
+                    notes=note_text,
                 )
             else:
                 yield HTMLTableSlideContent(

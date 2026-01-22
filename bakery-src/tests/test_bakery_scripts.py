@@ -4486,7 +4486,8 @@ def test_ppt_slide_content(mocker):
         has_caption=True,
         html=E.div(E.table(E.tr(E.td("test")))),
         caption="caption",
-        doc_dir="/doc_dir"
+        doc_dir="/doc_dir",
+        real_alt_text=False,
     ):
         table = pptify_book.Table(html)
         table.has_number = lambda: number is not None
@@ -4495,6 +4496,8 @@ def test_ppt_slide_content(mocker):
         table.get_caption = lambda: caption
         table.has_caption = lambda: has_caption
         table.get_doc_dir = lambda: doc_dir
+        if not real_alt_text:
+            table.get_alt_text = lambda _: caption
         return table
 
     def page_maker(
@@ -4780,6 +4783,107 @@ def test_ppt_slide_content(mocker):
     assert len(results) == 2
     image_save_stub.assert_not_called()
     assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
+
+    # # Test table alt text generation with caption
+    table_with_caption = table_maker(
+        html=E.div(E.table(E.tr(E.td("data")))),
+        caption="This is a descriptive caption",
+        real_alt_text=True,
+    )
+    alt_text = table_with_caption.get_alt_text("Table 1")
+    assert alt_text == "This is a descriptive caption"
+
+    # Test table alt text generation without caption (empty caption)
+    table_no_caption = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("Column A"), E.th("Column B"))),
+                E.tbody(
+                    E.tr(E.td("Value 1"), E.td("Value 2")),
+                    E.tr(E.td("Value 3"), E.td("Value 4"))
+                ),
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text = table_no_caption.get_alt_text("Table 2")
+    assert "Table 2" in alt_text
+    assert "Columns: Column A, Column B" in alt_text
+    assert "Row 1: Value 1, Value 2" in alt_text
+    assert "Row 2: Value 3, Value 4" in alt_text
+
+    # Test table alt text truncation for long text
+    # Create table with many rows to generate long alt text
+    rows = [E.tr(E.td(f"Very long data value {i}"), E.td(f"Another long value {i}")) for i in range(20)]
+    table_long = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("First Column Header"), E.th("Second Column Header"))),
+                E.tbody(*rows)
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text_long = table_long.get_alt_text("Long Table")
+    # Alt text should be quite long
+    assert len(alt_text_long) > 200
+
+    # Test that handle_tables properly uses alt text with truncation
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    slides_with_alt = [
+        pptify_book.TableSlideContent(
+            title="Long Table",
+            os_table=table_long,
+        ),
+    ]
+    results = list(pptify_book.handle_tables(slides_with_alt, Path("/resources"), []))
+    assert len(results) == 1
+    result_slide = results[0]
+    assert isinstance(result_slide, pptify_book.FigureSlideContent)
+    # Alt should be truncated to 200 chars with ellipsis
+    assert len(result_slide.alt) == 200
+    assert result_slide.alt.endswith("... (Full description in notes)")
+    # Notes should contain full untruncated text
+    assert alt_text_long == result_slide.notes
+    assert len(result_slide.notes) > 200
+
+    # Test that short alt text is not truncated
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    slides_with_short_alt = [
+        pptify_book.TableSlideContent(
+            title="Short Table",
+            os_table=table_no_caption,
+        ),
+    ]
+    results = list(pptify_book.handle_tables(slides_with_short_alt, Path("/resources"), []))
+    assert len(results) == 1
+    result_slide = results[0]
+    assert isinstance(result_slide, pptify_book.FigureSlideContent)
+    # Alt should not be truncated since it's short
+    assert len(result_slide.alt) < 200
+    assert not result_slide.alt.endswith("...")
+    # Notes should not contain full text
+    assert result_slide.notes is None
+
+    # Test table without thead (no headers)
+    table_no_headers = table_maker(
+        html=E.div(
+            E.table(
+                E.tr(E.td("Data 1"), E.td("Data 2")),
+                E.tr(E.td("Data 3"), E.td("Data 4"))
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text_no_headers = table_no_headers.get_alt_text("Table 3")
+    assert "Table 3" in alt_text_no_headers
+    assert "Row 1: Data 1, Data 2" in alt_text_no_headers
+    assert "Row 2: Data 3, Data 4" in alt_text_no_headers
+    # Should not include "Columns:" since there's no thead
+    assert "Columns:" not in alt_text_no_headers
 
     # Test guess_str_len_html
     elem = E.div(E.span(E.span("test")))
