@@ -29,7 +29,7 @@ MathJax = {
           enableAssistiveMml : mjopt.assistiveMml,
           enableEnrichment : true, // false to disable enrichment
           sre: {
-               speech : 'shallow' // or 'shallow', or 'deep'
+               speech : 'shallow' // options: 'none', 'shallow', or 'deep'
           }
      },
      loader : {
