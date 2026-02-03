@@ -28,7 +28,9 @@ MathJax = {
      options : {
           enableAssistiveMml : mjopt.assistiveMml,
           enableEnrichment : true, // false to disable enrichment
-          enrichSpeech : 'shallow' // or 'shallow', or 'deep'
+          sre: {
+               speech : 'shallow' // options: 'none', 'shallow', or 'deep'
+          }
      },
      loader : {
           paths : {
@@ -68,8 +70,10 @@ MathJax.startup.promise.then(() => {
                     containerWidth : mjopt.width
                }).then((node) => {
                     const adaptor = MathJax.startup.adaptor
+                    const speech = adaptor.getAttribute(node, 'aria-label')
+                    const html = adaptor.outerHTML(node)
                     // output as svg and mathspeak from aria-label
-                    callback(null, [ (adaptor.outerHTML(node)), node.attributes['aria-label'] ])
+                    callback(null, [html, speech])
                }).catch((err) => {
                     console.log(err)
                     callback(null, [ '', '' ]) // return empty string array for predictable error handling in python
