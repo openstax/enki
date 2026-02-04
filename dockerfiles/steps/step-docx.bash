@@ -67,7 +67,7 @@ while read -r line; do
     for xhtmlfile in ./"$uuid@"*.xhtml; do
         xhtmlfile_basename=$(basename "$xhtmlfile")
         metadata_filename="${xhtmlfile_basename%.*}"-metadata.json
-        jq -r --arg language "$language" '{ title: .title, language: $language, author: "OpenStax", company: "OpenStax" }' "$metadata_filename" > "$pandoc_metadata_file"
+        jq --arg language "$language" '{ title: .title, language: $language, author: "OpenStax", company: "OpenStax" }' "$metadata_filename" > "$pandoc_metadata_file"
         docx_filename=$(jq -r '.slug' "$metadata_filename").docx
         mathmltable_tempfile="$xhtmlfile.mathmltable.tmp"
         mathmltable2png "$xhtmlfile" "../resources" "$mathmltable_tempfile"
