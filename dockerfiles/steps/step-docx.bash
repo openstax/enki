@@ -61,10 +61,13 @@ col_sep='|'
 while read -r line; do
     IFS=$col_sep read -r slug uuid <<< "$line"
     current_target="$target_dir/$slug"
+    pandoc_metadata_file="$IO_JSONIFIED/pandoc-metadata.json"
+    language=$(jq -r '.language' "$IO_JSONIFIED/$slug.toc.json")
     [[ -d "$current_target" ]] || mkdir "$current_target"
     for xhtmlfile in ./"$uuid@"*.xhtml; do
         xhtmlfile_basename=$(basename "$xhtmlfile")
         metadata_filename="${xhtmlfile_basename%.*}"-metadata.json
+        jq -r --arg language "$language" '{ title: .title, language: $language, author: "OpenStax", company: "OpenStax" }' "$metadata_filename" > "$pandoc_metadata_file"
         docx_filename=$(jq -r '.slug' "$metadata_filename").docx
         mathmltable_tempfile="$xhtmlfile.mathmltable.tmp"
         mathmltable2png "$xhtmlfile" "../resources" "$mathmltable_tempfile"
@@ -72,7 +75,7 @@ while read -r line; do
 
         say "Converting to docx: $xhtmlfile_basename"
         xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
-        pandoc --fail-if-warnings --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
+        pandoc --fail-if-warnings --metadata-file "$pandoc_metadata_file" --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 
