@@ -2167,6 +2167,40 @@ async def test_gdocify_book(tmp_path, mocker):
         os.chdir(old_dir)
 
 
+def test_linkify_figures():
+    """Test linkify_figures moves figure ids to nested spans"""
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <figure id="fig1"><p>Figure with id</p></figure>
+        <figure id="fig2"><img src="test.png"/></figure>
+        <figure><p>Figure without id</p></figure>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    ns = {"x": "http://www.w3.org/1999/xhtml"}
+
+    gdocify_book.linkify_figures(doc)
+
+    # Check figure with id="fig1" now has a span child with that id
+    fig1 = doc.xpath('//x:figure[x:span[@id="fig1"]]', namespaces=ns)
+    assert len(fig1) == 1
+    assert fig1[0].get("id") == ""
+    assert fig1[0][0].tag == "{http://www.w3.org/1999/xhtml}span"
+    assert fig1[0][0].get("id") == "fig1"
+
+    # Check figure with id="fig2"
+    fig2 = doc.xpath('//x:figure[x:span[@id="fig2"]]', namespaces=ns)
+    assert len(fig2) == 1
+    assert fig2[0].get("id") == ""
+
+    # Check figure without id is unchanged (no span added)
+    figs_without_span = doc.xpath('//x:figure[not(x:span)]', namespaces=ns)
+    assert len(figs_without_span) == 1
+    assert figs_without_span[0].get("id") is None
+
+
 def test_mathml2png(tmp_path, mocker):
     """Test python parts of mathml2png"""
 
