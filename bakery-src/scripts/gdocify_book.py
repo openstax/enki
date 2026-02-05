@@ -85,7 +85,6 @@ def fix_headings(doc):
             heading_nodes.append((node, level))
             min_level = min(min_level, level)
 
-
     # If there's already an h1 or no headings, nothing to do
     if min_level <= 1 or min_level == 7:
         return

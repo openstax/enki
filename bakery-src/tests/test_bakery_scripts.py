@@ -2181,7 +2181,7 @@ def test_fix_headings():
         </body>
         </html>
     """
-    doc = etree.fromstring(doc_content.encode())
+    doc = etree.fromstring(doc_content)
     gdocify_book.fix_headings(doc)
 
     assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
@@ -2199,7 +2199,7 @@ def test_fix_headings():
         </body>
         </html>
     """
-    doc = etree.fromstring(doc_content.encode())
+    doc = etree.fromstring(doc_content)
     gdocify_book.fix_headings(doc)
 
     assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
@@ -2215,7 +2215,7 @@ def test_fix_headings():
         </body>
         </html>
     """
-    doc = etree.fromstring(doc_content.encode())
+    doc = etree.fromstring(doc_content)
     gdocify_book.fix_headings(doc)
 
     assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
@@ -2231,7 +2231,7 @@ def test_fix_headings():
         </body>
         </html>
     """
-    doc = etree.fromstring(doc_content.encode())
+    doc = etree.fromstring(doc_content)
     gdocify_book.fix_headings(doc)  # Should not raise
 
 
