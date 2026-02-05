@@ -76,7 +76,7 @@ def linkify_figures(doc):
         if figure_id:
             span = etree.Element(f"{{{NS_XHTML}}}span")
             span.set("id", figure_id)
-            node.set("id", "")
+            del node.attrib["id"]
             node.insert(0, span)
 
 
