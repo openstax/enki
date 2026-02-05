@@ -23,6 +23,8 @@ RESOURCES_FOLDER = '../resources/'
 SRGB_ICC = '/usr/share/color/icc/sRGB.icc'
 # user installed Adobe ICC CMYK profile US Web Coated (SWOP)
 USWEBCOATEDSWOP_ICC = '/usr/share/color/icc/USWebCoatedSWOP.icc'
+# Namespace for xhtml
+NS_XHTML = "http://www.w3.org/1999/xhtml"
 
 
 @timed
@@ -64,6 +66,36 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
             node.attrib["href"] = _rex_url_builder(
                 book_slug, page_slug, page_fragment
             )
+
+
+@timed
+def fix_headings(doc):
+    heading_nodes = []
+    min_level = 7
+
+    for node in doc.iter():
+        tag = node.tag
+
+        if not isinstance(tag, str):
+            continue
+
+        tag = etree.QName(tag).localname
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            level = int(tag[1])
+            heading_nodes.append((node, level))
+            min_level = min(min_level, level)
+
+
+    # If there's already an h1 or no headings, nothing to do
+    if min_level <= 1 or min_level == 7:
+        return
+
+    # NOTE: Assumes headings are already in the correct order
+    shift = min_level - 1
+    for node, level in heading_nodes:
+        new_level = level - shift
+        new_tag = f"{{{NS_XHTML}}}h{new_level}"
+        node.tag = new_tag
 
 
 def remove_iframes(doc):
@@ -242,6 +274,7 @@ async def run_async():
                 # Disassemble puts all math into xhtml namespace
                 patch_math_for_pandoc(doc, "http://www.w3.org/1999/xhtml")
                 remove_iframes(doc)
+                fix_headings(doc)
                 for img_filename in get_img_resources(doc, out_dir):
                     if img_filename not in queued_items:  # pragma: no cover
                         queued_items.add(img_filename)

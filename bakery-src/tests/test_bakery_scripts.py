@@ -2167,6 +2167,74 @@ async def test_gdocify_book(tmp_path, mocker):
         os.chdir(old_dir)
 
 
+def test_fix_headings():
+    """Test fix_headings upgrades heading levels when no h1 exists"""
+    ns = {"x": "http://www.w3.org/1999/xhtml"}
+
+    # Test case 1: No h1, should upgrade h2->h1, h3->h2, etc.
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h2>Title</h2>
+        <h3>Subtitle</h3>
+        <h4>Section</h4>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h4', namespaces=ns)) == 0
+
+    # Test case 2: h1 already exists, should not change anything
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h1>Title</h1>
+        <h2>Subtitle</h2>
+        <h3>Section</h3>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 1
+
+    # Test case 3: Only h3 and h4, should upgrade by 2 levels
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h3>Title</h3>
+        <h4>Subtitle</h4>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 0
+    assert len(doc.xpath('//x:h4', namespaces=ns)) == 0
+
+    # Test case 4: No headings at all, should not fail
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <p>No headings here</p>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    gdocify_book.fix_headings(doc)  # Should not raise
+
+
 def test_mathml2png(tmp_path, mocker):
     """Test python parts of mathml2png"""
 
