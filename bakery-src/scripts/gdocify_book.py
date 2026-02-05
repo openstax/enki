@@ -26,6 +26,7 @@ USWEBCOATEDSWOP_ICC = '/usr/share/color/icc/USWebCoatedSWOP.icc'
 # Namespace for xhtml
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 
+
 @timed
 def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     """Modify links in doc"""
