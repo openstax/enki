@@ -80,6 +80,35 @@ def linkify_figures(doc):
             node.insert(0, span)
 
 
+@timed
+def fix_headings(doc):
+    heading_nodes = []
+    min_level = 7
+
+    for node in doc.iter():
+        tag = node.tag
+
+        if not isinstance(tag, str):
+            continue
+
+        tag = etree.QName(tag).localname
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            level = int(tag[1])
+            heading_nodes.append((node, level))
+            min_level = min(min_level, level)
+
+    # If there's already an h1 or no headings, nothing to do
+    if min_level <= 1 or min_level == 7:
+        return
+
+    # NOTE: Assumes headings are already in the correct order
+    shift = min_level - 1
+    for node, level in heading_nodes:
+        new_level = level - shift
+        new_tag = f"{{{NS_XHTML}}}h{new_level}"
+        node.tag = new_tag
+
+
 def remove_iframes(doc):
     for node in doc.xpath('//x:iframe', namespaces={"x": NS_XHTML}):
         node.getparent().remove(node)
@@ -253,6 +282,7 @@ async def run_async():
                 patch_math_for_pandoc(doc, NS_XHTML)
                 remove_iframes(doc)
                 linkify_figures(doc)
+                fix_headings(doc)
                 for img_filename in get_img_resources(doc, out_dir):
                     if img_filename not in queued_items:  # pragma: no cover
                         queued_items.add(img_filename)
