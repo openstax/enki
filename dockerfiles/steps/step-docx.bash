@@ -53,6 +53,7 @@ mathml2png_rpc start
 book_slugs_file="$(realpath "$IO_DOCX/book-slugs.json")"
 book_dir="$(realpath "$IO_DOCX/content")"
 target_dir="$(realpath "$IO_DOCX/docx")"
+pandoc_metadata_file="$(realpath "$IO_JSONIFIED/pandoc-metadata.json")"
 reference_doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference-$lang.docx"
 mkdir -p "$target_dir"
 cd "$book_dir"
@@ -61,7 +62,6 @@ col_sep='|'
 while read -r line; do
     IFS=$col_sep read -r slug uuid <<< "$line"
     current_target="$target_dir/$slug"
-    pandoc_metadata_file="$IO_JSONIFIED/pandoc-metadata.json"
     [[ -d "$current_target" ]] || mkdir "$current_target"
     for xhtmlfile in ./"$uuid@"*.xhtml; do
         xhtmlfile_basename=$(basename "$xhtmlfile")

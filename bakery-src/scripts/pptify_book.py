@@ -224,10 +224,20 @@ class Table(Captioned):
         # Try to find headers in thead
         thead_rows = table_elem.xpath(".//h:thead//h:tr")
         if thead_rows:
-            header_cells = Element(thead_rows[0]).xpath(".//h:th|.//h:td")
-            if header_cells:
-                headers = [get_elem_text(cell) for cell in header_cells]
-                caption_parts.append(f"Columns: {', '.join(headers)}")
+            if len(thead_rows) > 1:
+                for i, thead_row in enumerate(thead_rows, start=1):
+                    header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                    if header_cells:
+                        headers = [get_elem_text(cell) for cell in header_cells]
+                        caption_parts.append(
+                            f"Table heading row {i} columns: {', '.join(headers)}"
+                        )
+            else:
+                thead_row = thead_rows[0]
+                header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                if header_cells:
+                    headers = [get_elem_text(cell) for cell in header_cells]
+                    caption_parts.append(f"Columns: {', '.join(headers)}")
 
             data_rows = table_elem.xpath(".//h:tbody//h:tr")
         else:

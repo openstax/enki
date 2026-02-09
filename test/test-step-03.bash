@@ -31,11 +31,11 @@ while IFS=$'\n' read -r expected_contents; do
         exit 1
     fi
 done <<EOF
-s3 cp --recursive /tmp/build/0000000/artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
-s3 cp --recursive /tmp/build/0000000/resources/03e68a5/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/03e68a5
-s3 cp --recursive /tmp/build/0000000/resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
-s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.json
-s3 cp /tmp/build/0000000/jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.xhtml
+s3 cp --recursive artifacts-single s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents
+s3 cp --recursive resources/03e68a5/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/03e68a5
+s3 cp --recursive resources/styles/ s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/resources/styles
+s3 cp jsonified-single/book-slug1.toc.json s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.json
+s3 cp jsonified-single/book-slug1.toc.xhtml s3://openstax-sandbox-cops-artifacts/apps/archive-localdev/test/contents/00000000-0000-0000-0000-000000000000@03e68a5.xhtml
 EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/aws_args_*` and copy/paste :)
 
@@ -51,7 +51,7 @@ while IFS=$'\n' read -r expected_contents; do
         exit 1
     fi
 done <<EOF
-/tmp/build/0000000/resources openstax-sandbox-cops-artifacts apps/archive-localdev/test/resources
+resources openstax-sandbox-cops-artifacts apps/archive-localdev/test/resources
 EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/copy_resources_s3_args_*` and copy/paste :)
 
@@ -79,7 +79,7 @@ while IFS=$'\n' read -r expected_contents; do
         exit 1
     fi
 done <<EOF
-/tmp/build/0000000/ancillary
+ancillary
 EOF
 
 # Test without book slug
@@ -120,7 +120,7 @@ while IFS=$'\n' read -r expected_contents; do
         exit 1
     fi
 done <<EOF
-/tmp/build/0000000/ancillary
+ancillary
 EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/upload_ancillaries_args_*` and copy/paste :)
 
