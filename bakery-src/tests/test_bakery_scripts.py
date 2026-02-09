@@ -4911,7 +4911,26 @@ def test_ppt_slide_content(mocker):
     )
     alt_text = table_no_caption.get_alt_text("Table 2")
     assert "Table 2" in alt_text
-    assert "Table heading row 1 columns: Column A, Column B" in alt_text
+    assert "Columns: Column A, Column B" in alt_text
+    assert "Row 1: Value 1, Value 2" in alt_text
+    assert "Row 2: Value 3, Value 4" in alt_text
+
+    table_no_caption = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("Column A"), E.th("Column B")), E.tr(E.th("Column C"), E.th("Column D"))),
+                E.tbody(
+                    E.tr(E.td("Value 1"), E.td("Value 2")),
+                    E.tr(E.td("Value 3"), E.td("Value 4"))
+                ),
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text = table_no_caption.get_alt_text("Table 2")
+    assert "Table 2" in alt_text
+    assert "Table heading row 1 columns: Column A, Column B; Table heading row 2 columns:" in alt_text
     assert "Row 1: Value 1, Value 2" in alt_text
     assert "Row 2: Value 3, Value 4" in alt_text
 
