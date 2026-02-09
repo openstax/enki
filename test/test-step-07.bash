@@ -31,7 +31,7 @@ if [[ "$actual_contents" != "$expected_contents" ]]; then
     exit 1
 fi
 
-expected_contents="s3 cp /tmp/build/0000000/artifacts-single/$expected_book_slug.$expected_extension s3://openstax-sandbox-cops-artifacts/$expected_filename --acl public-read --content-type $expected_mime_type"
+expected_contents="s3 cp artifacts-single/$expected_book_slug.$expected_extension s3://openstax-sandbox-cops-artifacts/$expected_filename --acl public-read --content-type $expected_mime_type"
 actual_contents="$(cat $BOOK_DIR/_attic/IO_ARTIFACTS/aws_args_1)"
 if [[ "$actual_contents" != "$expected_contents" ]]; then
     echo "Bad AWS CLI args."
