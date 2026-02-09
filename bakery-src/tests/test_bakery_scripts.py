@@ -4911,7 +4911,7 @@ def test_ppt_slide_content(mocker):
     )
     alt_text = table_no_caption.get_alt_text("Table 2")
     assert "Table 2" in alt_text
-    assert "Columns: Column A, Column B" in alt_text
+    assert "Table heading row 1 columns: Column A, Column B" in alt_text
     assert "Row 1: Value 1, Value 2" in alt_text
     assert "Row 2: Value 3, Value 4" in alt_text
 
