@@ -74,7 +74,7 @@ while read -r line; do
 
         say "Converting to docx: $xhtmlfile_basename"
         xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
-        pandoc --fail-if-warnings --metadata-file "$pandoc_metadata_file" --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
+        pandoc --fail-if-warnings --metadata-file="$pandoc_metadata_file" --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 
