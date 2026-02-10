@@ -697,7 +697,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                         continue
                     src = fig.get_src()
                     title = f"Figure {fig.get_number()}"
-                    caption = fig.get_caption() or fig.get_alt() or "None"
+                    caption = fig.get_caption()
                     alt = fig.get_alt() or ""
                     if not src:  # pragma: no cover
                         name = "src"
