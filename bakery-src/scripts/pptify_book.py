@@ -858,10 +858,10 @@ def fix_image_aspect_ratio(slides: Iterable[Slide]):
     for slide in slides:
         for shape in slide.shapes:
             if isinstance(shape, Picture):
-                w_px, h_px = shape.image.size
-                if w_px == 0 or h_px == 0:
+                w, h = shape.image.size
+                if 0 in (w, h, shape.width, shape.height):
                     continue
-                img_aspect = w_px / h_px
+                img_aspect = w / h
                 shape_aspect = shape.width / shape.height
                 if img_aspect > shape_aspect:
                     new_h = round(shape.width / img_aspect)
