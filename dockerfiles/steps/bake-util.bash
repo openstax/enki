@@ -37,4 +37,10 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
         sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
     fi
 done
+
+baked_files=("$IO_BAKED"/*.baked.xhtml)
+if [[ ${#baked_files[@]} -gt 0 ]]; then
+    node /workspace/enki/bakery-js/dist/index.js a11y "$IO_BAKED/a11y" "${baked_files[@]}"
+fi
+
 shopt -u globstar nullglob
