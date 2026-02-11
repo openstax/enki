@@ -1,10 +1,10 @@
 /* global MathJax:true */
 
 // How to run server manually:
-// node -r esm mml2svg2png-json-rpc.js
+// node mml2svg2png-json-rpc.js
 //
 // How to run server with pm2:
-// pm2 start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
+// pm2 start mml2svg2png-json-rpc.js --wait-ready --listen-timeout 8000
 
 // listen port
 const listenPort = 33001
@@ -19,7 +19,7 @@ mjopt.ex = 8 // ex-size in pixels
 mjopt.width = 80 * 16 // width of container in pixels
 mjopt.fontCache = true
 mjopt.assistiveMml = false
-mjopt.dist = false
+mjopt.dist = true
 
 //
 // Configure MathJax

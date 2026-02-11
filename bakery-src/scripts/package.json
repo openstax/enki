@@ -2,7 +2,7 @@
   "dependencies": {
     "jayson": "^3.3.4",
     "mathjax-full": "^3.2.2",
-    "pm2": "^4.5.0",
+    "pm2": "^6.0.14",
     "sharp": "^0.26.2"
   }
 }

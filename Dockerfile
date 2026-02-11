@@ -53,7 +53,7 @@ RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pando
 # Install Python, NodeJS, and Java
 # ---------------------------
 FROM base as base-with-langs
-ENV NODE_VERSION=18
+ENV NODE_VERSION=22
 RUN set -x \
     && apt-get update \
     && apt-get install -y ca-certificates curl gnupg \
