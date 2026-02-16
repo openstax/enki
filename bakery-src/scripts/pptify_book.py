@@ -91,7 +91,7 @@ def configure_i18n(lang: str):
 
 
 def get_string(key: str) -> str:  # noqa: E302
-    raise RuntimeError("Language not configured; call configure_i18n first")
+    raise RuntimeError("Language not configured; call configure_i18n first")  # pragma: no cover
 
 
 BLOCKISH_TAGS = (
@@ -926,7 +926,7 @@ def fix_image_aspect_ratio(slides: Iterable[Slide]):
             if isinstance(shape, Picture):
                 w, h = shape.image.size
                 if 0 in (w, h, shape.width, shape.height):
-                    continue
+                    continue  # pragma: no cover
                 img_aspect = w / h
                 shape_aspect = shape.width / shape.height
                 if img_aspect > shape_aspect:

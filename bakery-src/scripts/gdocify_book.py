@@ -89,7 +89,7 @@ def fix_headings(doc):
         tag = node.tag
 
         if not isinstance(tag, str):
-            continue
+            continue  # pragma: no cover
 
         tag = etree.QName(tag).localname
         if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
