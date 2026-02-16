@@ -84,7 +84,10 @@ I18N_STRINGS = {
 def configure_i18n(lang: str):
     global get_string
     strings = I18N_STRINGS.get(lang, I18N_STRINGS["en"])
-    get_string = lambda key: strings[key]
+
+    def _get_string(key):
+        return strings[key]
+    get_string = _get_string
 
 
 def get_string(key: str) -> str:  # noqa: E302
