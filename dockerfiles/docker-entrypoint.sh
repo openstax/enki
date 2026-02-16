@@ -229,7 +229,7 @@ function mathml2png_rpc() {
         pushd "$BAKERY_SCRIPTS_ROOT/scripts/" > /dev/null
         if [[ $JS_DEBUG == 1 ]]; then
             # LCOV_EXCL_START
-            node \
+            node -r esm \
                 $NODE_OPTIONS \
                 $BAKERY_SCRIPTS_ROOT/scripts/mml2svg2png-json-rpc.js \
                 &
@@ -251,7 +251,7 @@ function mathml2png_rpc() {
             done
             # LCOV_EXCL_STOP
         else
-            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --wait-ready --listen-timeout 8000
+            "$BAKERY_SCRIPTS_ROOT/scripts/node_modules/.bin/pm2" start mml2svg2png-json-rpc.js --node-args="-r esm" --wait-ready --listen-timeout 8000
         fi
         popd > /dev/null
     elif [[ $command == stop ]]; then
