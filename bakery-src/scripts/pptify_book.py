@@ -763,7 +763,7 @@ def chapter_to_slide_contents(chapter: Chapter):
                         continue
                     src = fig.get_src()
                     title = f"{get_string('figure')} {fig.get_number()}"
-                    caption = fig.get_caption() or fig.get_alt() or "None"
+                    caption = fig.get_caption()
                     alt = fig.get_alt() or ""
                     if not src:  # pragma: no cover
                         name = "src"
@@ -812,6 +812,7 @@ def slide_contents_to_html(
                     yield E.ul(*list_items)
             elif isinstance(slide_content, FigureSlideContent):
                 yield E.figure(
+                    # Alt becomes the caption and title becomes the alt text
                     E.img(
                         src=slide_content.src,
                         alt=slide_content.caption,
@@ -919,9 +920,30 @@ def adjust_figure_caption_font(slides: Iterable[Slide]):
         yield slide
 
 
+def fix_image_aspect_ratio(slides: Iterable[Slide]):
+    for slide in slides:
+        for shape in slide.shapes:
+            if isinstance(shape, Picture):
+                w, h = shape.image.size
+                if 0 in (w, h, shape.width, shape.height):
+                    continue
+                img_aspect = w / h
+                shape_aspect = shape.width / shape.height
+                if img_aspect > shape_aspect:
+                    new_h = round(shape.width / img_aspect)
+                    shape.top += (shape.height - new_h) // 2
+                    shape.height = new_h
+                else:
+                    new_w = round(shape.height * img_aspect)
+                    shape.left += (shape.width - new_w) // 2
+                    shape.width = new_w
+        yield slide
+
+
 def slides_post_process(pres: pptx.Presentation):
     slides = pres.slides
     slides = fix_image_alt_text(slides)
+    slides = fix_image_aspect_ratio(slides)
     slides = adjust_figure_caption_font(slides)
     _ = list(slides)  # Run generator to completion
     slide_layouts_by_name = {sl.name: sl for sl in pres.slide_layouts}

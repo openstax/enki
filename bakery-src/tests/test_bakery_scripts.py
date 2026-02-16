@@ -5063,6 +5063,44 @@ def test_slide_transformations(mocker, tmp_path):
     slides = list(slides)
     assert fake_picture_elem.get("descr") == "Some alt text"
 
+    # fix_image_aspect_ratio should correct shape dimensions to match image
+    # Case 1: wider image (landscape) in a square-ish shape
+    wide_picture = shape_maker(spec=pptify_book.Picture)
+    wide_picture.image = mocker.stub()
+    wide_picture.image.size = (800, 400)  # 2:1 aspect
+    wide_picture.width = 1000
+    wide_picture.height = 1000
+    wide_picture.top = 100
+    wide_picture.left = 100
+    slides = [slide_maker(shapes=[wide_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert wide_picture.height == 500
+    assert wide_picture.top == 350  # centered: 100 + (1000 - 500) // 2
+    assert wide_picture.width == 1000  # unchanged
+
+    # Case 2: taller image (portrait) in a square-ish shape
+    tall_picture = shape_maker(spec=pptify_book.Picture)
+    tall_picture.image = mocker.stub()
+    tall_picture.image.size = (400, 800)  # 1:2 aspect
+    tall_picture.width = 1000
+    tall_picture.height = 1000
+    tall_picture.top = 100
+    tall_picture.left = 100
+    slides = [slide_maker(shapes=[tall_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert tall_picture.width == 500
+    assert tall_picture.left == 350  # centered: 100 + (1000 - 500) // 2
+    assert tall_picture.height == 1000  # unchanged
+
+    # Case 3: non-Picture shapes should be left alone
+    non_picture = shape_maker()
+    non_picture.width = 1000
+    non_picture.height = 500
+    slides = [slide_maker(shapes=[non_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert non_picture.width == 1000
+    assert non_picture.height == 500
+
     # adjust_figure_caption_font should set the font size of captions
     fake_figure_title = shape_maker()
     fake_figure_title.title.text = "Figure 1"
@@ -5135,11 +5173,14 @@ def test_slide_transformations(mocker, tmp_path):
     assert mock_picture.name == "Cover Image"
 
     fix_image_alt_text_stub = mocker.patch("bakery_scripts.pptify_book.fix_image_alt_text")
+    fix_image_aspect_ratio_stub = mocker.patch("bakery_scripts.pptify_book.fix_image_aspect_ratio")
     adjust_figure_caption_font_stub = mocker.patch("bakery_scripts.pptify_book.adjust_figure_caption_font")
     fix_image_alt_text_stub.start()
+    fix_image_aspect_ratio_stub.start()
     adjust_figure_caption_font_stub.start()
     pptify_book.slides_post_process(mock_pres)
     fix_image_alt_text_stub.assert_called_once()
+    fix_image_aspect_ratio_stub.assert_called_once()
     adjust_figure_caption_font_stub.assert_called_once()
     mock_pres.slides.add_slide.assert_called_once()
     mocker.stopall()
