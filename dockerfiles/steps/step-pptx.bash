@@ -9,10 +9,12 @@ for book in "$IO_LINKED/"*.xhtml; do
     collection_file="$IO_FETCH_META/collections/$slug_name.collection.xml"
     lang=$(xmlstarlet sel -t -m '//*[local-name() = "language"]/text()' "$collection_file" || { warn "Failed to find language" >&2; echo "en"; })
     ref_doc="$BAKERY_SCRIPTS_ROOT/scripts/ppt/custom-reference-$lang.pptx"
+    # LCOV_EXCL_START
     if [[ ! -f "$ref_doc" ]]; then
         warn "No PPT template for language '$lang', falling back to English"
         ref_doc="$BAKERY_SCRIPTS_ROOT/scripts/ppt/custom-reference-en.pptx"
     fi
+    # LCOV_EXCL_END
     output_dir="$IO_PPTX/$slug_name"
     output_fmt="$output_dir/{slug}.{extension}"
     cover="$IO_FETCH_META/cover/$slug_name-cover.jpg"
