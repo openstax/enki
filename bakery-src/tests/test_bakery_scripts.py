@@ -4886,7 +4886,16 @@ def test_ppt_slide_content(mocker):
     image_save_stub.assert_not_called()
     assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
 
-    # # Test table alt text generation with caption
+    # Test table alt text: summary attribute takes priority
+    table_with_summary = table_maker(
+        html=E.div(E.table(E.tr(E.td("data")), summary="Summary text")),
+        caption="This is a descriptive caption",
+        real_alt_text=True,
+    )
+    alt_text = table_with_summary.get_alt_text("Table 1")
+    assert alt_text == "Summary text"
+
+    # Test table alt text: caption is used when no summary
     table_with_caption = table_maker(
         html=E.div(E.table(E.tr(E.td("data")))),
         caption="This is a descriptive caption",
