@@ -229,7 +229,7 @@ if [[ $arg_command == 'bake-preview' ]]; then
 
     # This helps make the page load MUCH faster
     echo "Making loadable content lazy with suffix \".lazy.xhtml\"" >&2
-    docker run --rm -it -v $data_dir:/tmp --entrypoint bash enki -ec '
+    docker run --rm -i -v $data_dir:/tmp --entrypoint bash enki -ec '
 IO_BAKED=/tmp/_attic/IO_BAKED
 
 for collection in "$IO_BAKED/"*.baked.xhtml; do
