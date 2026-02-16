@@ -38,6 +38,30 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+TABLE_ALT_TEXT_STRINGS = {
+    "en": {
+        "table_heading_row": "Table heading row {i} columns: {columns}",
+        "columns": "Columns: {columns}",
+        "row": "Row {i}: {data}",
+        "table_without_data": "Table without data",
+        "full_description_in_notes": "... (Full description in notes)",
+    },
+    "es": {
+        "table_heading_row": "Fila de encabezado {i} columnas: {columns}",
+        "columns": "Columnas: {columns}",
+        "row": "Fila {i}: {data}",
+        "table_without_data": "Tabla sin datos",
+        "full_description_in_notes": "... (Descripción completa en las notas)",
+    },
+    "pl": {
+        "table_heading_row": "Wiersz nagłówka tabeli {i} kolumny: {columns}",
+        "columns": "Kolumny: {columns}",
+        "row": "Wiersz {i}: {data}",
+        "table_without_data": "Tabela bez danych",
+        "full_description_in_notes": "... (Pełny opis w notatkach)",
+    },
+}
+
 BLOCKISH_TAGS = (
     f"{{{NS_XHTML}}}address",
     f"{{{NS_XHTML}}}article",
@@ -207,11 +231,12 @@ class Table(Captioned):
     def get_table_elem(self):
         return self.xpath1(".//h:table")
 
-    def get_alt_text(self, slide_title) -> str:
+    def get_alt_text(self, slide_title, lang) -> str:
+        strings = TABLE_ALT_TEXT_STRINGS.get(lang, TABLE_ALT_TEXT_STRINGS["en"])
         summary = self.get_table_elem().get("summary")
         if summary:
             return summary
-        
+
         base_caption = self.get_caption()
         if base_caption:
             return base_caption
@@ -234,14 +259,18 @@ class Table(Captioned):
                     if header_cells:
                         headers = [get_elem_text(cell) for cell in header_cells]
                         caption_parts.append(
-                            f"Table heading row {i} columns: {', '.join(headers)}"
+                            strings["table_heading_row"].format(
+                                i=i, columns=", ".join(headers)
+                            )
                         )
             else:
                 thead_row = thead_rows[0]
                 header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
                 if header_cells:
                     headers = [get_elem_text(cell) for cell in header_cells]
-                    caption_parts.append(f"Columns: {', '.join(headers)}")
+                    caption_parts.append(
+                        strings["columns"].format(columns=", ".join(headers))
+                    )
 
             data_rows = table_elem.xpath(".//h:tbody//h:tr")
         else:
@@ -252,11 +281,13 @@ class Table(Captioned):
             cells = Element(row).xpath(".//h:td|.//h:th")
             if cells:
                 row_data = [get_elem_text(cell) for cell in cells]
-                caption_parts.append(f"Row {i}: {', '.join(row_data)}")
+                caption_parts.append(
+                    strings["row"].format(i=i, data=", ".join(row_data))
+                )
 
         if len(caption_parts) > 1:
             return "; ".join(caption_parts)
-        return "Table without data"  # pragma: no cover
+        return strings["table_without_data"]  # pragma: no cover
 
 
 class Page(BookElement):
@@ -589,7 +620,10 @@ def os_table_to_image(
 
 
 def handle_tables(
-    slide_contents: Iterable[SlideContent], resource_dir: Path, css: list[str]
+    slide_contents: Iterable[SlideContent],
+    resource_dir: Path,
+    css: list[str],
+    lang: str,
 ):
     for slide_content in slide_contents:
         if isinstance(slide_content, TableSlideContent):
@@ -610,9 +644,12 @@ def handle_tables(
                 img.save(img_path)
 
                 note_text = None
-                alt_text = os_table.get_alt_text(title)
+                alt_text = os_table.get_alt_text(title, lang)
+                strings = TABLE_ALT_TEXT_STRINGS.get(
+                    lang, TABLE_ALT_TEXT_STRINGS["en"]
+                )
                 if len(alt_text) > 200:
-                    ellipsis = "... (Full description in notes)"
+                    ellipsis = strings["full_description_in_notes"]
                     note_text = alt_text
                     alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
 
@@ -922,6 +959,7 @@ def main():
     cover_image = Path(sys.argv[4]).resolve()
     css = [sys.argv[5]]
     out_fmt = sys.argv[6]
+    lang = sys.argv[7]
     # For xhtml_to_img
     os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
@@ -937,7 +975,7 @@ def main():
         info(f"Working on: {slug}")
         slide_contents = chapter_to_slide_contents(chapter)
         slide_contents = split_large_bullet_lists(slide_contents)
-        slide_contents = handle_tables(slide_contents, resource_dir, css)
+        slide_contents = handle_tables(slide_contents, resource_dir, css, lang=lang)
         slide_contents = rename_images_to_type(slide_contents, resource_dir)
         slides_etree = slide_contents_to_html(
             book.get_title(),

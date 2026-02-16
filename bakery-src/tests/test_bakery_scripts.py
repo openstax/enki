@@ -4599,7 +4599,7 @@ def test_ppt_slide_content(mocker):
         table.has_caption = lambda: has_caption
         table.get_doc_dir = lambda: doc_dir
         if not real_alt_text:
-            table.get_alt_text = lambda _: caption
+            table.get_alt_text = lambda *_: caption
         return table
 
     def page_maker(
@@ -4870,7 +4870,7 @@ def test_ppt_slide_content(mocker):
             number_offset=1,
         ),
     ]
-    results = pptify_book.handle_tables(slides, Path("/resources"), [])
+    results = pptify_book.handle_tables(slides, Path("/resources"), [], lang="en")
     results = list(results)[:-1]
     assert image_save_stub.mock_calls[1].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
     assert image_save_stub.mock_calls[2].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
@@ -4880,7 +4880,7 @@ def test_ppt_slide_content(mocker):
     image_save_stub.reset_mock()
     # Table should fit, use HTML
     os_table_to_image_stub.return_value = Image.new("RGBA", (100, 100))
-    results = pptify_book.handle_tables(slides, Path("/resources"), [])
+    results = pptify_book.handle_tables(slides, Path("/resources"), [], lang="en")
     results = list(results)[:-1]
     assert len(results) == 2
     image_save_stub.assert_not_called()
@@ -4892,7 +4892,7 @@ def test_ppt_slide_content(mocker):
         caption="This is a descriptive caption",
         real_alt_text=True,
     )
-    alt_text = table_with_summary.get_alt_text("Table 1")
+    alt_text = table_with_summary.get_alt_text("Table 1", "en")
     assert alt_text == "Summary text"
 
     # Test table alt text: caption is used when no summary
@@ -4901,7 +4901,7 @@ def test_ppt_slide_content(mocker):
         caption="This is a descriptive caption",
         real_alt_text=True,
     )
-    alt_text = table_with_caption.get_alt_text("Table 1")
+    alt_text = table_with_caption.get_alt_text("Table 1", "en")
     assert alt_text == "This is a descriptive caption"
 
     # Test table alt text generation without caption (empty caption)
@@ -4918,7 +4918,7 @@ def test_ppt_slide_content(mocker):
         caption="",
         real_alt_text=True,
     )
-    alt_text = table_no_caption.get_alt_text("Table 2")
+    alt_text = table_no_caption.get_alt_text("Table 2", "en")
     assert "Table 2" in alt_text
     assert "Columns: Column A, Column B" in alt_text
     assert "Row 1: Value 1, Value 2" in alt_text
@@ -4937,7 +4937,7 @@ def test_ppt_slide_content(mocker):
         caption="",
         real_alt_text=True,
     )
-    alt_text = table_no_caption.get_alt_text("Table 2")
+    alt_text = table_no_caption.get_alt_text("Table 2", "en")
     assert "Table 2" in alt_text
     assert "Table heading row 1 columns: Column A, Column B; Table heading row 2 columns:" in alt_text
     assert "Row 1: Value 1, Value 2" in alt_text
@@ -4956,7 +4956,7 @@ def test_ppt_slide_content(mocker):
         caption="",
         real_alt_text=True,
     )
-    alt_text_long = table_long.get_alt_text("Long Table")
+    alt_text_long = table_long.get_alt_text("Long Table", "en")
     # Alt text should be quite long
     assert len(alt_text_long) > 200
 
@@ -4968,7 +4968,7 @@ def test_ppt_slide_content(mocker):
             os_table=table_long,
         ),
     ]
-    results = list(pptify_book.handle_tables(slides_with_alt, Path("/resources"), []))
+    results = list(pptify_book.handle_tables(slides_with_alt, Path("/resources"), [], lang="en"))
     assert len(results) == 1
     result_slide = results[0]
     assert isinstance(result_slide, pptify_book.FigureSlideContent)
@@ -4987,7 +4987,7 @@ def test_ppt_slide_content(mocker):
             os_table=table_no_caption,
         ),
     ]
-    results = list(pptify_book.handle_tables(slides_with_short_alt, Path("/resources"), []))
+    results = list(pptify_book.handle_tables(slides_with_short_alt, Path("/resources"), [], lang="en"))
     assert len(results) == 1
     result_slide = results[0]
     assert isinstance(result_slide, pptify_book.FigureSlideContent)
@@ -5008,7 +5008,7 @@ def test_ppt_slide_content(mocker):
         caption="",
         real_alt_text=True,
     )
-    alt_text_no_headers = table_no_headers.get_alt_text("Table 3")
+    alt_text_no_headers = table_no_headers.get_alt_text("Table 3", "en")
     assert "Table 3" in alt_text_no_headers
     assert "Row 1: Data 1, Data 2" in alt_text_no_headers
     assert "Row 2: Data 3, Data 4" in alt_text_no_headers
@@ -5359,6 +5359,7 @@ def test_pptify_book(mocker, tmp_path):
         str(cover_image),
         "css-file",
         f"{tmp_path}/ppt-{{slug}}.{{extension}}",
+        "en",
     ]
 
     mocker.patch("sys.argv", args)
