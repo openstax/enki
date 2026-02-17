@@ -22,10 +22,6 @@ def check(in_stream):
         msg("jobs: {}", jobs)
         msg("Inputs: {}", input)
 
-        if version:
-            previous_id = version["id"]
-            jobs = [job for job in jobs if int(job["id"]) > int(previous_id)]
-
         return [{"id": job["id"]} for job in jobs]
 
 
