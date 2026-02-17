@@ -38,46 +38,62 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+
+_I18N_KEYS = frozenset([
+    "table_heading_row", "columns", "row", "table_without_data",
+    "full_description_in_notes", "chapter_outline", "learning_objectives",
+    "figure", "table", "chapter", "cover_image",
+])
+
+
+def _make_i18n_entry(**kwargs):
+    missing = _I18N_KEYS - kwargs.keys()
+    extra = kwargs.keys() - _I18N_KEYS
+    if missing or extra:
+        raise ValueError(f"I18N entry error. Missing: {missing}, Extra: {extra}")
+    return kwargs
+
+
 I18N_STRINGS = {
-    "en": {
-        "table_heading_row": "Table heading row {i} columns: {columns}",
-        "columns": "Columns: {columns}",
-        "row": "Row {i}: {data}",
-        "table_without_data": "Table without data",
-        "full_description_in_notes": "... (Full description in notes)",
-        "chapter_outline": "Chapter outline",
-        "learning_objectives": "Learning Objectives",
-        "figure": "Figure",
-        "table": "Table",
-        "chapter": "Chapter",
-        "cover_image": "Cover image",
-    },
-    "es": {
-        "table_heading_row": "Fila de encabezado {i} columnas: {columns}",
-        "columns": "Columnas: {columns}",
-        "row": "Fila {i}: {data}",
-        "table_without_data": "Tabla sin datos",
-        "full_description_in_notes": "... (Descripción completa en las notas)",
-        "chapter_outline": "Esquema del capítulo",
-        "learning_objectives": "Objetivos de aprendizaje",
-        "figure": "Figura",
-        "table": "Tabla",
-        "chapter": "Capítulo",
-        "cover_image": "Imagen de portada",
-    },
-    "pl": {
-        "table_heading_row": "Wiersz nagłówka tabeli {i} kolumny: {columns}",
-        "columns": "Kolumny: {columns}",
-        "row": "Wiersz {i}: {data}",
-        "table_without_data": "Tabela bez danych",
-        "full_description_in_notes": "... (Pełny opis w notatkach)",
-        "chapter_outline": "Zarys rozdziału",
-        "learning_objectives": "Cele dydaktyczne",
-        "figure": "Rycina",
-        "table": "Tabela",
-        "chapter": "Rozdział",
-        "cover_image": "Obraz okładki",
-    },
+    "en": _make_i18n_entry(
+        table_heading_row="Table heading row {i} columns: {columns}",
+        columns="Columns: {columns}",
+        row="Row {i}: {data}",
+        table_without_data="Table without data",
+        full_description_in_notes="... (Full description in notes)",
+        chapter_outline="Chapter outline",
+        learning_objectives="Learning Objectives",
+        figure="Figure",
+        table="Table",
+        chapter="Chapter",
+        cover_image="Cover image",
+    ),
+    "es": _make_i18n_entry(
+        table_heading_row="Fila de encabezado {i} columnas: {columns}",
+        columns="Columnas: {columns}",
+        row="Fila {i}: {data}",
+        table_without_data="Tabla sin datos",
+        full_description_in_notes="... (Descripción completa en las notas)",
+        chapter_outline="Esquema del capítulo",
+        learning_objectives="Objetivos de aprendizaje",
+        figure="Figura",
+        table="Tabla",
+        chapter="Capítulo",
+        cover_image="Imagen de portada",
+    ),
+    "pl": _make_i18n_entry(
+        table_heading_row="Wiersz nagłówka tabeli {i} kolumny: {columns}",
+        columns="Kolumny: {columns}",
+        row="Wiersz {i}: {data}",
+        table_without_data="Tabela bez danych",
+        full_description_in_notes="... (Pełny opis w notatkach)",
+        chapter_outline="Zarys rozdziału",
+        learning_objectives="Cele dydaktyczne",
+        figure="Rycina",
+        table="Tabela",
+        chapter="Rozdział",
+        cover_image="Obraz okładki",
+    ),
 }
 
 
