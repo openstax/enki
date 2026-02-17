@@ -7,9 +7,13 @@ mathml2png_rpc start
 for book in "$IO_LINKED/"*.xhtml; do
     slug_name=$(basename "$book" | awk -F'[.]' '{ print $1; }')
     collection_file="$IO_FETCH_META/collections/$slug_name.collection.xml"
-    lang=$(xmlstarlet sel -t -m '//*[local-name() = "language"]/text()' -v . -n "$collection_file" || { warn "Failed to find language" >&2; echo "en"; })
-    ref_doc="$BAKERY_SCRIPTS_ROOT/scripts/ppt/custom-reference-$lang.pptx"
+    lang=$(xmlstarlet sel -t -m '//*[local-name() = "language"]/text()' -v . -n "$collection_file" | xargs || true)
     # LCOV_EXCL_START
+    if [[ -z "${lang:-}" ]]; then
+        warn "Failed to find language"
+        lang=en
+    fi
+    ref_doc="$BAKERY_SCRIPTS_ROOT/scripts/ppt/custom-reference-$lang.pptx"
     if [[ ! -f "$ref_doc" ]]; then
         warn "No PPT template for language '$lang', falling back to English"
         ref_doc="$BAKERY_SCRIPTS_ROOT/scripts/ppt/custom-reference-en.pptx"
