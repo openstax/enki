@@ -26,6 +26,7 @@ import { dom } from './minidom'
 import Ajv from 'ajv'
 import { createInterface } from 'readline'
 import { upload } from './ancillary-integration'
+import { run as runA11y } from './a11y'
 sourceMapSupport.install()
 
 const coverPage = `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
@@ -327,6 +328,28 @@ program
   .argument('<ancillaries-dir>', 'directory containing ancillaries to upload')
   .action(async (ancillariesDir) => {
     await upload(ancillariesDir)
+  })
+
+program
+  .command('a11y')
+  .description('Run accessibility tests on baked XHTML files')
+  .argument('<output-dir>', 'Directory to write the HTML report to')
+  .argument('<input-files...>', 'Baked XHTML files to test')
+  .option('-t, --tags <tags...>', 'axe-core rule tags to test', [
+    'wcag2aa',
+    'wcag21aa',
+  ])
+  .action(async (outputDir, inputFiles, options) => {
+    outputDir = resolve(outputDir)
+    mkdirSync(outputDir, { recursive: true })
+    const summary = await runA11y({
+      inputFiles: inputFiles.map((f: string) => resolve(f)),
+      outputDir,
+      tags: options.tags,
+    })
+    const reportPath = `${outputDir}/a11y-report.html`
+    writeFileSync(reportPath, summary)
+    console.log(`Report written to ${reportPath}`)
   })
 
 program.parse()

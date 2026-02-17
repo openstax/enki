@@ -53,7 +53,7 @@ RUN wget https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pando
 # Install Python, NodeJS, and Java
 # ---------------------------
 FROM base as base-with-langs
-ENV NODE_VERSION=18
+ENV NODE_VERSION=22
 RUN set -x \
     && apt-get update \
     && apt-get install -y ca-certificates curl gnupg \
@@ -86,6 +86,7 @@ FROM base-with-langs as build-bakery-js-stage
 # Install dependencies first
 COPY ./bakery-js/package.json ./bakery-js/package-lock.json /workspace/enki/bakery-js/
 RUN npm --prefix=/workspace/enki/bakery-js install
+RUN npx playwright install chromium
 
 COPY ./bakery-js/bin/ /workspace/enki/bakery-js/bin/
 COPY ./bakery-js/src/ /workspace/enki/bakery-js/src/
@@ -314,6 +315,9 @@ COPY --from=build-kcov-stage /usr/local/share/doc/kcov /usr/local/share/doc/kcov
 
 COPY --from=build-xhtml-validator-stage /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar /workspace/enki/xhtml-validator/build/libs/xhtml-validator.jar
 COPY --from=build-bakery-js-stage /workspace/enki/bakery-js/ /workspace/enki/bakery-js/
+ENV PLAYWRIGHT_BROWSERS_PATH=/workspace/enki/.playwright-browsers
+COPY --from=build-bakery-js-stage /root/.cache/ms-playwright/ /workspace/enki/.playwright-browsers/
+RUN npx --prefix=/workspace/enki/bakery-js playwright install-deps chromium
 COPY --from=build-mathify-stage /workspace/enki/mathify/ /workspace/enki/mathify/
 COPY --from=build-python-stage /workspace/enki/bakery-src/scripts /workspace/enki/bakery-src/scripts
 COPY --from=build-python-stage /workspace/enki/bakery-src/scripts/gdoc /workspace/enki/bakery-src/scripts/gdoc
