@@ -4982,6 +4982,7 @@ def test_ppt_slide_content(mocker, lang):
 def test_slide_transformations(mocker, tmp_path):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    pptify_book.configure_i18n("en")
 
     def shape_maker(*, spec=None):
         shape = unittest.mock.Mock(spec=spec)
