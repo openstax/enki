@@ -40,7 +40,15 @@ done
 
 baked_files=("$IO_BAKED"/*.baked.xhtml)
 if [[ ${#baked_files[@]} -gt 0 ]]; then
-    node /workspace/enki/bakery-js/dist/index.js a11y "$IO_BAKED/a11y" "${baked_files[@]}"
+    # Normalize git ref to a bare branch name or SHA for GitHub URLs.
+    # Strips a leading remote prefix (e.g. origin/main -> main) but leaves
+    # branch names with slashes (e.g. feature/my-branch) untouched.
+    git_ref="$ARG_GIT_REF"
+    [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
+    [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
+    node /workspace/enki/bakery-js/dist/index.js a11y \
+        --repo "$ARG_REPO_NAME" --ref "$git_ref" \
+        "$IO_BAKED/a11y" "${baked_files[@]}"
 fi
 
 shopt -u globstar nullglob

@@ -37,6 +37,7 @@ const analyzePage = async ({
 type AnalyzeResult = Awaited<ReturnType<typeof analyzePage>>
 
 type ScreenshotMap = Record<string, string>
+type SourceMap = Record<string, string>
 
 const captureViolationScreenshots = async (
   page: PlaywrightContext['page'],
@@ -96,13 +97,63 @@ const captureViolationScreenshots = async (
   return screenshots
 }
 
+const captureSourceMapData = async (
+  page: PlaywrightContext['page'],
+  results: AnalyzeResult
+): Promise<SourceMap> => {
+  const sourceMap: SourceMap = {}
+
+  for (const violation of results.violations) {
+    for (let i = 0; i < violation.nodes.length; i++) {
+      const node = violation.nodes[i]
+      const selector = node.target[0]
+      if (typeof selector !== 'string') continue
+
+      const sm = await page.evaluate((sel) => {
+        const el = document.querySelector(sel)
+        if (!el) return null
+        // Walk up ancestors first (most likely to carry data-sm)
+        let current: Element | null = el
+        while (current) {
+          const val = current.getAttribute('data-sm')
+          if (val) return val
+          current = current.parentElement
+        }
+        // Fall back to nearest descendant
+        return el.querySelector('[data-sm]')?.getAttribute('data-sm') ?? null
+      }, selector)
+
+      if (sm !== null) sourceMap[`${violation.id}-${i}`] = sm
+    }
+  }
+
+  return sourceMap
+}
+
 interface FileResult {
   file: string
   results: AnalyzeResult
   screenshots: ScreenshotMap
+  sourceMap: SourceMap
 }
 
-const generateSummary = (fileResults: FileResult[]) => {
+// Parses a data-sm value like ./modules/m59760/index.cnxml:24:1 into a GitHub URL
+const smToGithubUrl = (
+  sm: string,
+  repo: string,
+  ref: string
+): string | null => {
+  const match = sm.match(/^(?:\.\/)?(.+):(\d+):\d+$/)
+  if (!match) return null
+  const [, filePath, line] = match
+  return `https://github.com/openstax/${repo}/blob/${ref}/${filePath}#L${line}`
+}
+
+const generateSummary = (
+  fileResults: FileResult[],
+  repo?: string,
+  ref = 'main'
+) => {
   let body = ''
   const head =
     '<style>' +
@@ -110,7 +161,7 @@ const generateSummary = (fileResults: FileResult[]) => {
     'img.a11y-screenshot { max-width: 600px; border: 1px solid #ccc; margin-top: 8px; }' +
     '</style>'
 
-  for (const { file, results, screenshots } of fileResults) {
+  for (const { file, results, screenshots, sourceMap } of fileResults) {
     body += `<h2>${file}</h2>\n`
 
     if (results.violations.length === 0) {
@@ -118,7 +169,7 @@ const generateSummary = (fileResults: FileResult[]) => {
     } else {
       body += `<h3>❌ Found ${results.violations.length} Violation Types</h3>\n`
       body +=
-        '<table>\n<thead><tr><th>Impact</th><th>Description</th><th>Elements Affected</th></tr></thead>\n<tbody>\n'
+        '<table>\n<thead><tr><th>Impact</th><th>Description</th><th>GitHub</th><th>Elements Affected</th></tr></thead>\n<tbody>\n'
 
       results.violations.forEach((v) => {
         v.nodes.forEach((node, nodeIdx) => {
@@ -131,9 +182,17 @@ const generateSummary = (fileResults: FileResult[]) => {
               `src="data:image/png;base64,${screenshotB64}" ` +
               'alt="Screenshot of violation"/></details>'
           }
+          const sm = sourceMap[`${v.id}-${nodeIdx}`]
+          const githubUrl =
+            repo !== undefined && sm ? smToGithubUrl(sm, repo, ref) : null
+          const githubHtml = githubUrl
+            ? `<a href="${githubUrl}" target="_blank">${sm}</a>`
+            : 'N/A'
           body += `<tr><td><strong>${v.impact?.toUpperCase()}</strong></td><td>${
             v.help
-          }</td><td>${node.target}${screenshotHtml}</td></tr>\n`
+          }</td><td>${githubHtml}</td><td>${
+            node.target
+          }${screenshotHtml}</td></tr>\n`
         })
       })
 
@@ -148,6 +207,8 @@ interface A11yOptions {
   inputFiles: string[]
   outputDir: string
   tags?: string[]
+  repo?: string
+  ref?: string
 }
 
 const makeLazy = (doc: Document) => {
@@ -205,6 +266,7 @@ export const run = async (options: A11yOptions) => {
         })
         const violationCount = results.violations.length
         let screenshots: ScreenshotMap = {}
+        let sourceMap: SourceMap = {}
         if (violationCount === 0) {
           log(`No violations found`)
         } else {
@@ -212,8 +274,9 @@ export const run = async (options: A11yOptions) => {
           log('Capturing screenshots of violations...')
           screenshots = await captureViolationScreenshots(context.page, results)
           log(`Captured ${Object.keys(screenshots).length} screenshots`)
+          sourceMap = await captureSourceMapData(context.page, results)
         }
-        fileResults.push({ file: inputFile, results, screenshots })
+        fileResults.push({ file: inputFile, results, screenshots, sourceMap })
       } finally {
         if (shortened !== inputFile) {
           fs.unlinkSync(shortened)
@@ -221,7 +284,7 @@ export const run = async (options: A11yOptions) => {
       }
     }
     log(`Done. Tested ${fileResults.length} files`)
-    return generateSummary(fileResults)
+    return generateSummary(fileResults, options.repo, options.ref)
   } finally {
     await context.browser.close()
   }
