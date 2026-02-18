@@ -147,7 +147,8 @@ const smToGithubUrl = (
   const match = sm.match(/^(?:\.\/)?(.+):(\d+):\d+$/)
   if (!match) return null
   const [, filePath, line] = match
-  return `https://github.com/openstax/${repo}/blob/${ref}/${filePath}#L${line}`
+  const fullRepo = repo.includes('/') ? repo : `openstax/${repo}`
+  return `https://github.com/${fullRepo}/blob/${ref}/${filePath}#L${line}`
 }
 
 const formatWcagCriteria = (tags: string[]): string => {
