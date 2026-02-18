@@ -30,7 +30,7 @@ const analyzePage = async ({
   tags,
 }: PlaywrightContext & { inputFile: string; tags?: string[] }) => {
   const filePath = `file://${inputFile}`
-  await page.goto(filePath)
+  await page.goto(filePath, { waitUntil: 'domcontentloaded' })
   return await new AxeBuilder({ page }).withTags(tags ?? DEFAULT_TAGS).analyze()
 }
 
