@@ -22,7 +22,7 @@ const getPlaywrightContext = async () => {
 }
 
 type PlaywrightContext = Awaited<ReturnType<typeof getPlaywrightContext>>
-const DEFAULT_TAGS = ['wcag2aa', 'wcag21aa']
+const DEFAULT_TAGS = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa']
 
 const analyzePage = async ({
   page,
