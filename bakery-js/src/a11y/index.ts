@@ -217,7 +217,6 @@ const generateSummary = (
 
 interface A11yOptions {
   inputFiles: string[]
-  outputDir: string
   tags?: string[]
   repo?: string
   ref?: string
