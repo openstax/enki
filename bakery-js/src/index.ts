@@ -346,6 +346,11 @@ program
     'GitHub repository name for source links (e.g. osbooks-physics)'
   )
   .option('-R, --ref <ref>', 'Git ref or SHA for GitHub source links', 'main')
+  .option(
+    '-f, --fraction <fraction>',
+    'Fraction of chapters to keep when shortening books (default: 0.25)',
+    parseFloat
+  )
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
     mkdirSync(outputDir, { recursive: true })
@@ -354,6 +359,7 @@ program
       tags: options.tags,
       repo: options.repo,
       ref: options.ref,
+      fraction: options.fraction,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)
