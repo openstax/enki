@@ -351,6 +351,11 @@ program
     'Fraction of chapters to keep when shortening books (default: 0.25)',
     parseFloat
   )
+  .option(
+    '-n, --max-chapters <maxChapters>',
+    'Maximum number of chapters to keep when shortening books',
+    parseInt
+  )
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
     mkdirSync(outputDir, { recursive: true })
@@ -360,6 +365,7 @@ program
       repo: options.repo,
       ref: options.ref,
       fraction: options.fraction,
+      maxChapters: options.maxChapters,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)
