@@ -149,6 +149,18 @@ const smToGithubUrl = (
   return `https://github.com/openstax/${repo}/blob/${ref}/${filePath}#L${line}`
 }
 
+const formatWcagCriteria = (tags: string[]): string => {
+  return tags
+    .filter((t) => /^wcag\d{3,}$/.test(t))
+    .map((t) => {
+      const d = t.slice(4)
+      if (d.length === 3) return `${d[0]}.${d[1]}.${d[2]}`
+      if (d.length === 4) return `${d[0]}.${d[1]}.${d.slice(2)}`
+      return d
+    })
+    .join(', ')
+}
+
 const escapeHtml = (str: string) =>
   str
     .replace(/&/g, '&amp;')
@@ -170,14 +182,14 @@ const generateSummary = (
     '</style>'
 
   for (const { file, results, screenshots, sourceMap } of fileResults) {
-    body += `<h2>${escapeHtml(file)}</h2>\n`
+    body += `<h2>${escapeHtml(path.basename(file))}</h2>\n`
 
     if (results.violations.length === 0) {
       body += '<h3>✅ All Checks Passed!</h3>\n<p>No issues found.</p>\n'
     } else {
       body += `<h3>❌ Found ${results.violations.length} Violation Types</h3>\n`
       body +=
-        '<table>\n<thead><tr><th>Impact</th><th>Description</th><th>GitHub</th><th>Elements Affected</th></tr></thead>\n<tbody>\n'
+        '<table>\n<thead><tr><th>Impact</th><th>Description</th><th>WCAG</th><th>GitHub</th><th>Elements Affected</th></tr></thead>\n<tbody>\n'
 
       results.violations.forEach((v) => {
         v.nodes.forEach((node, nodeIdx) => {
@@ -198,11 +210,15 @@ const generateSummary = (
                 sm
               )}</a>`
             : 'N/A'
+          const wcagCriteria = formatWcagCriteria(v.tags)
+          const wcagHtml = wcagCriteria
+            ? `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(wcagCriteria)}</a>`
+            : `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(v.id)}</a>`
           body += `<tr><td><strong>${escapeHtml(
             v.impact?.toUpperCase() ?? ''
           )}</strong></td><td>${escapeHtml(
             v.help
-          )}</td><td>${githubHtml}</td><td>${escapeHtml(
+          )}</td><td>${wcagHtml}</td><td>${githubHtml}</td><td>${escapeHtml(
             node.target.join(', ')
           )}${screenshotHtml}</td></tr>\n`
         })
@@ -220,6 +236,7 @@ interface A11yOptions {
   tags?: string[]
   repo?: string
   ref?: string
+  fraction?: number
 }
 
 const makeLazy = (doc: Document) => {
@@ -268,7 +285,7 @@ export const run = async (options: A11yOptions) => {
     for (let i = 0; i < options.inputFiles.length; i++) {
       const inputFile = options.inputFiles[i]
       log(`Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`)
-      const shortened = shorten(inputFile)
+      const shortened = shorten(inputFile, options.fraction)
       try {
         const results = await analyzePage({
           ...context,
