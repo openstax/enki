@@ -14,7 +14,7 @@ const SCREENSHOT_MAX_HEIGHT = 600
 
 const getPlaywrightContext = async () => {
   log('Launching browser...')
-  const browser = await chromium.launch()
+  const browser = await chromium.launch({ timeout: 60_000 * 5 })
   const context = await browser.newContext()
   const page = await context.newPage()
 
