@@ -242,6 +242,7 @@ interface A11yOptions {
   repo?: string
   ref?: string
   fraction?: number
+  maxChapters?: number
 }
 
 const makeLazy = (doc: Document) => {
@@ -253,7 +254,11 @@ const makeLazy = (doc: Document) => {
   })
 }
 
-const shorten = (inputFile: string, fraction = 0.25): string => {
+const shorten = (
+  inputFile: string,
+  fraction = 0.25,
+  maxChapters?: number
+): string => {
   const content = fs.readFileSync(inputFile, 'utf-8')
   const doc = parseXml(content)
   const chapters = dom(doc).find('//*[@data-type="chapter"]')
@@ -263,7 +268,9 @@ const shorten = (inputFile: string, fraction = 0.25): string => {
     return inputFile
   }
 
-  const step = Math.max(1, Math.round(1 / fraction))
+  const effectiveFraction =
+    maxChapters !== undefined ? maxChapters / chapters.length : fraction
+  const step = Math.max(1, Math.round(1 / effectiveFraction))
   const keep = new Set(chapters.filter((_, i) => i % step === 0))
 
   for (const chapter of chapters) {
@@ -290,7 +297,11 @@ export const run = async (options: A11yOptions) => {
     for (let i = 0; i < options.inputFiles.length; i++) {
       const inputFile = options.inputFiles[i]
       log(`Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`)
-      const shortened = shorten(inputFile, options.fraction)
+      const shortened = shorten(
+        inputFile,
+        options.fraction,
+        options.maxChapters
+      )
       try {
         const results = await analyzePage({
           ...context,
