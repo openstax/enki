@@ -336,9 +336,16 @@ program
   .argument('<output-dir>', 'Directory to write the HTML report to')
   .argument('<input-files...>', 'Baked XHTML files to test')
   .option('-t, --tags <tags...>', 'axe-core rule tags to test', [
+    'wcag2a',
+    'wcag21a',
     'wcag2aa',
     'wcag21aa',
   ])
+  .option(
+    '-r, --repo <repo>',
+    'GitHub repository name for source links (e.g. osbooks-physics)'
+  )
+  .option('-R, --ref <ref>', 'Git ref or SHA for GitHub source links', 'main')
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
     mkdirSync(outputDir, { recursive: true })
@@ -346,6 +353,8 @@ program
       inputFiles: inputFiles.map((f: string) => resolve(f)),
       outputDir,
       tags: options.tags,
+      repo: options.repo,
+      ref: options.ref,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)
