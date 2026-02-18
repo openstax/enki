@@ -351,7 +351,6 @@ program
     mkdirSync(outputDir, { recursive: true })
     const summary = await runA11y({
       inputFiles: inputFiles.map((f: string) => resolve(f)),
-      outputDir,
       tags: options.tags,
       repo: options.repo,
       ref: options.ref,
