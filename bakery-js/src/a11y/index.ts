@@ -149,6 +149,14 @@ const smToGithubUrl = (
   return `https://github.com/openstax/${repo}/blob/${ref}/${filePath}#L${line}`
 }
 
+const escapeHtml = (str: string) =>
+  str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
 const generateSummary = (
   fileResults: FileResult[],
   repo?: string,
@@ -162,7 +170,7 @@ const generateSummary = (
     '</style>'
 
   for (const { file, results, screenshots, sourceMap } of fileResults) {
-    body += `<h2>${file}</h2>\n`
+    body += `<h2>${escapeHtml(file)}</h2>\n`
 
     if (results.violations.length === 0) {
       body += '<h3>✅ All Checks Passed!</h3>\n<p>No issues found.</p>\n'
@@ -186,13 +194,17 @@ const generateSummary = (
           const githubUrl =
             repo !== undefined && sm ? smToGithubUrl(sm, repo, ref) : null
           const githubHtml = githubUrl
-            ? `<a href="${githubUrl}" target="_blank">${sm}</a>`
+            ? `<a href="${escapeHtml(githubUrl)}" target="_blank">${escapeHtml(
+                sm
+              )}</a>`
             : 'N/A'
-          body += `<tr><td><strong>${v.impact?.toUpperCase()}</strong></td><td>${
+          body += `<tr><td><strong>${escapeHtml(
+            v.impact?.toUpperCase() ?? ''
+          )}</strong></td><td>${escapeHtml(
             v.help
-          }</td><td>${githubHtml}</td><td>${
-            node.target
-          }${screenshotHtml}</td></tr>\n`
+          )}</td><td>${githubHtml}</td><td>${escapeHtml(
+            node.target.join(', ')
+          )}${screenshotHtml}</td></tr>\n`
         })
       })
 
