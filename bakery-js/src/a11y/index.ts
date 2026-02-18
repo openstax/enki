@@ -150,6 +150,15 @@ interface A11yOptions {
   tags?: string[]
 }
 
+const makeLazy = (doc: Document) => {
+  const loadable = dom(doc).find(
+    '//*[local-name() = "img" or local-name() = "iframe"]'
+  )
+  loadable.forEach((node) => {
+    node.attr('loading', 'lazy')
+  })
+}
+
 const shorten = (inputFile: string, fraction = 0.25): string => {
   const content = fs.readFileSync(inputFile, 'utf-8')
   const doc = parseXml(content)
@@ -168,6 +177,7 @@ const shorten = (inputFile: string, fraction = 0.25): string => {
       chapter.remove()
     }
   }
+  makeLazy(doc)
 
   const serializer = new XMLSerializer()
   const xml = serializer.serializeToString(doc)
