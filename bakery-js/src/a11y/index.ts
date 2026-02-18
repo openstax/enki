@@ -112,15 +112,16 @@ const captureSourceMapData = async (
       const sm = await page.evaluate((sel) => {
         const el = document.querySelector(sel)
         if (!el) return null
-        // Walk up ancestors first (most likely to carry data-sm)
+        // Walk up ancestors and their subtrees trying to find nearest data-sm
         let current: Element | null = el
         while (current) {
-          const val = current.getAttribute('data-sm')
+          const val =
+            current.getAttribute('data-sm') ??
+            current.querySelector('[data-sm]')?.getAttribute('data-sm')
           if (val) return val
           current = current.parentElement
         }
-        // Fall back to nearest descendant
-        return el.querySelector('[data-sm]')?.getAttribute('data-sm') ?? null
+        return null
       }, selector)
 
       if (sm !== null) sourceMap[`${violation.id}-${i}`] = sm
@@ -212,8 +213,12 @@ const generateSummary = (
             : 'N/A'
           const wcagCriteria = formatWcagCriteria(v.tags)
           const wcagHtml = wcagCriteria
-            ? `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(wcagCriteria)}</a>`
-            : `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(v.id)}</a>`
+            ? `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(
+                wcagCriteria
+              )}</a>`
+            : `<a href="${escapeHtml(v.helpUrl)}" target="_blank">${escapeHtml(
+                v.id
+              )}</a>`
           body += `<tr><td><strong>${escapeHtml(
             v.impact?.toUpperCase() ?? ''
           )}</strong></td><td>${escapeHtml(
