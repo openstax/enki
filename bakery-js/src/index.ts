@@ -352,7 +352,7 @@ program
     parseFloat
   )
   .option(
-    '-n, --max-chapters <maxChapters>',
+    '-n, --max-pages <maxPages>',
     'Maximum number of chapters to keep when shortening books',
     parseInt
   )
@@ -365,7 +365,7 @@ program
       repo: options.repo,
       ref: options.ref,
       fraction: options.fraction,
-      maxChapters: options.maxChapters,
+      maxPages: options.maxPages,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)
