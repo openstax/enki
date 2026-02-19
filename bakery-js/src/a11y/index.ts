@@ -243,7 +243,7 @@ interface A11yOptions {
   repo?: string
   ref?: string
   fraction?: number
-  maxPages?: number
+  maxChapters?: number
 }
 
 const makeLazy = (doc: Document) => {
@@ -258,25 +258,25 @@ const makeLazy = (doc: Document) => {
 const shorten = (
   inputFile: string,
   fraction = 0.25,
-  maxPages?: number
+  maxChapters?: number
 ): string => {
   const content = fs.readFileSync(inputFile, 'utf-8')
   const doc = parseXml(content)
-  const pages = dom(doc).find('//*[@data-type="page"]')
+  const chapters = dom(doc).find('//*[@data-type="chapter"]')
 
-  if (pages.length === 0) {
-    log(`No pages found in ${inputFile}, skipping shortening`)
+  if (chapters.length === 0) {
+    log(`No chapters found in ${inputFile}, skipping shortening`)
     return inputFile
   }
 
   const effectiveFraction =
-    maxPages !== undefined ? maxPages / pages.length : fraction
+    maxChapters !== undefined ? maxChapters / chapters.length : fraction
   const step = Math.max(1, Math.round(1 / effectiveFraction))
-  const keep = new Set(pages.filter((_, i) => i % step === 0))
+  const keep = new Set(chapters.filter((_, i) => i % step === 0))
 
-  for (const page of pages) {
-    if (!keep.has(page)) {
-      page.remove()
+  for (const chapter of chapters) {
+    if (!keep.has(chapter)) {
+      chapter.remove()
     }
   }
   makeLazy(doc)
@@ -287,7 +287,7 @@ const shorten = (
   const base = path.basename(inputFile, path.extname(inputFile))
   const tmpFile = path.join(dir, `${base}.a11y-shortened.xhtml`)
   fs.writeFileSync(tmpFile, xml, 'utf-8')
-  log(`Shortened ${inputFile}: kept ${keep.size}/${pages.length} pages`)
+  log(`Shortened ${inputFile}: kept ${keep.size}/${chapters.length} chapters`)
   return tmpFile
 }
 
@@ -298,7 +298,11 @@ export const run = async (options: A11yOptions) => {
     for (let i = 0; i < options.inputFiles.length; i++) {
       const inputFile = options.inputFiles[i]
       log(`Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`)
-      const shortened = shorten(inputFile, options.fraction, options.maxPages)
+      const shortened = shorten(
+        inputFile,
+        options.fraction,
+        options.maxChapters
+      )
       try {
         const results = await analyzePage({
           ...context,
