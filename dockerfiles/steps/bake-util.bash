@@ -47,7 +47,7 @@ if [[ ${#baked_files[@]} -gt 0 ]]; then
     [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
     [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
     node /workspace/enki/bakery-js/dist/index.js a11y \
-        --repo "$ARG_REPO_NAME" --ref "$git_ref" --max-chapters 20 \
+        --repo "$ARG_REPO_NAME" --ref "$git_ref" --fraction 0.25 \
         "$IO_BAKED/a11y" "${baked_files[@]}"
 fi
 
