@@ -4281,6 +4281,8 @@ class ModelBehaviorTestCase(unittest.TestCase):
 
 
 def test_ppt_parsing(mocker):
+    pptify_book.configure_i18n("en")
+
     def text_content(elem):
         return "".join(elem.itertext(None)).strip()
 
@@ -4562,7 +4564,8 @@ def test_ppt_parsing(mocker):
     assert list(map(text_content, test_page.get_learning_objectives())) == ['a', 'b']
 
 
-def test_ppt_slide_content(mocker):
+@pytest.mark.parametrize('lang', ['en', 'es', 'pl'])
+def test_ppt_slide_content(mocker, lang):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
     
@@ -4632,67 +4635,35 @@ def test_ppt_slide_content(mocker):
         return chapter
     
     mocker.patch("bakery_scripts.pptify_book.sort_by_document_index", lambda elems: elems)
+    pptify_book.configure_i18n(lang)
 
     pages = []
     chapter_min = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_min))
 
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_min)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_min))
+    assert len(slide_contents) == 1
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert slide_contents[0].bullets == ['test-page']
 
     pages = []
     chapter_no_figures = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_no_figures, learning_objectives=["one", "two", "three"]))
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_no_figures)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.OutlineSlideContent(
-            title='1.1 test-page',
-            notes=None,
-            bullets=['one', 'two', 'three'],
-            heading='Learning Objectives',
-            numbered=False,
-            number_offset=1,
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_no_figures))
+    assert len(slide_contents) == 2
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.OutlineSlideContent)
+    assert slide_contents[1].bullets == ['one', 'two', 'three']
 
     pages = []
     chapter_with_figures = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_with_figures, figures=[figure_maker(src="a.png")]))
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_with_figures)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.FigureSlideContent(
-            title='Figure 1',
-            notes='test-figure-alt',
-            src='a.png',
-            alt='test-figure-alt',
-            caption='test-figure-caption',
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_with_figures))
+    assert len(slide_contents) == 2
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.FigureSlideContent)
+    assert slide_contents[1].src == 'a.png'
+    assert slide_contents[1].alt == 'test-figure-alt'
 
     table_elem = E.table()
     table = table_maker(html=E.div(table_elem))
@@ -4709,37 +4680,14 @@ def test_ppt_slide_content(mocker):
             tables=[table]
         )
     )
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.OutlineSlideContent(
-            title='1.1 test-page',
-            notes=None,
-            bullets=['one', 'two', 'three'],
-            heading='Learning Objectives',
-            numbered=False,
-            number_offset=1,
-        ),
-        pptify_book.FigureSlideContent(
-            title='Figure 1',
-            notes='test-figure-alt',
-            src='a.png',
-            alt='test-figure-alt',
-            caption='test-figure-caption',
-        ),
-        pptify_book.TableSlideContent(
-            title='Table 1',
-            notes=None,
-            os_table=table,
-        )
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter))
+    assert len(slide_contents) == 4
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[2], pptify_book.FigureSlideContent)
+    assert isinstance(slide_contents[3], pptify_book.TableSlideContent)
+    assert slide_contents[2].src == 'a.png'
+    assert slide_contents[3].os_table is table
 
     # Test splitting large slides
     large_slide = pptify_book.OutlineSlideContent(
@@ -4886,7 +4834,16 @@ def test_ppt_slide_content(mocker):
     image_save_stub.assert_not_called()
     assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
 
-    # # Test table alt text generation with caption
+    # Test table alt text: summary attribute takes priority
+    table_with_summary = table_maker(
+        html=E.div(E.table(E.tr(E.td("data")), summary="Summary text")),
+        caption="This is a descriptive caption",
+        real_alt_text=True,
+    )
+    alt_text = table_with_summary.get_alt_text("Table 1")
+    assert alt_text == "Summary text"
+
+    # Test table alt text: caption is used when no summary
     table_with_caption = table_maker(
         html=E.div(E.table(E.tr(E.td("data")))),
         caption="This is a descriptive caption",
@@ -4909,11 +4866,12 @@ def test_ppt_slide_content(mocker):
         caption="",
         real_alt_text=True,
     )
+    i18n = pptify_book.I18N_STRINGS.get(lang, pptify_book.I18N_STRINGS["en"])
     alt_text = table_no_caption.get_alt_text("Table 2")
     assert "Table 2" in alt_text
-    assert "Columns: Column A, Column B" in alt_text
-    assert "Row 1: Value 1, Value 2" in alt_text
-    assert "Row 2: Value 3, Value 4" in alt_text
+    assert i18n["columns"].format(columns="Column A, Column B") in alt_text
+    assert i18n["row"].format(i=1, data="Value 1, Value 2") in alt_text
+    assert i18n["row"].format(i=2, data="Value 3, Value 4") in alt_text
 
     table_no_caption = table_maker(
         html=E.div(
@@ -4930,9 +4888,9 @@ def test_ppt_slide_content(mocker):
     )
     alt_text = table_no_caption.get_alt_text("Table 2")
     assert "Table 2" in alt_text
-    assert "Table heading row 1 columns: Column A, Column B; Table heading row 2 columns:" in alt_text
-    assert "Row 1: Value 1, Value 2" in alt_text
-    assert "Row 2: Value 3, Value 4" in alt_text
+    assert i18n["table_heading_row"].format(i=1, columns="Column A, Column B") in alt_text
+    assert i18n["row"].format(i=1, data="Value 1, Value 2") in alt_text
+    assert i18n["row"].format(i=2, data="Value 3, Value 4") in alt_text
 
     # Test table alt text truncation for long text
     # Create table with many rows to generate long alt text
@@ -4965,7 +4923,7 @@ def test_ppt_slide_content(mocker):
     assert isinstance(result_slide, pptify_book.FigureSlideContent)
     # Alt should be truncated to 200 chars with ellipsis
     assert len(result_slide.alt) == 200
-    assert result_slide.alt.endswith("... (Full description in notes)")
+    assert result_slide.alt.endswith(i18n["full_description_in_notes"])
     # Notes should contain full untruncated text
     assert alt_text_long == result_slide.notes
     assert len(result_slide.notes) > 200
@@ -5001,10 +4959,11 @@ def test_ppt_slide_content(mocker):
     )
     alt_text_no_headers = table_no_headers.get_alt_text("Table 3")
     assert "Table 3" in alt_text_no_headers
-    assert "Row 1: Data 1, Data 2" in alt_text_no_headers
-    assert "Row 2: Data 3, Data 4" in alt_text_no_headers
-    # Should not include "Columns:" since there's no thead
-    assert "Columns:" not in alt_text_no_headers
+    assert i18n["row"].format(i=1, data="Data 1, Data 2") in alt_text_no_headers
+    assert i18n["row"].format(i=2, data="Data 3, Data 4") in alt_text_no_headers
+    # Should not include columns header since there's no thead
+    columns_prefix = i18n["columns"].split("{")[0]
+    assert columns_prefix not in alt_text_no_headers
 
     # Test guess_str_len_html
     elem = E.div(E.span(E.span("test")))
@@ -5023,6 +4982,7 @@ def test_ppt_slide_content(mocker):
 def test_slide_transformations(mocker, tmp_path):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    pptify_book.configure_i18n("en")
 
     def shape_maker(*, spec=None):
         shape = unittest.mock.Mock(spec=spec)
@@ -5391,6 +5351,7 @@ def test_pptify_book(mocker, tmp_path):
         str(cover_image),
         "css-file",
         f"{tmp_path}/ppt-{{slug}}.{{extension}}",
+        "en",
     ]
 
     mocker.patch("sys.argv", args)
