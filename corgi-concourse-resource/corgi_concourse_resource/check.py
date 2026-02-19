@@ -22,7 +22,9 @@ def check(in_stream):
         msg("jobs: {}", jobs)
         msg("Inputs: {}", input)
 
-        return [{"id": job["id"]} for job in jobs]
+        jobs = [{"id": job["id"]} for job in jobs]
+        jobs.sort(key=lambda j: j["id"])
+        return jobs
 
 
 def main():  # pragma: no cover
