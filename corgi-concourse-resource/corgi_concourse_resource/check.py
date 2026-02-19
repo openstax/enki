@@ -23,7 +23,7 @@ def check(in_stream):
         msg("Inputs: {}", input)
 
         jobs = [{"id": job["id"]} for job in jobs]
-        jobs.sort(key=lambda j: j["id"])
+        jobs.sort(key=lambda j: j["id"], reverse=True)
         return jobs
 
 
