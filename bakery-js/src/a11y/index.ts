@@ -1,4 +1,4 @@
-import { chromium } from 'playwright'
+import { chromium, type Page } from 'playwright'
 import AxeBuilder from '@axe-core/playwright'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -7,31 +7,54 @@ import { dom } from '../minidom'
 import { XMLSerializer } from '@xmldom/xmldom'
 
 const log = (msg: string) => console.log(`[a11y] ${msg}`)
+const logTiming = (label: string, startMs: number) =>
+  log(`  ⏱ ${label}: ${((Date.now() - startMs) / 1000).toFixed(2)}s`)
 
 const MAX_SCREENSHOTS_PER_VIOLATION = 50
 const SCREENSHOT_PADDING = 50
 const SCREENSHOT_MAX_HEIGHT = 600
 
-const getPlaywrightContext = async () => {
-  log('Launching browser...')
-  const browser = await chromium.launch({ timeout: 60_000 * 5 })
-  const context = await browser.newContext()
-  const page = await context.newPage()
-
-  return { browser, context, page }
-}
-
-type PlaywrightContext = Awaited<ReturnType<typeof getPlaywrightContext>>
 const DEFAULT_TAGS = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa']
 
-const analyzePage = async ({
-  page,
-  inputFile,
-  tags,
-}: PlaywrightContext & { inputFile: string; tags?: string[] }) => {
+const AXE_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
+
+const analyzePage = async (page: Page, inputFile: string, tags?: string[]) => {
+  const label = path.basename(inputFile)
   const filePath = `file://${inputFile}`
-  await page.goto(filePath, { waitUntil: 'domcontentloaded' })
-  return await new AxeBuilder({ page }).withTags(tags ?? DEFAULT_TAGS).analyze()
+
+  // Fail fast if the renderer crashes (e.g. OOM) rather than hanging forever
+  const crashPromise = new Promise<never>((_, reject) => {
+    page.once('crash', () =>
+      reject(new Error(`Chromium renderer crashed for ${label}`))
+    )
+  })
+
+  let t = Date.now()
+  await Promise.race([
+    page.goto(filePath, { waitUntil: 'domcontentloaded' }),
+    crashPromise,
+  ])
+  logTiming(`page.goto (domcontentloaded) [${label}]`, t)
+
+  t = Date.now()
+  const axePromise = new AxeBuilder({ page })
+    .withTags(tags ?? DEFAULT_TAGS)
+    .analyze()
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(
+      () =>
+        reject(
+          new Error(
+            `axe-core timed out after ${AXE_TIMEOUT_MS / 1000}s for ${label}`
+          )
+        ),
+      AXE_TIMEOUT_MS
+    )
+  )
+  const result = await Promise.race([axePromise, timeoutPromise, crashPromise])
+  logTiming(`axe-core analysis [${label}]`, t)
+
+  return result
 }
 
 type AnalyzeResult = Awaited<ReturnType<typeof analyzePage>>
@@ -40,7 +63,7 @@ type ScreenshotMap = Record<string, string>
 type SourceMap = Record<string, string>
 
 const captureViolationScreenshots = async (
-  page: PlaywrightContext['page'],
+  page: Page,
   results: AnalyzeResult,
   maxPerViolation = MAX_SCREENSHOTS_PER_VIOLATION
 ): Promise<ScreenshotMap> => {
@@ -48,6 +71,7 @@ const captureViolationScreenshots = async (
 
   for (const violation of results.violations) {
     const nodesToCapture = violation.nodes.slice(0, maxPerViolation)
+    const tViolation = Date.now()
     for (let i = 0; i < nodesToCapture.length; i++) {
       const node = nodesToCapture[i]
       const selector = node.target[0]
@@ -92,19 +116,27 @@ const captureViolationScreenshots = async (
         log(`Could not screenshot element for "${violation.id}": ${msg}`)
       }
     }
+    if (nodesToCapture.length > 0) {
+      logTiming(
+        `screenshots for "${violation.id}" (${nodesToCapture.length} nodes)`,
+        tViolation
+      )
+    }
   }
 
   return screenshots
 }
 
 const captureSourceMapData = async (
-  page: PlaywrightContext['page'],
+  page: Page,
   results: AnalyzeResult
 ): Promise<SourceMap> => {
   const sourceMap: SourceMap = {}
 
   for (const violation of results.violations) {
-    for (let i = 0; i < violation.nodes.length; i++) {
+    const t = Date.now()
+    const nodeCount = violation.nodes.length
+    for (let i = 0; i < nodeCount; i++) {
       const node = violation.nodes[i]
       const selector = node.target[0]
       if (typeof selector !== 'string') continue
@@ -126,6 +158,7 @@ const captureSourceMapData = async (
 
       if (sm !== null) sourceMap[`${violation.id}-${i}`] = sm
     }
+    logTiming(`source map for "${violation.id}" (${nodeCount} nodes)`, t)
   }
 
   return sourceMap
@@ -244,6 +277,27 @@ interface A11yOptions {
   ref?: string
   fraction?: number
   maxChapters?: number
+  maxPagesPerChapter?: number
+  maxParallel?: number
+}
+
+// Runs tasks with at most maxConcurrency running simultaneously, preserving result order.
+const runWithConcurrency = async <T>(
+  tasks: Array<() => Promise<T>>,
+  maxConcurrency: number
+): Promise<T[]> => {
+  const results: T[] = new Array(tasks.length)
+  let next = 0
+  const worker = async () => {
+    while (next < tasks.length) {
+      const i = next++
+      results[i] = await tasks[i]()
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(maxConcurrency, tasks.length) }, worker)
+  )
+  return results
 }
 
 const makeLazy = (doc: Document) => {
@@ -258,10 +312,23 @@ const makeLazy = (doc: Document) => {
 const shorten = (
   inputFile: string,
   fraction = 0.25,
-  maxChapters?: number
+  maxChapters?: number,
+  maxPagesPerChapter?: number
 ): string => {
+  let t = Date.now()
   const content = fs.readFileSync(inputFile, 'utf-8')
+  const fileSizeMb = (
+    Buffer.byteLength(content, 'utf-8') /
+    1024 /
+    1024
+  ).toFixed(1)
+  log(`File size: ${fileSizeMb} MB`)
+  logTiming('read file', t)
+
+  t = Date.now()
   const doc = parseXml(content)
+  logTiming('parse XML', t)
+
   const chapters = dom(doc).find('//*[@data-type="chapter"]')
 
   if (chapters.length === 0) {
@@ -274,63 +341,145 @@ const shorten = (
   const step = Math.max(1, Math.round(1 / effectiveFraction))
   const keep = new Set(chapters.filter((_, i) => i % step === 0))
 
+  let totalPagesRemoved = 0
+  let totalPagesKept = 0
+
   for (const chapter of chapters) {
     if (!keep.has(chapter)) {
       chapter.remove()
+    } else if (maxPagesPerChapter) {
+      const pages = chapter.find('.//*[@data-type="page"]')
+      const toRemove = pages.slice(maxPagesPerChapter)
+      toRemove.forEach((page) => {
+        page.remove()
+      })
+      totalPagesRemoved += toRemove.length
+      totalPagesKept += pages.length - toRemove.length
     }
   }
+
+  // Strip MathML — axe-core has no applicable WCAG rules for math content,
+  // but traversing thousands of deeply-nested MathML trees dominates analysis time.
+  const mathElements = dom(doc).find('//*[local-name() = "math"]')
+  mathElements.forEach((el) => el.remove())
+
+  // Strip footnotes — these are moved elsewhere in the PDF/web pipeline,
+  // so violations here are false positives.
+  const footnotes = dom(doc).find(
+    '//*[local-name() = "aside" and @role="doc-footnote"]'
+  )
+  footnotes.forEach((el) => el.remove())
+
   makeLazy(doc)
 
+  t = Date.now()
   const serializer = new XMLSerializer()
   const xml = serializer.serializeToString(doc)
+  logTiming('serialize XML', t)
+
+  const shortenedSizeMb = (
+    Buffer.byteLength(xml, 'utf-8') /
+    1024 /
+    1024
+  ).toFixed(1)
+  log(
+    `Shortened ${path.basename(inputFile)}: kept ${keep.size}/${
+      chapters.length
+    } chapters` +
+      (maxPagesPerChapter
+        ? `, ${totalPagesKept} pages kept / ${totalPagesRemoved} pages removed (${maxPagesPerChapter} max/chapter)`
+        : '') +
+      `, stripped ${mathElements.length} math + ${footnotes.length} footnote elements` +
+      ` (${fileSizeMb} MB -> ${shortenedSizeMb} MB)`
+  )
+
+  t = Date.now()
   const dir = path.dirname(inputFile)
   const base = path.basename(inputFile, path.extname(inputFile))
   const tmpFile = path.join(dir, `${base}.a11y-shortened.xhtml`)
   fs.writeFileSync(tmpFile, xml, 'utf-8')
-  log(`Shortened ${inputFile}: kept ${keep.size}/${chapters.length} chapters`)
+  logTiming('write shortened file', t)
+
   return tmpFile
 }
 
 export const run = async (options: A11yOptions) => {
-  const context = await getPlaywrightContext()
-  const fileResults: FileResult[] = []
-  try {
-    for (let i = 0; i < options.inputFiles.length; i++) {
-      const inputFile = options.inputFiles[i]
-      log(`Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`)
-      const shortened = shorten(
+  const tTotal = Date.now()
+
+  // Shorten all files sequentially so the XML DOM for each can be GC'd before
+  // the next parse begins, keeping peak Node.js memory to a single file at a time.
+  const shortenedFiles = options.inputFiles.map((inputFile, i) => {
+    log(`Shortening file ${i + 1}/${options.inputFiles.length}: ${inputFile}`)
+    return {
+      inputFile,
+      shortened: shorten(
         inputFile,
         options.fraction,
-        options.maxChapters
-      )
-      try {
-        const results = await analyzePage({
-          ...context,
-          inputFile: shortened,
-          tags: options.tags,
-        })
-        const violationCount = results.violations.length
-        let screenshots: ScreenshotMap = {}
-        let sourceMap: SourceMap = {}
-        if (violationCount === 0) {
-          log(`No violations found`)
-        } else {
-          log(`Found ${violationCount} violation types`)
-          log('Capturing screenshots of violations...')
-          screenshots = await captureViolationScreenshots(context.page, results)
-          log(`Captured ${Object.keys(screenshots).length} screenshots`)
-          sourceMap = await captureSourceMapData(context.page, results)
-        }
-        fileResults.push({ file: inputFile, results, screenshots, sourceMap })
-      } finally {
-        if (shortened !== inputFile) {
-          fs.unlinkSync(shortened)
-        }
-      }
+        options.maxChapters,
+        options.maxPagesPerChapter
+      ),
     }
+  })
+
+  const maxParallel = options.maxParallel ?? 2
+  log(
+    `Launching browser for ${options.inputFiles.length} file(s), max ${maxParallel} in parallel...`
+  )
+  const browser = await chromium.launch({ timeout: 60_000 * 5 })
+  const browserContext = await browser.newContext()
+
+  try {
+    const fileResults = await runWithConcurrency(
+      shortenedFiles.map(({ inputFile, shortened }, i) => async () => {
+        const page = await browserContext.newPage()
+        const tFile = Date.now()
+        log(
+          `Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`
+        )
+        try {
+          const results = await analyzePage(page, shortened, options.tags)
+          const violationCount = results.violations.length
+          const totalNodes = results.violations.reduce(
+            (sum, v) => sum + v.nodes.length,
+            0
+          )
+          let screenshots: ScreenshotMap = {}
+          let sourceMap: SourceMap = {}
+          if (violationCount === 0) {
+            log(`No violations found in ${path.basename(inputFile)}`)
+          } else {
+            log(
+              `Found ${violationCount} violation types across ${totalNodes} nodes in ${path.basename(
+                inputFile
+              )}`
+            )
+            log('Capturing screenshots of violations...')
+            const tScreenshots = Date.now()
+            screenshots = await captureViolationScreenshots(page, results)
+            logTiming(
+              `screenshots total (${Object.keys(screenshots).length} captured)`,
+              tScreenshots
+            )
+            const tSourceMap = Date.now()
+            sourceMap = await captureSourceMapData(page, results)
+            logTiming(`source map total (${totalNodes} nodes)`, tSourceMap)
+          }
+          logTiming(`file ${i + 1} total`, tFile)
+          return { file: inputFile, results, screenshots, sourceMap }
+        } finally {
+          if (shortened !== inputFile) {
+            fs.unlinkSync(shortened)
+          }
+          await page.close()
+        }
+      }),
+      maxParallel
+    )
+
+    logTiming('all files total', tTotal)
     log(`Done. Tested ${fileResults.length} files`)
     return generateSummary(fileResults, options.repo, options.ref)
   } finally {
-    await context.browser.close()
+    await browser.close()
   }
 }
