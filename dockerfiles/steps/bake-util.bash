@@ -2,6 +2,7 @@ parse_book_dir
 
 shopt -s globstar nullglob
 cp -R "$BOOK_STYLES_ROOT/downloaded-fonts" "$IO_BAKED"
+bake_pids=()
 for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
 
@@ -32,11 +33,20 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
             fi
         fi
         # LCOV_EXCL_END
+        while [[ $(jobs -rp | wc -l) -ge 2 ]]; do sleep 1; done
         export VERBOSE=$TRACE_ON
-        $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1
-        sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
+        {
+            $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1
+            sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
+        } &
+        bake_pids+=($!)
     fi
 done
+failed=0
+for pid in "${bake_pids[@]}"; do
+    wait "$pid" || { echo "bake job (pid $pid) failed" >&2; failed=1; }
+done
+[[ $failed -eq 0 ]] || die "One or more bake jobs failed"
 
 baked_files=("$IO_BAKED"/*.baked.xhtml)
 if [[ ${#baked_files[@]} -gt 0 ]]; then
@@ -46,9 +56,13 @@ if [[ ${#baked_files[@]} -gt 0 ]]; then
     git_ref="$ARG_GIT_REF"
     [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
     [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
-    node /workspace/enki/bakery-js/dist/index.js a11y \
-        --repo "$ARG_REPO_NAME" --ref "$git_ref" --fraction 0.25 \
-        "$IO_BAKED/a11y" "${baked_files[@]}"
+    time node /workspace/enki/bakery-js/dist/index.js a11y \
+        --repo "$ARG_REPO_NAME" \
+        --ref "$git_ref" \
+        --fraction 0.25 \
+        --max-parallel 2 \
+        "$IO_BAKED/a11y" \
+        "${baked_files[@]}"
 fi
 
 shopt -u globstar nullglob

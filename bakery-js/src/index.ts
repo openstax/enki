@@ -356,6 +356,16 @@ program
     'Maximum number of chapters to keep when shortening books',
     parseInt
   )
+  .option(
+    '-n, --max-pages-per-chapter <maxPagesPerChapter>',
+    'Maximum number of pages to keep in each chapter when shortening books',
+    parseInt
+  )
+  .option(
+    '-p, --max-parallel <maxParallel>',
+    'Maximum number of books to analyze simultaneously (default: 2)',
+    parseInt
+  )
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
     mkdirSync(outputDir, { recursive: true })
@@ -366,6 +376,8 @@ program
       ref: options.ref,
       fraction: options.fraction,
       maxChapters: options.maxChapters,
+      maxPagesPerChapter: options.maxPagesPerChapter,
+      maxParallel: options.maxParallel,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)
