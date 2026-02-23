@@ -229,7 +229,7 @@ class Captioned(Element):
 
     def has_caption(self):
         return (
-            self.xpath1_or_none(f'.//*[{class_xpath("os-caption-container")}]')
+            self.xpath1_or_none(f'./*[{class_xpath("os-caption-container")}]')
             is not None
         )
 
