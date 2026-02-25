@@ -278,6 +278,10 @@ function expect_value() {
   fi
 }
 
+function audit_enabled() {
+    [[ "$(echo "${AUDIT_REPORTS:-'{}'}" | tr -d "'" | jq --arg category "$1" --arg search "$2" '.[$category]|index($search)!=null')" == "true" ]]
+}
+
 function get_s3_name() {
     filename="$(basename "$1")"
     repo="$(cat "$IO_BOOK/repo")"
