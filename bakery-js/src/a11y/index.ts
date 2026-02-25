@@ -40,8 +40,8 @@ const analyzePage = async (page: Page, inputFile: string, tags?: string[]) => {
   const axePromise = new AxeBuilder({ page })
     .withTags(tags ?? DEFAULT_TAGS)
     .analyze()
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    const timer = setTimeout(
       () =>
         reject(
           new Error(
@@ -50,7 +50,8 @@ const analyzePage = async (page: Page, inputFile: string, tags?: string[]) => {
         ),
       AXE_TIMEOUT_MS
     )
-  )
+    timer.unref()
+  })
   const result = await Promise.race([axePromise, timeoutPromise, crashPromise])
   logTiming(`axe-core analysis [${label}]`, t)
 
