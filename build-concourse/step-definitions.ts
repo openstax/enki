@@ -29,7 +29,7 @@ function set(step: Step) {
 
 set({name: 'step-fetch', inputs: [IO.BOOK], outputs: [IO.FETCHED], env: {GH_SECRET_CREDS: false, LOCAL_SIDELOAD_REPO_PATH: false}})
 set({name: 'step-prebake', inputs: [IO.BOOK, IO.FETCHED], outputs: [IO.FETCH_META, IO.INITIAL_RESOURCES, IO.ASSEMBLED, IO.RESOURCES, IO.ASSEMBLE_META], env: {}})
-set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: {}})
+set({name: 'step-bake', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: { AUDIT_REPORTS: false }})
 set({name: 'step-postbake', inputs: [IO.BOOK, IO.FETCHED, IO.ASSEMBLE_META, IO.BAKED], outputs: [IO.BAKE_META, IO.LINKED, IO.SUPER], env: {}})
 
 
@@ -38,7 +38,7 @@ set({name: 'step-pdf', inputs: [IO.BOOK, IO.LINKED, IO.BAKED, IO.FETCHED, IO.RES
 set({name: 'step-upload-pdf', inputs: [IO.BOOK, IO.FETCHED, IO.ARTIFACTS], outputs: [IO.ARTIFACTS], env: {CORGI_ARTIFACTS_S3_BUCKET: true, AWS_ACCESS_KEY_ID: true, AWS_SECRET_ACCESS_KEY: true, AWS_SESSION_TOKEN: false}})
 
 // GIT_WEB_STEPS
-set({name: 'step-bake-web', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: {}})
+set({name: 'step-bake-web', inputs: [IO.BOOK, IO.FETCH_META, IO.ASSEMBLED, IO.RESOURCES], outputs: [IO.BAKED], env: { AUDIT_REPORTS: false }})
 set({name: 'step-disassemble', inputs: [IO.BOOK, IO.LINKED, IO.BAKE_META], outputs: [IO.DISASSEMBLE_LINKED], env: {}})
 set({name: 'step-jsonify', inputs: [IO.BOOK, IO.FETCH_META, IO.RESOURCES, IO.DISASSEMBLE_LINKED], outputs: [IO.JSONIFIED], env: {}})
 set({name: 'step-upload-book', inputs: [IO.BOOK, IO.FETCHED, IO.JSONIFIED, IO.RESOURCES, IO.ANCILLARY], outputs: [IO.ARTIFACTS], env: {

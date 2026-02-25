@@ -48,21 +48,25 @@ for pid in "${bake_pids[@]}"; do
 done
 [[ $failed -eq 0 ]] || die "One or more bake jobs failed"
 
-baked_files=("$IO_BAKED"/*.baked.xhtml)
-if [[ ${#baked_files[@]} -gt 0 ]]; then
-    # Normalize git ref to a bare branch name or SHA for GitHub URLs.
-    # Strips a leading remote prefix (e.g. origin/main -> main) but leaves
-    # branch names with slashes (e.g. feature/my-branch) untouched.
-    git_ref="$ARG_GIT_REF"
-    [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
-    [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
-    time node /workspace/enki/bakery-js/dist/index.js a11y \
-        --repo "$ARG_REPO_NAME" \
-        --ref "$git_ref" \
-        --fraction 0.25 \
-        --max-parallel 2 \
-        "$IO_BAKED/a11y" \
-        "${baked_files[@]}"
+# LCOV_EXCL_START
+if audit_enabled axe_core baked; then
+    baked_files=("$IO_BAKED"/*.baked.xhtml)
+    if [[ ${#baked_files[@]} -gt 0 ]]; then
+        # Normalize git ref to a bare branch name or SHA for GitHub URLs.
+        # Strips a leading remote prefix (e.g. origin/main -> main) but leaves
+        # branch names with slashes (e.g. feature/my-branch) untouched.
+        git_ref="$ARG_GIT_REF"
+        [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
+        [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
+        node /workspace/enki/bakery-js/dist/index.js a11y \
+            --repo "$ARG_REPO_NAME" \
+            --ref "$git_ref" \
+            --fraction 1 \
+            --max-parallel 2 \
+            "$IO_BAKED/a11y" \
+            "${baked_files[@]}"
+    fi
 fi
+# LCOV_EXCL_END
 
 shopt -u globstar nullglob
