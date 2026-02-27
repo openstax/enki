@@ -1813,7 +1813,7 @@
 <xsl:template match="c:table[count(c:tgroup) = 1]">
   <table>
     <xsl:apply-templates select="@*|c:label"/>
-    <xsl:if test="not(.//c:thead) and normalize-space(@aria-label) = '' and not(c:caption)">
+    <xsl:if test="not(.//c:thead) and normalize-space(@aria-label) = '' and not(c:caption or c:title)">
       <xsl:attribute name="role">presentation</xsl:attribute>
     </xsl:if>
     <xsl:if test="c:caption or c:title">
