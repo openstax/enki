@@ -662,133 +662,6 @@ def os_table_to_image(
     return element_to_image(table_clone, doc_dir, resource_dir, css)
 
 
-def has_complex_rowspan(os_table: Table) -> bool:
-    """Return True if any cell spans multiple rows, which would break
-    row-splitting."""
-    for cell in os_table.xpath(".//*[self::h:td or self::h:th]"):
-        try:
-            if int(cell.get("rowspan", 1)) > 1:
-                return True
-        except ValueError:
-            pass
-    return False
-
-
-def _append_title_suffix(title, suffix: str):
-    """Append text to a title that may be a plain string or an lxml element."""
-    if isinstance(title, str):
-        return title + suffix
-    clone = deepcopy(title)
-    children = list(clone)
-    if children:
-        last = children[-1]
-        last.tail = (last.tail or "") + suffix
-    else:
-        clone.text = (clone.text or "") + suffix
-    return clone
-
-
-def _build_table_chunk(
-    original_table_elem: etree.ElementBase,
-    thead_rows: list,
-    body_rows: list,
-) -> etree.ElementBase:
-    """Return a new <table> element with the given header and body rows."""
-    new_table = deepcopy(original_table_elem)
-    for child in list(new_table):
-        new_table.remove(child)
-    if thead_rows:
-        new_table.append(E.thead(*[deepcopy(r) for r in thead_rows]))
-    new_table.append(E.tbody(*[deepcopy(r) for r in body_rows]))
-    return new_table
-
-
-def split_table_by_rows(
-    os_table: Table,
-    title,
-    max_rows: int = 8,
-    max_chars: int = 800,
-) -> list[HTMLTableSlideContent]:
-    """Split a tall table into multiple HTMLTableSlideContent items by chunking
-    rows."""
-    table_elem = os_table.get_table_elem()
-    caption = os_table.get_caption()
-
-    thead_rows = os_table.xpath(".//h:thead/h:tr")
-    if os_table.xpath(".//h:tbody"):
-        body_rows = os_table.xpath(".//h:tbody/h:tr")
-    else:
-        all_rows = os_table.xpath(".//h:tr")
-        thead_ids = {id(r) for r in thead_rows}
-        body_rows = [r for r in all_rows if id(r) not in thead_ids]
-
-    if not body_rows:
-        return [
-            HTMLTableSlideContent(
-                title=title, html=table_elem, caption=caption
-            )
-        ]
-
-    chunks: list[list] = []
-    current: list = []
-    current_chars = 0
-    for row in body_rows:
-        row_chars = len(re.sub(r"\s+", " ", "".join(row.itertext()).strip()))
-        if current and (
-            len(current) >= max_rows or
-            current_chars + row_chars > max_chars
-        ):
-            chunks.append(current)
-            current = [row]
-            current_chars = row_chars
-        else:
-            current.append(row)
-            current_chars += row_chars
-    if current:
-        chunks.append(current)
-
-    if len(chunks) <= 1:
-        return [
-            HTMLTableSlideContent(
-                title=title, html=table_elem, caption=caption
-            )
-        ]
-
-    total = len(chunks)
-    return [
-        HTMLTableSlideContent(
-            title=_append_title_suffix(title, f" ({i} of {total})"),
-            html=_build_table_chunk(table_elem, thead_rows, chunk),
-            caption=caption,
-        )
-        for i, chunk in enumerate(chunks, start=1)
-    ]
-
-
-def _table_img_to_figure(
-    img: Image.Image, os_table: Table, title, resource_dir: Path
-) -> FigureSlideContent:
-    """Save a rendered table image and return a FigureSlideContent for it."""
-    doc_dir = os_table.get_doc_dir()
-    img_path = resource_dir / f"{uuid4()}.png"
-    img.save(img_path)
-
-    note_text = None
-    alt_text = os_table.get_alt_text(title)
-    if len(alt_text) > 200:
-        ellipsis = get_string("full_description_in_notes")
-        note_text = alt_text
-        alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
-
-    return FigureSlideContent(
-        title=title,
-        src=os.path.relpath(img_path, doc_dir),
-        caption=os_table.get_caption(),
-        alt=alt_text,
-        notes=note_text,
-    )
-
-
 def handle_tables(
     slide_contents: Iterable[SlideContent], resource_dir: Path, css: list[str]
 ):
@@ -797,43 +670,39 @@ def handle_tables(
             table_slide = slide_content
             os_table = table_slide.os_table
             title = table_slide.title
-
-            has_nested = len(os_table.xpath(".//h:table")) > 1
-            has_media = len(
-                os_table.xpath(".//h:img|.//h:iframe|.//h:video")
-            ) > 0
-
             img = os_table_to_image(os_table, resource_dir, css)
             w, h = img.size
-
             if (
-                not has_nested and
-                not has_media and h <= 250 and
-                w * h <= 200000
+                h > 250 or
+                w * h > 200000 or
+                len(os_table.xpath(".//h:table")) > 1 or  # nested tables
+                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
             ):
+                doc_dir = os_table.get_doc_dir()
+                img_name = f"{uuid4()}.png"
+                img_path = resource_dir / img_name
+                img.save(img_path)
+
+                note_text = None
+                alt_text = os_table.get_alt_text(title)
+                if len(alt_text) > 200:
+                    ellipsis = get_string("full_description_in_notes")
+                    note_text = alt_text
+                    alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
+
+                yield FigureSlideContent(
+                    title=title,
+                    src=os.path.relpath(img_path, doc_dir),
+                    caption=os_table.get_caption(),
+                    alt=alt_text,
+                    notes=note_text,
+                )
+            else:
                 yield HTMLTableSlideContent(
                     title=title,
                     html=os_table.get_table_elem(),
-                    caption=os_table.get_caption(),
+                    caption=os_table.get_caption()
                 )
-            elif (
-                not has_nested and
-                not has_media and
-                h > 250 and
-                not has_complex_rowspan(os_table)
-            ):
-                # Too tall but structurally splittable — try row-splitting
-                chunks = split_table_by_rows(os_table, title)
-                if len(chunks) > 1:
-                    yield from chunks
-                else:
-                    # Only one row group (single very tall row) — fall back to
-                    # image
-                    yield _table_img_to_figure(
-                        img, os_table, title, resource_dir
-                    )
-            else:
-                yield _table_img_to_figure(img, os_table, title, resource_dir)
         else:
             yield slide_content
 
