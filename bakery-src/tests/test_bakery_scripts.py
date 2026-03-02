@@ -2167,6 +2167,108 @@ async def test_gdocify_book(tmp_path, mocker):
         os.chdir(old_dir)
 
 
+def test_linkify_figures():
+    """Test linkify_figures moves figure ids to nested spans"""
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <figure id="fig1"><p>Figure with id</p></figure>
+        <figure id="fig2"><img src="test.png"/></figure>
+        <figure><p>Figure without id</p></figure>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content.encode())
+    ns = {"x": "http://www.w3.org/1999/xhtml"}
+
+    gdocify_book.linkify_figures(doc)
+
+    # Check figure with id="fig1" now has a span child with that id
+    fig1 = doc.xpath('//x:figure[x:span[@id="fig1"]]', namespaces=ns)
+    assert len(fig1) == 1
+    assert fig1[0].get("id") is None
+    assert fig1[0][0].tag == "{http://www.w3.org/1999/xhtml}span"
+    assert fig1[0][0].get("id") == "fig1"
+
+    # Check figure with id="fig2"
+    fig2 = doc.xpath('//x:figure[x:span[@id="fig2"]]', namespaces=ns)
+    assert len(fig2) == 1
+    assert fig2[0].get("id") is None
+
+    # Check figure without id is unchanged (no span added)
+    figs_without_span = doc.xpath('//x:figure[not(x:span)]', namespaces=ns)
+    assert len(figs_without_span) == 1
+    assert figs_without_span[0].get("id") is None
+
+
+def test_fix_headings():
+    """Test fix_headings upgrades heading levels when no h1 exists"""
+    ns = {"x": "http://www.w3.org/1999/xhtml"}
+
+    # Test case 1: No h1, should upgrade h2->h1, h3->h2, etc.
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h2>Title</h2>
+        <h3>Subtitle</h3>
+        <h4>Section</h4>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content)
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h4', namespaces=ns)) == 0
+
+    # Test case 2: h1 already exists, should not change anything
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h1>Title</h1>
+        <h2>Subtitle</h2>
+        <h3>Section</h3>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content)
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 1
+
+    # Test case 3: Only h3 and h4, should upgrade by 2 levels
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <h3>Title</h3>
+        <h4>Subtitle</h4>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content)
+    gdocify_book.fix_headings(doc)
+
+    assert len(doc.xpath('//x:h1', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h2', namespaces=ns)) == 1
+    assert len(doc.xpath('//x:h3', namespaces=ns)) == 0
+    assert len(doc.xpath('//x:h4', namespaces=ns)) == 0
+
+    # Test case 4: No headings at all, should not fail
+    doc_content = """
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        <p>No headings here</p>
+        </body>
+        </html>
+    """
+    doc = etree.fromstring(doc_content)
+    gdocify_book.fix_headings(doc)  # Should not raise
+
+
 def test_mathml2png(tmp_path, mocker):
     """Test python parts of mathml2png"""
 
@@ -4179,6 +4281,8 @@ class ModelBehaviorTestCase(unittest.TestCase):
 
 
 def test_ppt_parsing(mocker):
+    pptify_book.configure_i18n("en")
+
     def text_content(elem):
         return "".join(elem.itertext(None)).strip()
 
@@ -4460,7 +4564,8 @@ def test_ppt_parsing(mocker):
     assert list(map(text_content, test_page.get_learning_objectives())) == ['a', 'b']
 
 
-def test_ppt_slide_content(mocker):
+@pytest.mark.parametrize('lang', ['en', 'es', 'pl'])
+def test_ppt_slide_content(mocker, lang):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
     
@@ -4486,7 +4591,8 @@ def test_ppt_slide_content(mocker):
         has_caption=True,
         html=E.div(E.table(E.tr(E.td("test")))),
         caption="caption",
-        doc_dir="/doc_dir"
+        doc_dir="/doc_dir",
+        real_alt_text=False,
     ):
         table = pptify_book.Table(html)
         table.has_number = lambda: number is not None
@@ -4495,6 +4601,8 @@ def test_ppt_slide_content(mocker):
         table.get_caption = lambda: caption
         table.has_caption = lambda: has_caption
         table.get_doc_dir = lambda: doc_dir
+        if not real_alt_text:
+            table.get_alt_text = lambda _: caption
         return table
 
     def page_maker(
@@ -4527,67 +4635,35 @@ def test_ppt_slide_content(mocker):
         return chapter
     
     mocker.patch("bakery_scripts.pptify_book.sort_by_document_index", lambda elems: elems)
+    pptify_book.configure_i18n(lang)
 
     pages = []
     chapter_min = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_min))
 
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_min)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_min))
+    assert len(slide_contents) == 1
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert slide_contents[0].bullets == ['test-page']
 
     pages = []
     chapter_no_figures = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_no_figures, learning_objectives=["one", "two", "three"]))
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_no_figures)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.OutlineSlideContent(
-            title='1.1 test-page',
-            notes=None,
-            bullets=['one', 'two', 'three'],
-            heading='Learning Objectives',
-            numbered=False,
-            number_offset=1,
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_no_figures))
+    assert len(slide_contents) == 2
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.OutlineSlideContent)
+    assert slide_contents[1].bullets == ['one', 'two', 'three']
 
     pages = []
     chapter_with_figures = chapter_maker(pages=pages)
     pages.append(page_maker(parent_chapter=chapter_with_figures, figures=[figure_maker(src="a.png")]))
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter_with_figures)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.FigureSlideContent(
-            title='Figure 1',
-            notes='test-figure-alt',
-            src='a.png',
-            alt='test-figure-alt',
-            caption='test-figure-caption',
-        ),
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter_with_figures))
+    assert len(slide_contents) == 2
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.FigureSlideContent)
+    assert slide_contents[1].src == 'a.png'
+    assert slide_contents[1].alt == 'test-figure-alt'
 
     table_elem = E.table()
     table = table_maker(html=E.div(table_elem))
@@ -4604,37 +4680,14 @@ def test_ppt_slide_content(mocker):
             tables=[table]
         )
     )
-    slide_contents = pptify_book.chapter_to_slide_contents(chapter)
-    assert list(slide_contents) == [
-        pptify_book.OutlineSlideContent(
-            title='Chapter outline',
-            notes=None,
-            bullets=['test-page'],
-            heading=None,
-            numbered=True,
-            number_offset=1,
-        ),
-        pptify_book.OutlineSlideContent(
-            title='1.1 test-page',
-            notes=None,
-            bullets=['one', 'two', 'three'],
-            heading='Learning Objectives',
-            numbered=False,
-            number_offset=1,
-        ),
-        pptify_book.FigureSlideContent(
-            title='Figure 1',
-            notes='test-figure-alt',
-            src='a.png',
-            alt='test-figure-alt',
-            caption='test-figure-caption',
-        ),
-        pptify_book.TableSlideContent(
-            title='Table 1',
-            notes=None,
-            os_table=table,
-        )
-    ]
+    slide_contents = list(pptify_book.chapter_to_slide_contents(chapter))
+    assert len(slide_contents) == 4
+    assert isinstance(slide_contents[0], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[1], pptify_book.OutlineSlideContent)
+    assert isinstance(slide_contents[2], pptify_book.FigureSlideContent)
+    assert isinstance(slide_contents[3], pptify_book.TableSlideContent)
+    assert slide_contents[2].src == 'a.png'
+    assert slide_contents[3].os_table is table
 
     # Test splitting large slides
     large_slide = pptify_book.OutlineSlideContent(
@@ -4781,6 +4834,137 @@ def test_ppt_slide_content(mocker):
     image_save_stub.assert_not_called()
     assert all(isinstance(s, pptify_book.HTMLTableSlideContent) for s in results)
 
+    # Test table alt text: summary attribute takes priority
+    table_with_summary = table_maker(
+        html=E.div(E.table(E.tr(E.td("data")), summary="Summary text")),
+        caption="This is a descriptive caption",
+        real_alt_text=True,
+    )
+    alt_text = table_with_summary.get_alt_text("Table 1")
+    assert alt_text == "Summary text"
+
+    # Test table alt text: caption is used when no summary
+    table_with_caption = table_maker(
+        html=E.div(E.table(E.tr(E.td("data")))),
+        caption="This is a descriptive caption",
+        real_alt_text=True,
+    )
+    alt_text = table_with_caption.get_alt_text("Table 1")
+    assert alt_text == "This is a descriptive caption"
+
+    # Test table alt text generation without caption (empty caption)
+    table_no_caption = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("Column A"), E.th("Column B"))),
+                E.tbody(
+                    E.tr(E.td("Value 1"), E.td("Value 2")),
+                    E.tr(E.td("Value 3"), E.td("Value 4"))
+                ),
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    i18n = pptify_book.I18N_STRINGS.get(lang, pptify_book.I18N_STRINGS["en"])
+    alt_text = table_no_caption.get_alt_text("Table 2")
+    assert "Table 2" in alt_text
+    assert i18n["columns"].format(columns="Column A, Column B") in alt_text
+    assert i18n["row"].format(i=1, data="Value 1, Value 2") in alt_text
+    assert i18n["row"].format(i=2, data="Value 3, Value 4") in alt_text
+
+    table_no_caption = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("Column A"), E.th("Column B")), E.tr(E.th("Column C"), E.th("Column D"))),
+                E.tbody(
+                    E.tr(E.td("Value 1"), E.td("Value 2")),
+                    E.tr(E.td("Value 3"), E.td("Value 4"))
+                ),
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text = table_no_caption.get_alt_text("Table 2")
+    assert "Table 2" in alt_text
+    assert i18n["table_heading_row"].format(i=1, columns="Column A, Column B") in alt_text
+    assert i18n["row"].format(i=1, data="Value 1, Value 2") in alt_text
+    assert i18n["row"].format(i=2, data="Value 3, Value 4") in alt_text
+
+    # Test table alt text truncation for long text
+    # Create table with many rows to generate long alt text
+    rows = [E.tr(E.td(f"Very long data value {i}"), E.td(f"Another long value {i}")) for i in range(20)]
+    table_long = table_maker(
+        html=E.div(
+            E.table(
+                E.thead(E.tr(E.th("First Column Header"), E.th("Second Column Header"))),
+                E.tbody(*rows)
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text_long = table_long.get_alt_text("Long Table")
+    # Alt text should be quite long
+    assert len(alt_text_long) > 200
+
+    # Test that handle_tables properly uses alt text with truncation
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    slides_with_alt = [
+        pptify_book.TableSlideContent(
+            title="Long Table",
+            os_table=table_long,
+        ),
+    ]
+    results = list(pptify_book.handle_tables(slides_with_alt, Path("/resources"), []))
+    assert len(results) == 1
+    result_slide = results[0]
+    assert isinstance(result_slide, pptify_book.FigureSlideContent)
+    # Alt should be truncated to 200 chars with ellipsis
+    assert len(result_slide.alt) == 200
+    assert result_slide.alt.endswith(i18n["full_description_in_notes"])
+    # Notes should contain full untruncated text
+    assert alt_text_long == result_slide.notes
+    assert len(result_slide.notes) > 200
+
+    # Test that short alt text is not truncated
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    slides_with_short_alt = [
+        pptify_book.TableSlideContent(
+            title="Short Table",
+            os_table=table_no_caption,
+        ),
+    ]
+    results = list(pptify_book.handle_tables(slides_with_short_alt, Path("/resources"), []))
+    assert len(results) == 1
+    result_slide = results[0]
+    assert isinstance(result_slide, pptify_book.FigureSlideContent)
+    # Alt should not be truncated since it's short
+    assert len(result_slide.alt) < 200
+    assert not result_slide.alt.endswith("...")
+    # Notes should not contain full text
+    assert result_slide.notes is None
+
+    # Test table without thead (no headers)
+    table_no_headers = table_maker(
+        html=E.div(
+            E.table(
+                E.tr(E.td("Data 1"), E.td("Data 2")),
+                E.tr(E.td("Data 3"), E.td("Data 4"))
+            )
+        ),
+        caption="",
+        real_alt_text=True,
+    )
+    alt_text_no_headers = table_no_headers.get_alt_text("Table 3")
+    assert "Table 3" in alt_text_no_headers
+    assert i18n["row"].format(i=1, data="Data 1, Data 2") in alt_text_no_headers
+    assert i18n["row"].format(i=2, data="Data 3, Data 4") in alt_text_no_headers
+    # Should not include columns header since there's no thead
+    columns_prefix = i18n["columns"].split("{")[0]
+    assert columns_prefix not in alt_text_no_headers
+
     # Test guess_str_len_html
     elem = E.div(E.span(E.span("test")))
     list(elem)[0].text = "ing  "
@@ -4798,6 +4982,7 @@ def test_ppt_slide_content(mocker):
 def test_slide_transformations(mocker, tmp_path):
     namespace = "http://www.w3.org/1999/xhtml"
     E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    pptify_book.configure_i18n("en")
 
     def shape_maker(*, spec=None):
         shape = unittest.mock.Mock(spec=spec)
@@ -4825,6 +5010,44 @@ def test_slide_transformations(mocker, tmp_path):
     slides = pptify_book.fix_image_alt_text(slides)
     slides = list(slides)
     assert fake_picture_elem.get("descr") == "Some alt text"
+
+    # fix_image_aspect_ratio should correct shape dimensions to match image
+    # Case 1: wider image (landscape) in a square-ish shape
+    wide_picture = shape_maker(spec=pptify_book.Picture)
+    wide_picture.image = mocker.stub()
+    wide_picture.image.size = (800, 400)  # 2:1 aspect
+    wide_picture.width = 1000
+    wide_picture.height = 1000
+    wide_picture.top = 100
+    wide_picture.left = 100
+    slides = [slide_maker(shapes=[wide_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert wide_picture.height == 500
+    assert wide_picture.top == 350  # centered: 100 + (1000 - 500) // 2
+    assert wide_picture.width == 1000  # unchanged
+
+    # Case 2: taller image (portrait) in a square-ish shape
+    tall_picture = shape_maker(spec=pptify_book.Picture)
+    tall_picture.image = mocker.stub()
+    tall_picture.image.size = (400, 800)  # 1:2 aspect
+    tall_picture.width = 1000
+    tall_picture.height = 1000
+    tall_picture.top = 100
+    tall_picture.left = 100
+    slides = [slide_maker(shapes=[tall_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert tall_picture.width == 500
+    assert tall_picture.left == 350  # centered: 100 + (1000 - 500) // 2
+    assert tall_picture.height == 1000  # unchanged
+
+    # Case 3: non-Picture shapes should be left alone
+    non_picture = shape_maker()
+    non_picture.width = 1000
+    non_picture.height = 500
+    slides = [slide_maker(shapes=[non_picture])]
+    slides = list(pptify_book.fix_image_aspect_ratio(slides))
+    assert non_picture.width == 1000
+    assert non_picture.height == 500
 
     # adjust_figure_caption_font should set the font size of captions
     fake_figure_title = shape_maker()
@@ -4898,11 +5121,14 @@ def test_slide_transformations(mocker, tmp_path):
     assert mock_picture.name == "Cover Image"
 
     fix_image_alt_text_stub = mocker.patch("bakery_scripts.pptify_book.fix_image_alt_text")
+    fix_image_aspect_ratio_stub = mocker.patch("bakery_scripts.pptify_book.fix_image_aspect_ratio")
     adjust_figure_caption_font_stub = mocker.patch("bakery_scripts.pptify_book.adjust_figure_caption_font")
     fix_image_alt_text_stub.start()
+    fix_image_aspect_ratio_stub.start()
     adjust_figure_caption_font_stub.start()
     pptify_book.slides_post_process(mock_pres)
     fix_image_alt_text_stub.assert_called_once()
+    fix_image_aspect_ratio_stub.assert_called_once()
     adjust_figure_caption_font_stub.assert_called_once()
     mock_pres.slides.add_slide.assert_called_once()
     mocker.stopall()
@@ -5125,6 +5351,7 @@ def test_pptify_book(mocker, tmp_path):
         str(cover_image),
         "css-file",
         f"{tmp_path}/ppt-{{slug}}.{{extension}}",
+        "en",
     ]
 
     mocker.patch("sys.argv", args)

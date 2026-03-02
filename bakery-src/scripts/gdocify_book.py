@@ -23,6 +23,8 @@ RESOURCES_FOLDER = '../resources/'
 SRGB_ICC = '/usr/share/color/icc/sRGB.icc'
 # user installed Adobe ICC CMYK profile US Web Coated (SWOP)
 USWEBCOATEDSWOP_ICC = '/usr/share/color/icc/USWebCoatedSWOP.icc'
+# Namespace for xhtml
+NS_XHTML = "http://www.w3.org/1999/xhtml"
 
 
 @timed
@@ -41,7 +43,7 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
     for node in doc.xpath(
             '//x:a[@href and starts-with(@href, "/contents/") or '
             'starts-with(@href, "./")]',
-            namespaces={"x": "http://www.w3.org/1999/xhtml"}
+            namespaces={"x": NS_XHTML}
     ):
         # This is either an intra-book link or inter-book link. We can
         # differentiate the latter by data-book-uuid attrib).
@@ -66,11 +68,49 @@ def update_doc_links(doc, book_uuid, book_slugs_by_uuid):
             )
 
 
+@timed
+def linkify_figures(doc):
+    figures = doc.xpath('//x:figure', namespaces={"x": NS_XHTML})
+    for node in figures:
+        figure_id = node.get("id")
+        if figure_id:
+            span = etree.Element(f"{{{NS_XHTML}}}span")
+            span.set("id", figure_id)
+            del node.attrib["id"]
+            node.insert(0, span)
+
+
+@timed
+def fix_headings(doc):
+    heading_nodes = []
+    min_level = 7
+
+    for node in doc.iter():
+        tag = node.tag
+
+        if not isinstance(tag, str):
+            continue  # pragma: no cover
+
+        tag = etree.QName(tag).localname
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            level = int(tag[1])
+            heading_nodes.append((node, level))
+            min_level = min(min_level, level)
+
+    # If there's already an h1 or no headings, nothing to do
+    if min_level <= 1 or min_level == 7:
+        return
+
+    # NOTE: Assumes headings are already in the correct order
+    shift = min_level - 1
+    for node, level in heading_nodes:
+        new_level = level - shift
+        new_tag = f"{{{NS_XHTML}}}h{new_level}"
+        node.tag = new_tag
+
+
 def remove_iframes(doc):
-    for node in doc.xpath(
-            '//x:iframe',
-            namespaces={"x": "http://www.w3.org/1999/xhtml"}
-    ):
+    for node in doc.xpath('//x:iframe', namespaces={"x": NS_XHTML}):
         node.getparent().remove(node)
 
 
@@ -197,8 +237,7 @@ def get_img_resources(doc, out_dir):
                 '|' \
                 '//x:a[@href and starts-with(@href, "{0}")]/@href'.format(
                     RESOURCES_FOLDER)
-    for node in doc.xpath(img_xpath,
-                          namespaces={'x': 'http://www.w3.org/1999/xhtml'}):
+    for node in doc.xpath(img_xpath, namespaces={'x': NS_XHTML}):
         img_filename = Path(node)
         img_filename = (out_dir / img_filename).resolve().absolute()
         yield img_filename
@@ -240,8 +279,10 @@ async def run_async():
                     book_slugs_by_uuid
                 )
                 # Disassemble puts all math into xhtml namespace
-                patch_math_for_pandoc(doc, "http://www.w3.org/1999/xhtml")
+                patch_math_for_pandoc(doc, NS_XHTML)
                 remove_iframes(doc)
+                linkify_figures(doc)
+                fix_headings(doc)
                 for img_filename in get_img_resources(doc, out_dir):
                     if img_filename not in queued_items:  # pragma: no cover
                         queued_items.add(img_filename)

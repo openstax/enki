@@ -38,6 +38,78 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+
+_I18N_KEYS = frozenset([
+    "table_heading_row", "columns", "row", "table_without_data",
+    "full_description_in_notes", "chapter_outline", "learning_objectives",
+    "figure", "table", "chapter", "cover_image",
+])
+
+
+def _make_i18n_entry(**kwargs):
+    missing = _I18N_KEYS - kwargs.keys()
+    extra = kwargs.keys() - _I18N_KEYS
+    if missing or extra:
+        raise ValueError(f"I18N entry error. Missing: {missing}, Extra: {extra}")
+    return kwargs
+
+
+I18N_STRINGS = {
+    "en": _make_i18n_entry(
+        table_heading_row="Table heading row {i} columns: {columns}",
+        columns="Columns: {columns}",
+        row="Row {i}: {data}",
+        table_without_data="Table without data",
+        full_description_in_notes="... (Full description in notes)",
+        chapter_outline="Chapter outline",
+        learning_objectives="Learning Objectives",
+        figure="Figure",
+        table="Table",
+        chapter="Chapter",
+        cover_image="Cover image",
+    ),
+    "es": _make_i18n_entry(
+        table_heading_row="Fila de encabezado {i} columnas: {columns}",
+        columns="Columnas: {columns}",
+        row="Fila {i}: {data}",
+        table_without_data="Tabla sin datos",
+        full_description_in_notes="... (Descripción completa en las notas)",
+        chapter_outline="Esquema del capítulo",
+        learning_objectives="Objetivos de aprendizaje",
+        figure="Figura",
+        table="Tabla",
+        chapter="Capítulo",
+        cover_image="Imagen de portada",
+    ),
+    "pl": _make_i18n_entry(
+        table_heading_row="Wiersz nagłówka tabeli {i} kolumny: {columns}",
+        columns="Kolumny: {columns}",
+        row="Wiersz {i}: {data}",
+        table_without_data="Tabela bez danych",
+        full_description_in_notes="... (Pełny opis w notatkach)",
+        chapter_outline="Zarys rozdziału",
+        learning_objectives="Cele dydaktyczne",
+        figure="Rycina",
+        table="Tabela",
+        chapter="Rozdział",
+        cover_image="Obraz okładki",
+    ),
+}
+
+
+def configure_i18n(lang: str):
+    global get_string
+    strings = I18N_STRINGS.get(lang, I18N_STRINGS["en"])
+
+    def _get_string(key):
+        return strings[key]
+    get_string = _get_string
+
+
+def get_string(key: str) -> str:  # noqa: E302
+    raise RuntimeError("Language not configured; call configure_i18n first")  # pragma: no cover
+
+
 BLOCKISH_TAGS = (
     f"{{{NS_XHTML}}}address",
     f"{{{NS_XHTML}}}article",
@@ -106,6 +178,10 @@ def try_find_nearest_sm(elem):
     return sm_results[0]
 
 
+def get_elem_text(cell):
+    return "".join(cell.itertext()).strip()
+
+
 class Element:
     def __init__(self, element):
         self._element = element
@@ -153,7 +229,7 @@ class Captioned(Element):
 
     def has_caption(self):
         return (
-            self.xpath1_or_none(f'.//*[{class_xpath("os-caption-container")}]')
+            self.xpath1_or_none(f'./*[{class_xpath("os-caption-container")}]')
             is not None
         )
 
@@ -198,10 +274,67 @@ class Figure(Captioned):
 
 class Table(Captioned):
     def get_title(self):
-        return super().get_title_elem("Table")
+        return super().get_title_elem(get_string("table"))
 
     def get_table_elem(self):
         return self.xpath1(".//h:table")
+
+    def get_alt_text(self, slide_title) -> str:
+        summary = self.get_table_elem().get("summary")
+        if summary:
+            return summary
+
+        base_caption = self.get_caption()
+        if base_caption:
+            return base_caption
+
+        # Generate caption from table structure when base_caption is empty
+        table_elem = Element(self.get_table_elem())
+
+        caption_parts = [
+            get_elem_text(slide_title)
+            if not isinstance(slide_title, str)
+            else slide_title
+        ]
+
+        # Try to find headers in thead
+        thead_rows = table_elem.xpath(".//h:thead//h:tr")
+        if thead_rows:
+            if len(thead_rows) > 1:
+                for i, thead_row in enumerate(thead_rows, start=1):
+                    header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                    if header_cells:
+                        headers = [get_elem_text(cell) for cell in header_cells]
+                        caption_parts.append(
+                            get_string("table_heading_row").format(
+                                i=i, columns=", ".join(headers)
+                            )
+                        )
+            else:
+                thead_row = thead_rows[0]
+                header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                if header_cells:
+                    headers = [get_elem_text(cell) for cell in header_cells]
+                    caption_parts.append(
+                        get_string("columns").format(columns=", ".join(headers))
+                    )
+
+            data_rows = table_elem.xpath(".//h:tbody//h:tr")
+        else:
+            data_rows = table_elem.xpath(".//h:tr")
+
+        # Extract data from rows
+        for i, row in enumerate(data_rows, start=1):
+            cells = Element(row).xpath(".//h:td|.//h:th")
+            if cells:
+                row_data = [get_elem_text(cell) for cell in cells]
+                caption_parts.append(
+                    get_string("row").format(i=i, data=", ".join(row_data))
+                )
+
+        if len(caption_parts) > 1:
+            return "; ".join(caption_parts)
+        return get_string("table_without_data")  # pragma: no cover
 
 
 class Page(BookElement):
@@ -553,11 +686,20 @@ def handle_tables(
                 img_name = f"{uuid4()}.png"
                 img_path = resource_dir / img_name
                 img.save(img_path)
+
+                note_text = None
+                alt_text = os_table.get_alt_text(title)
+                if len(alt_text) > 200:
+                    ellipsis = get_string("full_description_in_notes")
+                    note_text = alt_text
+                    alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
+
                 yield FigureSlideContent(
                     title=title,
                     src=os.path.relpath(img_path, doc_dir),
                     caption=os_table.get_caption(),
-                    alt="",
+                    alt=alt_text,
+                    notes=note_text,
                 )
             else:
                 yield HTMLTableSlideContent(
@@ -604,7 +746,7 @@ def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
 def chapter_to_slide_contents(chapter: Chapter):
     if chapter.get_chapter_outline():
         yield OutlineSlideContent(
-            title="Chapter outline",
+            title=get_string("chapter_outline"),
             bullets=chapter.get_chapter_outline(),
             numbered=True,
         )
@@ -623,7 +765,7 @@ def chapter_to_slide_contents(chapter: Chapter):
             if page.is_summary:  # pragma: no cover
                 heading = None
             else:
-                heading = "Learning Objectives"
+                heading = get_string("learning_objectives")
             yield OutlineSlideContent(
                 title=" ".join(title_parts),
                 heading=heading,
@@ -636,8 +778,8 @@ def chapter_to_slide_contents(chapter: Chapter):
                     if not fig.has_number():
                         continue
                     src = fig.get_src()
-                    title = f"Figure {fig.get_number()}"
-                    caption = fig.get_caption() or fig.get_alt() or "None"
+                    title = f"{get_string('figure')} {fig.get_number()}"
+                    caption = fig.get_caption()
                     alt = fig.get_alt() or ""
                     if not src:  # pragma: no cover
                         name = "src"
@@ -686,6 +828,7 @@ def slide_contents_to_html(
                     yield E.ul(*list_items)
             elif isinstance(slide_content, FigureSlideContent):
                 yield E.figure(
+                    # Alt becomes the caption and title becomes the alt text
                     E.img(
                         src=slide_content.src,
                         alt=slide_content.caption,
@@ -762,7 +905,7 @@ def insert_cover_image(pres: pptx.Presentation, cover_image: str):
     )
     pic.left = round(pres.slide_width / 2 - pic.width / 2)
     pic.name = "Cover Image"
-    set_alt_text(pic, "Cover image")
+    set_alt_text(pic, get_string("cover_image"))
 
 
 def fix_image_alt_text(slides: Iterable[Slide]):
@@ -793,9 +936,30 @@ def adjust_figure_caption_font(slides: Iterable[Slide]):
         yield slide
 
 
+def fix_image_aspect_ratio(slides: Iterable[Slide]):
+    for slide in slides:
+        for shape in slide.shapes:
+            if isinstance(shape, Picture):
+                w, h = shape.image.size
+                if 0 in (w, h, shape.width, shape.height):
+                    continue  # pragma: no cover
+                img_aspect = w / h
+                shape_aspect = shape.width / shape.height
+                if img_aspect > shape_aspect:
+                    new_h = round(shape.width / img_aspect)
+                    shape.top += (shape.height - new_h) // 2
+                    shape.height = new_h
+                else:
+                    new_w = round(shape.height * img_aspect)
+                    shape.left += (shape.width - new_w) // 2
+                    shape.width = new_w
+        yield slide
+
+
 def slides_post_process(pres: pptx.Presentation):
     slides = pres.slides
     slides = fix_image_alt_text(slides)
+    slides = fix_image_aspect_ratio(slides)
     slides = adjust_figure_caption_font(slides)
     _ = list(slides)  # Run generator to completion
     slide_layouts_by_name = {sl.name: sl for sl in pres.slide_layouts}
@@ -858,6 +1022,8 @@ def main():
     cover_image = Path(sys.argv[4]).resolve()
     css = [sys.argv[5]]
     out_fmt = sys.argv[6]
+    lang = sys.argv[7]
+    configure_i18n(lang)
     # For xhtml_to_img
     os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
@@ -877,7 +1043,7 @@ def main():
         slide_contents = rename_images_to_type(slide_contents, resource_dir)
         slides_etree = slide_contents_to_html(
             book.get_title(),
-            f"Chapter {chapter.get_number()} {chapter.get_title()}",
+            f"{get_string('chapter')} {chapter.get_number()} {chapter.get_title()}",
             slide_contents,
         )
         slides_etree_to_ppt(
