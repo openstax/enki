@@ -280,17 +280,13 @@ class Table(Captioned):
         return self.xpath1(".//h:table")
 
     def get_alt_text(self, slide_title) -> str:
-        summary = self.get_table_elem().get("summary")
-        if summary:
-            return summary
-
-        base_caption = self.get_caption()
-        if base_caption:
-            return base_caption
-
-        # Generate caption from table structure when base_caption is empty
         table_elem = Element(self.get_table_elem())
+        for attribute_name in ("aria-label", "data-summary"):
+            value = (table_elem.element.get(attribute_name) or "").strip()
+            if value:
+                return value
 
+        # Fallback: Generate caption from table structure
         caption_parts = [
             get_elem_text(slide_title)
             if not isinstance(slide_title, str)
