@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 from copy import deepcopy
 from uuid import uuid4
+import math
 
 from lxml import etree
 from lxml.builder import ElementMaker
@@ -28,7 +29,7 @@ from bakery_scripts import mathml2png
 
 import imgkit
 
-from PIL import Image
+from PIL import Image, ImageFont
 
 from . import excepthook
 
@@ -38,6 +39,15 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+_MAX_ESTIMATED_TABLE_H_PX = 525
+# candidates and the base pt value are coupled — if you ever change
+# _FONT_SIZE_CANDIDATES, _TABLE_BASE_PT may need re-tuning too.
+_FONT_SIZE_CANDIDATES = (14, 11, 10, 9)
+# Base pt size assumed for pandoc-generated PPTX table cells (tune if needed)
+_TABLE_BASE_PT = 18
+_FONT_PATH = "/usr/share/fonts/truetype/carlito/Carlito-Regular.ttf"
+_PPT_DPI = 96
+_PPT_TABLE_WIDTH_PX = 1152
 
 _I18N_KEYS = frozenset([
     "table_heading_row", "columns", "row", "table_without_data",
@@ -499,6 +509,7 @@ class TableSlideContent(SlideContent):
 class HTMLTableSlideContent(SlideContent):
     html: etree.ElementBase
     caption: str = ""
+    font_size_pt: int | None = None
 
 
 def guess_str_len_html(item: str | etree.ElementBase) -> int:
@@ -648,8 +659,62 @@ def element_to_image(
     return img
 
 
+def _estimate_height(
+    data: list[list[str]],
+    font_size: int,
+    *,
+    cols: int | None = None,
+    font_path=_FONT_PATH,
+    target_dpi=_PPT_DPI,
+    table_width_px=_PPT_TABLE_WIDTH_PX,
+):
+    # Pillow assumes a default of 72 DPI
+    font_size = int(font_size * (target_dpi / 72))
+    font = ImageFont.truetype(font_path, font_size)
+    cols = max(len(row) for row in data) if cols is None else cols
+
+    # 2. Get Font Metrics
+    ascent, descent = font.getmetrics()
+    base_line_height = (ascent + descent) * 1.1  # Core height of the text
+
+    col_width = table_width_px / cols
+
+    # PowerPoint default cell margins (approx 10px each side at 96dpi)
+    internal_padding = 20
+    usable_col_width = col_width - internal_padding
+
+    total_table_height = 0
+
+    for row in data:
+        max_height_in_row = 0
+        for cell_text in row:
+            manual_lines = cell_text.strip().splitlines()
+            lines_height = 0
+
+            for line in manual_lines:
+                if line.strip() == "":
+                    # Account for empty lines (double newlines)
+                    lines_height += base_line_height
+                    continue
+
+                # Measure pixels
+                text_width = font.getlength(line)
+                
+                # Estimate wraps
+                wraps = max(1, math.ceil(text_width / usable_col_width))
+                lines_height += base_line_height * wraps
+            max_height_in_row = max(max_height_in_row, lines_height)
+
+        # Add the row height + 10px for the cell's own top/bottom padding
+        total_table_height += max_height_in_row + internal_padding
+
+    return total_table_height
+
+
 def os_table_to_image(
-    os_table: Table, resource_dir: Path, css: list[str]
+    os_table: Table,
+    resource_dir: Path,
+    css: list[str],
 ) -> Image.Image:
     doc_dir = os_table.get_doc_dir()
     # Clone the .os-table div. The div tends to be part of the css selector.
@@ -662,49 +727,216 @@ def os_table_to_image(
     return element_to_image(table_clone, doc_dir, resource_dir, css)
 
 
+def has_complex_rowspan(os_table: Table) -> bool:
+    """Return True if any cell spans multiple rows, which would break
+    row-splitting."""
+    for cell in os_table.xpath(".//*[self::h:td or self::h:th]"):
+        try:
+            if int(cell.get("rowspan", 1)) > 1:
+                return True
+        except ValueError:
+            pass
+    return False
+
+
+def _append_title_suffix(title, suffix: str):
+    """Append text to a title that may be a plain string or an lxml element."""
+    if isinstance(title, str):
+        return title + suffix
+    clone = deepcopy(title)
+    children = list(clone)
+    if children:
+        last = children[-1]
+        last.tail = (last.tail or "") + suffix
+    else:
+        clone.text = (clone.text or "") + suffix
+    return clone
+
+
+def _build_table_chunk(
+    original_table_elem: etree.ElementBase,
+    thead_rows: list,
+    body_rows: list,
+) -> etree.ElementBase:
+    """Return a new <table> element with the given header and body rows."""
+    new_table = deepcopy(original_table_elem)
+    for child in list(new_table):
+        new_table.remove(child)
+    if thead_rows:
+        new_table.append(E.thead(*[deepcopy(r) for r in thead_rows]))
+    new_table.append(E.tbody(*[deepcopy(r) for r in body_rows]))
+    return new_table
+
+
+def split_table_by_rows(
+    os_table: Table,
+    title,
+    max_rows: int = 8,
+    max_chars: int = 500,
+) -> list[HTMLTableSlideContent]:
+    """Split a tall table into multiple HTMLTableSlideContent items by chunking
+    rows."""
+    table_elem = os_table.get_table_elem()
+    caption = os_table.get_caption()
+
+    thead_rows = os_table.xpath(".//h:thead/h:tr")
+    if os_table.xpath(".//h:tbody"):
+        body_rows = os_table.xpath(".//h:tbody/h:tr")
+    else:
+        all_rows = os_table.xpath(".//h:tr")
+        thead_ids = {id(r) for r in thead_rows}
+        body_rows = [r for r in all_rows if id(r) not in thead_ids]
+
+    if not body_rows:
+        return [
+            HTMLTableSlideContent(
+                title=title, html=table_elem, caption=caption
+            )
+        ]
+
+    chunks: list[list] = []
+    current: list = []
+    current_chars = 0
+    for row in body_rows:
+        row_chars = len(re.sub(r"\s+", " ", "".join(row.itertext()).strip()))
+        if current and (
+            len(current) >= max_rows or
+            current_chars + row_chars > max_chars
+        ):
+            chunks.append(current)
+            current = [row]
+            current_chars = row_chars
+        else:
+            current.append(row)
+            current_chars += row_chars
+    if current:
+        chunks.append(current)
+
+    if len(chunks) <= 1:
+        return [
+            HTMLTableSlideContent(
+                title=title, html=table_elem, caption=caption
+            )
+        ]
+
+    total = len(chunks)
+    return [
+        HTMLTableSlideContent(
+            title=_append_title_suffix(title, f" ({i} of {total})"),
+            html=_build_table_chunk(table_elem, thead_rows, chunk),
+            caption=caption,
+        )
+        for i, chunk in enumerate(chunks, start=1)
+    ]
+
+
+def _table_img_to_figure(
+    img: Image.Image, os_table: Table, title, resource_dir: Path
+) -> FigureSlideContent:
+    """Save a rendered table image and return a FigureSlideContent for it."""
+    doc_dir = os_table.get_doc_dir()
+    img_path = resource_dir / f"{uuid4()}.png"
+    img.save(img_path)
+
+    note_text = None
+    alt_text = os_table.get_alt_text(title)
+    if len(alt_text) > 200:
+        ellipsis = get_string("full_description_in_notes")
+        note_text = alt_text
+        alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
+
+    return FigureSlideContent(
+        title=title,
+        src=os.path.relpath(img_path, doc_dir),
+        caption=os_table.get_caption(),
+        alt=alt_text,
+        notes=note_text,
+    )
+
+
+def _extract_table_data(table_elem: etree.ElementBase) -> list[list[str]]:
+    """Extract cell text from a table element as a list of rows."""
+    rows = table_elem.xpath(".//h:tr", namespaces={"h": NS_XHTML})
+    return [
+        [get_elem_text(cell) for cell in Element(row).xpath(".//h:td|.//h:th")]
+        for row in rows
+    ]
+
+
+def _fits_on_slide(data: list[list[str]], font_pt: int) -> bool:
+    return _estimate_height(data, font_pt) <= _MAX_ESTIMATED_TABLE_H_PX
+
+
+def _find_font_pt(data: list[list[str]]) -> int | None:
+    """Return the first font_size_pt that makes the table fit, or None."""
+    for font_pt in _FONT_SIZE_CANDIDATES:
+        if _fits_on_slide(data, font_pt):
+            return font_pt
+    return None
+
+
 def handle_tables(
     slide_contents: Iterable[SlideContent], resource_dir: Path, css: list[str]
 ):
     for slide_content in slide_contents:
-        if isinstance(slide_content, TableSlideContent):
-            table_slide = slide_content
-            os_table = table_slide.os_table
-            title = table_slide.title
-            img = os_table_to_image(os_table, resource_dir, css)
-            w, h = img.size
-            if (
-                h > 250 or
-                w * h > 200000 or
-                len(os_table.xpath(".//h:table")) > 1 or  # nested tables
-                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
-            ):
-                doc_dir = os_table.get_doc_dir()
-                img_name = f"{uuid4()}.png"
-                img_path = resource_dir / img_name
-                img.save(img_path)
-
-                note_text = None
-                alt_text = os_table.get_alt_text(title)
-                if len(alt_text) > 200:
-                    ellipsis = get_string("full_description_in_notes")
-                    note_text = alt_text
-                    alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
-
-                yield FigureSlideContent(
-                    title=title,
-                    src=os.path.relpath(img_path, doc_dir),
-                    caption=os_table.get_caption(),
-                    alt=alt_text,
-                    notes=note_text,
-                )
-            else:
-                yield HTMLTableSlideContent(
-                    title=title,
-                    html=os_table.get_table_elem(),
-                    caption=os_table.get_caption()
-                )
-        else:
+        if not isinstance(slide_content, TableSlideContent):
             yield slide_content
+            continue
+
+        os_table = slide_content.os_table
+        title = slide_content.title
+        has_nested = len(os_table.xpath(".//h:table")) > 1
+        has_media = len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
+
+        # Absolute disqualifiers — image only
+        if has_nested or has_media:
+            img = os_table_to_image(os_table, resource_dir, css)
+            yield _table_img_to_figure(img, os_table, title, resource_dir)
+            continue
+
+        data = _extract_table_data(os_table.get_table_elem())
+
+        # Best case: fits at full size
+        if _fits_on_slide(data, _TABLE_BASE_PT):
+            yield HTMLTableSlideContent(
+                title=title,
+                html=os_table.get_table_elem(),
+                caption=os_table.get_caption(),
+            )
+            continue
+
+        # Try progressively smaller font sizes
+        chosen_font_pt = _find_font_pt(data)
+        if chosen_font_pt is not None:
+            yield HTMLTableSlideContent(
+                title=title,
+                html=os_table.get_table_elem(),
+                caption=os_table.get_caption(),
+                font_size_pt=chosen_font_pt,
+            )
+            continue
+
+        # Font reduction wasn't enough — try row-splitting
+        if not has_complex_rowspan(os_table):
+            chunks = split_table_by_rows(os_table, title)
+            if len(chunks) > 1:
+                for chunk in chunks:
+                    chunk_data = _extract_table_data(chunk.html)
+                    chunk_font_pt = (
+                        None if _fits_on_slide(chunk_data, _TABLE_BASE_PT)
+                        else _find_font_pt(chunk_data)
+                    )
+                    yield HTMLTableSlideContent(
+                        title=chunk.title,
+                        html=chunk.html,
+                        caption=chunk.caption,
+                        font_size_pt=chunk_font_pt,
+                    )
+                continue
+
+        # Nothing worked — fall back to image
+        img = os_table_to_image(os_table, resource_dir, css)
+        yield _table_img_to_figure(img, os_table, title, resource_dir)
 
 
 def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
@@ -952,12 +1184,35 @@ def fix_image_aspect_ratio(slides: Iterable[Slide]):
         yield slide
 
 
-def slides_post_process(pres: pptx.Presentation):
+def _apply_table_font_size(slide: Slide, font_size_pt: int):
+    target = pptx.util.Pt(font_size_pt)
+    for shape in slide.shapes:
+        if shape.has_table:
+            for row in shape.table.rows:
+                for cell in row.cells:
+                    for para in cell.text_frame.paragraphs:
+                        para.font.size = target
+
+
+def slides_post_process(
+    pres: pptx.Presentation,
+    slide_contents: list[SlideContent] | None = None,
+):
     slides = pres.slides
     slides = fix_image_alt_text(slides)
     slides = fix_image_aspect_ratio(slides)
     slides = adjust_figure_caption_font(slides)
     _ = list(slides)  # Run generator to completion
+    # Apply font size overrides for scaled tables.
+    # pres.slides[0] is the pandoc title slide;
+    # pres.slides[i+1] = slide_contents[i]
+    if slide_contents is not None:
+        for i, content in enumerate(slide_contents):
+            if (
+                isinstance(content, HTMLTableSlideContent) and
+                content.font_size_pt is not None
+            ):
+                _apply_table_font_size(pres.slides[i + 1], content.font_size_pt)
     slide_layouts_by_name = {sl.name: sl for sl in pres.slide_layouts}
     last_slide_layout = slide_layouts_by_name["Last Slide"]
     pres.slides.add_slide(last_slide_layout)
@@ -1037,6 +1292,7 @@ def main():
         slide_contents = split_large_bullet_lists(slide_contents)
         slide_contents = handle_tables(slide_contents, resource_dir, css)
         slide_contents = rename_images_to_type(slide_contents, resource_dir)
+        slide_contents = list(slide_contents)  # materialize for post-processing
         slides_etree = slide_contents_to_html(
             book.get_title(),
             f"{get_string('chapter')} {chapter.get_number()} {chapter.get_title()}",
@@ -1048,7 +1304,7 @@ def main():
         fix_pptx_file(ppt_output)
         tmp_path = Path(ppt_output).with_suffix(".pptx.tmp")
         pres = pptx.Presentation(ppt_output)
-        slides_post_process(pres)
+        slides_post_process(pres, slide_contents)
         if cover_image.exists():
             insert_cover_image(pres, str(cover_image))
         pres.save(str(tmp_path))
