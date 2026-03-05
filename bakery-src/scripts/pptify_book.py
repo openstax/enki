@@ -40,12 +40,7 @@ excepthook.attach(sys)
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
 _MAX_ESTIMATED_TABLE_H_PX = 525
-# candidates and the base pt value are coupled — if you ever change
-# _FONT_SIZE_CANDIDATES, _TABLE_BASE_PT may need re-tuning too.
-_FONT_SIZE_CANDIDATES = (14, 11, 10, 9)
-# Base pt size assumed for pandoc-generated PPTX table cells (tune if needed)
-_TABLE_BASE_PT = 18
-_FONT_PATH = "/usr/share/fonts/truetype/carlito/Carlito-Regular.ttf"
+_FONT_SIZE_CANDIDATES = (18, 14, 11, 10, 9)
 _PPT_DPI = 96
 _PPT_TABLE_WIDTH_PX = 1152
 
@@ -921,15 +916,6 @@ def handle_tables(
 
         data = _extract_table_data(os_table.get_table_elem())
 
-        # Best case: fits at full size
-        if _fits_on_slide(data, _TABLE_BASE_PT):
-            yield HTMLTableSlideContent(
-                title=title,
-                html=os_table.get_table_elem(),
-                caption=os_table.get_caption(),
-            )
-            continue
-
         # Try progressively smaller font sizes
         chosen_font_pt = _find_font_pt(data)
         if chosen_font_pt is not None:
@@ -947,9 +933,11 @@ def handle_tables(
             if len(chunks) > 1:
                 for chunk in chunks:
                     chunk_data = _extract_table_data(chunk.html)
+                    chunk_font_pt = _find_font_pt(chunk_data)
+                    # Default to smallest font
                     chunk_font_pt = (
-                        None if _fits_on_slide(chunk_data, _TABLE_BASE_PT)
-                        else _find_font_pt(chunk_data)
+                        chunk_font_pt if chunk_font_pt is not None
+                        else _FONT_SIZE_CANDIDATES[-1]
                     )
                     yield HTMLTableSlideContent(
                         title=chunk.title,
