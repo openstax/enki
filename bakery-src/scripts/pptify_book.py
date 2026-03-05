@@ -699,7 +699,7 @@ def _estimate_height(
 
                 # Measure pixels
                 text_width = font.getlength(line)
-                
+
                 # Estimate wraps
                 wraps = max(1, math.ceil(text_width / usable_col_width))
                 lines_height += base_line_height * wraps
