@@ -206,6 +206,8 @@ RUN set -x \
     # ... for princexml:
     fonts-stix libcurl4 \
     libaom3 libavif13 libc6 libcurl4 libfontconfig1 libfreetype6 libgif7 libjpeg8 liblcms2-2 libpng16-16 libssl3 libtiff5 libwebp7 libwebpdemux2 libxml2 zlib1g \
+    # ... for pptify_book:
+    fonts-crosextra-carlito \
     # ... for bakery-scripts
     pkg-config libmagic1 \
     mime-support wget xsltproc lsb-release git \
