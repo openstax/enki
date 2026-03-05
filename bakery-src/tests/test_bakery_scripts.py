@@ -4795,12 +4795,39 @@ def test_ppt_slide_content(mocker, lang):
     image_save_stub = mocker.patch("bakery_scripts.pptify_book.Image.Image.save")
     uuid4_stub = mocker.patch("bakery_scripts.pptify_book.uuid4")
     uuid4_stub.return_value = "00000000-0000-0000-0000-000000000000"
-    # Table is too large, use image instead
-    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 100))
     os_table_to_image_stub.start()
     image_save_stub.start()
     uuid4_stub.start()
-    slides = [
+    # Tables with nested HTML are an absolute disqualifier — must fall back to image
+    slides_nested = [
+        pptify_book.TableSlideContent(
+            title="Test",
+            os_table=table_maker(html=E.div(E.table(E.tr(E.td(E.table(E.tr(E.td("nested")))))))),
+        ),
+        pptify_book.TableSlideContent(
+            title="Test 2",
+            os_table=table_maker(html=E.div(E.table(E.tr(E.td(E.table(E.tr(E.td("nested")))))))),
+        ),
+        pptify_book.OutlineSlideContent(
+            title='Chapter outline',
+            notes=None,
+            bullets=['test-page'],
+            heading=None,
+            numbered=True,
+            number_offset=1,
+        ),
+    ]
+    results = pptify_book.handle_tables(slides_nested, Path("/resources"), [])
+    results = list(results)[:-1]
+    assert image_save_stub.mock_calls[1].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
+    assert image_save_stub.mock_calls[2].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
+    assert len(results) == 2
+    assert all(isinstance(s, pptify_book.FigureSlideContent) for s in results)
+
+    image_save_stub.reset_mock()
+    # Simple small tables fit via _estimate_height — use HTML (no image fallback)
+    slides_simple = [
         pptify_book.TableSlideContent(
             title="Test",
             os_table=table_maker(),
@@ -4818,17 +4845,7 @@ def test_ppt_slide_content(mocker, lang):
             number_offset=1,
         ),
     ]
-    results = pptify_book.handle_tables(slides, Path("/resources"), [])
-    results = list(results)[:-1]
-    assert image_save_stub.mock_calls[1].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
-    assert image_save_stub.mock_calls[2].args == (Path("/resources/00000000-0000-0000-0000-000000000000.png"),)
-    assert len(results) == 2
-    assert all(isinstance(s, pptify_book.FigureSlideContent) for s in results)
-
-    image_save_stub.reset_mock()
-    # Table should fit, use HTML
-    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 100))
-    results = pptify_book.handle_tables(slides, Path("/resources"), [])
+    results = pptify_book.handle_tables(slides_simple, Path("/resources"), [])
     results = list(results)[:-1]
     assert len(results) == 2
     image_save_stub.assert_not_called()
@@ -4911,7 +4928,7 @@ def test_ppt_slide_content(mocker, lang):
     # Alt text should be quite long
     assert len(alt_text_long) > 200
 
-    # Test that handle_tables properly uses alt text with truncation
+    # Test that tall tables with many rows get row-split across multiple slides
     os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
     slides_with_alt = [
         pptify_book.TableSlideContent(
@@ -4920,6 +4937,23 @@ def test_ppt_slide_content(mocker, lang):
         ),
     ]
     results = list(pptify_book.handle_tables(slides_with_alt, Path("/resources"), []))
+    assert len(results) == 3
+    assert all(isinstance(r, pptify_book.HTMLTableSlideContent) for r in results)
+    assert results[0].title == "Long Table (1 of 3)"
+    assert results[2].title == "Long Table (3 of 3)"
+
+    # Test that handle_tables truncates alt text for tables that fall back to image.
+    long_summary = "Long description: " + ("x " * 100)  # > 200 chars
+    # Nested table to force image fallback (absolute disqualifier), with long data-summary
+    table_single_row_long_alt = table_maker(
+        html=E.div(E.table(E.tr(E.td(E.table(E.tr(E.td("data"))))), **{"data-summary": long_summary})),
+        caption="",
+        real_alt_text=True,
+    )
+    slides_with_long_alt = [
+        pptify_book.TableSlideContent(title="Alt Table", os_table=table_single_row_long_alt),
+    ]
+    results = list(pptify_book.handle_tables(slides_with_long_alt, Path("/resources"), []))
     assert len(results) == 1
     result_slide = results[0]
     assert isinstance(result_slide, pptify_book.FigureSlideContent)
@@ -4927,15 +4961,19 @@ def test_ppt_slide_content(mocker, lang):
     assert len(result_slide.alt) == 200
     assert result_slide.alt.endswith(i18n["full_description_in_notes"])
     # Notes should contain full untruncated text
-    assert alt_text_long == result_slide.notes
+    assert result_slide.notes == long_summary.strip()
     assert len(result_slide.notes) > 200
 
-    # Test that short alt text is not truncated
-    os_table_to_image_stub.return_value = Image.new("RGBA", (100, 1000))
+    # Test that short alt text is not truncated — use nested table to force image path
+    table_nested_for_img = table_maker(
+        html=E.div(E.table(E.tr(E.td(E.table(E.tr(E.td("data"))))))),
+        caption="",
+        real_alt_text=True,
+    )
     slides_with_short_alt = [
         pptify_book.TableSlideContent(
             title="Short Table",
-            os_table=table_no_caption,
+            os_table=table_nested_for_img,
         ),
     ]
     results = list(pptify_book.handle_tables(slides_with_short_alt, Path("/resources"), []))
@@ -5133,6 +5171,48 @@ def test_slide_transformations(mocker, tmp_path):
     fix_image_aspect_ratio_stub.assert_called_once()
     adjust_figure_caption_font_stub.assert_called_once()
     mock_pres.slides.add_slide.assert_called_once()
+    mocker.stopall()
+
+    # _apply_table_font_size should set para.font.size on all table paragraphs
+    fake_para = mocker.stub()
+    fake_para.font = mocker.stub()
+    fake_para.font.size = None
+    fake_cell = mocker.stub()
+    fake_cell.text_frame = mocker.stub()
+    fake_cell.text_frame.paragraphs = [fake_para]
+    fake_row = mocker.stub()
+    fake_row.cells = [fake_cell]
+    fake_table_shape = mocker.stub()
+    fake_table_shape.has_table = True
+    fake_table_shape.table = mocker.stub()
+    fake_table_shape.table.rows = [fake_row]
+    fake_slide_for_font = mocker.stub()
+    fake_slide_for_font.shapes = [fake_table_shape]
+    pptify_book._apply_table_font_size(fake_slide_for_font, 11)
+    assert fake_para.font.size == pptify_book.pptx.util.Pt(11)
+
+    # slides_post_process should call _apply_table_font_size for HTMLTableSlideContent with font_size_pt
+    apply_font_stub = mocker.patch("bakery_scripts.pptify_book._apply_table_font_size")
+    mocker.patch("bakery_scripts.pptify_book.fix_image_alt_text", return_value=iter([]))
+    mocker.patch("bakery_scripts.pptify_book.fix_image_aspect_ratio", return_value=iter([]))
+    mocker.patch("bakery_scripts.pptify_book.adjust_figure_caption_font", return_value=iter([]))
+    mock_slide_title = mocker.stub()
+    mock_slide_content0 = mocker.stub()
+    mock_slide_content1 = mocker.stub()
+    mock_pres2 = mocker.stub()
+    mock_pres2.slides = mocker.stub()
+    type(mock_pres2.slides).__getitem__ = [mock_slide_title, mock_slide_content0, mock_slide_content1].__getitem__
+    mock_last_layout2 = mocker.stub()
+    mock_last_layout2.name = "Last Slide"
+    mock_pres2.slide_layouts = [mock_last_layout2]
+    mock_pres2.slides.add_slide = mocker.stub()
+    slide_contents_with_font = [
+        pptify_book.HTMLTableSlideContent(title="T1", html=E.table(E.tr(E.td("x"))), font_size_pt=11),
+        pptify_book.HTMLTableSlideContent(title="T2", html=E.table(E.tr(E.td("y"))), font_size_pt=None),
+    ]
+    pptify_book.slides_post_process(mock_pres2, slide_contents=slide_contents_with_font)
+    # Only content[0] has font_size_pt set; it maps to pres.slides[0+1] = mock_slide_content0
+    apply_font_stub.assert_called_once_with(mock_slide_content0, 11)
     mocker.stopall()
 
     # Test try_find_nearest_sm
@@ -5339,6 +5419,68 @@ def test_ppt_image_transforms(mocker):
     mocker.stopall()
 
 
+def test_pptify_table_helpers():
+    """Unit tests for table helper functions: _extract_table_data, _estimate_height,
+    _fits_on_slide, _find_font_pt."""
+    namespace = "http://www.w3.org/1999/xhtml"
+    E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    pptify_book.configure_i18n("en")
+
+    # _extract_table_data should return cell text as list-of-rows
+    table_elem = E.table(
+        E.thead(E.tr(E.th("Col A"), E.th("Col B"))),
+        E.tbody(
+            E.tr(E.td("R1C1"), E.td("R1C2")),
+            E.tr(E.td("R2C1"), E.td("R2C2")),
+        ),
+    )
+    data = pptify_book._extract_table_data(table_elem)
+    assert data == [
+        ["Col A", "Col B"],
+        ["R1C1", "R1C2"],
+        ["R2C1", "R2C2"],
+    ]
+
+    # _estimate_height should return a positive number for non-empty tables
+    height = pptify_book._estimate_height(data, 18)
+    assert height > 0
+    # Larger font → taller table
+    assert pptify_book._estimate_height(data, 18) > pptify_book._estimate_height(data, 9)
+    # More rows → taller table
+    data_many = data * 10
+    assert pptify_book._estimate_height(data_many, 18) > pptify_book._estimate_height(data, 18)
+
+    # _fits_on_slide: tiny table fits, huge table doesn't
+    tiny_data = [["x", "y"]]
+    assert pptify_book._fits_on_slide(tiny_data, 18)
+    huge_data = [["Very long content in this cell " * 5, "More content " * 5]] * 30
+    assert not pptify_book._fits_on_slide(huge_data, 9)
+
+    # _find_font_pt: returns a candidate for a fitting table, None for one that never fits
+    assert pptify_book._find_font_pt(tiny_data) is not None
+    result = pptify_book._find_font_pt(tiny_data)
+    assert result in pptify_book._FONT_SIZE_CANDIDATES
+    assert pptify_book._find_font_pt(huge_data) is None
+
+    # split_table_by_rows: no-tbody branch (body rows are direct children of table)
+    # The branch filters out thead rows by identity so only the body rows are chunked.
+    body_row_elems = [E.tr(E.td(f"R{i}C1"), E.td(f"R{i}C2")) for i in range(10)]
+    thead_row_elem = E.tr(E.th("H1"), E.th("H2"))
+    no_tbody_table = E.table(E.thead(thead_row_elem), *body_row_elems)
+    no_tbody_os_table = pptify_book.Table(E.div(no_tbody_table))
+    no_tbody_os_table.get_caption = lambda: ""
+    chunks = pptify_book.split_table_by_rows(no_tbody_os_table, "Test Table")
+    # 10 rows with max_rows=8 → 2 chunks
+    assert len(chunks) == 2
+    assert all(isinstance(c, pptify_book.HTMLTableSlideContent) for c in chunks)
+    assert chunks[0].title == "Test Table (1 of 2)"
+    assert chunks[1].title == "Test Table (2 of 2)"
+    ns = {"h": "http://www.w3.org/1999/xhtml"}
+    # Header row is repeated in each chunk
+    for chunk in chunks:
+        assert chunk.html.xpath(".//h:thead/h:tr", namespaces=ns)
+
+
 def test_pptify_book(mocker, tmp_path):
     input_baked_xhtml = Path(TEST_DATA_DIR) / "collection.mathified.xhtml"
     resource_dir = tmp_path / "resources"
@@ -5365,6 +5507,10 @@ def test_pptify_book(mocker, tmp_path):
     fix_pptx_file_stub = mocker.patch("bakery_scripts.pptify_book.fix_pptx_file")
     path_rename_stub = mocker.patch("bakery_scripts.pptify_book.Path.rename")
     path_exists_stub = mocker.patch("bakery_scripts.pptify_book.Path.exists")
+    # Mock pipeline stages so materializing slide_contents doesn't trigger
+    # real font loading, image rendering, or file I/O
+    mocker.patch("bakery_scripts.pptify_book.handle_tables", side_effect=lambda sc, *a: sc)
+    mocker.patch("bakery_scripts.pptify_book.rename_images_to_type", side_effect=lambda sc, *a: sc)
     pptify_book.main()
 
     chapter_count = 16
