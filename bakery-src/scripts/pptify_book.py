@@ -56,6 +56,29 @@ _I18N_KEYS = frozenset([
 ])
 
 
+def get_font(font_size_pt: int):
+    candidates = [
+        "/usr/share/fonts/truetype/msttcorefonts/calibri.ttf",
+        "/usr/share/fonts/truetype/crosextra/Carlito-Regular.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]
+    loaded_font = None
+
+    for path in candidates:
+        if os.path.exists(path):
+            loaded_font = ImageFont.truetype(path, font_size_pt)
+            break
+    else:  # pragma: no cover
+        print(
+            "Warning: No TTF fonts found. Estimation will be significantly "
+            "inaccurate.",
+            file=sys.stderr
+        )
+
+    return loaded_font if loaded_font is not None else ImageFont.load_default()
+
+
 def _make_i18n_entry(**kwargs):
     missing = _I18N_KEYS - kwargs.keys()
     extra = kwargs.keys() - _I18N_KEYS
@@ -664,14 +687,16 @@ def _estimate_height(
     font_size: int,
     *,
     cols: int | None = None,
-    font_path=_FONT_PATH,
     target_dpi=_PPT_DPI,
     table_width_px=_PPT_TABLE_WIDTH_PX,
 ):
     # Pillow assumes a default of 72 DPI
     font_size = int(font_size * (target_dpi / 72))
-    font = ImageFont.truetype(font_path, font_size)
-    cols = max(len(row) for row in data) if cols is None else cols
+    font = get_font(font_size)
+    cols = max((len(row) for row in data), default=0) if cols is None else cols
+
+    if cols == 0:  # pragma: no cover
+        return 0
 
     # 2. Get Font Metrics
     ascent, descent = font.getmetrics()
