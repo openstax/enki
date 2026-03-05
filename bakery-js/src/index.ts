@@ -348,8 +348,9 @@ program
   .option('-R, --ref <ref>', 'Git ref or SHA for GitHub source links', 'main')
   .option(
     '-f, --fraction <fraction>',
-    'Fraction of chapters to keep when shortening books (default: 0.25)',
-    parseFloat
+    'Fraction of chapters to keep when shortening books (default: 0.5)',
+    parseFloat,
+    0.5
   )
   .option(
     '-n, --max-chapters <maxChapters>',
@@ -364,7 +365,8 @@ program
   .option(
     '-p, --max-parallel <maxParallel>',
     'Maximum number of books to analyze simultaneously (default: 2)',
-    parseInt
+    parseInt,
+    2
   )
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
