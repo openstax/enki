@@ -312,7 +312,7 @@ const makeLazy = (doc: Document) => {
 
 const shorten = (
   inputFile: string,
-  fraction = 0.25,
+  fraction = 0.5,
   maxChapters?: number,
   maxPagesPerChapter?: number
 ): string => {
