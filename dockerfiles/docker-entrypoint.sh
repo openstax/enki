@@ -278,8 +278,8 @@ function expect_value() {
   fi
 }
 
-function audit_enabled() {
-    [[ "$(echo "${AUDIT_REPORTS:-'{}'}" | tr -d "'" | jq --arg category "$1" --arg search "$2" '.[$category]|index($search)!=null')" == "true" ]]
+function get_audit_config() {
+    echo "${ARG_AUDIT_REPORTS:-'{}'}" | tr -d "'" | jq --arg category "$1" --arg subcategory "$2" '.[$category]|.[$subcategory]'
 }
 
 function get_s3_name() {
@@ -331,6 +331,7 @@ function parse_book_dir() {
     ARG_ENABLE_CORGI_UPLOAD=0
     ARG_ENABLE_SOURCEMAPS=0
     ARG_IS_LATEST=0
+    ARG_AUDIT_REPORTS='{"axe_core":{"baked":{}}}'
     if [[ -f $IO_BOOK/metadata ]]; then
         ARG_IS_LATEST="$(jq -r 'if .is_latest then 1 else 0 end' $IO_BOOK/metadata)"
     fi
