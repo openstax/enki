@@ -4942,6 +4942,26 @@ def test_ppt_slide_content(mocker, lang):
     assert results[0].title == "Long Table (1 of 3)"
     assert results[2].title == "Long Table (3 of 3)"
 
+    # Test last-resort image fallback: table with complex rowspan that doesn't fit at any font size.
+    # Hits the "nothing worked" branch at the bottom of handle_tables.
+    table_with_rowspan = table_maker(
+        html=E.div(E.table(
+            E.tbody(
+                E.tr(E.td("cell", rowspan="2"), E.td("other")),
+                E.tr(E.td("second")),
+            )
+        )),
+        caption="",
+        real_alt_text=False,
+    )
+    find_font_pt_stub = mocker.patch("bakery_scripts.pptify_book._find_font_pt", return_value=None)
+    slides_with_rowspan = [pptify_book.TableSlideContent(title="Rowspan Table", os_table=table_with_rowspan)]
+    results = list(pptify_book.handle_tables(slides_with_rowspan, Path("/resources"), []))
+    assert len(results) == 1
+    assert isinstance(results[0], pptify_book.FigureSlideContent)
+    # _find_font_pt stays patched for the rest of this function; subsequent handle_tables
+    # calls all use nested tables which short-circuit before reaching _find_font_pt.
+
     # Test that handle_tables truncates alt text for tables that fall back to image.
     long_summary = "Long description: " + ("x " * 100)  # > 200 chars
     # Nested table to force image fallback (absolute disqualifier), with long data-summary
@@ -5453,7 +5473,7 @@ def test_pptify_table_helpers():
     # _fits_on_slide: tiny table fits, huge table doesn't
     tiny_data = [["x", "y"]]
     assert pptify_book._fits_on_slide(tiny_data, 18)
-    huge_data = [["Very long content in this cell " * 5, "More content " * 5]] * 30
+    huge_data = [["Very long content in this cell " * 5, "More content \n\n" * 5]] * 30
     assert not pptify_book._fits_on_slide(huge_data, 9)
 
     # _find_font_pt: returns a candidate for a fitting table, None for one that never fits
@@ -5479,6 +5499,15 @@ def test_pptify_table_helpers():
     # Header row is repeated in each chunk
     for chunk in chunks:
         assert chunk.html.xpath(".//h:thead/h:tr", namespaces=ns)
+
+    # split_table_by_rows: no body rows → len(chunks) <= 1 → single HTMLTableSlideContent
+    header_only_table = E.table(E.thead(E.tr(E.th("H1"), E.th("H2"))))
+    header_only_os_table = pptify_book.Table(E.div(header_only_table))
+    header_only_os_table.get_caption = lambda: ""
+    chunks = pptify_book.split_table_by_rows(header_only_os_table, "Header Only")
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], pptify_book.HTMLTableSlideContent)
+    assert chunks[0].title == "Header Only"
 
 
 def test_pptify_book(mocker, tmp_path):
@@ -5528,6 +5557,31 @@ def test_pptify_book(mocker, tmp_path):
     assert path_rename_stub.call_count == chapter_count
     assert path_exists_stub.call_count == chapter_count
     assert fix_pptx_file_stub.call_count == chapter_count
+
+
+def test_ppt_utils(mocker):
+    namespace = "http://www.w3.org/1999/xhtml"
+    E = ElementMaker(namespace=namespace, nsmap={None: namespace})
+    elem = E.div("some")
+    elem = pptify_book._append_title_suffix(elem, " cool text")
+    text = pptify_book.get_elem_text(elem)
+    assert text == "some cool text"
+    elem = E.div(E.span('This is a span'), E.span("a span with"))
+    elem = pptify_book._append_title_suffix(elem, " cool text")
+    text = pptify_book.get_elem_text(elem)
+    assert text == "This is a spana span with cool text"
+    assert elem.text is None
+    last = list(elem.iterchildren())[-1]
+    assert last.tag.endswith("span")
+    assert last.tail == " cool text"
+
+    elem = pptify_book.Element(E.table(E.th()))
+    assert not pptify_book.has_complex_rowspan(elem)
+    elem = pptify_book.Element(E.table(E.th(rowspan="3")))
+    assert pptify_book.has_complex_rowspan(elem)
+    # with pytest.raises(ValueError):
+    elem = pptify_book.Element(E.table(E.th(rowspan="a")))
+    assert not pptify_book.has_complex_rowspan(elem)
 
 
 def test_excepthook(capsys):

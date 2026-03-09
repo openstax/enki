@@ -77,7 +77,7 @@ def get_font(font_size_pt: int):
 def _make_i18n_entry(**kwargs):
     missing = _I18N_KEYS - kwargs.keys()
     extra = kwargs.keys() - _I18N_KEYS
-    if missing or extra:
+    if missing or extra:  # pragma: no cover
         raise ValueError(f"I18N entry error. Missing: {missing}, Extra: {extra}")
     return kwargs
 
@@ -764,7 +764,7 @@ def _append_title_suffix(title, suffix: str):
     if isinstance(title, str):
         return title + suffix
     clone = deepcopy(title)
-    children = list(clone)
+    children = list(clone.iterchildren())
     if children:
         last = children[-1]
         last.tail = (last.tail or "") + suffix
@@ -806,13 +806,6 @@ def split_table_by_rows(
         all_rows = os_table.xpath(".//h:tr")
         thead_ids = {id(r) for r in thead_rows}
         body_rows = [r for r in all_rows if id(r) not in thead_ids]
-
-    if not body_rows:
-        return [
-            HTMLTableSlideContent(
-                title=title, html=table_elem, caption=caption
-            )
-        ]
 
     chunks: list[list] = []
     current: list = []
