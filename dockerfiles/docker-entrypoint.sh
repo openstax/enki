@@ -279,7 +279,44 @@ function expect_value() {
 }
 
 function get_audit_config() {
-    echo "${ARG_AUDIT_REPORTS:-'{}'}" | tr -d "'" | jq --arg category "$1" --arg subcategory "$2" '.[$category]|.[$subcategory]'
+    echo "${ARG_AUDIT_CONFIG:-'{}'}" | tr -d "'" | jq --arg category "$1" --arg subcategory "$2" '.[$category]|.[$subcategory]'
+}
+
+function build_audit_options() {
+    local audit_config="$1"; shift
+    local allowed_json
+    allowed_json=$(printf '%s\n' "$@" | jq -R . | jq -s .)
+
+    echo "$audit_config" | jq -r --argjson allowed "$allowed_json" '
+        to_entries[]
+        | select(.key | IN($allowed[]))
+        | select(.value | type | IN("number", "string"))
+        | "--\(.key | gsub("_"; "-"))", (.value | tostring | @sh)
+    '
+}
+
+function maybe_run_axe_core_audit() {
+    local stage="$1"; shift
+    local output_dir="$1"; shift
+    local files=("$@")
+
+    local audit_config
+    audit_config="$(get_audit_config axe_core "$stage")"
+    [[ "$audit_config" == "null" ]] && return 0
+
+    local git_ref="$ARG_GIT_REF"
+    [[ "$git_ref" == origin/* ]]   && git_ref="${git_ref#origin/}"
+    [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
+
+    local -a options
+    mapfile -t options < <(build_audit_options "$audit_config" fraction max_parallel max_chapters max_pages)
+
+    node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" a11y \
+        --repo "$ARG_REPO_NAME" \
+        --ref "$git_ref" \
+        "${options[@]+"${options[@]}"}" \
+        "$output_dir" \
+        "${files[@]}"
 }
 
 function get_s3_name() {
@@ -331,7 +368,9 @@ function parse_book_dir() {
     ARG_ENABLE_CORGI_UPLOAD=0
     ARG_ENABLE_SOURCEMAPS=0
     ARG_IS_LATEST=0
-    ARG_AUDIT_REPORTS='{"axe_core":{"baked":{}}}'
+    if [[ -f $IO_BOOK/audit-config.json ]]; then
+        ARG_AUDIT_CONFIG="$(cat "$IO_BOOK/audit-config.json")"
+    fi
     if [[ -f $IO_BOOK/metadata ]]; then
         ARG_IS_LATEST="$(jq -r 'if .is_latest then 1 else 0 end' $IO_BOOK/metadata)"
     fi
@@ -398,6 +437,9 @@ function do_step() {
             echo "$version" > "$INPUT_SOURCE_DIR/version"
             # NOTE: for now this is only here to help test stubbed uploads
             echo '{ "is_latest": true }' > "$INPUT_SOURCE_DIR/metadata"
+            if [[ -n "${ARG_AUDIT_CONFIG:-}" ]]; then
+                echo "$ARG_AUDIT_CONFIG" > "$INPUT_SOURCE_DIR/audit-config.json"
+            fi
             # Dummy files
             echo '-123456' > "$INPUT_SOURCE_DIR/id" # job_id
             echo '{"content_server":{"name":"not_a_real_job_json_file"}}' > "$INPUT_SOURCE_DIR/job.json"
@@ -420,6 +462,9 @@ function do_step() {
             fi
             if [[ -f "$INPUT_SOURCE_DIR/metadata" ]]; then
                 cp "$INPUT_SOURCE_DIR/metadata" "$IO_BOOK/metadata"
+            fi
+            if [[ -f "$INPUT_SOURCE_DIR/audit-config.json" ]]; then
+                cp "$INPUT_SOURCE_DIR/audit-config.json" "$IO_BOOK/audit-config.json"
             fi
             return
         ;;

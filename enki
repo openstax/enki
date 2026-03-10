@@ -109,6 +109,7 @@ show_help() {
         --pdb                       Enable Python debugging
         --jdb                       Enable Java debugging
         --jsdb                      Enable Javascript debugging
+        --audit-config <path>       Path to a JSON file with audit/a11y configuration
 
     Status:
 
@@ -171,6 +172,7 @@ while [ -n "$1" ]; do
         --jdb) JAVA_DEBUG=1 ;;
         --jsdb) JS_DEBUG=1 ;;
         --shorten) shift; export SHORTEN=$1 ;;
+        --audit-config) shift; audit_config_path=$1 ;;
         *)
             echo -e "Invalid argument '$1'"
             show_help
@@ -179,6 +181,11 @@ while [ -n "$1" ]; do
     esac
     shift
 done
+
+if [[ ${audit_config_path:-} ]]; then
+    ARG_AUDIT_CONFIG=$(cat "$audit_config_path")
+    export ARG_AUDIT_CONFIG
+fi
 
 if [[ $arg_command == 'rex-preview' ]]; then
     [[ -d $data_dir/rex-preview ]] || mkdir $data_dir/rex-preview
@@ -341,6 +348,7 @@ docker run $ports $interactive $enable_tty \
     --env __CI_KCOV_MERGE_ALL__\
     --env STUB_UPLOAD \
     --env SHORTEN \
+    --env ARG_AUDIT_CONFIG \
     $envs \
     --rm $image_name "$arg_command" $repo_slug_ref
 
