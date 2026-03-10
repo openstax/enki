@@ -18,6 +18,7 @@ def in_(dest_path, in_stream):
 
     repo_path = get_repo_path(job)
     collection_version = job["version"] or "latest"
+    audit_config = job.get("audit_config")
     slugs = "\n".join(b["slug"] for b in job["books"])
 
     # Write out files
@@ -25,6 +26,8 @@ def in_(dest_path, in_stream):
     write_file(os.path.join(dest_path, "repo"), repo_path)
     write_file(os.path.join(dest_path, "slugs"), slugs)
     write_file(os.path.join(dest_path, "version"), collection_version)
+    if isinstance(audit_config, dict) and audit_config:
+        write_file(os.path.join(dest_path, "audit-config.json"), audit_config)
     write_file(os.path.join(dest_path, "job.json"), job)
 
     return {"version": {"id": job_id}}

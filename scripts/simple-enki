@@ -51,6 +51,9 @@ while test -n "${1:-}"; do
         --data-dir)
             shift; DATA_DIR_BASE="$1"
         ;;
+        --audit-config)
+            shift; audit_config="$1"
+        ;;
         --open)
             open=1
         ;;
@@ -85,6 +88,7 @@ args+=("--sideload-book" "$BOOK")
 [[ -n ${stop_at:-} ]] && args+=("--stop-at" "$stop_at")
 [[ -n ${book_slug:-} ]] && args+=("--book-slug" "$book_slug")
 [[ -n ${shorten:-} ]] && args+=("--shorten" "$shorten")
+[[ -n ${audit_config:-} ]] && args+=(--audit-config "$audit_config")
 
 if ! [[ -e "$BOOK" ]]; then
     git clone "https://github.com/openstax/$REPO" "$BOOK"

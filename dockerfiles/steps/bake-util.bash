@@ -48,41 +48,6 @@ for pid in "${bake_pids[@]}"; do
 done
 [[ $failed -eq 0 ]] || die "One or more bake jobs failed"
 
-# LCOV_EXCL_START
-audit_config="$(get_audit_config axe_core baked)"
-if [[ "$audit_config" != "null" ]]; then
-    eval "$(echo "$audit_config" | jq -r '
-        {
-            fraction: (.fraction // ""),
-            max_parallel: (.max_parallel // ""),
-            max_chapters: (.max_chapters // ""),
-            max_pages: (.max_pages // "")
-        } 
-        | to_entries 
-        | .[] 
-        | "\(.key)=\(.value | @sh)"
-    ')"
-    options=()
-    [[ -n "${fraction:-}" ]]     && options+=(--fraction "$fraction")
-    [[ -n "${max_parallel:-}" ]] && options+=(--max-parallel "$max_parallel")
-    [[ -n "${max_chapters:-}" ]] && options+=(--max-chapters "$max_chapters")
-    [[ -n "${max_pages:-}" ]]    && options+=(--max-pages "$max_pages")
-    baked_files=("$IO_BAKED"/*.baked.xhtml)
-    if [[ ${#baked_files[@]} -gt 0 ]]; then
-        # Normalize git ref to a bare branch name or SHA for GitHub URLs.
-        # Strips a leading remote prefix (e.g. origin/main -> main) but leaves
-        # branch names with slashes (e.g. feature/my-branch) untouched.
-        git_ref="$ARG_GIT_REF"
-        [[ "$git_ref" == origin/* ]] && git_ref="${git_ref#origin/}"
-        [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
-        node /workspace/enki/bakery-js/dist/index.js a11y \
-            --repo "$ARG_REPO_NAME" \
-            --ref "$git_ref" \
-            "${options[@]+"${options[@]}"}" \
-            "$IO_BAKED/a11y" \
-            "${baked_files[@]}"
-    fi
-fi
-# LCOV_EXCL_END
+maybe_run_axe_core_audit baked "$IO_BAKED/a11y" "$IO_BAKED"/*.baked.xhtml  # LCOV_EXCL_LINE
 
 shopt -u globstar nullglob
