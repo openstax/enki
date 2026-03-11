@@ -39,10 +39,10 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
-_MAX_ESTIMATED_TABLE_H_PX = 525
+_MAX_ESTIMATED_TABLE_H_PX = 500
 _FONT_SIZE_CANDIDATES = (18, 14, 11, 10, 9)
 _PPT_DPI = 96
-_PPT_TABLE_WIDTH_PX = 1152
+_PPT_TABLE_WIDTH_PX = 860
 
 _I18N_KEYS = frozenset([
     "table_heading_row", "columns", "row", "table_without_data",
@@ -51,27 +51,30 @@ _I18N_KEYS = frozenset([
 ])
 
 
-def get_font(font_size_pt: int):
-    candidates = [
-        "/usr/share/fonts/truetype/msttcorefonts/calibri.ttf",
-        "/usr/share/fonts/truetype/crosextra/Carlito-Regular.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    ]
-    loaded_font = None
+preferred_font_path = next(
+    (
+        font_path for font_path in (
+            "/usr/share/fonts/truetype/msttcorefonts/calibri.ttf",
+            "/usr/share/fonts/truetype/crosextra/Carlito-Regular.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        )
+        if os.path.exists(font_path)
+    ),
+    None
+)
 
-    for path in candidates:
-        if os.path.exists(path):
-            loaded_font = ImageFont.truetype(path, font_size_pt)
-            break
-    else:  # pragma: no cover
+
+def get_font(font_size_pt: int):
+    if preferred_font_path is None:  # pragma: no cover
         print(
             "Warning: No TTF fonts found. Estimation will be significantly "
             "inaccurate.",
             file=sys.stderr
         )
+        return ImageFont.load_default()
 
-    return loaded_font if loaded_font is not None else ImageFont.load_default()
+    return ImageFont.truetype(preferred_font_path, font_size_pt)
 
 
 def _make_i18n_entry(**kwargs):
