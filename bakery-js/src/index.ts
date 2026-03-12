@@ -355,23 +355,23 @@ program
   .option(
     '-n, --max-chapters <maxChapters>',
     'Maximum number of chapters to keep when shortening books',
-    parseInt
+    (v) => parseInt(v, 10)
   )
   .option(
-    '-n, --max-pages-per-chapter <maxPagesPerChapter>',
+    '-m, --max-pages-per-chapter <maxPagesPerChapter>',
     'Maximum number of pages to keep in each chapter when shortening books',
-    parseInt
+    (v) => parseInt(v, 10)
   )
   .option(
     '-p, --max-parallel <maxParallel>',
     'Maximum number of books to analyze simultaneously (default: 2)',
-    parseInt,
+    (v) => parseInt(v, 10),
     2
   )
   .option(
     '-t, --timeout <timeout>',
     'The hard timeout of the entire process in seconds (default: 300)',
-    parseInt,
+    (v) => parseInt(v, 10),
     300
   )
   .action(async (outputDir, inputFiles, options) => {
