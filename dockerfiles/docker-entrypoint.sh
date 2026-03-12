@@ -465,6 +465,8 @@ function do_step() {
             fi
             if [[ -f "$INPUT_SOURCE_DIR/audit-config.json" ]]; then
                 cp "$INPUT_SOURCE_DIR/audit-config.json" "$IO_BOOK/audit-config.json"
+            else
+                jq -nc '{ axe_core: { baked: { fraction: 1, timeout: 1800 } } }' > "$IO_BOOK/audit-config.json"
             fi
             return
         ;;
