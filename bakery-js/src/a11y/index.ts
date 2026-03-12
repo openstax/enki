@@ -16,9 +16,12 @@ const SCREENSHOT_MAX_HEIGHT = 600
 
 const DEFAULT_TAGS = ['wcag2a', 'wcag21a', 'wcag2aa', 'wcag21aa']
 
-const AXE_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes
-
-const analyzePage = async (page: Page, inputFile: string, tags?: string[]) => {
+const analyzePage = async (
+  page: Page,
+  inputFile: string,
+  timeout: number,
+  tags?: string[]
+) => {
   const label = path.basename(inputFile)
   const filePath = `file://${inputFile}`
 
@@ -44,11 +47,9 @@ const analyzePage = async (page: Page, inputFile: string, tags?: string[]) => {
     const timer = setTimeout(
       () =>
         reject(
-          new Error(
-            `axe-core timed out after ${AXE_TIMEOUT_MS / 1000}s for ${label}`
-          )
+          new Error(`axe-core timed out after ${timeout / 1000}s for ${label}`)
         ),
-      AXE_TIMEOUT_MS
+      timeout
     )
     timer.unref()
   })
@@ -280,6 +281,7 @@ interface A11yOptions {
   maxChapters?: number
   maxPagesPerChapter?: number
   maxParallel?: number
+  timeout: number
 }
 
 // Runs tasks with at most maxConcurrency running simultaneously, preserving result order.
@@ -438,7 +440,12 @@ export const run = async (options: A11yOptions) => {
           `Analyzing file ${i + 1}/${options.inputFiles.length}: ${inputFile}`
         )
         try {
-          const results = await analyzePage(page, shortened, options.tags)
+          const results = await analyzePage(
+            page,
+            shortened,
+            options.timeout * 1000,
+            options.tags
+          )
           const violationCount = results.violations.length
           const totalNodes = results.violations.reduce(
             (sum, v) => sum + v.nodes.length,

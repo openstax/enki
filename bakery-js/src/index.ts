@@ -368,6 +368,12 @@ program
     parseInt,
     2
   )
+  .option(
+    '-t, --timeout <timeout>',
+    'The hard timeout of the entire process in seconds (default: 300)',
+    parseInt,
+    300
+  )
   .action(async (outputDir, inputFiles, options) => {
     outputDir = resolve(outputDir)
     mkdirSync(outputDir, { recursive: true })
@@ -380,6 +386,7 @@ program
       maxChapters: options.maxChapters,
       maxPagesPerChapter: options.maxPagesPerChapter,
       maxParallel: options.maxParallel,
+      timeout: options.timeout,
     })
     const reportPath = `${outputDir}/a11y-report.html`
     writeFileSync(reportPath, summary)

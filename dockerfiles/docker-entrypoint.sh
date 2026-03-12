@@ -291,7 +291,7 @@ function build_audit_options() {
         to_entries[]
         | select(.key | IN($allowed[]))
         | select(.value | type | IN("number", "string"))
-        | "--\(.key | gsub("_"; "-"))", (.value | tostring | @sh)
+        | "--\(.key | gsub("_"; "-"))", (.value | tostring)
     '
 }
 
@@ -309,7 +309,7 @@ function maybe_run_axe_core_audit() {
     [[ "$git_ref" == upstream/* ]] && git_ref="${git_ref#upstream/}"
 
     local -a options
-    mapfile -t options < <(build_audit_options "$audit_config" fraction max_parallel max_chapters max_pages)
+    mapfile -t options < <(build_audit_options "$audit_config" fraction max_parallel max_chapters max_pages timeout)
 
     node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" a11y \
         --repo "$ARG_REPO_NAME" \
