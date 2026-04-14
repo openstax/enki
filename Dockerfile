@@ -16,7 +16,7 @@ RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccpr
 # ---------------------------
 FROM base as princexml-stage
 # Remember to run `dpkg -I prince_...deb` and add the dependencies above because they are not copied out of this stage
-ENV PRINCE_VERSION=15-1
+ENV PRINCE_VERSION=16.2-1
 ENV PRINCE_UBUNTU_BUILD=22.04
 RUN set -x \
     && apt-get update \
