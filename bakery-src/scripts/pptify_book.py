@@ -10,6 +10,7 @@ import os
 from io import BytesIO
 from copy import deepcopy
 from uuid import uuid4
+import math
 
 from lxml import etree
 from lxml.builder import ElementMaker
@@ -28,7 +29,7 @@ from bakery_scripts import mathml2png
 
 import imgkit
 
-from PIL import Image
+from PIL import Image, ImageFont
 
 from . import excepthook
 
@@ -38,6 +39,108 @@ excepthook.attach(sys)
 
 NS_XHTML = "http://www.w3.org/1999/xhtml"
 E = ElementMaker(namespace=NS_XHTML, nsmap={None: NS_XHTML})
+_MAX_ESTIMATED_TABLE_H_PX = 500
+_FONT_SIZE_CANDIDATES = (18, 14, 11, 10, 9)
+_PPT_DPI = 96
+_PPT_TABLE_WIDTH_PX = 860
+
+_I18N_KEYS = frozenset([
+    "table_heading_row", "columns", "row", "table_without_data",
+    "full_description_in_notes", "chapter_outline", "learning_objectives",
+    "figure", "table", "chapter", "cover_image",
+])
+
+
+preferred_font_path = next(
+    (
+        font_path for font_path in (
+            "/usr/share/fonts/truetype/msttcorefonts/calibri.ttf",
+            "/usr/share/fonts/truetype/crosextra/Carlito-Regular.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        )
+        if os.path.exists(font_path)
+    ),
+    None
+)
+
+
+def get_font(font_size_pt: int):
+    if preferred_font_path is None:  # pragma: no cover
+        print(
+            "Warning: No TTF fonts found. Estimation will be significantly "
+            "inaccurate.",
+            file=sys.stderr
+        )
+        return ImageFont.load_default()
+
+    return ImageFont.truetype(preferred_font_path, font_size_pt)
+
+
+def _make_i18n_entry(**kwargs):
+    missing = _I18N_KEYS - kwargs.keys()
+    extra = kwargs.keys() - _I18N_KEYS
+    if missing or extra:  # pragma: no cover
+        raise ValueError(f"I18N entry error. Missing: {missing}, Extra: {extra}")
+    return kwargs
+
+
+I18N_STRINGS = {
+    "en": _make_i18n_entry(
+        table_heading_row="Table heading row {i} columns: {columns}",
+        columns="Columns: {columns}",
+        row="Row {i}: {data}",
+        table_without_data="Table without data",
+        full_description_in_notes="... (Full description in notes)",
+        chapter_outline="Chapter outline",
+        learning_objectives="Learning Objectives",
+        figure="Figure",
+        table="Table",
+        chapter="Chapter",
+        cover_image="Cover image",
+    ),
+    "es": _make_i18n_entry(
+        table_heading_row="Fila de encabezado {i} columnas: {columns}",
+        columns="Columnas: {columns}",
+        row="Fila {i}: {data}",
+        table_without_data="Tabla sin datos",
+        full_description_in_notes="... (Descripción completa en las notas)",
+        chapter_outline="Esquema del capítulo",
+        learning_objectives="Objetivos de aprendizaje",
+        figure="Figura",
+        table="Tabla",
+        chapter="Capítulo",
+        cover_image="Imagen de portada",
+    ),
+    "pl": _make_i18n_entry(
+        table_heading_row="Wiersz nagłówka tabeli {i} kolumny: {columns}",
+        columns="Kolumny: {columns}",
+        row="Wiersz {i}: {data}",
+        table_without_data="Tabela bez danych",
+        full_description_in_notes="... (Pełny opis w notatkach)",
+        chapter_outline="Zarys rozdziału",
+        learning_objectives="Cele dydaktyczne",
+        figure="Rycina",
+        table="Tabela",
+        chapter="Rozdział",
+        cover_image="Obraz okładki",
+    ),
+}
+
+
+def configure_i18n(lang: str):
+    global get_string
+    strings = I18N_STRINGS.get(lang, I18N_STRINGS["en"])
+
+    def _get_string(key):
+        return strings[key]
+    get_string = _get_string
+
+
+def get_string(key: str) -> str:  # noqa: E302
+    raise RuntimeError("Language not configured; call configure_i18n first")  # pragma: no cover
+
+
 BLOCKISH_TAGS = (
     f"{{{NS_XHTML}}}address",
     f"{{{NS_XHTML}}}article",
@@ -106,6 +209,10 @@ def try_find_nearest_sm(elem):
     return sm_results[0]
 
 
+def get_elem_text(cell):
+    return "".join(cell.itertext()).strip()
+
+
 class Element:
     def __init__(self, element):
         self._element = element
@@ -153,7 +260,7 @@ class Captioned(Element):
 
     def has_caption(self):
         return (
-            self.xpath1_or_none(f'.//*[{class_xpath("os-caption-container")}]')
+            self.xpath1_or_none(f'./*[{class_xpath("os-caption-container")}]')
             is not None
         )
 
@@ -198,10 +305,63 @@ class Figure(Captioned):
 
 class Table(Captioned):
     def get_title(self):
-        return super().get_title_elem("Table")
+        return super().get_title_elem(get_string("table"))
 
     def get_table_elem(self):
         return self.xpath1(".//h:table")
+
+    def get_alt_text(self, slide_title) -> str:
+        table_elem = Element(self.get_table_elem())
+        for attribute_name in ("aria-label", "data-summary"):
+            value = (table_elem.element.get(attribute_name) or "").strip()
+            if value:
+                return value
+
+        # Fallback: Generate caption from table structure
+        caption_parts = [
+            get_elem_text(slide_title)
+            if not isinstance(slide_title, str)
+            else slide_title
+        ]
+
+        # Try to find headers in thead
+        thead_rows = table_elem.xpath(".//h:thead//h:tr")
+        if thead_rows:
+            if len(thead_rows) > 1:
+                for i, thead_row in enumerate(thead_rows, start=1):
+                    header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                    if header_cells:
+                        headers = [get_elem_text(cell) for cell in header_cells]
+                        caption_parts.append(
+                            get_string("table_heading_row").format(
+                                i=i, columns=", ".join(headers)
+                            )
+                        )
+            else:
+                thead_row = thead_rows[0]
+                header_cells = Element(thead_row).xpath(".//h:th|.//h:td")
+                if header_cells:
+                    headers = [get_elem_text(cell) for cell in header_cells]
+                    caption_parts.append(
+                        get_string("columns").format(columns=", ".join(headers))
+                    )
+
+            data_rows = table_elem.xpath(".//h:tbody//h:tr")
+        else:
+            data_rows = table_elem.xpath(".//h:tr")
+
+        # Extract data from rows
+        for i, row in enumerate(data_rows, start=1):
+            cells = Element(row).xpath(".//h:td|.//h:th")
+            if cells:
+                row_data = [get_elem_text(cell) for cell in cells]
+                caption_parts.append(
+                    get_string("row").format(i=i, data=", ".join(row_data))
+                )
+
+        if len(caption_parts) > 1:
+            return "; ".join(caption_parts)
+        return get_string("table_without_data")  # pragma: no cover
 
 
 class Page(BookElement):
@@ -370,6 +530,7 @@ class TableSlideContent(SlideContent):
 class HTMLTableSlideContent(SlideContent):
     html: etree.ElementBase
     caption: str = ""
+    font_size_pt: int | None = None
 
 
 def guess_str_len_html(item: str | etree.ElementBase) -> int:
@@ -519,8 +680,64 @@ def element_to_image(
     return img
 
 
+def _estimate_height(
+    data: list[list[str]],
+    font_size: int,
+    *,
+    cols: int | None = None,
+    target_dpi=_PPT_DPI,
+    table_width_px=_PPT_TABLE_WIDTH_PX,
+):
+    # Pillow assumes a default of 72 DPI
+    font_size = int(font_size * (target_dpi / 72))
+    font = get_font(font_size)
+    cols = max((len(row) for row in data), default=0) if cols is None else cols
+
+    if cols == 0:  # pragma: no cover
+        return 0
+
+    # 2. Get Font Metrics
+    ascent, descent = font.getmetrics()
+    base_line_height = (ascent + descent) * 1.1  # Core height of the text
+
+    col_width = table_width_px / cols
+
+    # PowerPoint default cell margins (approx 10px each side at 96dpi)
+    internal_padding = 20
+    usable_col_width = col_width - internal_padding
+
+    total_table_height = 0
+
+    for row in data:
+        max_height_in_row = 0
+        for cell_text in row:
+            manual_lines = cell_text.strip().splitlines()
+            lines_height = 0
+
+            for line in manual_lines:
+                if line.strip() == "":
+                    # Account for empty lines (double newlines)
+                    lines_height += base_line_height
+                    continue
+
+                # Measure pixels
+                text_width = font.getlength(line)
+
+                # Estimate wraps
+                wraps = max(1, math.ceil(text_width / usable_col_width))
+                lines_height += base_line_height * wraps
+            max_height_in_row = max(max_height_in_row, lines_height)
+
+        # Add the row height + 10px for the cell's own top/bottom padding
+        total_table_height += max_height_in_row + internal_padding
+
+    return total_table_height
+
+
 def os_table_to_image(
-    os_table: Table, resource_dir: Path, css: list[str]
+    os_table: Table,
+    resource_dir: Path,
+    css: list[str],
 ) -> Image.Image:
     doc_dir = os_table.get_doc_dir()
     # Clone the .os-table div. The div tends to be part of the css selector.
@@ -533,40 +750,202 @@ def os_table_to_image(
     return element_to_image(table_clone, doc_dir, resource_dir, css)
 
 
+def has_complex_rowspan(os_table: Table) -> bool:
+    """Return True if any cell spans multiple rows, which would break
+    row-splitting."""
+    for cell in os_table.xpath(".//*[self::h:td or self::h:th]"):
+        try:
+            if int(cell.get("rowspan", 1)) > 1:
+                return True
+        except ValueError:
+            pass
+    return False
+
+
+def _append_title_suffix(title, suffix: str):
+    """Append text to a title that may be a plain string or an lxml element."""
+    if isinstance(title, str):
+        return title + suffix
+    clone = deepcopy(title)
+    children = list(clone.iterchildren())
+    if children:
+        last = children[-1]
+        last.tail = (last.tail or "") + suffix
+    else:
+        clone.text = (clone.text or "") + suffix
+    return clone
+
+
+def _build_table_chunk(
+    original_table_elem: etree.ElementBase,
+    thead_rows: list,
+    body_rows: list,
+) -> etree.ElementBase:
+    """Return a new <table> element with the given header and body rows."""
+    new_table = deepcopy(original_table_elem)
+    for child in list(new_table):
+        new_table.remove(child)
+    if thead_rows:
+        new_table.append(E.thead(*[deepcopy(r) for r in thead_rows]))
+    new_table.append(E.tbody(*[deepcopy(r) for r in body_rows]))
+    return new_table
+
+
+def split_table_by_rows(
+    os_table: Table,
+    title,
+    max_rows: int = 8,
+    max_chars: int = 500,
+) -> list[HTMLTableSlideContent]:
+    """Split a tall table into multiple HTMLTableSlideContent items by chunking
+    rows."""
+    table_elem = os_table.get_table_elem()
+    caption = os_table.get_caption()
+
+    thead_rows = os_table.xpath(".//h:thead/h:tr")
+    if os_table.xpath(".//h:tbody"):
+        body_rows = os_table.xpath(".//h:tbody/h:tr")
+    else:
+        all_rows = os_table.xpath(".//h:tr")
+        thead_ids = {id(r) for r in thead_rows}
+        body_rows = [r for r in all_rows if id(r) not in thead_ids]
+
+    chunks: list[list] = []
+    current: list = []
+    current_chars = 0
+    for row in body_rows:
+        row_chars = len(re.sub(r"\s+", " ", "".join(row.itertext()).strip()))
+        if current and (
+            len(current) >= max_rows or
+            current_chars + row_chars > max_chars
+        ):
+            chunks.append(current)
+            current = [row]
+            current_chars = row_chars
+        else:
+            current.append(row)
+            current_chars += row_chars
+    if current:
+        chunks.append(current)
+
+    if len(chunks) <= 1:
+        return [
+            HTMLTableSlideContent(
+                title=title, html=table_elem, caption=caption
+            )
+        ]
+
+    total = len(chunks)
+    return [
+        HTMLTableSlideContent(
+            title=_append_title_suffix(title, f" ({i} of {total})"),
+            html=_build_table_chunk(table_elem, thead_rows, chunk),
+            caption=caption,
+        )
+        for i, chunk in enumerate(chunks, start=1)
+    ]
+
+
+def _table_img_to_figure(
+    img: Image.Image, os_table: Table, title, resource_dir: Path
+) -> FigureSlideContent:
+    """Save a rendered table image and return a FigureSlideContent for it."""
+    doc_dir = os_table.get_doc_dir()
+    img_path = resource_dir / f"{uuid4()}.png"
+    img.save(img_path)
+
+    note_text = None
+    alt_text = os_table.get_alt_text(title)
+    if len(alt_text) > 200:
+        ellipsis = get_string("full_description_in_notes")
+        note_text = alt_text
+        alt_text = alt_text[:200 - len(ellipsis)] + ellipsis
+
+    return FigureSlideContent(
+        title=title,
+        src=os.path.relpath(img_path, doc_dir),
+        caption=os_table.get_caption(),
+        alt=alt_text,
+        notes=note_text,
+    )
+
+
+def _extract_table_data(table_elem: etree.ElementBase) -> list[list[str]]:
+    """Extract cell text from a table element as a list of rows."""
+    rows = table_elem.xpath(".//h:tr", namespaces={"h": NS_XHTML})
+    return [
+        [get_elem_text(cell) for cell in Element(row).xpath(".//h:td|.//h:th")]
+        for row in rows
+    ]
+
+
+def _fits_on_slide(data: list[list[str]], font_pt: int) -> bool:
+    return _estimate_height(data, font_pt) <= _MAX_ESTIMATED_TABLE_H_PX
+
+
+def _find_font_pt(data: list[list[str]]) -> int | None:
+    """Return the first font_size_pt that makes the table fit, or None."""
+    for font_pt in _FONT_SIZE_CANDIDATES:
+        if _fits_on_slide(data, font_pt):
+            return font_pt
+    return None
+
+
 def handle_tables(
     slide_contents: Iterable[SlideContent], resource_dir: Path, css: list[str]
 ):
     for slide_content in slide_contents:
-        if isinstance(slide_content, TableSlideContent):
-            table_slide = slide_content
-            os_table = table_slide.os_table
-            title = table_slide.title
-            img = os_table_to_image(os_table, resource_dir, css)
-            w, h = img.size
-            if (
-                h > 250 or
-                w * h > 200000 or
-                len(os_table.xpath(".//h:table")) > 1 or  # nested tables
-                len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
-            ):
-                doc_dir = os_table.get_doc_dir()
-                img_name = f"{uuid4()}.png"
-                img_path = resource_dir / img_name
-                img.save(img_path)
-                yield FigureSlideContent(
-                    title=title,
-                    src=os.path.relpath(img_path, doc_dir),
-                    caption=os_table.get_caption(),
-                    alt="",
-                )
-            else:
-                yield HTMLTableSlideContent(
-                    title=title,
-                    html=os_table.get_table_elem(),
-                    caption=os_table.get_caption()
-                )
-        else:
+        if not isinstance(slide_content, TableSlideContent):
             yield slide_content
+            continue
+
+        os_table = slide_content.os_table
+        title = slide_content.title
+        has_nested = len(os_table.xpath(".//h:table")) > 1
+        has_media = len(os_table.xpath(".//h:img|.//h:iframe|.//h:video")) > 0
+
+        # Absolute disqualifiers — image only
+        if has_nested or has_media:
+            img = os_table_to_image(os_table, resource_dir, css)
+            yield _table_img_to_figure(img, os_table, title, resource_dir)
+            continue
+
+        data = _extract_table_data(os_table.get_table_elem())
+
+        # Try progressively smaller font sizes
+        chosen_font_pt = _find_font_pt(data)
+        if chosen_font_pt is not None:
+            yield HTMLTableSlideContent(
+                title=title,
+                html=os_table.get_table_elem(),
+                caption=os_table.get_caption(),
+                font_size_pt=chosen_font_pt,
+            )
+            continue
+
+        # Font reduction wasn't enough — try row-splitting
+        if not has_complex_rowspan(os_table):
+            chunks = split_table_by_rows(os_table, title)
+            if len(chunks) > 1:
+                for chunk in chunks:
+                    chunk_data = _extract_table_data(chunk.html)
+                    chunk_font_pt = _find_font_pt(chunk_data)
+                    # Default to smallest font
+                    chunk_font_pt = (
+                        chunk_font_pt if chunk_font_pt is not None
+                        else _FONT_SIZE_CANDIDATES[-1]
+                    )
+                    yield HTMLTableSlideContent(
+                        title=chunk.title,
+                        html=chunk.html,
+                        caption=chunk.caption,
+                        font_size_pt=chunk_font_pt,
+                    )
+                continue
+
+        # Nothing worked — fall back to image
+        img = os_table_to_image(os_table, resource_dir, css)
+        yield _table_img_to_figure(img, os_table, title, resource_dir)
 
 
 def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
@@ -604,7 +983,7 @@ def rename_images_to_type(slide_contents: Iterable[SlideContent], resource_dir):
 def chapter_to_slide_contents(chapter: Chapter):
     if chapter.get_chapter_outline():
         yield OutlineSlideContent(
-            title="Chapter outline",
+            title=get_string("chapter_outline"),
             bullets=chapter.get_chapter_outline(),
             numbered=True,
         )
@@ -623,7 +1002,7 @@ def chapter_to_slide_contents(chapter: Chapter):
             if page.is_summary:  # pragma: no cover
                 heading = None
             else:
-                heading = "Learning Objectives"
+                heading = get_string("learning_objectives")
             yield OutlineSlideContent(
                 title=" ".join(title_parts),
                 heading=heading,
@@ -636,8 +1015,8 @@ def chapter_to_slide_contents(chapter: Chapter):
                     if not fig.has_number():
                         continue
                     src = fig.get_src()
-                    title = f"Figure {fig.get_number()}"
-                    caption = fig.get_caption() or fig.get_alt() or "None"
+                    title = f"{get_string('figure')} {fig.get_number()}"
+                    caption = fig.get_caption()
                     alt = fig.get_alt() or ""
                     if not src:  # pragma: no cover
                         name = "src"
@@ -686,6 +1065,7 @@ def slide_contents_to_html(
                     yield E.ul(*list_items)
             elif isinstance(slide_content, FigureSlideContent):
                 yield E.figure(
+                    # Alt becomes the caption and title becomes the alt text
                     E.img(
                         src=slide_content.src,
                         alt=slide_content.caption,
@@ -762,7 +1142,7 @@ def insert_cover_image(pres: pptx.Presentation, cover_image: str):
     )
     pic.left = round(pres.slide_width / 2 - pic.width / 2)
     pic.name = "Cover Image"
-    set_alt_text(pic, "Cover image")
+    set_alt_text(pic, get_string("cover_image"))
 
 
 def fix_image_alt_text(slides: Iterable[Slide]):
@@ -793,11 +1173,55 @@ def adjust_figure_caption_font(slides: Iterable[Slide]):
         yield slide
 
 
-def slides_post_process(pres: pptx.Presentation):
+def fix_image_aspect_ratio(slides: Iterable[Slide]):
+    for slide in slides:
+        for shape in slide.shapes:
+            if isinstance(shape, Picture):
+                w, h = shape.image.size
+                if 0 in (w, h, shape.width, shape.height):
+                    continue  # pragma: no cover
+                img_aspect = w / h
+                shape_aspect = shape.width / shape.height
+                if img_aspect > shape_aspect:
+                    new_h = round(shape.width / img_aspect)
+                    shape.top += (shape.height - new_h) // 2
+                    shape.height = new_h
+                else:
+                    new_w = round(shape.height * img_aspect)
+                    shape.left += (shape.width - new_w) // 2
+                    shape.width = new_w
+        yield slide
+
+
+def _apply_table_font_size(slide: Slide, font_size_pt: int):
+    target = pptx.util.Pt(font_size_pt)
+    for shape in slide.shapes:
+        if shape.has_table:
+            for row in shape.table.rows:
+                for cell in row.cells:
+                    for para in cell.text_frame.paragraphs:
+                        para.font.size = target
+
+
+def slides_post_process(
+    pres: pptx.Presentation,
+    slide_contents: list[SlideContent] | None = None,
+):
     slides = pres.slides
     slides = fix_image_alt_text(slides)
+    slides = fix_image_aspect_ratio(slides)
     slides = adjust_figure_caption_font(slides)
     _ = list(slides)  # Run generator to completion
+    # Apply font size overrides for scaled tables.
+    # pres.slides[0] is the pandoc title slide;
+    # pres.slides[i+1] = slide_contents[i]
+    if slide_contents is not None:
+        for i, content in enumerate(slide_contents):
+            if (
+                isinstance(content, HTMLTableSlideContent) and
+                content.font_size_pt is not None
+            ):
+                _apply_table_font_size(pres.slides[i + 1], content.font_size_pt)
     slide_layouts_by_name = {sl.name: sl for sl in pres.slide_layouts}
     last_slide_layout = slide_layouts_by_name["Last Slide"]
     pres.slides.add_slide(last_slide_layout)
@@ -858,6 +1282,8 @@ def main():
     cover_image = Path(sys.argv[4]).resolve()
     css = [sys.argv[5]]
     out_fmt = sys.argv[6]
+    lang = sys.argv[7]
+    configure_i18n(lang)
     # For xhtml_to_img
     os.environ.setdefault("XDG_RUNTIME_DIR", "/tmp/runtime-root")
     tree = etree.parse(str(book_input), None)
@@ -875,9 +1301,10 @@ def main():
         slide_contents = split_large_bullet_lists(slide_contents)
         slide_contents = handle_tables(slide_contents, resource_dir, css)
         slide_contents = rename_images_to_type(slide_contents, resource_dir)
+        slide_contents = list(slide_contents)  # materialize for post-processing
         slides_etree = slide_contents_to_html(
             book.get_title(),
-            f"Chapter {chapter.get_number()} {chapter.get_title()}",
+            f"{get_string('chapter')} {chapter.get_number()} {chapter.get_title()}",
             slide_contents,
         )
         slides_etree_to_ppt(
@@ -886,7 +1313,7 @@ def main():
         fix_pptx_file(ppt_output)
         tmp_path = Path(ppt_output).with_suffix(".pptx.tmp")
         pres = pptx.Presentation(ppt_output)
-        slides_post_process(pres)
+        slides_post_process(pres, slide_contents)
         if cover_image.exists():
             insert_cover_image(pres, str(cover_image))
         pres.save(str(tmp_path))

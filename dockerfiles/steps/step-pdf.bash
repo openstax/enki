@@ -4,19 +4,6 @@ parse_book_dir
 # Style needed because mathjax will size converted math according to surrounding text
 cp "$IO_BAKED/"*-pdf.css "$IO_LINKED"
 cp -R "$IO_BAKED/downloaded-fonts" "$IO_LINKED"
-shopt -s globstar nullglob
-for collection in "$IO_LINKED/"*.linked.xhtml; do
-    slug_name=$(basename "$collection" | awk -F'[.]' '{ print $1; }')
-
-    node "${JS_EXTRA_VARS[@]}" $MATHIFY_ROOT/typeset/start.js -i "$IO_LINKED/$slug_name.linked.xhtml" -o "$IO_LINKED/$slug_name.mathified.xhtml" -f svg
-
-done
-shopt -u globstar nullglob
-
-
-# Formerly git-link
-parse_book_dir
-
 
 target_dir="$IO_LINKED"
 book_slugs_file="/tmp/book-slugs.json"
@@ -52,13 +39,23 @@ done < <(xmlstarlet sel -t --match "$xpath_sel" --value-of '@slug' --value-of "'
 # Save all the slug/uuid pairs into a JSON file
 jo -a $jo_args > $book_slugs_file
 
+xpath() {
+    query="$1"
+    path="$2"
+    xmlstarlet sel -N 'x=http://www.w3.org/1999/xhtml' -t -m "$query" -v . -n "$path"
+}
+
 books_missing_styles=()
 shopt -s globstar nullglob
 while read -r book_slug; do
+    mathified="$IO_LINKED/$book_slug.mathified.xhtml"
+    node "${JS_EXTRA_VARS[@]}" $MATHIFY_ROOT/typeset/start.js -i "$IO_LINKED/$book_slug.linked.xhtml" -o "$mathified" -f svg
     [[ -f "$IO_LINKED/$book_slug-pdf.css" ]] || books_missing_styles+=("$book_slug")
-    link-rex "$IO_LINKED/$book_slug.mathified.xhtml" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
+    link-rex "$mathified" "$book_slugs_file" "$target_dir" "$book_slug.rex-linked.xhtml"
     print-customizations "$IO_LINKED/$book_slug.rex-linked.xhtml" "$IO_LINKED/$book_slug.print-ready.xhtml"
-    prince -v --output="$IO_ARTIFACTS/$book_slug.pdf" "$IO_LINKED/$book_slug.print-ready.xhtml"
+    title="$(xpath '/x:html/x:head/x:title/text()' "$mathified")"
+    language="$(xpath '/x:html/x:head/x:meta[@data-type="language"]/@content' "$mathified")"
+    prince --pdf-title "${title:?}" --pdf-lang "${language:?}" --tagged-pdf --pdf-profile PDF/UA-1 --output="$IO_ARTIFACTS/$book_slug.pdf" -v "$IO_LINKED/$book_slug.print-ready.xhtml"
 done < <(jq -r '.[].slug' "$book_slugs_file")
 shopt -u globstar nullglob
 

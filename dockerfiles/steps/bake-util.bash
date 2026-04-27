@@ -9,19 +9,32 @@ for collection in "$IO_ASSEMBLED/"*.assembled.xhtml; do
     style_file="$BOOK_STYLES_ROOT/$style_name-pdf.css"
     dst_style_name="$slug_name-pdf.css"
 
-    if [[ -f "$style_file" ]]
-        then
-            cp "$style_file" "$IO_BAKED/$dst_style_name"
-        else
-            die "Warning: Style Not Found in '$style_file'" # LCOV_EXCL_LINE
+    if [[ -f "$style_file" ]]; then
+        cp "$style_file" "$IO_BAKED/$dst_style_name"
+    else
+        die "Warning: Style Not Found in '$style_file'" # LCOV_EXCL_LINE
     fi
 
 
-    if [[ -f "$style_file" ]]
-        then
-            export VERBOSE=$TRACE_ON
-            $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1
-            sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
+    if [[ -f "$style_file" ]]; then
+        # LCOV_EXCL_START
+        if [[ -n "${SHORTEN:-}" ]]; then
+            if
+                ALLOW_UNKNOWN_ARGS=1 \
+                "$COOKBOOK_ROOT/lib/recipes/$style_name/shorten" \
+                    --input "$collection" \
+                    --output "$collection.short" \
+                    --keep-chapters "$SHORTEN"
+            then
+                mv "$collection" "$collection.orig"
+                mv "$collection.short" "$collection"
+                say "Shortened '$collection' ($SHORTEN)"
+            fi
+        fi
+        # LCOV_EXCL_END
+        export VERBOSE=$TRACE_ON
+        $COOKBOOK_ROOT/bake -b "$style_name" -i "$IO_ASSEMBLED/$slug_name.assembled.xhtml" -o "$IO_BAKED/$slug_name.baked.xhtml" -r "$IO_RESOURCES" -p $1
+        sed -i "s%<\\/head>%<link rel=\"stylesheet\" type=\"text/css\" href=\"$dst_style_name\" />&%" "$IO_BAKED/$slug_name.baked.xhtml"
     fi
 done
 shopt -u globstar nullglob

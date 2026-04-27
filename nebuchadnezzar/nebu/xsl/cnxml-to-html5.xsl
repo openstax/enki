@@ -1794,9 +1794,12 @@
   <xsl:call-template name="data-prefix"/>
 </xsl:template>
 
-<!-- Copy the summary attribute over unchanged -->
+<!-- Copy the summary attribute over to data-summary --> 
+<!-- This way screen readers ignore it but we can still use it where needed -->
 <xsl:template match="c:table/@summary">
-  <xsl:copy/>
+  <xsl:attribute name="data-summary">
+    <xsl:value-of select="."/>
+  </xsl:attribute>
 </xsl:template>
 
 <!-- Copy the aria-label attribute -->
@@ -1810,6 +1813,9 @@
 <xsl:template match="c:table[count(c:tgroup) = 1]">
   <table>
     <xsl:apply-templates select="@*|c:label"/>
+    <xsl:if test="not(.//c:thead) and normalize-space(@aria-label) = '' and not(c:caption or c:title)">
+      <xsl:attribute name="role">presentation</xsl:attribute>
+    </xsl:if>
     <xsl:if test="c:caption or c:title">
       <caption>
         <xsl:apply-templates select="c:title"/>

@@ -16,7 +16,7 @@ RUN curl -o /tmp/AdobeICCProfiles.zip https://download.adobe.com/pub/adobe/iccpr
 # ---------------------------
 FROM base as princexml-stage
 # Remember to run `dpkg -I prince_...deb` and add the dependencies above because they are not copied out of this stage
-ENV PRINCE_VERSION=15-1
+ENV PRINCE_VERSION=16.2-1
 ENV PRINCE_UBUNTU_BUILD=22.04
 RUN set -x \
     && apt-get update \
@@ -206,6 +206,8 @@ RUN set -x \
     # ... for princexml:
     fonts-stix libcurl4 \
     libaom3 libavif13 libc6 libcurl4 libfontconfig1 libfreetype6 libgif7 libjpeg8 liblcms2-2 libpng16-16 libssl3 libtiff5 libwebp7 libwebpdemux2 libxml2 zlib1g \
+    # ... for pptify_book:
+    fonts-crosextra-carlito \
     # ... for bakery-scripts
     pkg-config libmagic1 \
     mime-support wget xsltproc lsb-release git \

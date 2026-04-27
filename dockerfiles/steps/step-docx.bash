@@ -53,6 +53,7 @@ mathml2png_rpc start
 book_slugs_file="$(realpath "$IO_DOCX/book-slugs.json")"
 book_dir="$(realpath "$IO_DOCX/content")"
 target_dir="$(realpath "$IO_DOCX/docx")"
+pandoc_metadata_file="$(realpath "$IO_JSONIFIED/pandoc-metadata.json")"
 reference_doc="$BAKERY_SCRIPTS_ROOT/scripts/gdoc/custom-reference-$lang.docx"
 mkdir -p "$target_dir"
 cd "$book_dir"
@@ -65,6 +66,7 @@ while read -r line; do
     for xhtmlfile in ./"$uuid@"*.xhtml; do
         xhtmlfile_basename=$(basename "$xhtmlfile")
         metadata_filename="${xhtmlfile_basename%.*}"-metadata.json
+        jq -r --arg language "$lang" '{ title: .title, language: $language, author: "OpenStax", company: "OpenStax" }' "$metadata_filename" > "$pandoc_metadata_file"
         docx_filename=$(jq -r '.slug' "$metadata_filename").docx
         mathmltable_tempfile="$xhtmlfile.mathmltable.tmp"
         mathmltable2png "$xhtmlfile" "../resources" "$mathmltable_tempfile"
@@ -72,7 +74,7 @@ while read -r line; do
 
         say "Converting to docx: $xhtmlfile_basename"
         xsltproc --output "$wrapped_tempfile" "$BAKERY_SCRIPTS_ROOT/scripts/gdoc/wrap-in-greybox.xsl" "$mathmltable_tempfile"
-        pandoc --fail-if-warnings --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
+        pandoc --fail-if-warnings --metadata-file="$pandoc_metadata_file" --reference-doc="$reference_doc" --from=html --to=docx --output="$current_target/$docx_filename" "$wrapped_tempfile"
     done
 done < <(jq -r '.[] | .slug + "'$col_sep'" + .uuid' "$book_slugs_file")
 
