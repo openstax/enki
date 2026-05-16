@@ -27,7 +27,7 @@ done
 
 [[ $arg_data_dir ]] || arg_data_dir="./data"
 
-root="cross-lib"
+root="batch-builder"
 all_books="$root/book-data/AUTO_books.txt"
 test -f $all_books || ( echo "ERROR: Book list not found at ${all_books}" && exit 1 )
 

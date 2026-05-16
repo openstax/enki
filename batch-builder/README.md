@@ -19,7 +19,7 @@ Note: All data files should end with a single newline.
 
 ### Scripts
 
-All scripts are meant to be run from Enki root (eg. by calling `./cross-lib/updater.sh` from enki folder).
+All scripts are meant to be run from Enki root (eg. by calling `./batch-builder/updater.sh` from enki folder).
 
 `update_books.rb` - Updates or creates the list of books in `AUTO_books.txt`. Requires Ruby to be installed.
 
@@ -35,9 +35,9 @@ Options:
 
 Examples:
 ```
-./cross-lib/run_enki_on_all.sh --command all-pdf
-./cross-lib/run_enki_on_all.sh --command all-epub --data-dir ./data/v1 --echo --continue
-STOP_AT_STEP=step-bake ./cross-lib/run_enki_on_all.sh --command all-web
+./batch-builder/run_enki_on_all.sh --command all-pdf
+./batch-builder/run_enki_on_all.sh --command all-epub --data-dir ./data/v1 --echo --continue
+STOP_AT_STEP=step-bake ./batch-builder/run_enki_on_all.sh --command all-web
 ```
 
 ## Logs
