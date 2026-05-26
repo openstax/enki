@@ -343,6 +343,7 @@ function unset_book_vars() {
     unset ARG_GIT_REF
     unset ARG_ENABLE_CORGI_UPLOAD
     unset ARG_ENABLE_SOURCEMAPS
+    unset ARG_IS_LATEST
 }
 
 function do_step() {
