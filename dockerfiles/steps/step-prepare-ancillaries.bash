@@ -79,6 +79,13 @@ $(< "$BOOK_STYLES_ROOT/webview-generic.css")
   --max-media-width: 65%;
 }
 
+@media (max-width: 768px) {
+  :root {
+    --content-width: 95%;
+    --max-media-width: 90%;
+  }
+}
+
 body {
   background-color: var(--body-background-color);
   margin-top: 0;
