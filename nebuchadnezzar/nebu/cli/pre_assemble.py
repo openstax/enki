@@ -418,7 +418,9 @@ def handle_super_documents(
     )
 
     # Step 1b: Remove collections that became empty
-    remove_empty_collections_from_container(container, path_resolver, books_xml)
+    remove_empty_collections_from_container(
+        container, path_resolver, books_xml
+    )
 
     # Step 2: Create new collections for each super document
     create_super_collections(super_documents)
