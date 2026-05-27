@@ -77,7 +77,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
 
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
-    echo "View web preview here: $rex_prod_url"
+    [[ -n "${rex_prod_url:-}" ]] && echo "View web preview here: $rex_prod_url"
 elif [[ "${ARG_IS_LATEST:-0}" -eq 1 ]]; then
     upload_ancillaries "$IO_ANCILLARY"
 fi
