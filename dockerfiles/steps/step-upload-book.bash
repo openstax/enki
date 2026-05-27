@@ -2,10 +2,12 @@ parse_book_dir
 
 s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
+shopt -s globstar nullglob
 for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
 for xhtmlfile in "$IO_JSONIFIED/"*@*:*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(basename "$xhtmlfile")"; done;
 aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
 copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
+shopt -u globstar nullglob
 
 # Copy subdirectories (Interactives and styles)
 shopt -s globstar nullglob
@@ -53,6 +55,8 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         : ${!varname:?"Expected value for \"$varname\""}
     done
     book_slug_urls=()
+    # read_book_slugs filters out super-documents by default, so repos where all
+    # books have style="super" (e.g. shared-content repos) skip this loop entirely.
     while read -r book_slug; do
         book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
 
