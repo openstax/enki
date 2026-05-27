@@ -48,12 +48,14 @@ if [[ $(tee /dev/stderr | wc -l) -gt 0 ]]; then
     echo "Duplicate slugs found"
     exit 1
 fi < <(
+    shopt -s nullglob
     for collection in "$IO_JSONIFIED/"*.toc.json; do
         jq -r '.tree.contents | .. | select(.toc_type? == "book-content" and .slug?) | .slug' "$collection" |
         sort |
         uniq --repeated --count |
         awk -v "col=$(basename "$collection")" '$0=$2" appeared "$1" times in "col'
     done
+    shopt -u nullglob
 )
 # LCOV_EXCL_STOP
 
