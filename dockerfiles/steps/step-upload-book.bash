@@ -55,7 +55,8 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         : ${!varname:?"Expected value for \"$varname\""}
     done
     book_slug_urls=()
-    # read_book_slugs filters out super-documents by default, so repos where all
+    # --from-repo reads slugs from books.xml rather than the CORGI-provided slugs file,
+    # ensuring super-documents are correctly identified and filtered. Repos where all
     # books have style="super" (e.g. shared-content repos) skip this loop entirely.
     while read -r book_slug; do
         book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
@@ -69,7 +70,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         rex_prod_url="$REX_PROD_PREVIEW_URL/apps/rex/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
 
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
-    done < <(read_book_slugs)  # LCOV_EXCL_LINE
+    done < <(read_book_slugs --from-repo)  # LCOV_EXCL_LINE
 
     while IFS='|' read -r url slug; do
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
