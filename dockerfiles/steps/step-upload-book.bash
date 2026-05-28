@@ -80,7 +80,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
 
     [[ -n "${rex_prod_url:-}" ]] && echo "View web preview here: $rex_prod_url"
 elif [[ "${ARG_IS_LATEST:-0}" -eq 1 ]]; then
-    upload_ancillaries "$IO_ANCILLARY"
+    upload_ancillaries --no-test-mode "$IO_ANCILLARY"
 fi
 
 shopt -u globstar nullglob
