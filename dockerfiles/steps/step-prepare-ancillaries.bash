@@ -48,6 +48,7 @@ cat - > "$xslt_file" <<EOF
             <script xmlns="http://www.w3.org/1999/xhtml" type="module" src="./resources/init.js">
                 <xsl:comment> no-selfclose </xsl:comment>
             </script>
+            <meta xmlns="http://www.w3.org/1999/xhtml" name="viewport" content="width=device-width, initial-scale=1"/>
         </xsl:copy>
     </xsl:template>
 
@@ -115,7 +116,16 @@ body > [data-type=composite-page] {
   max-width: var(--max-media-width);
   margin-left: auto;
   margin-right: auto;
-  display: block
+  display: block;
+}
+
+:not(figure) > [data-type=media]:has(img) > img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+a {
+  overflow-wrap: break-word;
 }
 EOF
 
