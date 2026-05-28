@@ -286,6 +286,35 @@ def create_super_collections(super_documents: list[SuperDocument]):
             f.write(etree_to_str(super_collection))
 
 
+def remove_empty_collections_from_container(
+    container: BookContainer,
+    path_resolver: PathResolver,
+    books_xml: Path,
+):
+    empty_slugs = {
+        book.slug
+        for book in container.books
+        if not open_xml(path_resolver.get_collection_path(book.slug)).xpath(
+            "//col:module", namespaces={"col": NS_COLLXML}
+        )
+    }
+
+    if not empty_slugs:
+        return
+
+    container_tree = etree.parse(books_xml)
+    for book_elem in container_tree.xpath(
+        "//bk:book", namespaces={"bk": NS_BOOK}
+    ):
+        if book_elem.attrib.get("slug") in empty_slugs:
+            book_elem.getparent().remove(book_elem)
+            logger.info(
+                f"Removed empty collection: {book_elem.attrib.get('slug')}"
+            )
+    with books_xml.open("wb") as f:
+        container_tree.write(f, encoding="utf-8", xml_declaration=False)
+
+
 def append_super_collections_to_container(
     books_xml: Path, super_documents: list[SuperDocument]
 ):
@@ -386,6 +415,11 @@ def handle_super_documents(
     # Step 1: Remove super documents from normal collections
     super_documents = remove_super_documents(
         container, path_resolver, super_documents_by_id
+    )
+
+    # Step 1b: Remove collections that became empty
+    remove_empty_collections_from_container(
+        container, path_resolver, books_xml
     )
 
     # Step 2: Create new collections for each super document

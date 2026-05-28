@@ -129,16 +129,12 @@ def unique(it, *, key=hash):
             yield entry
 
 
-def get_latest_code_version(api_root):
-    url = api_root.rstrip("/") + "/api/version/"
+def get_is_latest_code_version(api_root, code_version):
+    url = api_root.rstrip("/") + "/api/pipeline-version/"
     response = requests.get(url)
     response.raise_for_status()
-    return response.json()
-
-
-def get_is_latest_code_version(api_root, code_version):
-    version_json = get_latest_code_version(api_root)
-    return version_json["tag"] == code_version
+    latest = max(v["version"] for v in response.json())
+    return latest == code_version
 
 
 # replace the book feed from github with the accepted books from the ABL endpoint

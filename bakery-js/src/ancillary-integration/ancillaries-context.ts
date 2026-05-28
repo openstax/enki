@@ -176,6 +176,7 @@ export class AncillariesContext {
       formData.append(k, v)
     })
 
+    formData.append('Content-Type', file.type)
     formData.append('file', file.blob, {
       contentType: file.type,
       filepath: file.name,

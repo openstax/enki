@@ -143,3 +143,29 @@ LOCAL_PREVIEW="$BOOK_DIR/local-preview"
 CONTENT_SAMPLE_FILE="$(realpath $LOCAL_PREVIEW/contents/00000000-0000-0000-0000-000000000000@*:11111111-1111-4111-8111-111111111111.xhtml)"
 [ -e "$CONTENT_SAMPLE_FILE" ] || local_preview_data_missing_halt "$CONTENT_SAMPLE_FILE content file missing"
 grep -q "\<img src=\"..\/resources\/4e88fcaf0d07298343a7cb933926c4c0c6b5b017\"" "$CONTENT_SAMPLE_FILE" || local_preview_data_missing_halt "image content not found in content file"
+
+# Test that step-upload-book skips the book URL loop when all books are super-documents
+# (read_book_slugs filters out style="super" books by default)
+echo '-123456' > "$(find "$BOOK_DIR" -type d -name "IO_BOOK")/job_id"
+books_xml="$(find "$BOOK_DIR" -path "*/IO_FETCH_META/META-INF/books.xml")"
+cp "$books_xml" "$books_xml.bak"
+cat > "$books_xml" <<'EOF'
+<container xmlns="https://openstax.org/namespaces/book-container" version="1">
+<book slug="super--shared-content" style="super" href="../collections/super--shared-content.collection.xml"/>
+</container>
+EOF
+find "$BOOK_DIR" -path "*/IO_BOOK/slugs" -delete
+rm -f "$ARTIFACTS_URL_PATH"
+
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD="corgi" \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
+
+if grep -q "book-slug1" "$ARTIFACTS_URL_PATH" 2>/dev/null; then
+    echo "Super-only repo should not produce book-slug1 entries in artifact_urls.json"
+    echo "Actual: $(cat "$ARTIFACTS_URL_PATH")"
+    mv "$books_xml.bak" "$books_xml"
+    exit 1
+fi
+
+mv "$books_xml.bak" "$books_xml"

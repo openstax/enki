@@ -47,7 +47,7 @@ graph TB
     step-prebake -- fetch-meta --> step-jsonify
     step-prebake -- resources --> step-jsonify
     step-disassemble -- disassemble-linked --> step-jsonify
-    step-fetch -- fetched --> step-upload-book
+    step-prebake -- fetch-meta --> step-upload-book
     step-jsonify -- jsonified --> step-upload-book
     step-prebake -- resources --> step-upload-book
     step-prepare-ancillaries -- ancillary --> step-upload-book

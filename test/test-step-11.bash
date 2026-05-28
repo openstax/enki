@@ -7,7 +7,7 @@ BUSI_DIR=../data/test-busi
 
 SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
 KCOV_DIR=_kcov11-a \
-../enki --clear-data --data-dir $BUSI_DIR --command all-epub --repo 'openstax/osbooks-business-law' --book-slug business-law-i-essentials --ref main
+../enki --clear-data --data-dir $BUSI_DIR --command all-epub --repo 'openstax/osbooks-business-law' --book-slug business-law-i-essentials-2e --ref main
 
 SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-1} \
 STUB_UPLOAD="corgi" \
@@ -18,7 +18,7 @@ BOOK_DIR=$BUSI_DIR
 expected_repo="openstax-osbooks-business-law"
 expected_version="main"
 expected_job_id="-123456"
-expected_book_slug='business-law-i-essentials'
+expected_book_slug='business-law-i-essentials-2e'
 expected_extension="epub"
 expected_mime_type="application/epub+zip"
 expected_filename="$expected_repo-$expected_version-$expected_job_id-$expected_book_slug.$expected_extension"

@@ -6,9 +6,14 @@ from itertools import chain
 
 import pytest
 
+from lxml import etree
+
 from nebu.cli.main import cli
-from nebu.cli.pre_assemble import handle_super_documents
-from nebu.models.book_container import BookContainer
+from nebu.cli.pre_assemble import (
+    handle_super_documents,
+    remove_empty_collections_from_container,
+)
+from nebu.models.book_container import BookContainer, CONTAINER_NSMAP
 from nebu.models.path_resolver import PathResolver
 from nebu.utils import re_first_or_default
 from nebu.xml_utils import open_xml
@@ -20,6 +25,7 @@ MD_MODULE = 0
 MD_COLLECTION = 1
 NS_COLLXML = CNXML_NSMAP["col"]
 NS_MDML = CNXML_NSMAP["md"]
+NS_BOOK = CONTAINER_NSMAP["bk"]
 
 
 def prepare_directory(directory, tmp_path):
@@ -300,3 +306,38 @@ def test_handle_super_documents_no_meta(tmp_book_dir_with_super, assert_match):
     assert 1 == sum(1 for name in file_names if super_doc_title in name)
     assert_match(books_xml.read_text(), books_xml.name)
     assert_match(super_doc_meta.read_text(), super_doc_meta.name)
+
+
+def test_empty_collection_removed_from_container(tmp_book_dir_with_super):
+    # GIVEN: A collection that has had all modules removed
+    #        (simulating what happens after super documents are extracted)
+    books_xml = tmp_book_dir_with_super / "META-INF" / "books.xml"
+    collection_path = tmp_book_dir_with_super / "collection.xml"
+
+    col_tree = open_xml(collection_path)
+    for module_elem in col_tree.xpath(
+        "//col:module", namespaces={"col": NS_COLLXML}
+    ):
+        module_elem.getparent().remove(module_elem)
+    with open(collection_path, "wb") as f:
+        col_tree.write(f, encoding="utf-8", xml_declaration=False)
+
+    container = BookContainer.from_str(
+        books_xml.read_bytes(), str(tmp_book_dir_with_super)
+    )
+    path_resolver = PathResolver(
+        container,
+        lambda container: Path(container.pages_root).glob("**/*.cnxml"),
+        lambda s: re_first_or_default(r"m[0-9]+", s),
+    )
+
+    # WHEN: empty collections are removed from the container
+    remove_empty_collections_from_container(container, path_resolver, books_xml)
+
+    # THEN: The empty collection is no longer referenced in books.xml
+    container_tree = etree.parse(books_xml)
+    book_slugs = [
+        e.attrib["slug"]
+        for e in container_tree.xpath("//bk:book", namespaces={"bk": NS_BOOK})
+    ]
+    assert "collection" not in book_slugs

@@ -116,7 +116,7 @@
         "step-upload-book": {
             "inputDirs": [
                 "IO_BOOK",
-                "IO_FETCHED",
+                "IO_FETCH_META",
                 "IO_JSONIFIED",
                 "IO_RESOURCES",
                 "IO_ANCILLARY"

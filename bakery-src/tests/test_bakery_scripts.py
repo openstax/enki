@@ -1187,11 +1187,11 @@ def test_check_feed(mocker):
         def __init__(self, book_feed, version_json):
             self.book_feed = book_feed
             self.version_json = version_json
-        
+
         def get(self, url):
             if "/api/abl" in url:
                 return self.book_feed
-            elif "/api/version" in url:
+            elif "/api/pipeline-version" in url:
                 return self.version_json
 
 
@@ -1341,12 +1341,9 @@ def test_check_feed(mocker):
     mock_send_slack_message = unittest.mock.Mock(wraps=send_slack_message)
     mock_datetime = unittest.mock.Mock()
     mock_datetime.now.return_value = datetime.fromtimestamp(0)
-    mock_version_json = MockJsonResponse({
-        "stack_name":"mock",
-        "tag": code_version,
-        "revision":"0",
-        "deployed_at":"0"
-    })
+    mock_version_json = MockJsonResponse([
+        {"position": 0, "version": code_version},
+    ])
 
     mock_book_feed = MockJsonResponse(input_book_feed)
     api = MockApi(mock_book_feed, mock_version_json)
@@ -1421,13 +1418,10 @@ def test_check_feed(mocker):
     book = {"repo": repo1, "version": vers1, "metadata": {"is_latest": False}}
 
     mock_book_feed = MockJsonResponse(second_book_feed)
-    mock_version_json = MockJsonResponse({
-        "stack_name":"mock",
-        # Newer code version means this is not the latest version of this build
-        "tag": "20210101.00000002",
-        "revision":"0",
-        "deployed_at":"0"
-    })
+    mock_version_json = MockJsonResponse([
+        # Newer pipeline version means this is not the latest version of this build
+        {"position": 0, "version": "20210101.00000002"},
+    ])
     api = MockApi(mock_book_feed, mock_version_json)
     check_feed.requests.get = api.get
 

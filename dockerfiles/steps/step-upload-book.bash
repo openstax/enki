@@ -2,10 +2,12 @@ parse_book_dir
 
 s3_bucket_prefix="$PREVIEW_APP_URL_PREFIX/$CODE_VERSION"
 
+shopt -s globstar nullglob
 for jsonfile in "$IO_JSONIFIED/"*@*:*.json; do cp "$jsonfile" "$IO_ARTIFACTS/$(basename "$jsonfile")"; done;
 for xhtmlfile in "$IO_JSONIFIED/"*@*:*.xhtml; do cp "$xhtmlfile" "$IO_ARTIFACTS/$(basename "$xhtmlfile")"; done;
 aws s3 cp --recursive "$IO_ARTIFACTS" "s3://$ARG_S3_BUCKET_NAME/$s3_bucket_prefix/contents"
 copy-resources-s3 "$IO_RESOURCES" "$ARG_S3_BUCKET_NAME" "$s3_bucket_prefix/resources"
+shopt -u globstar nullglob
 
 # Copy subdirectories (Interactives and styles)
 shopt -s globstar nullglob
@@ -53,6 +55,9 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         : ${!varname:?"Expected value for \"$varname\""}
     done
     book_slug_urls=()
+    # --from-repo reads slugs from books.xml rather than the CORGI-provided slugs file,
+    # ensuring super-documents are correctly identified and filtered. Repos where all
+    # books have style="super" (e.g. shared-content repos) skip this loop entirely.
     while read -r book_slug; do
         book_metadata="$IO_ARTIFACTS/$book_slug.toc.json"
 
@@ -65,7 +70,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         rex_prod_url="$REX_PROD_PREVIEW_URL/apps/rex/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
 
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
-    done < <(read_book_slugs)  # LCOV_EXCL_LINE
+    done < <(read_book_slugs --from-repo)  # LCOV_EXCL_LINE
 
     while IFS='|' read -r url slug; do
         book_slug_urls+=("$(jo url="$url" slug="$slug")")
@@ -73,7 +78,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
 
     jo -a "${book_slug_urls[@]}" > "$IO_ARTIFACTS/artifact_urls.json"
 
-    echo "View web preview here: $rex_prod_url"
+    [[ -n "${rex_prod_url:-}" ]] && echo "View web preview here: $rex_prod_url"
 elif [[ "${ARG_IS_LATEST:-0}" -eq 1 ]]; then
     upload_ancillaries "$IO_ANCILLARY"
 fi
