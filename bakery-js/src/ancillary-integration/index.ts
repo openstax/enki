@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import * as crypto from 'crypto'
 import { assertValue } from '../utils'
 import path from 'path'
 import { listDirectory, getMimeType } from './utils'
@@ -9,8 +10,22 @@ import {
   mapFormats,
 } from './ancillaries-context'
 
+const testModeId = (id: string) => {
+  const hash = crypto.createHash('sha256').update(`test-${id}`).digest('hex')
+  // Set UUID version (5) and RFC 4122 variant (10xx) bits so the result is a valid UUID
+  const variantNibble = ((parseInt(hash[16], 16) & 0x3) | 0x8).toString(16)
+  return [
+    hash.slice(0, 8),
+    hash.slice(8, 12),
+    '5' + hash.slice(13, 16),
+    variantNibble + hash.slice(17, 20),
+    hash.slice(20, 32),
+  ].join('-')
+}
+
 export const newAncillaryTypeSuperHandler = async (
-  context: AncillariesContext
+  context: AncillariesContext,
+  testMode = true
 ) => {
   const typeSuper = assertValue(context.ancillaryTypesByName['super'])
   const superConfig = assertValue(typeSuper.config)
@@ -44,10 +59,11 @@ export const newAncillaryTypeSuperHandler = async (
       }
     })
     const files = await context.uploadFiles(filesInputs)
+    const effectiveId = testMode ? testModeId(id) : id
     const fields = {
-      name,
+      name: testMode ? `[test] ${name}` : name,
       description,
-      publicationState: 'published',
+      publicationState: testMode ? 'draft' : 'published',
     }
     const formats = {
       [htmlFormatLabel]: {
@@ -65,13 +81,16 @@ export const newAncillaryTypeSuperHandler = async (
       formats: mappedFormats,
       relations,
     }
-    return { payload, slug, id }
+    return { payload, slug, id: effectiveId }
   }
 }
 
-export const upload = async (ancillariesDir: string) => {
+export const upload = async (ancillariesDir: string, testMode = true) => {
   const context = AncillariesContext.fromEnv()
-  const ancillaryTypeSuperHandler = await newAncillaryTypeSuperHandler(context)
+  const ancillaryTypeSuperHandler = await newAncillaryTypeSuperHandler(
+    context,
+    testMode
+  )
   const ancillaryPaths = fs
     .readdirSync(ancillariesDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())

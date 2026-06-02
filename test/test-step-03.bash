@@ -120,7 +120,7 @@ while IFS=$'\n' read -r expected_contents; do
         exit 1
     fi
 done <<EOF
-ancillary
+--no-test-mode ancillary
 EOF
 # If you ever need to update the above list, just do `cat ../data/test-book/_attic/IO_ARTIFACTS/upload_ancillaries_args_*` and copy/paste :)
 

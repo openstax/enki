@@ -110,7 +110,7 @@ if [[ $STUB_UPLOAD ]]; then
 else
     function upload_ancillaries() {
         if [[ -n "${ANCILLARY_TYPE_CONFIG:-}" ]]; then
-            node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" ancillary "$1"
+            node --unhandled-rejections=strict "${JS_EXTRA_VARS[@]}" "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" ancillary "$@"
         fi
     }
 fi

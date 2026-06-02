@@ -325,8 +325,12 @@ program
 program
   .command('ancillary')
   .argument('<ancillaries-dir>', 'directory containing ancillaries to upload')
-  .action(async (ancillariesDir) => {
-    await upload(ancillariesDir)
+  .option(
+    '--no-test-mode',
+    'upload ancillaries as production-ready (default is test mode)'
+  )
+  .action(async (ancillariesDir, options) => {
+    await upload(ancillariesDir, options.testMode)
   })
 
 program.parse()
