@@ -86,6 +86,11 @@ EOF
 # when books.xml contains additional non-super books that were not selected.
 books_xml="$(find "$BOOK_DIR" -path "*/IO_FETCH_META/META-INF/books.xml")"
 cp "$books_xml" "$books_xml.bak"
+cleanup_books_xml() {
+    [[ -f "$books_xml.bak" ]] && mv -f "$books_xml.bak" "$books_xml"
+    rm -f "$BOOK_DIR/_attic/IO_ARTIFACTS/book-slug2.toc.json"
+}
+trap cleanup_books_xml EXIT
 cat > "$books_xml" <<'EOF'
 <container xmlns="https://openstax.org/namespaces/book-container" version="1">
     <book slug="book-slug1" style="dummy" href="../collections/book-slug1.collection.xml"/>
