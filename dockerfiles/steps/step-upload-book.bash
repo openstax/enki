@@ -70,7 +70,7 @@ if [[ $ARG_ENABLE_CORGI_UPLOAD == 1 ]]; then
         rex_prod_url="$REX_PROD_PREVIEW_URL/apps/rex/books/$book_uuid@$book_version/pages/$first_page_slug$rex_archive_param"
 
         book_slug_urls+=("$(jo url="$rex_prod_url" slug="$book_slug")")
-    done < <(read_book_slugs --from-repo)  # LCOV_EXCL_LINE
+    done < <(read_book_slugs --from-repo | grep -Fxf <(read_book_slugs))  # LCOV_EXCL_LINE
 
     while IFS='|' read -r url slug; do
         book_slug_urls+=("$(jo url="$url" slug="$slug")")

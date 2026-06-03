@@ -82,6 +82,43 @@ done <<EOF
 ancillary
 EOF
 
+# Regression test: only CORGI-selected slugs should appear in artifact_urls.json
+# when books.xml contains additional non-super books that were not selected.
+books_xml="$(find "$BOOK_DIR" -path "*/IO_FETCH_META/META-INF/books.xml")"
+cp "$books_xml" "$books_xml.bak"
+cat > "$books_xml" <<'EOF'
+<container xmlns="https://openstax.org/namespaces/book-container" version="1">
+    <book slug="book-slug1" style="dummy" href="../collections/book-slug1.collection.xml"/>
+    <book slug="book-slug2" style="dummy" href="../collections/book-slug2.collection.xml"/>
+</container>
+EOF
+cat > "$BOOK_DIR/_attic/IO_ARTIFACTS/book-slug2.toc.json" <<'EOF'
+{"title":"test book 2","tree":{"id":"99999999-9999-9999-9999-999999999999@03e68a5","title":"test book 2","contents":[{"id":"22222222-2222-4222-8222-222222222222@","title":"Introduction","slug":"introduction"}],"slug":"test-book-2"},"slug":"book-slug2","id":"99999999-9999-9999-9999-999999999999","version":"03e68a5"}
+EOF
+echo -n "book-slug1" > "$(find "$BOOK_DIR" -type d -name "IO_BOOK")/slugs"
+
+SKIP_DOCKER_BUILD=1 \
+STUB_UPLOAD="corgi" \
+../enki --keep-data --data-dir $BOOK_DIR --command step-upload-book --repo 'philschatz/tiny-book' --ref '03e68a5f78e8fb2ceab04aa719a6daf30a7999b0'
+
+if grep -q "book-slug2" "$ARTIFACTS_URL_PATH"; then
+    echo "Non-selected book slug book-slug2 should not appear in artifact_urls.json"
+    echo "Actual: $(cat "$ARTIFACTS_URL_PATH")"
+    mv "$books_xml.bak" "$books_xml"
+    rm -f "$BOOK_DIR/_attic/IO_ARTIFACTS/book-slug2.toc.json"
+    exit 1
+fi
+if ! grep -q "book-slug1" "$ARTIFACTS_URL_PATH"; then
+    echo "Selected book slug book-slug1 should appear in artifact_urls.json"
+    echo "Actual: $(cat "$ARTIFACTS_URL_PATH")"
+    mv "$books_xml.bak" "$books_xml"
+    rm -f "$BOOK_DIR/_attic/IO_ARTIFACTS/book-slug2.toc.json"
+    exit 1
+fi
+
+mv "$books_xml.bak" "$books_xml"
+rm -f "$BOOK_DIR/_attic/IO_ARTIFACTS/book-slug2.toc.json"
+
 # Test without book slug
 rm $BOOK_DIR/_attic/IO_BOOK/slugs
 SKIP_DOCKER_BUILD=1 \
