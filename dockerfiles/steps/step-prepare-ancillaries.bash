@@ -91,12 +91,14 @@ body {
   background-color: var(--body-background-color);
   margin-top: 0;
   margin-bottom: 0;
+  overflow-wrap: anywhere;
 }
 
 body > [data-type=chapter],
 body > [data-type=page],
 body > [data-type=composite-chapter],
 body > [data-type=composite-page] {
+  box-sizing: border-box;
   width: var(--content-width);
   margin-left: auto;
   margin-right: auto;
