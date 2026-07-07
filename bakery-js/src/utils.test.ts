@@ -75,6 +75,32 @@ describe('xml serializing', () => {
     await writeAndCheckSnapshot(doc)
   })
 
+  it('does not duplicate xmlns:prefix when a programmatically-created element uses the same prefix on itself and on an attribute', async () => {
+    // Elements built via the DOM API (as minidom/fromJSX does, rather than
+    // parsed from XML text) get a resolved prefix/namespaceURI without ever
+    // getting a literal `xmlns:prefix` attribute anywhere in the tree.
+    const doc = parseXml(`<root/>`)
+    const el = doc.createElementNS('http://purl.org/dc/elements/1.1/', 'dc:el')
+    el.setAttributeNS('http://purl.org/dc/elements/1.1/', 'dc:foo', 'value')
+    doc.documentElement.appendChild(el)
+    await writeAndCheckSnapshot(doc)
+  })
+
+  it('handles more than one namespace prefix on the same element independently', async () => {
+    // `dc` is the element's own tag prefix (programmatically created, so no
+    // literal xmlns:dc attribute exists). `opf` is a second, unrelated
+    // prefix declared only via an attribute. An attribute using each prefix
+    // is also present, to confirm neither prefix's bookkeeping leaks into
+    // the other's.
+    const doc = parseXml(`<root/>`)
+    const el = doc.createElementNS('http://purl.org/dc/elements/1.1/', 'dc:el')
+    el.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:opf', 'urn:opf')
+    el.setAttributeNS('urn:opf', 'opf:meta', 'x')
+    el.setAttributeNS('http://purl.org/dc/elements/1.1/', 'dc:foo', 'y')
+    doc.documentElement.appendChild(el)
+    await writeAndCheckSnapshot(doc)
+  })
+
   it('writes comments', async () => {
     const doc = parseXml(`<root><!-- I am a comment --></root>`)
     await writeAndCheckSnapshot(doc)

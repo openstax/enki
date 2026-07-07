@@ -236,6 +236,11 @@ class XMLSerializer {
           namespacesInScopeForChildren
         ).set(prefix, ns)
       }
+      // If the tag's own prefix declaration gets written out here, remember
+      // it so the attribute loop below (which writes prefixed attributes
+      // like `dc:foo="..."`) knows not to redeclare the same `xmlns:prefix`
+      // a second time on this element.
+      let prefixDeclaredOnThisTag: string | null = null
       if (showPrefix) {
         const prefix = assertValue(
           el.prefix,
@@ -248,6 +253,7 @@ class XMLSerializer {
         const alreadyInScope = namespacesInScope.get(prefix) === ns
         if (!alreadyInScope && !el.getAttribute(`xmlns:${prefix}`)) {
           this.w.writeText(n, ` xmlns:${prefix}="${escapeAttribute(ns)}"`)
+          prefixDeclaredOnThisTag = prefix
         }
         bindPrefixForChildren(prefix, ns)
       }
@@ -269,7 +275,9 @@ class XMLSerializer {
           )
         }
       }
-      const nsDeclaredPrefixes: string[] = []
+      const nsDeclaredPrefixes: string[] = prefixDeclaredOnThisTag
+        ? [prefixDeclaredOnThisTag]
+        : []
       for (const attr of Array.from(el.attributes)) {
         this.recWrite(
           attr,
