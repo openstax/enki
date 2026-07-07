@@ -78,29 +78,32 @@ $(< "$BOOK_STYLES_ROOT/webview-generic.css")
   --content-background-color: #fff;
   --content-width: 70%;
   --max-media-width: 65%;
+  --content-padding: 2.5rem;
 }
 
 @media (max-width: 768px) {
   :root {
-    --content-width: 95%;
+    --content-width: 100%;
     --max-media-width: 90%;
+    --content-padding: 1.5rem;
   }
 }
 
 body {
   background-color: var(--body-background-color);
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 body > [data-type=chapter],
 body > [data-type=page],
 body > [data-type=composite-chapter],
 body > [data-type=composite-page] {
+  box-sizing: border-box;
   width: var(--content-width);
   margin-left: auto;
   margin-right: auto;
-  padding: 2.5rem;
+  padding: var(--content-padding);
   background-color: var(--content-background-color);
 }
 
