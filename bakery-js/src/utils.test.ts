@@ -63,6 +63,18 @@ describe('xml serializing', () => {
     await writeAndCheckSnapshot(doc)
   })
 
+  it('does not redeclare a namespace prefix that was only declared via an ancestor xmlns attribute', async () => {
+    const doc = parseXml(
+      `<root xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <metadata>
+                <dc:title>A</dc:title>
+                <dc:creator>B</dc:creator>
+            </metadata>
+        </root>`
+    )
+    await writeAndCheckSnapshot(doc)
+  })
+
   it('writes comments', async () => {
     const doc = parseXml(`<root><!-- I am a comment --></root>`)
     await writeAndCheckSnapshot(doc)

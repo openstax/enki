@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`xml serializing does not redeclare a namespace prefix that was only declared via an ancestor xmlns attribute 1`] = `
+"<root xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <metadata>
+                <dc:title>A</dc:title>
+                <dc:creator>B</dc:creator>
+            </metadata>
+        </root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
 exports[`xml serializing does not redeclare an element namespace prefix already bound by an ancestor 1`] = `
 "<m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
             <m:mrow>

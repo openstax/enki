@@ -230,6 +230,12 @@ class XMLSerializer {
       // that reuses the prefix (e.g. `m:mrow`, `m:mn`, ... in a MathML tree)
       // would redeclare the same namespace, bloating the output.
       let namespacesInScopeForChildren = namespacesInScope
+      const bindPrefixForChildren = (prefix: string, ns: string) => {
+        if (namespacesInScopeForChildren.get(prefix) === ns) return
+        namespacesInScopeForChildren = new Map(
+          namespacesInScopeForChildren
+        ).set(prefix, ns)
+      }
       if (showPrefix) {
         const prefix = assertValue(
           el.prefix,
@@ -243,10 +249,23 @@ class XMLSerializer {
         if (!alreadyInScope && !el.getAttribute(`xmlns:${prefix}`)) {
           this.w.writeText(n, ` xmlns:${prefix}="${escapeAttribute(ns)}"`)
         }
-        if (!alreadyInScope) {
-          namespacesInScopeForChildren = new Map(namespacesInScope).set(
-            prefix,
-            ns
+        bindPrefixForChildren(prefix, ns)
+      }
+      // An element can also put a prefix in scope for its descendants via an
+      // explicit `xmlns:prefix` attribute without using that prefix itself
+      // (e.g. `<root xmlns:dc="..."><dc:title/></root>`). Record those too,
+      // otherwise every `dc:*` descendant would redeclare the namespace.
+      for (const attr of Array.from(el.attributes)) {
+        if (attr.prefix === 'xmlns') {
+          bindPrefixForChildren(
+            assertValue(
+              attr.localName,
+              'BUG: xmlns attribute does not have a localName set'
+            ),
+            assertValue(
+              attr.nodeValue,
+              'BUG: xmlns attribute does not have a value set'
+            )
           )
         }
       }
