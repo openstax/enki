@@ -1,5 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`xml serializing does not redeclare an element namespace prefix already bound by an ancestor 1`] = `
+"<m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
+            <m:mrow>
+                <m:mn>1</m:mn>
+                <m:mo>+</m:mo>
+                <m:mn>2</m:mn>
+            </m:mrow>
+        </m:math>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing redeclares an element namespace prefix when it is bound to a different namespace in a nested scope 1`] = `
+"<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two"><a:grandchild/></a:child>
+        </a:root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
 exports[`xml serializing writes comments 1`] = `
 "<root><!-- I am a comment --></root>
 <!-- # sourceMappingURL=out.xml.map -->"

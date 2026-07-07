@@ -126,7 +126,7 @@ class XMLSerializer {
   }
   public async writeFiles() {
     const sourcemapFile = `${this.outputFile}.map`
-    this.recWrite(this.root, null, [], 0)
+    this.recWrite(this.root, null, [], 0, new Map())
     await this.w.finish(sourcemapFile)
   }
 
@@ -134,7 +134,11 @@ class XMLSerializer {
     n: Node,
     currentDefaultNamespace: string | null,
     namespaceDeclarationsEncounteredOnCurrentElement: string[],
-    depth: number
+    depth: number,
+    // Prefix -> namespaceURI bindings already declared by an ancestor
+    // element. Used so that deeply nested prefixed trees (e.g. MathML's
+    // `m:*` elements) do not redeclare `xmlns:prefix` on every descendant.
+    namespacesInScope: ReadonlyMap<string, string>
   ) {
     if (n.nodeType === n.DOCUMENT_NODE) {
       const doc = n as Document
@@ -142,7 +146,8 @@ class XMLSerializer {
         doc.documentElement,
         currentDefaultNamespace,
         namespaceDeclarationsEncounteredOnCurrentElement,
-        depth
+        depth,
+        namespacesInScope
       )
     } else if (n.nodeType === n.TEXT_NODE) {
       const textNode = n as Text
@@ -192,7 +197,8 @@ class XMLSerializer {
       // Only keep the prefix in the output when the element's namespace
       // differs from the namespace that is already the default in this
       // scope. Otherwise it inherits the default namespace unprefixed.
-      const showPrefix = el.prefix !== null && el.namespaceURI !== currentDefaultNamespace
+      const showPrefix =
+        el.prefix !== null && el.namespaceURI !== currentDefaultNamespace
       const prefixedTag = showPrefix ? el.tagName : localTag
       const newDefaultNamespace = el.prefix
         ? currentDefaultNamespace
@@ -219,20 +225,40 @@ class XMLSerializer {
           )
         }
       }
-      if (showPrefix && !el.getAttribute(`xmlns:${el.prefix}`)) {
-        this.w.writeText(
-          n,
-          ` xmlns:${el.prefix}="${escapeAttribute(
-            assertValue(
-              el.namespaceURI,
-              'BUG: prefixed element does not have a namespaceURI set'
-            )
-          )}"`
+      // Only emit `xmlns:prefix` when that prefix is not already bound to
+      // this same namespace URI by an ancestor. Otherwise every descendant
+      // that reuses the prefix (e.g. `m:mrow`, `m:mn`, ... in a MathML tree)
+      // would redeclare the same namespace, bloating the output.
+      let namespacesInScopeForChildren = namespacesInScope
+      if (showPrefix) {
+        const prefix = assertValue(
+          el.prefix,
+          'BUG: showPrefix implies el.prefix is set'
         )
+        const ns = assertValue(
+          el.namespaceURI,
+          'BUG: prefixed element does not have a namespaceURI set'
+        )
+        const alreadyInScope = namespacesInScope.get(prefix) === ns
+        if (!alreadyInScope && !el.getAttribute(`xmlns:${prefix}`)) {
+          this.w.writeText(n, ` xmlns:${prefix}="${escapeAttribute(ns)}"`)
+        }
+        if (!alreadyInScope) {
+          namespacesInScopeForChildren = new Map(namespacesInScope).set(
+            prefix,
+            ns
+          )
+        }
       }
       const nsDeclaredPrefixes: string[] = []
       for (const attr of Array.from(el.attributes)) {
-        this.recWrite(attr, newDefaultNamespace, nsDeclaredPrefixes, depth)
+        this.recWrite(
+          attr,
+          newDefaultNamespace,
+          nsDeclaredPrefixes,
+          depth,
+          namespacesInScopeForChildren
+        )
       }
       if (isSelfClosing(localTag, el.namespaceURI)) {
         assertTrue(el.childNodes.length === 0)
@@ -242,7 +268,13 @@ class XMLSerializer {
       } else {
         this.w.writeText(n, '>')
         for (const child of Array.from(el.childNodes)) {
-          this.recWrite(child, newDefaultNamespace, [], depth + 1)
+          this.recWrite(
+            child,
+            newDefaultNamespace,
+            [],
+            depth + 1,
+            namespacesInScopeForChildren
+          )
         }
         this.w.writeText(n, `${endElPadding}</${prefixedTag}>`)
       }

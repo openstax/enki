@@ -41,6 +41,28 @@ describe('xml serializing', () => {
     await writeAndCheckSnapshot(doc)
   })
 
+  it('does not redeclare an element namespace prefix already bound by an ancestor', async () => {
+    const doc = parseXml(
+      `<m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
+            <m:mrow>
+                <m:mn>1</m:mn>
+                <m:mo>+</m:mo>
+                <m:mn>2</m:mn>
+            </m:mrow>
+        </m:math>`
+    )
+    await writeAndCheckSnapshot(doc)
+  })
+
+  it('redeclares an element namespace prefix when it is bound to a different namespace in a nested scope', async () => {
+    const doc = parseXml(
+      `<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two"><a:grandchild/></a:child>
+        </a:root>`
+    )
+    await writeAndCheckSnapshot(doc)
+  })
+
   it('writes comments', async () => {
     const doc = parseXml(`<root><!-- I am a comment --></root>`)
     await writeAndCheckSnapshot(doc)
