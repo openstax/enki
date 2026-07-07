@@ -146,6 +146,31 @@ export class PageFile extends XmlFile<
     // Delete all iframes
     doc.forEach('//h:iframe', (n) => n.remove())
 
+    // Fix footnote popup styling: merge <div data-type="footnote-number">N</div>
+    // and the following inline content into <p><sup>N</sup> content</p> so that
+    // epub readers (e.g. Apple Books) render the number inline rather than as a
+    // large block on its own line.
+    doc.forEach('//h:aside[@epub:type="footnote"]', (aside) => {
+      const children = aside.children
+      const numberDivIdx = children.findIndex(
+        (c) =>
+          c.node.nodeType === c.node.ELEMENT_NODE &&
+          c.attr('data-type') === 'footnote-number'
+      )
+      if (numberDivIdx === -1) return
+      const numberDiv = children[numberDivIdx]
+      const number = numberDiv.text()
+      const remainingChildren = children.filter((_, i) => i !== numberDivIdx)
+      const sup = doc.create('h:sup', {}, [number], getPos(aside.node))
+      const p = doc.create(
+        'h:p',
+        {},
+        [sup, ' ', ...remainingChildren],
+        getPos(aside.node)
+      )
+      aside.children = [p]
+    })
+
     // Fix links to other Pages
     const allPages = new Map(this.parsed.pageLinks.map((r) => [r.readPath, r]))
     doc.forEach(pageLinkXpath, (a) => {

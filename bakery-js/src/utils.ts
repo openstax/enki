@@ -188,9 +188,12 @@ class XMLSerializer {
       }
     } else if (n.nodeType === n.ELEMENT_NODE) {
       const el = n as Element
-      const prefixedTag = el.tagName
-      const localTag = el.tagName
-      /* istanbul ignore next */
+      const localTag = el.localName
+      // Only keep the prefix in the output when the element's namespace
+      // differs from the namespace that is already the default in this
+      // scope. Otherwise it inherits the default namespace unprefixed.
+      const showPrefix = el.prefix !== null && el.namespaceURI !== currentDefaultNamespace
+      const prefixedTag = showPrefix ? el.tagName : localTag
       const newDefaultNamespace = el.prefix
         ? currentDefaultNamespace
         : el.namespaceURI || null
@@ -215,6 +218,17 @@ class XMLSerializer {
             ` xmlns="${escapeAttribute(newDefaultNamespace)}"`
           )
         }
+      }
+      if (showPrefix && !el.getAttribute(`xmlns:${el.prefix}`)) {
+        this.w.writeText(
+          n,
+          ` xmlns:${el.prefix}="${escapeAttribute(
+            assertValue(
+              el.namespaceURI,
+              'BUG: prefixed element does not have a namespaceURI set'
+            )
+          )}"`
+        )
       }
       const nsDeclaredPrefixes: string[] = []
       for (const attr of Array.from(el.attributes)) {

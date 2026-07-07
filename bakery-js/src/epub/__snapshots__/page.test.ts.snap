@@ -7,9 +7,9 @@ exports[`Pages conversions converts a page that exercises a bunch of serializer 
         
         
         <h2 data-type="document-title">KinematicsInFourDimensions</h2>
-        <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
           
-        </math>
+        </m:math>
         <div/>
         <div class="os-has-iframe os-has-link">
           
