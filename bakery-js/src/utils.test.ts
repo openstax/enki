@@ -63,6 +63,15 @@ describe('xml serializing', () => {
     await writeAndCheckSnapshot(doc)
   })
 
+  it('still writes a locally-shadowed prefix declaration even when a same-prefixed attribute is also present', async () => {
+    const doc = parseXml(
+      `<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two" a:foo="bar"/>
+        </a:root>`
+    )
+    await writeAndCheckSnapshot(doc)
+  })
+
   it('does not redeclare a namespace prefix that was only declared via an ancestor xmlns attribute', async () => {
     const doc = parseXml(
       `<root xmlns:dc="http://purl.org/dc/elements/1.1/">

@@ -38,6 +38,13 @@ exports[`xml serializing redeclares an element namespace prefix when it is bound
 <!-- # sourceMappingURL=out.xml.map -->"
 `;
 
+exports[`xml serializing still writes a locally-shadowed prefix declaration even when a same-prefixed attribute is also present 1`] = `
+"<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two" a:foo="bar"/>
+        </a:root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
 exports[`xml serializing writes comments 1`] = `
 "<root><!-- I am a comment --></root>
 <!-- # sourceMappingURL=out.xml.map -->"
@@ -52,7 +59,7 @@ exports[`xml serializing writes namespace declarations only once when a prefix i
 
 exports[`xml serializing writes namespace declarations only once when a prefix is defined on an attribute even when there are multiple attributes 1`] = `
 "<root xmlns:ns2="http://katalysteducation.org/cxlxt/1.0">
-      <span xmlns:ns2="http://katalysteducation.org/cxlxt/1.0" ns2:index="name" ns2:name="Wearing, Clive" ns2:born="1938"/>
+      <span ns2:index="name" ns2:name="Wearing, Clive" ns2:born="1938"/>
   </root>
 <!-- # sourceMappingURL=out.xml.map -->"
 `;

@@ -261,23 +261,39 @@ class XMLSerializer {
       // explicit `xmlns:prefix` attribute without using that prefix itself
       // (e.g. `<root xmlns:dc="..."><dc:title/></root>`). Record those too,
       // otherwise every `dc:*` descendant would redeclare the namespace.
+      // Also track which prefixes this element redeclares itself, so the
+      // ancestor-scope seeding below doesn't tell the attribute loop to skip
+      // writing a declaration that only exists here as a local override.
+      const prefixesDeclaredAsAttributesHere = new Set<string>()
       for (const attr of Array.from(el.attributes)) {
         if (attr.prefix === 'xmlns') {
+          const prefix = assertValue(
+            attr.localName,
+            'BUG: xmlns attribute does not have a localName set'
+          )
           bindPrefixForChildren(
-            assertValue(
-              attr.localName,
-              'BUG: xmlns attribute does not have a localName set'
-            ),
+            prefix,
             assertValue(
               attr.nodeValue,
               'BUG: xmlns attribute does not have a value set'
             )
           )
+          prefixesDeclaredAsAttributesHere.add(prefix)
         }
       }
+      // Prefixed attributes (e.g. `ns2:index="..."`) don't need their own
+      // `xmlns:prefix` companion declaration when an ancestor already bound
+      // the same prefix and this element isn't shadowing it locally.
+      // Otherwise every such attribute on every descendant of that ancestor
+      // would redeclare the namespace, the same bloat as the element case.
       const nsDeclaredPrefixes: string[] = prefixDeclaredOnThisTag
         ? [prefixDeclaredOnThisTag]
         : []
+      for (const [prefix] of namespacesInScope) {
+        if (!prefixesDeclaredAsAttributesHere.has(prefix)) {
+          nsDeclaredPrefixes.push(prefix)
+        }
+      }
       for (const attr of Array.from(el.attributes)) {
         this.recWrite(
           attr,

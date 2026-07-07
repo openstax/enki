@@ -58,11 +58,13 @@ export class TocFile extends BaseTocFile<
       '.toc-metadata.json'
     )
     const metadata = await this.readJson<any>(metadataFile)
-    const title = (metadata.title as string).trim()
+    const title = ((metadata.title as string | undefined) ?? '').trim()
     const revised = metadata.revised as string
     const slug = metadata.slug as string
-    const licenseUrl = (metadata.license.url as string).trim()
-    const language = (metadata.language as string).trim()
+    const licenseUrl = (
+      (metadata.license.url as string | undefined) ?? ''
+    ).trim()
+    const language = ((metadata.language as string | undefined) ?? '').trim()
 
     const collectionXml = dom(
       await this.readXml(
