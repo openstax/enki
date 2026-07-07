@@ -147,7 +147,7 @@ export class PageFile extends XmlFile<
     doc.forEach('//h:iframe', (n) => n.remove())
 
     // Fix footnote popup styling: merge <div data-type="footnote-number">N</div>
-    // and the following inline content into <p><sup>N</sup> content</p> so that
+    // and the other inline content into <p><sup>N</sup> content</p> so that
     // epub readers (e.g. Apple Books) render the number inline rather than as a
     // large block on its own line.
     doc.forEach('//h:aside[@epub:type="footnote"]', (aside) => {
