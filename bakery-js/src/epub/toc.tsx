@@ -58,11 +58,13 @@ export class TocFile extends BaseTocFile<
       '.toc-metadata.json'
     )
     const metadata = await this.readJson<any>(metadataFile)
-    const title = metadata.title as string
+    const title = ((metadata.title as string | undefined) ?? '').trim()
     const revised = metadata.revised as string
     const slug = metadata.slug as string
-    const licenseUrl = metadata.license.url as string
-    const language = metadata.language as string
+    const licenseUrl = (
+      (metadata.license.url as string | undefined) ?? ''
+    ).trim()
+    const language = ((metadata.language as string | undefined) ?? '').trim()
 
     const collectionXml = dom(
       await this.readXml(
@@ -78,9 +80,11 @@ export class TocFile extends BaseTocFile<
       )
     )
     /* istanbul ignore next */
-    const authors = collectionXml.has('//col:collection/@authors')
-      ? (collectionXml.findOne('//col:collection').attr('authors') as string)
-      : 'OpenStax Authors'
+    const authors = (
+      collectionXml.has('//col:collection/@authors')
+        ? (collectionXml.findOne('//col:collection').attr('authors') as string)
+        : 'OpenStax Authors'
+    ).trim()
 
     // Check for cover JPEG file
     const checkCoverFilePath = join(

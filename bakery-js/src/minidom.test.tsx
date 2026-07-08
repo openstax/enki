@@ -32,7 +32,7 @@ describe('minidom', () => {
     it('can remove/replace nodes', () => {
       const $child = $root.findOne('*[@id="kid1"]')
       const $newKid = $child.replaceWith(<dc:identifier id="newKid" />)
-      expect($newKid.tagName).toBe('identifier')
+      expect($newKid.tagName).toBe('dc:identifier')
       expect($root.find('*[@id="kid1"]').length).toBe(0)
       $newKid.replaceWith($child)
       expect($root.find('*[@id="kid1"]').length).toBe(1)

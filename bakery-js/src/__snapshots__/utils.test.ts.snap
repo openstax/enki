@@ -1,5 +1,50 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`xml serializing does not duplicate xmlns:prefix when a programmatically-created element uses the same prefix on itself and on an attribute 1`] = `
+"<root><dc:el xmlns:dc="http://purl.org/dc/elements/1.1/" dc:foo="value"/></root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing does not redeclare a namespace prefix that was only declared via an ancestor xmlns attribute 1`] = `
+"<root xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <metadata>
+                <dc:title>A</dc:title>
+                <dc:creator>B</dc:creator>
+            </metadata>
+        </root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing does not redeclare an element namespace prefix already bound by an ancestor 1`] = `
+"<m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
+            <m:mrow>
+                <m:mn>1</m:mn>
+                <m:mo>+</m:mo>
+                <m:mn>2</m:mn>
+            </m:mrow>
+        </m:math>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing handles more than one namespace prefix on the same element independently 1`] = `
+"<root><dc:el xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="urn:opf" opf:meta="x" dc:foo="y"/></root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing redeclares an element namespace prefix when it is bound to a different namespace in a nested scope 1`] = `
+"<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two"><a:grandchild/></a:child>
+        </a:root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
+exports[`xml serializing still writes a locally-shadowed prefix declaration even when a same-prefixed attribute is also present 1`] = `
+"<a:root xmlns:a="urn:one">
+            <a:child xmlns:a="urn:two" a:foo="bar"/>
+        </a:root>
+<!-- # sourceMappingURL=out.xml.map -->"
+`;
+
 exports[`xml serializing writes comments 1`] = `
 "<root><!-- I am a comment --></root>
 <!-- # sourceMappingURL=out.xml.map -->"
@@ -14,7 +59,7 @@ exports[`xml serializing writes namespace declarations only once when a prefix i
 
 exports[`xml serializing writes namespace declarations only once when a prefix is defined on an attribute even when there are multiple attributes 1`] = `
 "<root xmlns:ns2="http://katalysteducation.org/cxlxt/1.0">
-      <span xmlns:ns2="http://katalysteducation.org/cxlxt/1.0" ns2:index="name" ns2:name="Wearing, Clive" ns2:born="1938"/>
+      <span ns2:index="name" ns2:name="Wearing, Clive" ns2:born="1938"/>
   </root>
 <!-- # sourceMappingURL=out.xml.map -->"
 `;

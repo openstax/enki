@@ -129,7 +129,7 @@ export class Dom {
     children: Array<Dom | string>,
     source: Pos
   ) {
-    const [tag, prefix] = tagName.split(':').reverse()
+    const [, prefix] = tagName.split(':').reverse()
     const ns =
       prefix === undefined
         ? undefined
@@ -137,7 +137,7 @@ export class Dom {
             (NAMESPACES as any)[prefix],
             `BUG: Unsupported namespace prefix '${prefix}'`
           )
-    const el = this.doc.createElementNS(ns, tag)
+    const el = this.doc.createElementNS(ns, tagName)
     const $el = dom(el)
     if (attrs !== undefined) $el.attrs = attrs
     if (children !== undefined)

@@ -20,18 +20,18 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 exports[`TocFile and Friends Cover image with TocFile and Friends with an empty book generates an OPF file from an empty ToC file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
   <metadata>
-    <title xmlns="http://purl.org/dc/elements/1.1/">booktitle
-    </title>
-    <language xmlns="http://purl.org/dc/elements/1.1/">language
-    </language>
+    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
+    </dc:title>
+    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
+    </dc:language>
     <meta property="dcterms:modified">2022-12-13
     </meta>
     <meta property="dcterms:license">http://licenseurl
     </meta>
-    <identifier xmlns="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </identifier>
-    <creator xmlns="http://purl.org/dc/elements/1.1/">howdy
-    </creator>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
+    </dc:identifier>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
+    </dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
@@ -49,8 +49,8 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 
 exports[`TocFile and Friends Cover image with TocFile and Friends with an empty book parses an empty ToC file 1`] = `
 "<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-              <body><nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="landmarks" hidden="hidden"><ol><li><a xmlns:epub="http://www.idpf.org/2007/ops" epub:type="cover" href="cover.xhtml">Cover</a></li><li><a xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc" href="#toc">Table of Contents</a></li></ol></nav>
-                  <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc"/>
+              <body><nav epub:type="landmarks" hidden="hidden"><ol><li><a epub:type="cover" href="cover.xhtml">Cover</a></li><li><a epub:type="toc" href="#toc">Table of Contents</a></li></ol></nav>
+                  <nav epub:type="toc"/>
               </body>
           </html>
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
@@ -98,18 +98,18 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
 exports[`TocFile and Friends with a small book generates an OPF file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
   <metadata>
-    <title xmlns="http://purl.org/dc/elements/1.1/">booktitle
-    </title>
-    <language xmlns="http://purl.org/dc/elements/1.1/">language
-    </language>
+    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
+    </dc:title>
+    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
+    </dc:language>
     <meta property="dcterms:modified">2022-12-13
     </meta>
     <meta property="dcterms:license">http://licenseurl
     </meta>
-    <identifier xmlns="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </identifier>
-    <creator xmlns="http://purl.org/dc/elements/1.1/">howdy
-    </creator>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
+    </dc:identifier>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
+    </dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
@@ -131,7 +131,7 @@ exports[`TocFile and Friends with a small book generates an OPF file 1`] = `
 exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = `
 "<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
             <body>
-                <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc">
+                <nav epub:type="toc">
                     <ol>
                         <li>
                             <a href="../foo/iamthepage.xhtml">UnitTitle</a>
@@ -173,18 +173,18 @@ exports[`TocFile and Friends with an empty book generates an NCX file from an em
 exports[`TocFile and Friends with an empty book generates an OPF file from an empty ToC file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
   <metadata>
-    <title xmlns="http://purl.org/dc/elements/1.1/">booktitle
-    </title>
-    <language xmlns="http://purl.org/dc/elements/1.1/">language
-    </language>
+    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
+    </dc:title>
+    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
+    </dc:language>
     <meta property="dcterms:modified">2022-12-13
     </meta>
     <meta property="dcterms:license">http://licenseurl
     </meta>
-    <identifier xmlns="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </identifier>
-    <creator xmlns="http://purl.org/dc/elements/1.1/">howdy
-    </creator>
+    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
+    </dc:identifier>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
+    </dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
@@ -200,7 +200,7 @@ exports[`TocFile and Friends with an empty book generates an OPF file from an em
 exports[`TocFile and Friends with an empty book parses an empty ToC file 1`] = `
 "<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
             <body>
-                <nav xmlns:epub="http://www.idpf.org/2007/ops" epub:type="toc"/>
+                <nav epub:type="toc"/>
             </body>
         </html>
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
