@@ -369,6 +369,10 @@ def save_super_metadata(
         abstract = doc_meta["abstract"]
         book_uuid = doc.original_collection_meta["uuid"]
         module_uuid = doc.module_uuid
+        ancillary_type = super_meta.get("ancillary_type")
+        ancillary_id = str(
+            uuid.uuid5(uuid.NAMESPACE_OID, f"{module_uuid}:{ancillary_type}")
+        )
         super_meta["relations"] = [
             {"id": relation_uuid, "type": relation_type, "orn": orn}
             for relation_uuid, relation_type, orn in sorted(
@@ -380,7 +384,7 @@ def save_super_metadata(
         ]
 
         meta = {
-            "id": module_uuid,
+            "id": ancillary_id,
             "name": doc_meta["title"],
             "slug": doc.slug,
             **({"description": abstract} if abstract else {}),
