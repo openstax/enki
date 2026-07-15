@@ -369,7 +369,8 @@ def save_super_metadata(
         abstract = doc_meta["abstract"]
         book_uuid = doc.original_collection_meta["uuid"]
         module_uuid = doc.module_uuid
-        ancillary_type = super_meta.get("ancillary_type")
+        # TODO: Remove back-compat for no ancillary type
+        ancillary_type = super_meta.get("ancillary_type") or "super"
         ancillary_id = str(
             uuid.uuid5(uuid.NAMESPACE_OID, f"{module_uuid}:{ancillary_type}")
         )
