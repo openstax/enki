@@ -166,14 +166,16 @@ describe('AncillariesContext', () => {
     )
     const superScope = newScope()
       .get(
-        new URL(multiTypeContext.buildApiPathV0(['ancillary-types', superTypeId]))
-          .pathname + `?sharedSecret=${sharedSecret}`
+        new URL(
+          multiTypeContext.buildApiPathV0(['ancillary-types', superTypeId])
+        ).pathname + `?sharedSecret=${sharedSecret}`
       )
       .reply(200, { id: superTypeId })
     const otherScope = newScope()
       .get(
-        new URL(multiTypeContext.buildApiPathV0(['ancillary-types', otherTypeId]))
-          .pathname + `?sharedSecret=${sharedSecret}`
+        new URL(
+          multiTypeContext.buildApiPathV0(['ancillary-types', otherTypeId])
+        ).pathname + `?sharedSecret=${sharedSecret}`
       )
       .reply(200, { id: otherTypeId })
 
