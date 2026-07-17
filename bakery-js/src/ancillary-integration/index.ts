@@ -82,8 +82,9 @@ export const handleAncillary = async (
     }
   }
   assertTrue(Object.keys(formats).length > 0, 'BUG: expected at least 1 format')
+  const nameField = config['nameField'] ?? 'name'
   const fields = {
-    name: testMode ? `[test] ${name}` : name,
+    [nameField]: testMode ? `[test] ${name}` : name,
     description,
     publicationState: testMode ? 'draft' : 'published',
   }

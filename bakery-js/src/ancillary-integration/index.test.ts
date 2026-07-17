@@ -320,6 +320,73 @@ describe('handleAncillary', () => {
     })
   })
 
+  describe('nameField config', () => {
+    const pioneerTypeId = 'pioneer-type-id'
+    const pioneerTypeDocument = {
+      id: 'pioneer-type-doc-id',
+      fields: [
+        { name: 'pioneerName', id: 'pioneer-name-field-id' },
+        { name: 'description', id: 'pioneer-desc-field-id' },
+        { name: 'publicationState', id: 'pioneer-pub-state-field-id' },
+      ],
+      formats: [
+        {
+          label: 'HTML',
+          id: 'pioneer-html-format-id',
+          fields: [{ name: 'folder', id: 'pioneer-folder-field-id' }],
+        },
+      ],
+    }
+
+    const setupPioneerTypeDocumentMock = () => {
+      newScope()
+        .get(mockApiPath(['ancillary-types', pioneerTypeId]))
+        .reply(200, pioneerTypeDocument)
+    }
+
+    it('sends the title to the configured nameField instead of name', async () => {
+      context = new AncillariesContext(
+        host,
+        {
+          pioneer: {
+            id: pioneerTypeId,
+            htmlFormatLabel: 'HTML',
+            nameField: 'pioneerName',
+          },
+        },
+        sharedSecret
+      )
+      jest.spyOn(context, 'uploadFiles').mockResolvedValue([
+        {
+          path: 'some/path',
+          label: 'content.html',
+          mimeType: 'text/html',
+          dataType: 'file',
+        },
+      ])
+      setupPioneerTypeDocumentMock()
+      mockRawAncillaryNotFound('original-id')
+      mockfs({
+        '/ancillary': {
+          'metadata.json': JSON.stringify({
+            ...metadata,
+            ancillary_type: 'pioneer',
+          }),
+          'content.html': '<html></html>',
+        },
+      })
+      const { payload } = await handleAncillary(context, '/ancillary', false)
+      expect(payload.fields['pioneer-name-field-id']).toBe('My Ancillary')
+    })
+
+    it('falls back to name when no nameField is configured', async () => {
+      setupTypeDocumentMock()
+      mockRawAncillaryNotFound('original-id')
+      const { payload } = await handleAncillary(context, '/ancillary', false)
+      expect(payload.fields['name-field-id']).toBe('My Ancillary')
+    })
+  })
+
   describe('recategorization guard', () => {
     it('proceeds when no existing ancillary is found at the id', async () => {
       setupTypeDocumentMock()
