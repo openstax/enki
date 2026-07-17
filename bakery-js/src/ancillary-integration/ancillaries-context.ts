@@ -234,6 +234,18 @@ export class AncillariesContext {
     return await response.json()
   }
 
+  async getRawAncillary(id: string): Promise<{ type: string } | undefined> {
+    const url = this.buildApiPathV0(['ancillaries', id, 'raw'])
+    const response = await this.fetch(url, {
+      withAuth: true,
+      accept: [...defaultAcceptRange, 404],
+    })
+    if (response.status === 404) {
+      return undefined
+    }
+    return await response.json()
+  }
+
   static fromEnv() {
     return new AncillariesContext(
       assertValue(process.env.ANCILLARIES_HOST),

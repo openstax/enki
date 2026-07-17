@@ -10,7 +10,7 @@ import {
   mapFormats,
 } from './ancillaries-context'
 
-const testModeId = (id: string) => {
+export const testModeId = (id: string) => {
   const hash = crypto.createHash('sha256').update(`test-${id}`).digest('hex')
   // Set UUID version (5) and RFC 4122 variant (10xx) bits so the result is a valid UUID
   const variantNibble = ((parseInt(hash[16], 16) & 0x3) | 0x8).toString(16)
@@ -45,6 +45,16 @@ export const handleAncillary = async (
   const id = assertValue(metadata['id'])
   const description = metadata['description'] ?? 'No description'
   const relations = metadata['relations'] ?? []
+  const effectiveId = testMode ? testModeId(id) : id
+  const existing = await context.getRawAncillary(effectiveId)
+  if (existing !== undefined) {
+    assertTrue(
+      existing.type === typeId,
+      `BUG: ancillary ${effectiveId} already exists with a different type ` +
+        `(existing: ${existing.type}, new: ${typeId}) — recategorizing an ` +
+        'existing ancillary requires clearing it first'
+    )
+  }
   const htmlFormatLabel = config['htmlFormatLabel']
   if (htmlFormatLabel) {
     const ancillaryListing = listDirectory(ancillaryPath)
@@ -72,7 +82,6 @@ export const handleAncillary = async (
     }
   }
   assertTrue(Object.keys(formats).length > 0, 'BUG: expected at least 1 format')
-  const effectiveId = testMode ? testModeId(id) : id
   const fields = {
     name: testMode ? `[test] ${name}` : name,
     description,
