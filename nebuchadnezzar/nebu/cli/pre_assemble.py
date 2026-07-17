@@ -250,14 +250,9 @@ def remove_super_documents(
                 assert isinstance(title, str)
                 safe_title = slugify(re.sub(r'[\']', '', title))
                 module_uuid = document.metadata["uuid"]
-                col_uuid = collection_meta["uuid"]
                 assert isinstance(
                     module_uuid, str
                 ), f"Expected module uuid for: {module_id}"
-                assert isinstance(col_uuid, str), "Expected book uuid"
-                module_uuid = str(
-                    uuid.uuid5(uuid.NAMESPACE_OID, f"{col_uuid}:{module_uuid}")
-                )
                 parent = elem.getparent()
                 parent.remove(elem)
                 super_collection_path = os.path.join(
@@ -369,11 +364,6 @@ def save_super_metadata(
         abstract = doc_meta["abstract"]
         book_uuid = doc.original_collection_meta["uuid"]
         module_uuid = doc.module_uuid
-        # TODO: Remove back-compat for no ancillary type
-        ancillary_type = super_meta.get("ancillary_type") or "super"
-        ancillary_id = str(
-            uuid.uuid5(uuid.NAMESPACE_OID, f"{module_uuid}:{ancillary_type}")
-        )
         super_meta["relations"] = [
             {"id": relation_uuid, "type": relation_type, "orn": orn}
             for relation_uuid, relation_type, orn in sorted(
@@ -385,7 +375,7 @@ def save_super_metadata(
         ]
 
         meta = {
-            "id": ancillary_id,
+            "id": module_uuid,
             "name": doc_meta["title"],
             "slug": doc.slug,
             **({"description": abstract} if abstract else {}),
