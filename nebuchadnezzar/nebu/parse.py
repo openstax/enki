@@ -166,14 +166,19 @@ def parse_super_metadata(elm_tree):
             )
             if v
         }
-        for elem in _xpath(super_elm, '//md:tags//md:tag')
+        for elem in _xpath(super_elm, ".//md:tags//md:tag")
     ]
     assert all(t.get("text", None) is not None for t in tags)
-    subject_name = _safe_strip(
-        _maybe(_xpath(super_elm, '//md:subject-name/text()'))
+    ancillary_type = _safe_strip(
+        _maybe(_xpath(super_elm, ".//md:ancillary-type/text()"))
     )
+    subject_name = _safe_strip(
+        _maybe(_xpath(super_elm, ".//md:subject-name/text()"))
+    )
+    assert ancillary_type, "Expected ancillary type"
     return {
         k: v for k, v in (
+            ("ancillary_type", ancillary_type),
             ("subject_name", subject_name),
             ("tags", tags),
         )

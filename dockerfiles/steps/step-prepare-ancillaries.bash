@@ -81,7 +81,7 @@ $(< "$BOOK_STYLES_ROOT/webview-generic.css")
   --content-padding: 2.5rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1025px) {
   :root {
     --content-width: 100%;
     --max-media-width: 90%;

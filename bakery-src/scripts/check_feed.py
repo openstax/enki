@@ -145,7 +145,12 @@ def get_is_latest_code_version(api_root, code_version):
 
 @timed
 def get_abl(api_root, code_version):
-    url = api_root.rstrip("/") + "/api/abl/?code_version=" + code_version
+    url = (
+        api_root.rstrip("/")
+        + "/api/abl/?code_version="
+        + code_version
+        + "&consumer=REX&consumer=ancillaries"
+    )
     response = requests.get(url)
     is_latest_code_version = get_is_latest_code_version(api_root, code_version)
     response.raise_for_status()

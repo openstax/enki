@@ -332,6 +332,7 @@ def test_parse_super_metadata(snapshot):
                 <md:uuid>e1edc39a-14cd-4d61-886f-36bebd27ebee</md:uuid>
                 <md:super>
                     <md:subject-name>Subject Name</md:subject-name>
+                    <md:ancillary-type>super</md:ancillary-type>
                     <md:tags>
                         <md:tag type="preparedness">A tag</md:tag>
                         <md:tag type="practice">B tag</md:tag>

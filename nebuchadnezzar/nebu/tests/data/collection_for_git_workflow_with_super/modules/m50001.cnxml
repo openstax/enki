@@ -8,6 +8,7 @@
   <md:revised>2018/08/27 16:05:26 -0500</md:revised>
   <md:super>
     <md:subject-name>Name</md:subject-name>
+    <md:ancillary-type>super</md:ancillary-type>
     <md:tags>
       <md:tag type="preparedness">ad00ceaf-822a-42af-8cdd-df3412a00eb8</md:tag>
       <md:tag type="preparedness">fd7f5f53-e0b2-4eff-a167-a5b0ef77a100:ecae9052-dcc2-4c15-afd6-7a1a408db3e3</md:tag>

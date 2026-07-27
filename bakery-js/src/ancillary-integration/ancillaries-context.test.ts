@@ -154,6 +154,57 @@ describe('AncillariesContext', () => {
     expect(scope.isDone()).toBe(true)
   })
 
+  it('supports multiple configured types, each resolving independently', async () => {
+    const otherTypeId = 'other-type-id'
+    const multiTypeContext = new AncillariesContext(
+      host,
+      {
+        super: { id: superTypeId, htmlFormatLabel: 'HTML' },
+        other: { id: otherTypeId, htmlFormatLabel: 'HTML' },
+      },
+      sharedSecret
+    )
+    const superScope = newScope()
+      .get(
+        new URL(
+          multiTypeContext.buildApiPathV0(['ancillary-types', superTypeId])
+        ).pathname + `?sharedSecret=${sharedSecret}`
+      )
+      .reply(200, { id: superTypeId })
+    const otherScope = newScope()
+      .get(
+        new URL(
+          multiTypeContext.buildApiPathV0(['ancillary-types', otherTypeId])
+        ).pathname + `?sharedSecret=${sharedSecret}`
+      )
+      .reply(200, { id: otherTypeId })
+
+    const byName = multiTypeContext.ancillaryTypesByName
+    expect(Object.keys(byName).sort()).toEqual(['other', 'super'])
+
+    const superDoc = await assertValue(byName['super']).typeDocument
+    const otherDoc = await assertValue(byName['other']).typeDocument
+    expect(superDoc).toEqual({ id: superTypeId })
+    expect(otherDoc).toEqual({ id: otherTypeId })
+    expect(superScope.isDone()).toBe(true)
+    expect(otherScope.isDone()).toBe(true)
+  })
+
+  it('memoizes typeDocument so repeated access only fetches once', async () => {
+    const scope = newScope()
+      .get(mockApiPath(['ancillary-types', superTypeId], { withAuth: true }))
+      .reply(200, { id: superTypeId })
+
+    const superConfig = assertValue(context.ancillaryTypesByName['super'])
+    const first = await superConfig.typeDocument
+    const second = await superConfig.typeDocument
+
+    expect(first).toEqual(second)
+    // Only one mocked response was registered above; a second real fetch
+    // would fail to match and throw, so reaching here proves memoization.
+    expect(scope.isDone()).toBe(true)
+  })
+
   it('can get upload config', async () => {
     const scope = newScope()
     const url = mockApiPath(['files', 'authorize-upload'], { withAuth: true })
