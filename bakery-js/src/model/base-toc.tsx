@@ -23,6 +23,7 @@ export type TocTree<TPage> =
       page: TPage
       pagePos: Pos
       tocType: string | null
+      tocTargetType: string | null
     }
 type TocData<TPage> = {
   toc: TocTree<TPage>[]
@@ -103,6 +104,7 @@ export abstract class BaseTocFile<
         page,
         pagePos: getPos(li.node),
         tocType: li.attr('data-toc-type'),
+        tocTargetType: li.attr('data-toc-target-type'),
       }
     }
     /* istanbul ignore next */

@@ -65,6 +65,7 @@ exports[`TocFile and Friends with a small book captures data-toc-type for units,
           {
             "page": "/foo/iamthepage.xhtml",
             "title": "PageTitle",
+            "tocTargetType": "intro",
             "tocType": "page",
             "type": "LEAF",
           },
@@ -164,7 +165,7 @@ exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = 
                                 <li data-toc-type="chapter">
                                     <a href="../foo/iamthepage.xhtml">ChapterTitle</a>
                                     <ol>
-                                        <li data-toc-type="page">
+                                        <li data-toc-type="page" data-toc-target-type="intro">
                                             <a href="../foo/iamthepage.xhtml">PageTitle</a>
                                         </li>
                                     </ol>

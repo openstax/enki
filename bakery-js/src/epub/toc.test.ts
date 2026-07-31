@@ -28,6 +28,7 @@ function simplifyToc(toc: TocTree): unknown {
     ? {
         type: toc.type,
         tocType: toc.tocType,
+        tocTargetType: toc.tocTargetType,
         title: toc.title,
         page: toc.page.readPath,
       }
@@ -173,7 +174,7 @@ describe('TocFile and Friends', () => {
                                 <li data-toc-type="chapter" cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
                                     <span>${chapterTitle}</span>
                                     <ol>
-                                        <li data-toc-type="page">
+                                        <li data-toc-type="page" data-toc-target-type="intro">
                                             <a href="${pageName}"><span>${pageTitle}</span></a>
                                         </li>
                                     </ol>

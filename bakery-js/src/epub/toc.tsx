@@ -14,6 +14,12 @@ const ARIA_ROLE_BY_TOC_TYPE: Record<string, string> = {
   chapter: 'doc-chapter',
 }
 
+const ARIA_ROLE_BY_TOC_TARGET_TYPE: Record<string, string> = {
+  preface: 'doc-preface',
+  appendix: 'doc-appendix',
+  index: 'doc-index',
+}
+
 export enum TocTreeType {
   INNER = 'INNER',
   LEAF = 'LEAF',
@@ -33,6 +39,7 @@ export type TocTree =
       page: PageFile
       pagePos: Pos
       tocType: string | null
+      tocTargetType: string | null
     }
 type TocData = {
   toc: TocTree[]
@@ -154,7 +161,17 @@ export class TocFile extends BaseTocFile<
     }
   }
   private markStructuralPageRoles(toc: TocTree): void {
-    if (toc.type === TocTreeType.LEAF) return
+    if (toc.type === TocTreeType.LEAF) {
+      // A chapter/unit start (set below, via an ancestor INNER node) is a
+      // structural landmark and takes priority over this leaf's own
+      // tocTargetType — e.g. an "intro" page IS a chapter's first page, so
+      // it should stay `doc-chapter` rather than being reassigned here.
+      if (toc.page.ariaRole === null && toc.tocTargetType !== null) {
+        const role = ARIA_ROLE_BY_TOC_TARGET_TYPE[toc.tocTargetType]
+        if (role !== undefined) toc.page.ariaRole = role
+      }
+      return
+    }
     const role =
       toc.tocType !== null ? ARIA_ROLE_BY_TOC_TYPE[toc.tocType] : undefined
     if (role !== undefined) {
