@@ -10,7 +10,7 @@ import { readFileSync } from 'fs'
 import { MockFileSystem, mockfs } from '../mock-fs'
 import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
-import { TocFile, OpfFile, NcxFile } from './toc'
+import { TocFile, OpfFile, NcxFile, TocTree, TocTreeType } from './toc'
 
 jest.mock('fs')
 
@@ -21,6 +21,22 @@ async function writeAndCheckSnapshot<T, TBook, TPage, TResource>(
   n.rename(destPath, undefined)
   await n.write()
   expect(readFileSync(destPath, 'utf8')).toMatchSnapshot()
+}
+
+function simplifyToc(toc: TocTree): unknown {
+  return toc.type === TocTreeType.LEAF
+    ? {
+        type: toc.type,
+        tocType: toc.tocType,
+        title: toc.title,
+        page: toc.page.readPath,
+      }
+    : {
+        type: toc.type,
+        tocType: toc.tocType,
+        title: toc.title,
+        children: toc.children.map(simplifyToc),
+      }
 }
 
 describe('TocFile and Friends', () => {
@@ -151,13 +167,13 @@ describe('TocFile and Friends', () => {
             <body>
                 <nav>
                     <ol>
-                        <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
+                        <li data-toc-type="unit" cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
                             <span>${unitTitle}</span>
                             <ol>
-                                <li cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
+                                <li data-toc-type="chapter" cnx-archive-shortid="removeme" cnx-archive-uri="removeme" itemprop="removeme">
                                     <span>${chapterTitle}</span>
                                     <ol>
-                                        <li>
+                                        <li data-toc-type="page">
                                             <a href="${pageName}"><span>${pageTitle}</span></a>
                                         </li>
                                     </ol>
@@ -212,6 +228,26 @@ describe('TocFile and Friends', () => {
       expect(f.parsed.allPages.size).toBe(2)
       expect(f.parsed.toc.length).toBe(1)
       await writeAndCheckSnapshot(f, destPath)
+    })
+
+    it('captures data-toc-type for units, chapters, and pages', async () => {
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      expect(f.parsed.toc.map(simplifyToc)).toMatchSnapshot()
+    })
+
+    it('marks the first page of a chapter with the doc-chapter ARIA role', async () => {
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      const unit = f.parsed.toc[0]
+      if (unit.type !== TocTreeType.INNER) throw new Error('Expected a unit')
+      const chapter = unit.children[0]
+      if (chapter.type !== TocTreeType.INNER) {
+        throw new Error('Expected a chapter')
+      }
+      const leaf = chapter.children[0]
+      if (leaf.type !== TocTreeType.LEAF) throw new Error('Expected a page')
+      expect(leaf.page.ariaRole).toBe('doc-chapter')
     })
 
     it('generates an OPF file', async () => {

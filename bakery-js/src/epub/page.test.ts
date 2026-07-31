@@ -142,6 +142,25 @@ describe('Pages', () => {
       expect(readFileSync(p.newPath, 'utf8')).toMatchSnapshot()
     })
 
+    it('adds a role attribute to the body when ariaRole is set', async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(minimalPage))
+      await p.parse(factorio)
+      p.ariaRole = 'doc-chapter'
+      await p.write()
+      expect(readFileSync(p.newPath, 'utf8')).toContain(
+        '<body role="doc-chapter">'
+      )
+    })
+
+    it('does not add a role attribute when ariaRole is unset', async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(minimalPage))
+      await p.parse(factorio)
+      await p.write()
+      expect(readFileSync(p.newPath, 'utf8')).not.toContain('role=')
+    })
+
     it('renames relative to a file', async () => {
       const p = new PageFile('somepath')
       p.readXml = (_) =>

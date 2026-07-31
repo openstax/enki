@@ -50,6 +50,7 @@ exports[`Pages parses all the fields with a simple page 1`] = `
     PageFile {
       "_parsed": undefined,
       "_readPath": "/pageLink1",
+      "ariaRole": null,
     },
   ],
   "resources": [],

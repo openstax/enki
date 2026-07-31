@@ -9,6 +9,11 @@ import { PageFile } from './page'
 import { DIRNAMES } from '../env'
 import { BaseTocFile } from '../model/base-toc'
 
+const ARIA_ROLE_BY_TOC_TYPE: Record<string, string> = {
+  unit: 'doc-part',
+  chapter: 'doc-chapter',
+}
+
 export enum TocTreeType {
   INNER = 'INNER',
   LEAF = 'LEAF',
@@ -19,6 +24,7 @@ export type TocTree =
       title: string
       titlePos: Pos
       children: TocTree[]
+      tocType: string | null
     }
   | {
       type: TocTreeType.LEAF
@@ -26,6 +32,7 @@ export type TocTree =
       titlePos: Pos
       page: PageFile
       pagePos: Pos
+      tocType: string | null
     }
 type TocData = {
   toc: TocTree[]
@@ -97,6 +104,7 @@ export class TocFile extends BaseTocFile<
     const coverFile = existsSync(checkCoverFilePath) ? checkCoverFilePath : ''
 
     const { toc, allPages } = await super.baseParse(factorio)
+    toc.forEach((t) => this.markStructuralPageRoles(t))
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
     const allFonts = new Set<ResourceFile>()
@@ -144,6 +152,24 @@ export class TocFile extends BaseTocFile<
       authors,
       coverFile,
     }
+  }
+  private markStructuralPageRoles(toc: TocTree): void {
+    if (toc.type === TocTreeType.LEAF) return
+    const role =
+      toc.tocType !== null ? ARIA_ROLE_BY_TOC_TYPE[toc.tocType] : undefined
+    if (role !== undefined) {
+      this.findFirstPage(toc).ariaRole = role
+    }
+    toc.children.forEach((c) => this.markStructuralPageRoles(c))
+  }
+  private findFirstPage(toc: TocTree): PageFile {
+    if (toc.type === TocTreeType.LEAF) return toc.page
+    return this.findFirstPage(
+      assertValue(
+        toc.children[0],
+        'BUG: Expected at least one child in a ToC INNER node'
+      )
+    )
   }
   protected async convert(): Promise<Node> {
     const doc = dom(await this.readXml())

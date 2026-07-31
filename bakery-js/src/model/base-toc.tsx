@@ -14,6 +14,7 @@ export type TocTree<TPage> =
       title: string
       titlePos: Pos
       children: TocTree<TPage>[]
+      tocType: string | null
     }
   | {
       type: TocTreeType.LEAF
@@ -21,6 +22,7 @@ export type TocTree<TPage> =
       titlePos: Pos
       page: TPage
       pagePos: Pos
+      tocType: string | null
     }
 type TocData<TPage> = {
   toc: TocTree<TPage>[]
@@ -85,6 +87,7 @@ export abstract class BaseTocFile<
         title: title, //TODO: Support markup in here maybe? Like maybe we should return a DOM node?
         titlePos: titlePosition,
         children: children.map((c) => this.buildChildren(pageFactory, c, acc)),
+        tocType: li.attr('data-toc-type'),
       }
     }
     if (li.has('h:a[not(starts-with(@href, "#"))]')) {
@@ -99,6 +102,7 @@ export abstract class BaseTocFile<
         titlePos: getPos(li.findOne('h:a').node),
         page,
         pagePos: getPos(li.node),
+        tocType: li.attr('data-toc-type'),
       }
     }
     /* istanbul ignore next */

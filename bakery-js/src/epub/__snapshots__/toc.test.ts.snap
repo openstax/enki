@@ -56,6 +56,31 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
 `;
 
+exports[`TocFile and Friends with a small book captures data-toc-type for units, chapters, and pages 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "page": "/foo/iamthepage.xhtml",
+            "title": "PageTitle",
+            "tocType": "page",
+            "type": "LEAF",
+          },
+        ],
+        "title": "ChapterTitle",
+        "tocType": "chapter",
+        "type": "INNER",
+      },
+    ],
+    "title": "UnitTitle",
+    "tocType": "unit",
+    "type": "INNER",
+  },
+]
+`;
+
 exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
 "<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
@@ -133,13 +158,13 @@ exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = 
             <body>
                 <nav epub:type="toc">
                     <ol>
-                        <li>
+                        <li data-toc-type="unit">
                             <a href="../foo/iamthepage.xhtml">UnitTitle</a>
                             <ol>
-                                <li>
+                                <li data-toc-type="chapter">
                                     <a href="../foo/iamthepage.xhtml">ChapterTitle</a>
                                     <ol>
-                                        <li>
+                                        <li data-toc-type="page">
                                             <a href="../foo/iamthepage.xhtml">PageTitle</a>
                                         </li>
                                     </ol>

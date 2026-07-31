@@ -39,6 +39,7 @@ export class PageFile extends XmlFile<
   PageFile,
   ResourceFile
 > {
+  public ariaRole: string | null = null
   async parse(
     factorio: Factorio<OpfFile, PageFile, ResourceFile>
   ): Promise<void> {
@@ -166,6 +167,11 @@ export class PageFile extends XmlFile<
       const newHref = hash ? `${newTargetPath}#${hash}` : newTargetPath
       a.attr('href', newHref)
     })
+
+    // Mark the first page of chapters and units for screen readers
+    if (this.ariaRole !== null) {
+      doc.findOne('//h:body').attr('role', this.ariaRole)
+    }
 
     return doc.node
   }
