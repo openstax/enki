@@ -12,6 +12,7 @@ import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { PageFile } from './page'
 import { parseXml } from '../utils'
+import { dom } from '../minidom'
 
 jest.mock('fs')
 
@@ -168,6 +169,159 @@ describe('Pages', () => {
       await p.parse(factorio)
       p.rename('../newname', '/dir1/dir2/dir3/filename')
       expect(p.newPath).toBe('/dir1/dir2/newname')
+    })
+  })
+
+  describe('heading levels', () => {
+    const somePos = {
+      source: { fileName: 'somefile.cnxml', content: null },
+      lineNumber: 1,
+      columnNumber: 1,
+    }
+
+    it('promotes the page title to h1 and demotes sibling headings to match', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h2 data-type="document-title">${titleText}</h2>
+              <h3 data-type="title">SectionOne</h3>
+              <h3 data-type="title">SectionTwo</h3>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+      expect(output).toContain(
+        `<h1 data-type="document-title">${titleText}</h1>`
+      )
+      // Both siblings should land at the same level, not one nested
+      // under the other, even though only the first one gets rewritten
+      // by the time the second is visited.
+      expect(output).toMatch(/<h2[^>]*>SectionOne<\/h2>/)
+      expect(output).toMatch(/<h2[^>]*>SectionTwo<\/h2>/)
+    })
+
+    it('clamps a heading that jumps more than one level deeper', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h2 data-type="document-title">${titleText}</h2>
+              <h5 data-type="title">TooDeep</h5>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+      expect(output).toContain(
+        `<h1 data-type="document-title">${titleText}</h1>`
+      )
+      expect(output).toMatch(/<h2[^>]*>TooDeep<\/h2>/)
+    })
+
+    it('does not touch a heading that only descends by exactly one level', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h1 data-type="document-title">${titleText}</h1>
+              <h2 data-type="title">SectionOne</h2>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+      expect(output).toContain(
+        `<h1 data-type="document-title">${titleText}</h1>`
+      )
+      expect(output).toMatch(/<h2[^>]*>SectionOne<\/h2>/)
+    })
+
+    it("inserts a chapter/unit's ancestorTitle as a leading h1 into the page div, ahead of any pre-existing heading", async () => {
+      const chapterTitle = 'Observing the Sky: The Birth of Astronomy'
+      // "Chapter Outline" is a nav widget that (in real content) shows up
+      // before the page's own title in document order.
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h2 class="os-title">Chapter Outline</h2>
+              <h2 data-type="document-title">${titleText}</h2>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      p.ancestorTitle = { title: chapterTitle, pos: somePos }
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(output).toContain(
+        `<h1 data-type="document-title">${chapterTitle}</h1>`
+      )
+      // Only one h1 on the page - the inserted ancestor title, not the
+      // page's own title and not the outline widget.
+      expect(output.match(/<h1[ >]/g)?.length).toBe(1)
+
+      // The inserted h1 must land inside div[data-type="page"], as its
+      // first child - not as a sibling of that div under <body>.
+      expect(output).toMatch(
+        new RegExp(
+          `<div data-type="page">\\s*<h1 data-type="document-title">${chapterTitle}</h1>`
+        )
+      )
+
+      // Search from <body> onward - <head><title> also contains titleText,
+      // and it always precedes the body regardless of heading order.
+      const bodyIndex = output.indexOf('<body')
+      const h1Index = output.indexOf('<h1', bodyIndex)
+      const outlineIndex = output.indexOf('Chapter Outline', bodyIndex)
+      const titleIndex = output.indexOf(titleText, bodyIndex)
+      expect(h1Index).toBeGreaterThanOrEqual(0)
+      expect(h1Index).toBeLessThan(outlineIndex)
+      expect(h1Index).toBeLessThan(titleIndex)
+
+      // Both the outline widget and the page's own title become h2
+      // siblings of each other, under the real ancestor h1 - neither one
+      // is falsely nested under the other.
+      expect(output).toMatch(/<h2[^>]*>Chapter Outline<\/h2>/)
+      expect(output).toMatch(new RegExp(`<h2[^>]*>${titleText}</h2>`))
+    })
+
+    it('does not insert anything when ancestorTitle is unset', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h1 data-type="document-title">${titleText}</h1>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+      expect(output.match(/<h1[ >]/g)?.length).toBe(1)
+      expect(output).toContain(
+        `<h1 data-type="document-title">${titleText}</h1>`
+      )
     })
   })
 })

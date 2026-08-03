@@ -6,7 +6,7 @@ exports[`Pages conversions converts a page that exercises a bunch of serializer 
       <body>
         
         
-        <h2 data-type="document-title">KinematicsInFourDimensions</h2>
+        <h1 data-type="document-title">KinematicsInFourDimensions</h1>
         <m:math xmlns:m="http://www.w3.org/1998/Math/MathML">
           
         </m:math>
@@ -50,6 +50,7 @@ exports[`Pages parses all the fields with a simple page 1`] = `
     PageFile {
       "_parsed": undefined,
       "_readPath": "/pageLink1",
+      "ancestorTitle": null,
       "ariaRole": null,
     },
   ],

@@ -282,4 +282,90 @@ describe('TocFile and Friends', () => {
       await writeAndCheckSnapshot(f, destPath)
     })
   })
+
+  describe('ancestor titles for chapter/unit intro pages', () => {
+    const unitTitle = 'UnitTitle'
+    const chapterTitle = 'ChapterTitle'
+    const firstPageTitle = 'FirstPageTitle'
+    const firstPageName = 'firstpage.xhtml'
+    const secondPageTitle = 'SecondPageTitle'
+    const secondPageName = 'secondpage.xhtml'
+    const smallToc = `<html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <nav>
+                    <ol>
+                        <li data-toc-type="unit">
+                            <span>${unitTitle}</span>
+                            <ol>
+                                <li data-toc-type="chapter">
+                                    <span>${chapterTitle}</span>
+                                    <ol>
+                                        <li data-toc-type="page" data-toc-target-type="intro">
+                                            <a href="${firstPageName}"><span>${firstPageTitle}</span></a>
+                                        </li>
+                                        <li data-toc-type="page">
+                                            <a href="${secondPageName}"><span>${secondPageTitle}</span></a>
+                                        </li>
+                                    </ol>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </nav>
+            </body>
+        </html>`
+
+    const pageContent = `<html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        </body>
+    </html>`
+
+    beforeEach(() => {
+      const fs: MockFileSystem = {}
+      fs[tocPath] = smallToc
+      fs[`/foo/${firstPageName}`] = pageContent
+      fs[`/foo/${secondPageName}`] = pageContent
+      fs[metadataPath] = JSON.stringify(metadataJSON)
+      fs[collxmlPath] = collxmlContent
+      mockfs(fs)
+    })
+    afterEach(() => {
+      mockfs.restore()
+    })
+
+    function getChapterAndPages(toc: TocTree[]) {
+      const unit = toc[0]
+      if (unit.type !== TocTreeType.INNER) throw new Error('Expected a unit')
+      const chapter = unit.children[0]
+      if (chapter.type !== TocTreeType.INNER) {
+        throw new Error('Expected a chapter')
+      }
+      const [firstPage, secondPage] = chapter.children
+      if (
+        firstPage.type !== TocTreeType.LEAF ||
+        secondPage.type !== TocTreeType.LEAF
+      ) {
+        throw new Error('Expected two pages')
+      }
+      return { unit, chapter, firstPage, secondPage }
+    }
+
+    it("gives the chapter's first page the chapter's title (not the unit's) as its ancestorTitle", async () => {
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      const { chapter, firstPage } = getChapterAndPages(f.parsed.toc)
+      // titlePos wraps a real (circular) DOM node - compare it as a
+      // pre-computed boolean rather than handing it to a matcher, so a
+      // mismatch can't crash the worker trying to serialize the diff.
+      expect(firstPage.page.ancestorTitle?.title).toBe(chapterTitle)
+      expect(firstPage.page.ancestorTitle?.pos === chapter.titlePos).toBe(true)
+    })
+
+    it("does not give the chapter's other pages an ancestorTitle", async () => {
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      const { secondPage } = getChapterAndPages(f.parsed.toc)
+      expect(secondPage.page.ancestorTitle).toBe(null)
+    })
+  })
 })

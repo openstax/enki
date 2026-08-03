@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertTrue, assertValue, getPos } from '../utils'
+import { assertTrue, assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory } from '../model/factory'
 import { ResourceFile, XmlFile } from '../model/file'
@@ -22,6 +22,15 @@ export type PageData = {
   resources: ResourceFile[]
 }
 
+// The title of the chapter/unit this page is the first page of, if any.
+// Set externally (see toc.tsx's markStructuralPageRoles / findFirstPage),
+// and inserted as a leading h1 in convert() so the page's own heading
+// structure descends from a real ancestor instead of starting mid-tree.
+export type AncestorTitle = {
+  title: string
+  pos: Pos
+}
+
 function filterNulls<T>(l: Array<T | null>): Array<T> {
   const ret: T[] = []
   for (const i of l) {
@@ -40,6 +49,7 @@ export class PageFile extends XmlFile<
   ResourceFile
 > {
   public ariaRole: string | null = null
+  public ancestorTitle: AncestorTitle | null = null
   async parse(
     factorio: Factorio<OpfFile, PageFile, ResourceFile>
   ): Promise<void> {
@@ -116,6 +126,59 @@ export class PageFile extends XmlFile<
     // Rename the resources
     RESOURCE_SELECTORS.forEach(([sel, attrName]) =>
       this.resourceRenamer(doc, sel, attrName)
+    )
+
+    const headingFixerFactory = (topHeaderValue = 1) => {
+      const stack: { original: number; mapped: number }[] = []
+      let shift: number | null = null
+
+      return (el: Dom) => {
+        const originalDepth = parseInt(el.tagName.slice(-1), 10)
+
+        while (
+          stack.length > 0 &&
+          stack[stack.length - 1].original >= originalDepth
+        ) {
+          stack.pop()
+        }
+
+        if (shift === null) {
+          shift = topHeaderValue - originalDepth
+        }
+        const parent = stack[stack.length - 1]
+        const idealDepth = Math.max(1, originalDepth + shift)
+        const targetDepth = parent
+          ? Math.min(idealDepth, parent.mapped + 1) // Prevents skipping levels while preserving valid depths
+          : topHeaderValue
+        stack.push({ original: originalDepth, mapped: targetDepth })
+
+        if (targetDepth !== originalDepth) {
+          el.replaceWith(
+            doc.create(
+              `h:h${targetDepth}`,
+              el.attrs,
+              el.children,
+              getPos(el.node)
+            )
+          )
+        }
+      }
+    }
+
+    if (this.ancestorTitle != null) {
+      const newTitleNode = doc.create(
+        'h:h1',
+        { 'data-type': 'document-title' },
+        [this.ancestorTitle.title],
+        this.ancestorTitle.pos
+      )
+      const content = doc.findOne('//h:div[@data-type]')
+      content.children = [newTitleNode, ...content.children]
+    }
+
+    doc.forEach(
+      '//h:h1 | //h:h2 | //h:h3 | //h:h4 | //h:h5 | //h:h6',
+      headingFixerFactory()
     )
 
     // Add a CSS file

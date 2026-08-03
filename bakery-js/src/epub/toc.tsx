@@ -175,7 +175,9 @@ export class TocFile extends BaseTocFile<
     const role =
       toc.tocType !== null ? ARIA_ROLE_BY_TOC_TYPE[toc.tocType] : undefined
     if (role !== undefined) {
-      this.findFirstPage(toc).ariaRole = role
+      const firstPage = this.findFirstPage(toc)
+      firstPage.ariaRole = role
+      firstPage.ancestorTitle = { title: toc.title, pos: toc.titlePos }
     }
     toc.children.forEach((c) => this.markStructuralPageRoles(c))
   }
