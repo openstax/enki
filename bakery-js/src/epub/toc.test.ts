@@ -237,7 +237,7 @@ describe('TocFile and Friends', () => {
       expect(f.parsed.toc.map(simplifyToc)).toMatchSnapshot()
     })
 
-    it('marks the first page of a chapter with the doc-chapter ARIA role', async () => {
+    it("marks the first page of a chapter with the doc-chapter ARIA role, labeled with the chapter title (not the page's own)", async () => {
       const f = new TocFile(tocPath)
       await f.parse(factorio)
       const unit = f.parsed.toc[0]
@@ -248,7 +248,8 @@ describe('TocFile and Friends', () => {
       }
       const leaf = chapter.children[0]
       if (leaf.type !== TocTreeType.LEAF) throw new Error('Expected a page')
-      expect(leaf.page.ariaRole).toBe('doc-chapter')
+      expect(leaf.page.ariaSpec?.role).toBe('doc-chapter')
+      expect(leaf.page.ariaSpec?.label).toBe(chapterTitle)
     })
 
     it('generates an OPF file', async () => {
@@ -366,6 +367,54 @@ describe('TocFile and Friends', () => {
       await f.parse(factorio)
       const { secondPage } = getChapterAndPages(f.parsed.toc)
       expect(secondPage.page.ancestorTitle).toBe(null)
+    })
+  })
+
+  describe('ariaSpec.label for tocTargetType-driven roles', () => {
+    // Appendices/prefaces/indices are top-level ToC entries, not nested
+    // under a chapter/unit - unlike the chapter/unit case, there is no
+    // ancestor title to borrow here.
+    const appendixPageTitle = 'AppendixPageTitle'
+    const appendixPageName = 'appendix.xhtml'
+    const smallToc = `<html xmlns="http://www.w3.org/1999/xhtml">
+            <body>
+                <nav>
+                    <ol>
+                        <li data-toc-type="page" data-toc-target-type="appendix">
+                            <a href="${appendixPageName}"><span>${appendixPageTitle}</span></a>
+                        </li>
+                    </ol>
+                </nav>
+            </body>
+        </html>`
+
+    const pageContent = `<html xmlns="http://www.w3.org/1999/xhtml">
+        <body>
+        </body>
+    </html>`
+
+    beforeEach(() => {
+      const fs: MockFileSystem = {}
+      fs[tocPath] = smallToc
+      fs[`/foo/${appendixPageName}`] = pageContent
+      fs[metadataPath] = JSON.stringify(metadataJSON)
+      fs[collxmlPath] = collxmlContent
+      mockfs(fs)
+    })
+    afterEach(() => {
+      mockfs.restore()
+    })
+
+    it("sets ariaSpec.role from tocTargetType but leaves ariaSpec.label null, deferring to the page's own title", async () => {
+      const f = new TocFile(tocPath)
+      await f.parse(factorio)
+      const leaf = f.parsed.toc[0]
+      if (leaf.type !== TocTreeType.LEAF) throw new Error('Expected a page')
+      expect(leaf.page.ariaSpec?.role).toBe('doc-appendix')
+      // markStructuralPageRoles runs before this page is parsed, so it
+      // can't know the page's own title yet - convert() must fall back
+      // to this.parsed.title itself rather than expecting a label here.
+      expect(leaf.page.ariaSpec?.label).toBe(null)
     })
   })
 })

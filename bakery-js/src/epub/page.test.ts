@@ -143,25 +143,6 @@ describe('Pages', () => {
       expect(readFileSync(p.newPath, 'utf8')).toMatchSnapshot()
     })
 
-    it('adds a role attribute to the body when ariaRole is set', async () => {
-      const p = new PageFile('somepath')
-      p.readXml = (_) => Promise.resolve(parseXml(minimalPage))
-      await p.parse(factorio)
-      p.ariaRole = 'doc-chapter'
-      await p.write()
-      expect(readFileSync(p.newPath, 'utf8')).toContain(
-        '<body role="doc-chapter">'
-      )
-    })
-
-    it('does not add a role attribute when ariaRole is unset', async () => {
-      const p = new PageFile('somepath')
-      p.readXml = (_) => Promise.resolve(parseXml(minimalPage))
-      await p.parse(factorio)
-      await p.write()
-      expect(readFileSync(p.newPath, 'utf8')).not.toContain('role=')
-    })
-
     it('renames relative to a file', async () => {
       const p = new PageFile('somepath')
       p.readXml = (_) =>
@@ -322,6 +303,70 @@ describe('Pages', () => {
       expect(output).toContain(
         `<h1 data-type="document-title">${titleText}</h1>`
       )
+    })
+  })
+
+  describe('structural roles', () => {
+    const pageWithOwnDiv = `
+      <html xmlns="http://www.w3.org/1999/xhtml">
+        <head/>
+        <body>
+          <div data-type="page">
+            <h1 data-type="document-title">${titleText}</h1>
+          </div>
+        </body>
+      </html>`
+
+    function pageDivTag(output: string) {
+      return output.match(/<div data-type="page"[^>]*>/)?.[0] ?? ''
+    }
+    function bodyTag(output: string) {
+      return output.match(/<body[^>]*>/)?.[0] ?? ''
+    }
+
+    it('adds role, epub:type, and aria-label to the page div - not the body - when ariaSpec is set', async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(pageWithOwnDiv))
+      p.ariaSpec = {
+        role: 'doc-chapter',
+        label: 'Observing the Sky: The Birth of Astronomy',
+      }
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(pageDivTag(output)).toContain('role="doc-chapter"')
+      expect(pageDivTag(output)).toContain('epub:type="chapter"')
+      expect(pageDivTag(output)).toContain(
+        'aria-label="Observing the Sky: The Birth of Astronomy"'
+      )
+      // Not on <body> - it does nothing there.
+      expect(bodyTag(output)).not.toContain('role=')
+    })
+
+    it("falls back to the page's own title as the aria-label when ariaSpec.label is null", async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(pageWithOwnDiv))
+      p.ariaSpec = { role: 'doc-preface', label: null }
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(pageDivTag(output)).toContain('epub:type="preface"')
+      expect(pageDivTag(output)).toContain(`aria-label="${titleText}"`)
+    })
+
+    it('does not add role, epub:type, or aria-label when ariaSpec is unset', async () => {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(pageWithOwnDiv))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(pageDivTag(output)).not.toContain('role=')
+      expect(pageDivTag(output)).not.toContain('epub:type=')
+      expect(pageDivTag(output)).not.toContain('aria-label=')
+      expect(bodyTag(output)).not.toContain('role=')
     })
   })
 })

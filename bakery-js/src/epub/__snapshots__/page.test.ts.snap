@@ -51,7 +51,7 @@ exports[`Pages parses all the fields with a simple page 1`] = `
       "_parsed": undefined,
       "_readPath": "/pageLink1",
       "ancestorTitle": null,
-      "ariaRole": null,
+      "ariaSpec": null,
     },
   ],
   "resources": [],

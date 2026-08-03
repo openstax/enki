@@ -31,6 +31,28 @@ export type AncestorTitle = {
   pos: Pos
 }
 
+// Set externally by toc.tsx's markStructuralPageRoles for the first page
+// of a structural unit (chapter/unit/preface/appendix/index). `label` is
+// null for tocTargetType-driven roles (preface/appendix/index) - those
+// are set before this page has parsed its own title, so convert() falls
+// back to this.parsed.title instead.
+export type AriaSpec = {
+  role: string
+  label: string | null
+}
+
+// The epub:type structural-semantics vocabulary term for each ARIA role
+// convert() may write. Kept explicit rather than derived from the role
+// string (e.g. stripping "doc-") since that pattern isn't guaranteed to
+// hold for roles not yet in use here.
+const EPUB_TYPE_BY_ARIA_ROLE: Record<string, string> = {
+  'doc-part': 'part',
+  'doc-chapter': 'chapter',
+  'doc-preface': 'preface',
+  'doc-appendix': 'appendix',
+  'doc-index': 'index',
+}
+
 function filterNulls<T>(l: Array<T | null>): Array<T> {
   const ret: T[] = []
   for (const i of l) {
@@ -48,7 +70,7 @@ export class PageFile extends XmlFile<
   PageFile,
   ResourceFile
 > {
-  public ariaRole: string | null = null
+  public ariaSpec: AriaSpec | null = null
   public ancestorTitle: AncestorTitle | null = null
   async parse(
     factorio: Factorio<OpfFile, PageFile, ResourceFile>
@@ -232,8 +254,15 @@ export class PageFile extends XmlFile<
     })
 
     // Mark the first page of chapters and units for screen readers
-    if (this.ariaRole !== null) {
-      doc.findOne('//h:body').attr('role', this.ariaRole)
+    if (this.ariaSpec !== null) {
+      const content = doc.findOne('//h:div[@data-type]')
+      const epubType = assertValue(
+        EPUB_TYPE_BY_ARIA_ROLE[this.ariaSpec.role],
+        `BUG: No epub:type mapped for ARIA role '${this.ariaSpec.role}'`
+      )
+      content.attr('role', this.ariaSpec.role)
+      content.attr('epub:type', epubType)
+      content.attr('aria-label', this.ariaSpec.label ?? this.parsed.title)
     }
 
     return doc.node

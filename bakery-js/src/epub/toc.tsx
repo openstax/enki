@@ -166,9 +166,9 @@ export class TocFile extends BaseTocFile<
       // structural landmark and takes priority over this leaf's own
       // tocTargetType — e.g. an "intro" page IS a chapter's first page, so
       // it should stay `doc-chapter` rather than being reassigned here.
-      if (toc.page.ariaRole === null && toc.tocTargetType !== null) {
+      if (toc.page.ariaSpec === null && toc.tocTargetType !== null) {
         const role = ARIA_ROLE_BY_TOC_TARGET_TYPE[toc.tocTargetType]
-        if (role !== undefined) toc.page.ariaRole = role
+        if (role !== undefined) toc.page.ariaSpec = { role, label: null }
       }
       return
     }
@@ -176,7 +176,7 @@ export class TocFile extends BaseTocFile<
       toc.tocType !== null ? ARIA_ROLE_BY_TOC_TYPE[toc.tocType] : undefined
     if (role !== undefined) {
       const firstPage = this.findFirstPage(toc)
-      firstPage.ariaRole = role
+      firstPage.ariaSpec = { role, label: toc.title }
       firstPage.ancestorTitle = { title: toc.title, pos: toc.titlePos }
     }
     toc.children.forEach((c) => this.markStructuralPageRoles(c))
