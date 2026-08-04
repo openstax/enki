@@ -12,7 +12,6 @@ import { factorio } from './singletons'
 import { XmlFile } from '../model/file'
 import { PageFile } from './page'
 import { parseXml } from '../utils'
-import { dom } from '../minidom'
 
 jest.mock('fs')
 
@@ -167,7 +166,9 @@ describe('Pages', () => {
           <body>
             <div data-type="page">
               <h2 data-type="document-title">${titleText}</h2>
+              <h2 data-type="title">Level2</h2>
               <h3 data-type="title">SectionOne</h3>
+              <h2 data-type="title">Something</h2>
               <h3 data-type="title">SectionTwo</h3>
             </div>
           </body>
@@ -185,6 +186,8 @@ describe('Pages', () => {
       // by the time the second is visited.
       expect(output).toMatch(/<h2[^>]*>SectionOne<\/h2>/)
       expect(output).toMatch(/<h2[^>]*>SectionTwo<\/h2>/)
+      expect(output.match(/<h1[ >]/g)?.length).toBe(3)
+      expect(output.match(/<h2[ >]/g)?.length).toBe(2)
     })
 
     it('clamps a heading that jumps more than one level deeper', async () => {

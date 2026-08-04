@@ -152,10 +152,10 @@ export class PageFile extends XmlFile<
 
     const headingFixerFactory = (topHeaderValue = 1) => {
       const stack: { original: number; mapped: number }[] = []
-      let shift: number | null = null
 
       return (el: Dom) => {
         const originalDepth = parseInt(el.tagName.slice(-1), 10)
+        assertTrue(!isNaN(originalDepth), `Invalid heading tag: ${el.tagName}`)
 
         while (
           stack.length > 0 &&
@@ -164,11 +164,8 @@ export class PageFile extends XmlFile<
           stack.pop()
         }
 
-        if (shift === null) {
-          shift = topHeaderValue - originalDepth
-        }
         const parent = stack[stack.length - 1]
-        const idealDepth = Math.max(1, originalDepth + shift)
+        const idealDepth = Math.max(1, originalDepth)
         const targetDepth = parent
           ? Math.min(idealDepth, parent.mapped + 1) // Prevents skipping levels while preserving valid depths
           : topHeaderValue
