@@ -159,7 +159,7 @@ describe('Pages', () => {
       columnNumber: 1,
     }
 
-    it('promotes the page title to h1 and demotes sibling headings to match', async () => {
+    it('promotes the page title to h1 and demotes sibling headings to match, without ever creating a second h1', async () => {
       const page = `
         <html xmlns="http://www.w3.org/1999/xhtml">
           <head/>
@@ -181,13 +181,17 @@ describe('Pages', () => {
       expect(output).toContain(
         `<h1 data-type="document-title">${titleText}</h1>`
       )
-      // Both siblings should land at the same level, not one nested
-      // under the other, even though only the first one gets rewritten
-      // by the time the second is visited.
-      expect(output).toMatch(/<h2[^>]*>SectionOne<\/h2>/)
-      expect(output).toMatch(/<h2[^>]*>SectionTwo<\/h2>/)
-      expect(output.match(/<h1[ >]/g)?.length).toBe(3)
+      // "Level2" and "Something" reset to the title's own original depth,
+      // but the title is never popped off - so they become h2 siblings
+      // under it (not second/third h1s), and "SectionOne"/"SectionTwo"
+      // stay nested one level under whichever of the two precedes them.
+      expect(output).toMatch(/<h2[^>]*>Level2<\/h2>/)
+      expect(output).toMatch(/<h2[^>]*>Something<\/h2>/)
+      expect(output).toMatch(/<h3[^>]*>SectionOne<\/h3>/)
+      expect(output).toMatch(/<h3[^>]*>SectionTwo<\/h3>/)
+      expect(output.match(/<h1[ >]/g)?.length).toBe(1)
       expect(output.match(/<h2[ >]/g)?.length).toBe(2)
+      expect(output.match(/<h3[ >]/g)?.length).toBe(2)
     })
 
     it('clamps a heading that jumps more than one level deeper', async () => {

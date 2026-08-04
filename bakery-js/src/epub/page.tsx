@@ -157,17 +157,19 @@ export class PageFile extends XmlFile<
         const originalDepth = parseInt(el.tagName.slice(-1), 10)
         assertTrue(!isNaN(originalDepth), `Invalid heading tag: ${el.tagName}`)
 
+        // stack[0] (the page's own title) is never popped, so there is
+        // always exactly one h1 - a heading that would otherwise "reset
+        // to root" instead becomes a child of the title.
         while (
-          stack.length > 0 &&
+          stack.length > 1 &&
           stack[stack.length - 1].original >= originalDepth
         ) {
           stack.pop()
         }
 
         const parent = stack[stack.length - 1]
-        const idealDepth = Math.max(1, originalDepth)
         const targetDepth = parent
-          ? Math.min(idealDepth, parent.mapped + 1) // Prevents skipping levels while preserving valid depths
+          ? parent.mapped + 1 // Prevents skipping levels while preserving valid depths
           : topHeaderValue
         stack.push({ original: originalDepth, mapped: targetDepth })
 
