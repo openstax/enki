@@ -193,7 +193,10 @@ export class PageFile extends XmlFile<
         [this.ancestorTitle.title],
         this.ancestorTitle.pos
       )
-      const content = doc.findOne('//h:div[@data-type]')
+      const content = assertValue(
+        doc.find('//h:div[@data-type]')[0],
+        'BUG: expected div with data-type attribute'
+      )
       content.children = [newTitleNode, ...content.children]
     }
 
@@ -254,7 +257,10 @@ export class PageFile extends XmlFile<
 
     // Mark the first page of chapters and units for screen readers
     if (this.ariaSpec !== null) {
-      const content = doc.findOne('//h:div[@data-type]')
+      const content = assertValue(
+        doc.find('//h:div[@data-type]')[0],
+        'BUG: expected div with data-type attribute'
+      )
       const epubType = assertValue(
         EPUB_TYPE_BY_ARIA_ROLE[this.ariaSpec.role],
         `BUG: No epub:type mapped for ARIA role '${this.ariaSpec.role}'`
