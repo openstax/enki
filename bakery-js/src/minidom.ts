@@ -273,7 +273,7 @@ declare global {
       'ncx:docTitle': {}
       'ncx:text': {}
       'ncx:navMap': {}
-      'ncx:navPoint': { id: string }
+      'ncx:navPoint': { id: string; playOrder: number }
       'ncx:navLabel': {}
       'ncx:content': { src: string }
 

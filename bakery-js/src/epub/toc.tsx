@@ -381,7 +381,7 @@ export class OpfFile extends TocFile {
     // Remove the timezone from the revised_date
     const revised = this.parsed.revised.replace('+00:00', 'Z')
 
-    return fromJSX(
+    const opfDom = fromJSX(
       <opf:package version="3.0" unique-identifier="uid">
         <opf:metadata>
           <dc:title>{this.parsed.title}</dc:title>
@@ -417,15 +417,32 @@ export class OpfFile extends TocFile {
         </opf:manifest>
         <opf:spine toc="the-ncx-file">{...spineItems}</opf:spine>
       </opf:package>
-    ).node
+    )
+    // Declare the dc: namespace once on <metadata> so that <dc:title>,
+    // <dc:language>, <dc:identifier>, and <dc:creator> (siblings, not
+    // nested inside each other) inherit it instead of each redeclaring
+    // `xmlns:dc` on itself. Apple Books fails to paginate/skips content
+    // when the same xmlns:dc is redeclared on every sibling element.
+    const metadataNode = opfDom.findOne('//opf:metadata').node as Element
+    metadataNode.setAttributeNS(
+      'http://www.w3.org/2000/xmlns/',
+      'xmlns:dc',
+      'http://purl.org/dc/elements/1.1/'
+    )
+    return opfDom.node
   }
 }
 
 export class NcxFile extends TocFile {
   _idCounter = 1
+  _playOrderCounter = 1
 
   private nextId(): number {
     return this._idCounter++
+  }
+
+  private nextPlayOrder(): number {
+    return this._playOrderCounter++
   }
 
   private findFirstLeafPage(toc: TocTree): Opt<PageFile> {
@@ -440,7 +457,10 @@ export class NcxFile extends TocFile {
   private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
       return (
-        <ncx:navPoint id={`idm${this.nextId()}`}>
+        <ncx:navPoint
+          id={`idm${this.nextId()}`}
+          playOrder={this.nextPlayOrder()}
+        >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>
@@ -453,7 +473,10 @@ export class NcxFile extends TocFile {
         'BUG: Could not find an intro page'
       )
       return (
-        <ncx:navPoint id={`idm${this.nextId()}`}>
+        <ncx:navPoint
+          id={`idm${this.nextId()}`}
+          playOrder={this.nextPlayOrder()}
+        >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>
