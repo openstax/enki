@@ -162,10 +162,8 @@ export class TocFile extends BaseTocFile<
   }
   private markStructuralPageRoles(toc: TocTree): void {
     if (toc.type === TocTreeType.LEAF) {
-      // A chapter/unit start (set below, via an ancestor INNER node) is a
-      // structural landmark and takes priority over this leaf's own
-      // tocTargetType — e.g. an "intro" page IS a chapter's first page, so
-      // it should stay `doc-chapter` rather than being reassigned here.
+      // The ariaSpec takes priority over the tocTargetType because it is more
+      // targeted/specific
       if (toc.page.ariaSpec === null && toc.tocTargetType !== null) {
         const role = ARIA_ROLE_BY_TOC_TARGET_TYPE[toc.tocTargetType]
         if (role !== undefined) toc.page.ariaSpec = { role, label: null }
