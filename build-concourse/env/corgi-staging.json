@@ -9,6 +9,6 @@
   "GH_SECRET_CREDS": "git:((github-api-token))",
   "REX_PROD_PREVIEW_URL": "https://rex-web-production.herokuapp.com",
   "ANCILLARIES_HOST": "staging.ancillaries.openstax.org",
-  "ANCILLARY_TYPE_CONFIG": "{\"portrait-of-a-researcher\":{\"id\":\"36721fc7-e40b-460b-ae63-ba923081f61d\",\"htmlFormatLabel\":\"Pioneer Profile (HTML)\",\"nameField\":\"pioneerName\"}}",
+  "ANCILLARY_TYPE_CONFIG": "{\"portrait-of-a-researcher\":{\"id\":\"36721fc7-e40b-460b-ae63-ba923081f61d\",\"htmlFormatLabel\":\"Pioneer Profile (HTML)\",\"nameField\":\"pioneerName\"},\"research-and-issues\":{\"id\":\"3c7377a5-000f-45a1-ad0f-2fcae39e6f9f\",\"htmlFormatLabel\":\"HTML\",\"nameField\":\"title\"}}",
   "ANCILLARIES_SHARED_SECRET": "((ancillaries-staging-shared-secret))"
 }
