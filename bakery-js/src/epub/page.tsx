@@ -53,6 +53,48 @@ const EPUB_TYPE_BY_ARIA_ROLE: Record<string, string> = {
   'doc-index': 'index',
 }
 
+// Ported from rex-web's contentDOMTransformations.ts `wrapElements` -
+// splits each of these elements into a <header> (its title, if any) and
+// a <section> (everything else), matching the DOM shape REX's CSS expects.
+const WRAP_DATA_TYPES = ['example', 'exercise', 'note', 'abstract']
+
+function isTitleChild(child: Dom): boolean {
+  if (child.node.nodeType !== child.node.ELEMENT_NODE) return false
+  if (child.attr('data-type') === 'title') return true
+  const classes = (child.attr('class') ?? '').split(/\s+/)
+  return classes.includes('os-title') || classes.includes('title')
+}
+
+function wrapTitledElements(doc: Dom) {
+  const selector = WRAP_DATA_TYPES.map((t) => `//h:*[@data-type="${t}"]`).join(
+    '|'
+  )
+  doc.forEach(selector, (el) => {
+    const children = el.children
+    const titles = children.filter(isTitleChild)
+    const rest = children.filter((c) => !titles.includes(c))
+    const pos = getPos(el.node)
+
+    const label = el.attr('data-label')
+    if (label) {
+      titles.forEach((title) => title.attr('data-label-parent', label))
+    }
+    if (titles.length > 0) {
+      const existingClass = el.attr('class')
+      el.attr(
+        'class',
+        existingClass
+          ? `${existingClass} ui-has-child-title`
+          : 'ui-has-child-title'
+      )
+    }
+
+    const titleWrap = doc.create('h:header', {}, titles, pos)
+    const bodyWrap = doc.create('h:section', {}, rest, pos)
+    el.children = [titleWrap, bodyWrap]
+  })
+}
+
 function filterNulls<T>(l: Array<T | null>): Array<T> {
   const ret: T[] = []
   for (const i of l) {
@@ -204,6 +246,9 @@ export class PageFile extends XmlFile<
       '//h:h1 | //h:h2 | //h:h3 | //h:h4 | //h:h5 | //h:h6',
       headingFixerFactory()
     )
+
+    // Wrap examples/exercises/notes/abstracts into <header>/<section>
+    wrapTitledElements(doc)
 
     // Add a CSS file
     doc.findOne('//h:head').children = [

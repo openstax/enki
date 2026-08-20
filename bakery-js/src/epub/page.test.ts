@@ -313,6 +313,59 @@ describe('Pages', () => {
     })
   })
 
+  describe('wrapping titled elements', () => {
+    it('splits a note with a title into a header and a section, and marks it as having a title', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h1 data-type="document-title">${titleText}</h1>
+              <div data-type="note" data-label="Note">
+                <h3 data-type="title">Some Note</h3>
+                <p>Note body text</p>
+              </div>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(output).toContain('class="ui-has-child-title"')
+      expect(output).toContain(
+        '<header><h2 data-type="title" data-label-parent="Note">Some Note</h2></header>'
+      )
+      expect(output).toMatch(/<section>\s*<p>Note body text<\/p>\s*<\/section>/)
+    })
+
+    it('wraps a titleless example in an empty header and a section containing its body', async () => {
+      const page = `
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head/>
+          <body>
+            <div data-type="page">
+              <h1 data-type="document-title">${titleText}</h1>
+              <div data-type="example">
+                <p>Example body text</p>
+              </div>
+            </div>
+          </body>
+        </html>`
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(page))
+      await p.parse(factorio)
+      await p.write()
+      const output = readFileSync(p.newPath, 'utf8')
+
+      expect(output).not.toContain('ui-has-child-title')
+      expect(output).toContain('<div data-type="example"><header/><section>')
+      expect(output).toMatch(/<p>Example body text<\/p>\s*<\/section>/)
+    })
+  })
+
   describe('structural roles', () => {
     const pageWithOwnDiv = `
       <html xmlns="http://www.w3.org/1999/xhtml">
