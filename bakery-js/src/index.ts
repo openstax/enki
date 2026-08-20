@@ -191,7 +191,7 @@ epubCommand
 
       // Copy the CSS file to the destination
       const cssContents = readFileSync(
-        `${sourceDir}/${DIRNAMES.IO_BAKED}/${opfFile.parsed.slug}-pdf.css`,
+        `${DIRNAMES.BOOK_STYLES_ROOT}/epub-generic.css`,
         'utf-8'
       )
       // NOTE: Each css file has the same name in a different book directory

@@ -4,6 +4,7 @@ parse_book_dir
 set -Eeuxo pipefail
 # Ensure $IO_EPUB is empty
 [[ -d $IO_EPUB ]] && rm -rf ${IO_EPUB:?}/*
+export BOOK_STYLES_ROOT
 node --unhandled-rejections=strict "$JS_UTILS_STUFF_ROOT/bin/bakery-helper" epub ./ "$IO_EPUB/"
 
 shopt -s globstar nullglob
