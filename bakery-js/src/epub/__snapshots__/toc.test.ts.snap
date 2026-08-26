@@ -10,8 +10,7 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
     <meta name="dtb:maxPageNumber" content="0"/>
   </head>
   <docTitle>
-    <text>booktitle
-    </text>
+    <text>booktitle</text>
   </docTitle>
   <navMap/></ncx>
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
@@ -19,19 +18,13 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 
 exports[`TocFile and Friends Cover image with TocFile and Friends with an empty book generates an OPF file from an empty ToC file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-  <metadata>
-    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
-    </dc:title>
-    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
-    </dc:language>
-    <meta property="dcterms:modified">2022-12-13
-    </meta>
-    <meta property="dcterms:license">http://licenseurl
-    </meta>
-    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </dc:identifier>
-    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
-    </dc:creator>
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>booktitle</dc:title>
+    <dc:language>language</dc:language>
+    <meta property="dcterms:modified">2022-12-13</meta>
+    <meta property="dcterms:license">http://licenseurl</meta>
+    <dc:identifier id="uid">dummy-openstax.org-id.bookslug</dc:identifier>
+    <dc:creator>howdy</dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
@@ -56,6 +49,32 @@ exports[`TocFile and Friends Cover image with TocFile and Friends with an empty 
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
 `;
 
+exports[`TocFile and Friends with a small book captures data-toc-type for units, chapters, and pages 1`] = `
+[
+  {
+    "children": [
+      {
+        "children": [
+          {
+            "page": "/foo/iamthepage.xhtml",
+            "title": "PageTitle",
+            "tocTargetType": "intro",
+            "tocType": "page",
+            "type": "LEAF",
+          },
+        ],
+        "title": "ChapterTitle",
+        "tocType": "chapter",
+        "type": "INNER",
+      },
+    ],
+    "title": "UnitTitle",
+    "tocType": "unit",
+    "type": "INNER",
+  },
+]
+`;
+
 exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
 "<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
@@ -66,26 +85,22 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
     <meta name="dtb:maxPageNumber" content="2"/>
   </head>
   <docTitle>
-    <text>booktitle
-    </text>
+    <text>booktitle</text>
   </docTitle>
   <navMap>
-    <navPoint id="idm1">
+    <navPoint id="idm1" playOrder="1">
       <navLabel>
-        <text>UnitTitle
-        </text>
+        <text>UnitTitle</text>
       </navLabel>
       <content src="../foo/iamthepage.xhtml"/>
-      <navPoint id="idm2">
+      <navPoint id="idm2" playOrder="2">
         <navLabel>
-          <text>ChapterTitle
-          </text>
+          <text>ChapterTitle</text>
         </navLabel>
         <content src="../foo/iamthepage.xhtml"/>
-        <navPoint id="idm3">
+        <navPoint id="idm3" playOrder="3">
           <navLabel>
-            <text>PageTitle
-            </text>
+            <text>PageTitle</text>
           </navLabel>
           <content src="./../foo/iamthepage.xhtml"/>
         </navPoint>
@@ -97,19 +112,13 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
 
 exports[`TocFile and Friends with a small book generates an OPF file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-  <metadata>
-    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
-    </dc:title>
-    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
-    </dc:language>
-    <meta property="dcterms:modified">2022-12-13
-    </meta>
-    <meta property="dcterms:license">http://licenseurl
-    </meta>
-    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </dc:identifier>
-    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
-    </dc:creator>
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>booktitle</dc:title>
+    <dc:language>language</dc:language>
+    <meta property="dcterms:modified">2022-12-13</meta>
+    <meta property="dcterms:license">http://licenseurl</meta>
+    <dc:identifier id="uid">dummy-openstax.org-id.bookslug</dc:identifier>
+    <dc:creator>howdy</dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>
@@ -133,13 +142,13 @@ exports[`TocFile and Friends with a small book parses a ToC with one page 1`] = 
             <body>
                 <nav epub:type="toc">
                     <ol>
-                        <li>
+                        <li data-toc-type="unit">
                             <a href="../foo/iamthepage.xhtml">UnitTitle</a>
                             <ol>
-                                <li>
+                                <li data-toc-type="chapter">
                                     <a href="../foo/iamthepage.xhtml">ChapterTitle</a>
                                     <ol>
-                                        <li>
+                                        <li data-toc-type="page" data-toc-target-type="intro">
                                             <a href="../foo/iamthepage.xhtml">PageTitle</a>
                                         </li>
                                     </ol>
@@ -163,8 +172,7 @@ exports[`TocFile and Friends with an empty book generates an NCX file from an em
     <meta name="dtb:maxPageNumber" content="0"/>
   </head>
   <docTitle>
-    <text>booktitle
-    </text>
+    <text>booktitle</text>
   </docTitle>
   <navMap/></ncx>
 <!-- # sourceMappingURL=thebooktoc.xhtml.map -->"
@@ -172,19 +180,13 @@ exports[`TocFile and Friends with an empty book generates an NCX file from an em
 
 exports[`TocFile and Friends with an empty book generates an OPF file from an empty ToC file 1`] = `
 "<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
-  <metadata>
-    <dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">booktitle
-    </dc:title>
-    <dc:language xmlns:dc="http://purl.org/dc/elements/1.1/">language
-    </dc:language>
-    <meta property="dcterms:modified">2022-12-13
-    </meta>
-    <meta property="dcterms:license">http://licenseurl
-    </meta>
-    <dc:identifier xmlns:dc="http://purl.org/dc/elements/1.1/" id="uid">dummy-openstax.org-id.bookslug
-    </dc:identifier>
-    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">howdy
-    </dc:creator>
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>booktitle</dc:title>
+    <dc:language>language</dc:language>
+    <meta property="dcterms:modified">2022-12-13</meta>
+    <meta property="dcterms:license">http://licenseurl</meta>
+    <dc:identifier id="uid">dummy-openstax.org-id.bookslug</dc:identifier>
+    <dc:creator>howdy</dc:creator>
   </metadata>
   <manifest>
     <item id="just-the-book-style" media-type="text/css" properties="remote-resources" href="the-style-epub.css"/>

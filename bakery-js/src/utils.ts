@@ -204,15 +204,21 @@ class XMLSerializer {
         ? currentDefaultNamespace
         : el.namespaceURI || null
 
-      const padding = hasStrictWhitespace(currentDefaultNamespace)
-        ? ''
-        : '  '.repeat(depth)
-      const startElPadding = hasStrictWhitespace(currentDefaultNamespace)
-        ? ''
-        : `${depth === 0 ? '' : '\n'}${padding}`
-      const endElPadding = hasStrictWhitespace(currentDefaultNamespace)
-        ? ''
-        : `\n${padding}`
+      const loose = hasStrictWhitespace(currentDefaultNamespace) ? false : true
+      const padding = loose ? '  '.repeat(depth) : ''
+      const startElPadding = loose ? `${depth === 0 ? '' : '\n'}${padding}` : ''
+      // Pretty-print padding must never be inserted right before the closing
+      // tag of an element that has actual text content (e.g.
+      // <dc:title>My Book</dc:title>): doing so injects a literal trailing
+      // "\n    " into the element's value. Apple Books' EPUB renderer
+      // cannot tolerate this (it corrupts pagination for the whole book,
+      // even though the value only differs by trailing whitespace) — so
+      // only add it when every child is itself an element (i.e. this is a
+      // structural container, not a text-bearing leaf).
+      const hasTextChild = Array.from(el.childNodes).some(
+        (c) => c.nodeType === c.TEXT_NODE
+      )
+      const endElPadding = loose && !hasTextChild ? `\n${padding}` : ''
       this.w.writeText(n, `${startElPadding}<${prefixedTag}`)
       if (
         newDefaultNamespace !== currentDefaultNamespace &&

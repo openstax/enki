@@ -8,4 +8,5 @@ export const DIRNAMES = {
   IO_DISASSEMBLE_LINKED: basename(
     process.env['IO_DISASSEMBLE_LINKED'] || 'IO_DISASSEMBLE_LINKED'
   ),
+  BOOK_STYLES_ROOT: process.env['BOOK_STYLES_ROOT'],
 }

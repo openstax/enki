@@ -9,6 +9,17 @@ import { PageFile } from './page'
 import { DIRNAMES } from '../env'
 import { BaseTocFile } from '../model/base-toc'
 
+const ARIA_ROLE_BY_TOC_TYPE: Record<string, string> = {
+  unit: 'doc-part',
+  chapter: 'doc-chapter',
+}
+
+const ARIA_ROLE_BY_TOC_TARGET_TYPE: Record<string, string> = {
+  preface: 'doc-preface',
+  appendix: 'doc-appendix',
+  index: 'doc-index',
+}
+
 export enum TocTreeType {
   INNER = 'INNER',
   LEAF = 'LEAF',
@@ -19,6 +30,7 @@ export type TocTree =
       title: string
       titlePos: Pos
       children: TocTree[]
+      tocType: string | null
     }
   | {
       type: TocTreeType.LEAF
@@ -26,6 +38,8 @@ export type TocTree =
       titlePos: Pos
       page: PageFile
       pagePos: Pos
+      tocType: string | null
+      tocTargetType: string | null
     }
 type TocData = {
   toc: TocTree[]
@@ -97,6 +111,7 @@ export class TocFile extends BaseTocFile<
     const coverFile = existsSync(checkCoverFilePath) ? checkCoverFilePath : ''
 
     const { toc, allPages } = await super.baseParse(factorio)
+    toc.forEach((t) => this.markStructuralPageRoles(t))
     const parsedPages = new Set<PageFile>()
     const allResources = new Set<ResourceFile>()
     const allFonts = new Set<ResourceFile>()
@@ -144,6 +159,34 @@ export class TocFile extends BaseTocFile<
       authors,
       coverFile,
     }
+  }
+  private markStructuralPageRoles(toc: TocTree): void {
+    if (toc.type === TocTreeType.LEAF) {
+      // The ariaSpec takes priority over the tocTargetType because it is more
+      // targeted/specific
+      if (toc.page.ariaSpec === null && toc.tocTargetType !== null) {
+        const role = ARIA_ROLE_BY_TOC_TARGET_TYPE[toc.tocTargetType]
+        if (role !== undefined) toc.page.ariaSpec = { role, label: null }
+      }
+      return
+    }
+    const role =
+      toc.tocType !== null ? ARIA_ROLE_BY_TOC_TYPE[toc.tocType] : undefined
+    if (role !== undefined) {
+      const firstPage = this.findFirstPage(toc)
+      firstPage.ariaSpec = { role, label: toc.title }
+      firstPage.ancestorTitle = { title: toc.title, pos: toc.titlePos }
+    }
+    toc.children.forEach((c) => this.markStructuralPageRoles(c))
+  }
+  private findFirstPage(toc: TocTree): PageFile {
+    if (toc.type === TocTreeType.LEAF) return toc.page
+    return this.findFirstPage(
+      assertValue(
+        toc.children[0],
+        'BUG: Expected at least one child in a ToC INNER node'
+      )
+    )
   }
   protected async convert(): Promise<Node> {
     const doc = dom(await this.readXml())
@@ -336,7 +379,7 @@ export class OpfFile extends TocFile {
     // Remove the timezone from the revised_date
     const revised = this.parsed.revised.replace('+00:00', 'Z')
 
-    return fromJSX(
+    const opfDom = fromJSX(
       <opf:package version="3.0" unique-identifier="uid">
         <opf:metadata>
           <dc:title>{this.parsed.title}</dc:title>
@@ -372,15 +415,32 @@ export class OpfFile extends TocFile {
         </opf:manifest>
         <opf:spine toc="the-ncx-file">{...spineItems}</opf:spine>
       </opf:package>
-    ).node
+    )
+    // Declare the dc: namespace once on <metadata> so that <dc:title>,
+    // <dc:language>, <dc:identifier>, and <dc:creator> (siblings, not
+    // nested inside each other) inherit it instead of each redeclaring
+    // `xmlns:dc` on itself. Apple Books fails to paginate/skips content
+    // when the same xmlns:dc is redeclared on every sibling element.
+    const metadataNode = opfDom.findOne('//opf:metadata').node as Element
+    metadataNode.setAttributeNS(
+      'http://www.w3.org/2000/xmlns/',
+      'xmlns:dc',
+      'http://purl.org/dc/elements/1.1/'
+    )
+    return opfDom.node
   }
 }
 
 export class NcxFile extends TocFile {
   _idCounter = 1
+  _playOrderCounter = 1
 
   private nextId(): number {
     return this._idCounter++
+  }
+
+  private nextPlayOrder(): number {
+    return this._playOrderCounter++
   }
 
   private findFirstLeafPage(toc: TocTree): Opt<PageFile> {
@@ -395,7 +455,10 @@ export class NcxFile extends TocFile {
   private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
       return (
-        <ncx:navPoint id={`idm${this.nextId()}`}>
+        <ncx:navPoint
+          id={`idm${this.nextId()}`}
+          playOrder={this.nextPlayOrder()}
+        >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>
@@ -408,7 +471,10 @@ export class NcxFile extends TocFile {
         'BUG: Could not find an intro page'
       )
       return (
-        <ncx:navPoint id={`idm${this.nextId()}`}>
+        <ncx:navPoint
+          id={`idm${this.nextId()}`}
+          playOrder={this.nextPlayOrder()}
+        >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>

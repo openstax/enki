@@ -1,7 +1,7 @@
 import { existsSync } from 'fs'
 import { dirname, resolve } from 'path'
 import { Dom, dom } from '../minidom'
-import { assertTrue, assertValue, getPos } from '../utils'
+import { assertTrue, assertValue, getPos, Pos } from '../utils'
 import type { Factorio } from '../model/factorio'
 import type { Factory } from '../model/factory'
 import { ResourceFile, XmlFile } from '../model/file'
@@ -22,6 +22,79 @@ export type PageData = {
   resources: ResourceFile[]
 }
 
+// The title of the chapter/unit this page is the first page of, if any.
+// Set externally (see toc.tsx's markStructuralPageRoles / findFirstPage),
+// and inserted as a leading h1 in convert() so the page's own heading
+// structure descends from a real ancestor instead of starting mid-tree.
+export type AncestorTitle = {
+  title: string
+  pos: Pos
+}
+
+// Set externally by toc.tsx's markStructuralPageRoles for the first page
+// of a structural unit (chapter/unit/preface/appendix/index). `label` is
+// null for tocTargetType-driven roles (preface/appendix/index) - those
+// are set before this page has parsed its own title, so convert() falls
+// back to this.parsed.title instead.
+export type AriaSpec = {
+  role: string
+  label: string | null
+}
+
+// The epub:type structural-semantics vocabulary term for each ARIA role
+// convert() may write. Kept explicit rather than derived from the role
+// string (e.g. stripping "doc-") since that pattern isn't guaranteed to
+// hold for roles not yet in use here.
+const EPUB_TYPE_BY_ARIA_ROLE: Record<string, string> = {
+  'doc-part': 'part',
+  'doc-chapter': 'chapter',
+  'doc-preface': 'preface',
+  'doc-appendix': 'appendix',
+  'doc-index': 'index',
+}
+
+// Ported from rex-web's contentDOMTransformations.ts `wrapElements` -
+// splits each of these elements into a <header> (its title, if any) and
+// a <section> (everything else), matching the DOM shape REX's CSS expects.
+const WRAP_DATA_TYPES = ['example', 'exercise', 'note', 'abstract']
+
+function isTitleChild(child: Dom): boolean {
+  if (child.node.nodeType !== child.node.ELEMENT_NODE) return false
+  if (child.attr('data-type') === 'title') return true
+  const classes = (child.attr('class') ?? '').split(/\s+/)
+  return classes.includes('os-title') || classes.includes('title')
+}
+
+function wrapTitledElements(doc: Dom) {
+  const selector = WRAP_DATA_TYPES.map((t) => `//h:*[@data-type="${t}"]`).join(
+    '|'
+  )
+  doc.forEach(selector, (el) => {
+    const children = el.children
+    const titles = children.filter(isTitleChild)
+    const rest = children.filter((c) => !titles.includes(c))
+    const pos = getPos(el.node)
+
+    const label = el.attr('data-label')
+    if (label) {
+      titles.forEach((title) => title.attr('data-label-parent', label))
+    }
+    if (titles.length > 0) {
+      const existingClass = el.attr('class')
+      el.attr(
+        'class',
+        existingClass
+          ? `${existingClass} ui-has-child-title`
+          : 'ui-has-child-title'
+      )
+    }
+
+    const titleWrap = doc.create('h:header', {}, titles, pos)
+    const bodyWrap = doc.create('h:section', {}, rest, pos)
+    el.children = [titleWrap, bodyWrap]
+  })
+}
+
 function filterNulls<T>(l: Array<T | null>): Array<T> {
   const ret: T[] = []
   for (const i of l) {
@@ -39,6 +112,8 @@ export class PageFile extends XmlFile<
   PageFile,
   ResourceFile
 > {
+  public ariaSpec: AriaSpec | null = null
+  public ancestorTitle: AncestorTitle | null = null
   async parse(
     factorio: Factorio<OpfFile, PageFile, ResourceFile>
   ): Promise<void> {
@@ -117,6 +192,64 @@ export class PageFile extends XmlFile<
       this.resourceRenamer(doc, sel, attrName)
     )
 
+    const headingFixerFactory = (topHeaderValue = 1) => {
+      const stack: { original: number; mapped: number }[] = []
+
+      return (el: Dom) => {
+        const originalDepth = parseInt(el.tagName.slice(-1), 10)
+        assertTrue(!isNaN(originalDepth), `Invalid heading tag: ${el.tagName}`)
+
+        // stack[0] (the page's own title) is never popped, so there is
+        // always exactly one h1 - a heading that would otherwise "reset
+        // to root" instead becomes a child of the title.
+        while (
+          stack.length > 1 &&
+          stack[stack.length - 1].original >= originalDepth
+        ) {
+          stack.pop()
+        }
+
+        const parent = stack[stack.length - 1]
+        const targetDepth = parent
+          ? parent.mapped + 1 // Prevents skipping levels while preserving valid depths
+          : topHeaderValue
+        stack.push({ original: originalDepth, mapped: targetDepth })
+
+        if (targetDepth !== originalDepth) {
+          el.replaceWith(
+            doc.create(
+              `h:h${targetDepth}`,
+              el.attrs,
+              el.children,
+              getPos(el.node)
+            )
+          )
+        }
+      }
+    }
+
+    if (this.ancestorTitle != null) {
+      const newTitleNode = doc.create(
+        'h:h1',
+        { 'data-type': 'document-title' },
+        [this.ancestorTitle.title],
+        this.ancestorTitle.pos
+      )
+      const content = assertValue(
+        doc.find('//h:div[@data-type]')[0],
+        'BUG: expected div with data-type attribute'
+      )
+      content.children = [newTitleNode, ...content.children]
+    }
+
+    doc.forEach(
+      '//h:h1 | //h:h2 | //h:h3 | //h:h4 | //h:h5 | //h:h6',
+      headingFixerFactory()
+    )
+
+    // Wrap examples/exercises/notes/abstracts into <header>/<section>
+    wrapTitledElements(doc)
+
     // Add a CSS file
     doc.findOne('//h:head').children = [
       <h:title>{this.parsed.title}</h:title>,
@@ -166,6 +299,21 @@ export class PageFile extends XmlFile<
       const newHref = hash ? `${newTargetPath}#${hash}` : newTargetPath
       a.attr('href', newHref)
     })
+
+    // Mark the first page of chapters and units for screen readers
+    if (this.ariaSpec !== null) {
+      const content = assertValue(
+        doc.find('//h:div[@data-type]')[0],
+        'BUG: expected div with data-type attribute'
+      )
+      const epubType = assertValue(
+        EPUB_TYPE_BY_ARIA_ROLE[this.ariaSpec.role],
+        `BUG: No epub:type mapped for ARIA role '${this.ariaSpec.role}'`
+      )
+      content.attr('role', this.ariaSpec.role)
+      content.attr('epub:type', epubType)
+      content.attr('aria-label', this.ariaSpec.label ?? this.parsed.title)
+    }
 
     return doc.node
   }
