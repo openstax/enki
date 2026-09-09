@@ -439,8 +439,17 @@ export class NcxFile extends TocFile {
     return this._idCounter++
   }
 
-  private nextPlayOrder(): number {
-    return this._playOrderCounter++
+  // An inner navPoint links to its first descendant leaf page, so it resolves
+  // to the same target as that leaf's navPoint. navPoints cannot share a
+  // target but differ in playOrder
+  private _playOrderByPath = new Map<string, number>()
+
+  private playOrderFor(newPath: string): number {
+    const existing = this._playOrderByPath.get(newPath)
+    if (existing !== undefined) return existing
+    const playOrder = this._playOrderCounter++
+    this._playOrderByPath.set(newPath, playOrder)
+    return playOrder
   }
 
   private findFirstLeafPage(toc: TocTree): Opt<PageFile> {
@@ -457,7 +466,7 @@ export class NcxFile extends TocFile {
       return (
         <ncx:navPoint
           id={`idm${this.nextId()}`}
-          playOrder={this.nextPlayOrder()}
+          playOrder={this.playOrderFor(toc.page.newPath)}
         >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
@@ -473,7 +482,7 @@ export class NcxFile extends TocFile {
       return (
         <ncx:navPoint
           id={`idm${this.nextId()}`}
-          playOrder={this.nextPlayOrder()}
+          playOrder={this.playOrderFor(this.relativeToMe(firstPage.newPath))}
         >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
