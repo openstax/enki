@@ -93,16 +93,16 @@ exports[`TocFile and Friends with a small book generates an NCX file 1`] = `
         <text>UnitTitle</text>
       </navLabel>
       <content src="../foo/iamthepage.xhtml"/>
-      <navPoint id="idm2" playOrder="2">
+      <navPoint id="idm2" playOrder="1">
         <navLabel>
           <text>ChapterTitle</text>
         </navLabel>
         <content src="../foo/iamthepage.xhtml"/>
-        <navPoint id="idm3" playOrder="3">
+        <navPoint id="idm3" playOrder="1">
           <navLabel>
             <text>PageTitle</text>
           </navLabel>
-          <content src="./../foo/iamthepage.xhtml"/>
+          <content src="../foo/iamthepage.xhtml"/>
         </navPoint>
       </navPoint>
     </navPoint>
