@@ -439,8 +439,21 @@ export class NcxFile extends TocFile {
     return this._idCounter++
   }
 
-  private nextPlayOrder(): number {
-    return this._playOrderCounter++
+  private targetFor(page: PageFile): string {
+    return this.relativeToMe(page.newPath)
+  }
+
+  // An inner navPoint links to its first descendant leaf page, so it resolves
+  // to the same target as that leaf's navPoint. navPoints cannot share a
+  // target but differ in playOrder
+  private _playOrderByPath = new Map<string, number>()
+
+  private playOrderFor(target: string): number {
+    const existing = this._playOrderByPath.get(target)
+    if (existing !== undefined) return existing
+    const playOrder = this._playOrderCounter++
+    this._playOrderByPath.set(target, playOrder)
+    return playOrder
   }
 
   private findFirstLeafPage(toc: TocTree): Opt<PageFile> {
@@ -454,15 +467,16 @@ export class NcxFile extends TocFile {
   }
   private fillNavMap(toc: TocTree): JSXNode {
     if (toc.type == TocTreeType.LEAF) {
+      const target = this.targetFor(toc.page)
       return (
         <ncx:navPoint
           id={`idm${this.nextId()}`}
-          playOrder={this.nextPlayOrder()}
+          playOrder={this.playOrderFor(target)}
         >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>
-          <ncx:content src={`./${this.relativeToMe(toc.page.newPath)}`} />
+          <ncx:content src={target} />
         </ncx:navPoint>
       )
     } else {
@@ -470,15 +484,16 @@ export class NcxFile extends TocFile {
         this.findFirstLeafPage(toc),
         'BUG: Could not find an intro page'
       )
+      const target = this.targetFor(firstPage)
       return (
         <ncx:navPoint
           id={`idm${this.nextId()}`}
-          playOrder={this.nextPlayOrder()}
+          playOrder={this.playOrderFor(target)}
         >
           <ncx:navLabel>
             <ncx:text>{toc.title}</ncx:text>
           </ncx:navLabel>
-          <ncx:content src={this.relativeToMe(firstPage.newPath)} />
+          <ncx:content src={target} />
           {...toc.children.map((d) => this.fillNavMap(d))}
         </ncx:navPoint>
       )
