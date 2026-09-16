@@ -115,6 +115,15 @@ epubCommand
     const c = new ContainerFile(booksXmlPath)
     await c.parse(factorio)
 
+    const safeName = (newPath: string) =>
+      newPath.replace(/[^A-Za-z0-9._/-]/gu, (character) => {
+        const codePoint = character.codePointAt(0)
+        if (codePoint === undefined) {
+          throw new Error(`Could not encode filename character ${character}`)
+        }
+        return `_u${codePoint.toString(16).padStart(4, '0')}_`
+      })
+
     // Load up the models
     for (const opfFile of factorio.books.all) {
       console.log(`Reading Book ${opfFile.readPath}`)
@@ -145,10 +154,17 @@ epubCommand
       ]
 
       // Rename OPF Files (they were XHTML)
-      opfFile.rename(opfFile.newPath.replace('.xhtml', '.opf'), undefined)
+      opfFile.rename(
+        safeName(opfFile.newPath).replace('.xhtml', '.opf'),
+        undefined
+      )
       // Rename ToC files
+      tocFile.rename(safeName(tocFile.newPath), undefined)
       // Rename NCX files
-      ncxFile.rename(ncxFile.newPath.replace('.xhtml', '.ncx'), undefined)
+      ncxFile.rename(
+        safeName(ncxFile.newPath).replace('.xhtml', '.ncx'),
+        undefined
+      )
 
       // Rename Page files
       factorio.pages.all.forEach((p) =>
