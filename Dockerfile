@@ -108,7 +108,7 @@ FROM base-with-langs AS build-python-stage
 RUN set -x \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-    python3-dev libgit2-dev
+    python3-dev libgit2-dev libwebp7
 
 # Install dependencies
 COPY ./nebuchadnezzar/requirements /workspace/enki/nebuchadnezzar/requirements
