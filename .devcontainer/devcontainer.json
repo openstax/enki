@@ -1,0 +1,19 @@
+{
+  "name": "Local Dev",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/enki,type=bind,consistency=default",
+  "mounts": [],
+  "workspaceFolder": "/workspace/enki"
+}
+
+// Commands to run when inside a devcontainer to get a PDF:
+//
+// npm --prefix ./bakery-js/ install
+// npm --prefix ./bakery-js/ run build
+// npm --prefix ./mathify/ install
+//
+// export $(cat cli.env | xargs)
+// bash -xv ./dockerfiles/docker-entrypoint.sh all-pdf --repo tiny-book --book-slug book-slug-1 --ref main

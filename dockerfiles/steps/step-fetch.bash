@@ -87,6 +87,9 @@ else
     GIT_TERMINAL_PROMPT=0 git -C "$IO_FETCHED" submodule update --init --depth 1
 fi
 
+
+cd /workspace/enki/poet && ./node_modules/.bin/ts-node server/src/model/_cli.ts validate "$IO_FETCHED"
+
 # Clean up the temporary credentials file if it exists
 if [[ -f $creds_dir ]]; then
     rm -rf $creds_dir # LCOV_EXCL_LINE
