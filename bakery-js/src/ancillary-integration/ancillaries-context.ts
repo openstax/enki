@@ -4,6 +4,7 @@ import { acceptStatus } from './utils'
 
 // [200, 400)
 export const defaultAcceptRange = [...new Array(200)].map((_, idx) => idx + 200)
+export const MAX_ANCILLARY_FILE_SIZE = 1_000_000
 
 export interface FileValue {
   path: string
@@ -32,6 +33,16 @@ export interface FormatConfig {
   label: string
   id: string
   fields: FieldConfig[]
+}
+
+const assertFileSize = (file: FileInput) => {
+  const size = file.blob.length
+  if (size > MAX_ANCILLARY_FILE_SIZE) {
+    throw new Error(
+      `Ancillary file "${file.name}" is too large: ${size} bytes ` +
+        `(maximum ${MAX_ANCILLARY_FILE_SIZE} bytes)`
+    )
+  }
 }
 
 export type AncillaryTypeDocument = Partial<{
@@ -160,6 +171,7 @@ export class AncillariesContext {
   }
 
   async uploadFile(file: FileInput, config: UploadConfig) {
+    assertFileSize(file)
     const bucketKey = config.payload.key.replace('${filename}', file.name)
     const response: FileValue = {
       path: bucketKey,
@@ -198,6 +210,7 @@ export class AncillariesContext {
   async uploadFiles(files: FileInput[]) {
     const uploaded = []
     if (files.length > 0) {
+      files.forEach(assertFileSize)
       const config = await this.authorizeUpload()
       for (let slice = files; (slice = files.splice(0, 10)).length > 0; ) {
         uploaded.push(

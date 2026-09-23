@@ -167,7 +167,7 @@ for collection in "$IO_SUPER/"*.linked.xhtml; do
         resource_metadata="$IO_RESOURCES/$(basename "$resource").json"
         [ ! -e "$resource_metadata" ] || cp -v "$resource_metadata" "$resources_dir"
     done
+    optimize-images "$ancillary_dir/index.html"
 done
 
 shopt -u nullglob
-

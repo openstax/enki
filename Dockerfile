@@ -336,6 +336,7 @@ COPY --from=build-python-stage \
     /usr/local/bin/upload-docx \
     /usr/local/bin/mathmltable2png \
     /usr/local/bin/fetch-map-resources \
+    /usr/local/bin/optimize-images \
     /usr/local/bin/fetch-update-meta \
     /usr/local/bin/patch-same-book-links \
     /usr/local/bin/link-rex \
