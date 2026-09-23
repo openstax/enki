@@ -272,7 +272,7 @@ def optimize_images(
                 candidate = replacement['candidate']
                 candidate['source_path'].unlink()
                 candidate['metadata_path'].unlink()
-        
+
     except Exception:
         if temporary_index_path is not None:
             temporary_index_path.unlink(missing_ok=True)
