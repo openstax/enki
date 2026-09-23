@@ -16,7 +16,7 @@ from .utils import get_checksums, get_size
 excepthook.attach(sys)
 
 DEFAULT_MAX_SIZE = 1_000_000
-DEFAULT_SOURCE_TYPES = ('image/png',)
+DEFAULT_SOURCE_TYPES = ('image/png', 'image/jpeg')
 DEFAULT_FORMAT = 'webp'
 DEFAULT_QUALITY = 90
 DEFAULT_METHOD = 6
