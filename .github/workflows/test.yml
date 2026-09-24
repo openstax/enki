@@ -33,7 +33,7 @@ jobs:
         run: |
           python -m pip install --upgrade pipenv wheel
           sudo apt-get update
-          sudo apt-get install -y imagemagick icc-profiles-free ghostscript libgit2-dev libwebp7
+          sudo apt-get install -y imagemagick icc-profiles-free ghostscript libgit2-dev libwebp7 libwebp-dev
       - id: cache-pipenv
         uses: actions/cache@v3
         with:
