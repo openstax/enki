@@ -11,6 +11,7 @@ import {
   FieldConfig,
   FileInput,
   FormatConfig,
+  MAX_ANCILLARY_FILE_SIZE,
   mapFields,
   mapFormats,
 } from './ancillaries-context'
@@ -421,6 +422,22 @@ describe('AncillariesContext', () => {
     const result = await context.uploadFiles(emptyFiles)
 
     expect(result.length).toBe(2)
+    expect(scope.isDone()).toBe(true)
+  })
+
+  it('rejects an oversized file before authorizing or uploading it', async () => {
+    const scope = newScope()
+    const oversizedFile: FileInput = {
+      blob: Buffer.alloc(MAX_ANCILLARY_FILE_SIZE + 1),
+      name: 'too-large.png',
+      type: 'image/png',
+    }
+
+    await expect(context.uploadFiles([oversizedFile])).rejects.toThrow(
+      `Ancillary file "too-large.png" is too large: ` +
+        `${MAX_ANCILLARY_FILE_SIZE + 1} bytes ` +
+        `(maximum ${MAX_ANCILLARY_FILE_SIZE} bytes)`
+    )
     expect(scope.isDone()).toBe(true)
   })
 

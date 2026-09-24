@@ -62,6 +62,7 @@ setup(
             'upload-docx = bakery_scripts.upload_docx:main',
             'mathmltable2png = bakery_scripts.mathmltable2png:main',
             'fetch-map-resources = bakery_scripts.fetch_map_resources:main',
+            'optimize-images = bakery_scripts.optimize_images:main',
             'fetch-update-meta = bakery_scripts.fetch_update_metadata:main',
             'patch-same-book-links = bakery_scripts.patch_same_book_links:main',
             'link-rex = bakery_scripts.link_rex:main',

@@ -108,7 +108,7 @@ FROM base-with-langs AS build-python-stage
 RUN set -x \
     && apt-get update \
     && apt-get install --no-install-recommends -y \
-    python3-dev libgit2-dev
+    python3-dev libgit2-dev libwebp7 libwebp-dev
 
 # Install dependencies
 COPY ./nebuchadnezzar/requirements /workspace/enki/nebuchadnezzar/requirements
@@ -336,6 +336,7 @@ COPY --from=build-python-stage \
     /usr/local/bin/upload-docx \
     /usr/local/bin/mathmltable2png \
     /usr/local/bin/fetch-map-resources \
+    /usr/local/bin/optimize-images \
     /usr/local/bin/fetch-update-meta \
     /usr/local/bin/patch-same-book-links \
     /usr/local/bin/link-rex \
