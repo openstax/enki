@@ -55,7 +55,11 @@ class TestCheck:
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
+<<<<<<< Updated upstream
         assert result == [{"id": "3"}, {"id": "2"}, {"id": "1"}]
+=======
+        assert result == [{"id": "1"}]
+>>>>>>> Stashed changes
 
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
@@ -73,7 +77,15 @@ class TestCheck:
     )
     @pytest.mark.parametrize(
         "id,result",
+<<<<<<< Updated upstream
         [("1", [{"id": "3"}, {"id": "2"}]), ("2", [{"id": "3"}]), ("3", [])],
+=======
+        [
+            ("1", [{"id": "2"}]),
+            ("2", [{"id": "3"}]),
+            ("3", []),
+        ],
+>>>>>>> Stashed changes
     )
     def test_has_newer_job(self, id, result):
         version = {"id": id}
@@ -81,6 +93,25 @@ class TestCheck:
         in_stream = make_input_stream(version, status_id=1)
         assert check.check(in_stream) == result
 
+<<<<<<< Updated upstream
+=======
+    def test_jobs_are_sorted_by_numeric_id(self, monkeypatch):
+        jobs = [{"id": "12"}, {"id": "2"}, {"id": "10"}, {"id": "1"}]
+        monkeypatch.setattr(check, "get_jobs", lambda api_root, **kwargs: jobs)
+
+        result = check.check(make_input_stream(None, status_id=1))
+
+        assert result == [{"id": "1"}]
+
+    def test_returns_oldest_job_only(self, monkeypatch):
+        jobs = [{"id": "12"}, {"id": "2"}, {"id": "10"}]
+        monkeypatch.setattr(check, "get_jobs", lambda api_root, **kwargs: jobs)
+
+        result = check.check(make_input_stream({"id": "2"}, status_id=1))
+
+        assert result == [{"id": "10"}]
+
+>>>>>>> Stashed changes
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
     )
@@ -142,6 +173,7 @@ class TestCheck:
     @pytest.mark.parametrize(
         "status_id,result",
         [
+<<<<<<< Updated upstream
             (
                 1,
                 [{"id": "3"}, {"id": "2"}, {"id": "1"}],
@@ -150,6 +182,13 @@ class TestCheck:
             (3, [{"id": "9"}, {"id": "8"}, {"id": "7"}]),
             (4, [{"id": "12"}, {"id": "11"}, {"id": "10"}]),
             (5, [{"id": "15"}, {"id": "14"}, {"id": "13"}]),
+=======
+            (1, [{"id": "1"}]),
+            (2, [{"id": "4"}]),
+            (3, [{"id": "7"}]),
+            (4, [{"id": "10"}]),
+            (5, [{"id": "13"}]),
+>>>>>>> Stashed changes
         ],
     )
     def test_check_with_status(self, status_id, result):
