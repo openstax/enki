@@ -55,7 +55,7 @@ class TestCheck:
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{"id": "3"}, {"id": "2"}, {"id": "1"}]
+        assert result == [{"id": "1"}, {"id": "2"}, {"id": "3"}]
 
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
@@ -73,13 +73,30 @@ class TestCheck:
     )
     @pytest.mark.parametrize(
         "id,result",
-        [("1", [{"id": "3"}, {"id": "2"}]), ("2", [{"id": "3"}]), ("3", [])],
+        [
+            ("1", [{"id": "2"}, {"id": "3"}]),
+            ("2", [{"id": "3"}]),
+            ("3", []),
+        ],
     )
     def test_has_newer_job(self, id, result):
         version = {"id": id}
 
         in_stream = make_input_stream(version, status_id=1)
         assert check.check(in_stream) == result
+
+    def test_jobs_are_sorted_by_numeric_id(self, monkeypatch):
+        jobs = [{"id": "12"}, {"id": "2"}, {"id": "10"}, {"id": "1"}]
+        monkeypatch.setattr(check, "get_jobs", lambda api_root, **kwargs: jobs)
+
+        result = check.check(make_input_stream(None, status_id=1))
+
+        assert result == [
+            {"id": "1"},
+            {"id": "2"},
+            {"id": "10"},
+            {"id": "12"},
+        ]
 
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
@@ -144,12 +161,12 @@ class TestCheck:
         [
             (
                 1,
-                [{"id": "3"}, {"id": "2"}, {"id": "1"}],
+                [{"id": "1"}, {"id": "2"}, {"id": "3"}],
             ),
-            (2, [{"id": "6"}, {"id": "5"}, {"id": "4"}]),
-            (3, [{"id": "9"}, {"id": "8"}, {"id": "7"}]),
-            (4, [{"id": "12"}, {"id": "11"}, {"id": "10"}]),
-            (5, [{"id": "15"}, {"id": "14"}, {"id": "13"}]),
+            (2, [{"id": "4"}, {"id": "5"}, {"id": "6"}]),
+            (3, [{"id": "7"}, {"id": "8"}, {"id": "9"}]),
+            (4, [{"id": "10"}, {"id": "11"}, {"id": "12"}]),
+            (5, [{"id": "13"}, {"id": "14"}, {"id": "15"}]),
         ],
     )
     def test_check_with_status(self, status_id, result):

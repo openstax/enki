@@ -26,7 +26,9 @@ def check(in_stream):
             previous_id = version["id"]
             jobs = [job for job in jobs if int(job["id"]) > int(previous_id)]
 
-        return [{"id": job["id"]} for job in jobs]
+        jobs = [{"id": job["id"]} for job in jobs]
+        jobs.sort(key=lambda job: int(job["id"]))
+        return jobs
 
 
 def main():  # pragma: no cover
