@@ -55,7 +55,7 @@ class TestCheck:
         in_stream = make_input_stream(version, status_id=1)
         result = check.check(in_stream)
 
-        assert result == [{"id": "1"}, {"id": "2"}, {"id": "3"}]
+        assert result == [{"id": "1"}]
 
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
@@ -74,7 +74,7 @@ class TestCheck:
     @pytest.mark.parametrize(
         "id,result",
         [
-            ("1", [{"id": "2"}, {"id": "3"}]),
+            ("1", [{"id": "2"}]),
             ("2", [{"id": "3"}]),
             ("3", []),
         ],
@@ -91,12 +91,15 @@ class TestCheck:
 
         result = check.check(make_input_stream(None, status_id=1))
 
-        assert result == [
-            {"id": "1"},
-            {"id": "2"},
-            {"id": "10"},
-            {"id": "12"},
-        ]
+        assert result == [{"id": "1"}]
+
+    def test_returns_oldest_job_only(self, monkeypatch):
+        jobs = [{"id": "12"}, {"id": "2"}, {"id": "10"}]
+        monkeypatch.setattr(check, "get_jobs", lambda api_root, **kwargs: jobs)
+
+        result = check.check(make_input_stream({"id": "2"}, status_id=1))
+
+        assert result == [{"id": "10"}]
 
     @vcr.use_cassette(
         "tests/cassettes/test_check.yaml", record_mode="new_episode"
@@ -159,14 +162,11 @@ class TestCheck:
     @pytest.mark.parametrize(
         "status_id,result",
         [
-            (
-                1,
-                [{"id": "1"}, {"id": "2"}, {"id": "3"}],
-            ),
-            (2, [{"id": "4"}, {"id": "5"}, {"id": "6"}]),
-            (3, [{"id": "7"}, {"id": "8"}, {"id": "9"}]),
-            (4, [{"id": "10"}, {"id": "11"}, {"id": "12"}]),
-            (5, [{"id": "13"}, {"id": "14"}, {"id": "15"}]),
+            (1, [{"id": "1"}]),
+            (2, [{"id": "4"}]),
+            (3, [{"id": "7"}]),
+            (4, [{"id": "10"}]),
+            (5, [{"id": "13"}]),
         ],
     )
     def test_check_with_status(self, status_id, result):

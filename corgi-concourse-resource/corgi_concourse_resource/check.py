@@ -28,7 +28,8 @@ def check(in_stream):
 
         jobs = [{"id": job["id"]} for job in jobs]
         jobs.sort(key=lambda job: int(job["id"]))
-        return jobs
+        # Return one job per check so Concourse never receives a batch
+        return jobs[:1]
 
 
 def main():  # pragma: no cover
