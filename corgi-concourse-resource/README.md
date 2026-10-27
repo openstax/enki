@@ -14,12 +14,14 @@ resources:
     type: cops-jobs
     source:
       api_root: https://cc1.cnx.org/api
+      github_token: ((github-api-token))
       status_id: 1
 
   - name: job-update
     type: cops-jobs
     source:
       api_root: https://cc1.cnx.org/api
+      github_token: ((github-api-token))
 ```
 
 ## `get`: Get the latest jobs from service
@@ -40,6 +42,11 @@ plan:
 ```
 
 ## `put`: Update the job through the web api
+
+`put` requires a `github_token` in the resource source. The resource logs in
+to `/auth/token-login` for the update and keeps the resulting session cookie
+in memory for that request. `check` and `in` remain read-only and do not use
+the token. The token is redacted from resource input logs.
 
 * `status_id`: The id of the status to change the job
 * `pdf_url`: The url location of the pdf on S3

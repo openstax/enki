@@ -10,12 +10,18 @@ const s3UploadFailMessage = 'Error occurred upload to S3.'
 
 function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
+    const corgiApiSource = {
+        api_root: env.CORGI_API_URL,
+        ...(env.GH_SECRET_CREDS
+            ? { github_token: env.GH_SECRET_CREDS.replace(/^git:/, '') }
+            : {})
+    }
     const resources = [
         {
             name: RESOURCES.CORGI_GIT_PDF,
             type: 'corgi-resource',
             source: {
-                api_root: env.CORGI_API_URL,
+                ...corgiApiSource,
                 job_type_id: JobType.GIT_PDF,
                 status_id: 1
             }
@@ -24,7 +30,7 @@ function makePipeline(env: KeyValue) {
             name: RESOURCES.CORGI_GIT_WEB,
             type: 'corgi-resource',
             source: {
-                api_root: env.CORGI_API_URL,
+                ...corgiApiSource,
                 job_type_id: JobType.GIT_DIST_PREVIEW,
                 status_id: 1
             }
@@ -33,7 +39,7 @@ function makePipeline(env: KeyValue) {
             name: RESOURCES.CORGI_GIT_DOCX,
             type: 'corgi-resource',
             source: {
-                api_root: env.CORGI_API_URL,
+                ...corgiApiSource,
                 job_type_id: JobType.GIT_DOCX,
                 status_id: 1
             }
@@ -42,7 +48,7 @@ function makePipeline(env: KeyValue) {
             name: RESOURCES.CORGI_GIT_EPUB,
             type: 'corgi-resource',
             source: {
-                api_root: env.CORGI_API_URL,
+                ...corgiApiSource,
                 job_type_id: JobType.GIT_EPUB,
                 status_id: 1
             }
@@ -51,7 +57,7 @@ function makePipeline(env: KeyValue) {
             name: RESOURCES.CORGI_GIT_PPTX,
             type: 'corgi-resource',
             source: {
-                api_root: env.CORGI_API_URL,
+                ...corgiApiSource,
                 job_type_id: JobType.GIT_PPTX,
                 status_id: 1
             }

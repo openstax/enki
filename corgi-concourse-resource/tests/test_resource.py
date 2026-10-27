@@ -265,9 +265,10 @@ class TestOut:
 
         from corgi_concourse_resource.corgi_api import update_job
 
-        def test_data(api_root, id, data):
+        def test_data(api_root, id, data, github_token=None):
             assert data
             assert id
+            assert github_token is None
             assert "status_id" in data
             assert "artifact_urls" in data
             assert data["artifact_urls"] == result
