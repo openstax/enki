@@ -40,7 +40,8 @@ def out(src_path, in_stream):
     github_token = input["source"].get("github_token")
     github_token = (
         github_token.strip()
-        if isinstance(github_token, str) and github_token.strip() else None
+        if isinstance(github_token, str) and github_token.strip()
+        else None
     )
     response = update_job(input["source"]["api_root"], id, data, github_token)
 

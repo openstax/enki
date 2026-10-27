@@ -11,7 +11,9 @@ def test_looks_like_secret_matches_secret_components(key):
     assert utils.looks_like_secret(key)
 
 
-@pytest.mark.parametrize("key", ["monkey", "keyboard", "tokenize", "book_title"])
+@pytest.mark.parametrize(
+    "key", ["monkey", "keyboard", "tokenize", "book_title"]
+)
 def test_looks_like_secret_ignores_partial_matches(key):
     assert not utils.looks_like_secret(key)
 
