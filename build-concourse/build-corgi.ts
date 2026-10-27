@@ -8,12 +8,16 @@ const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
 const genericAbortMessage = 'Job was aborted.'
 const s3UploadFailMessage = 'Error occurred upload to S3.'
 
+function normalizeGithubToken(credentials: string) {
+    return credentials.replace(/^git:/, '').replace(/:x-oauth-basic$/, '')
+}
+
 function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
     const corgiApiSource = {
         api_root: env.CORGI_API_URL,
         ...(env.GH_SECRET_CREDS
-            ? { github_token: env.GH_SECRET_CREDS.replace(/^git:/, '') }
+            ? { github_token: normalizeGithubToken(env.GH_SECRET_CREDS) }
             : {})
     }
     const resources = [
