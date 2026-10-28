@@ -72,3 +72,38 @@ def test_msg_redacts_format_keyword_arguments(capsys, monkeypatch):
     captured = capsys.readouterr()
     assert "github-secret" not in captured.err
     assert "[REDACTED]" in captured.err
+
+
+def test_looks_like_secret_rejects_non_string_keys():
+    assert not utils.looks_like_secret(1)
+    assert not utils.looks_like_secret(None)
+
+
+def test_msg_appends_to_check_log(capsys, monkeypatch):
+    class FakeLogFile:
+        def __init__(self):
+            self.written = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def write(self, text):
+            self.written.append(text)
+
+    log_file = FakeLogFile()
+    opened = []
+
+    def fake_open(path, mode):
+        opened.append((path, mode))
+        return log_file
+
+    monkeypatch.setattr(utils, "open", fake_open, raising=False)
+
+    utils.msg("Value: {}", {"github_token": "github-secret", "id": 1})
+
+    assert opened == [("/var/log/check", "a")]
+    assert log_file.written == ["msg:Value: {'github_token': '[REDACTED]', 'id': 1}\n"]
+    assert "github-secret" not in capsys.readouterr().err

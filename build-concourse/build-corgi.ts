@@ -12,7 +12,7 @@ export function normalizeGithubToken(credentials: string) {
     return credentials.replace(/^git:/, '').replace(/:x-oauth-basic$/, '')
 }
 
-function makePipeline(env: KeyValue) {
+export function makePipeline(env: KeyValue) {
     env.CODE_VERSION = process.env.CODE_VERSION
     const corgiApiSource = {
         api_root: env.CORGI_API_URL,
