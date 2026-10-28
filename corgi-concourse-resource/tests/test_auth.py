@@ -82,6 +82,24 @@ def test_out_forwards_github_token(tmp_path, monkeypatch):
     assert forwarded["api_root"] == "https://corgi.example/api"
 
 
+def test_update_job_without_token_still_updates(monkeypatch):
+    session = FakeSession(FakeResponse(), FakeResponse(json_data={"id": "123"}))
+    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
+
+    result = corgi_api.update_job(
+        "https://corgi.example/api",
+        "123",
+        {"status_id": "5"},
+    )
+
+    assert result == {"id": "123"}
+    assert session.get_calls == []
+    assert session.put_calls == [
+        ("https://corgi.example/api/jobs/123", {"status_id": "5"})
+    ]
+
+
 def test_update_job_logs_in_and_reuses_session_cookie(monkeypatch):
     login_response = FakeResponse(cookies={"session": "session-cookie"})
     put_response = FakeResponse(json_data={"id": "123"})
@@ -121,6 +139,25 @@ def test_update_job_does_not_put_when_login_fails(monkeypatch):
         )
 
     assert not session.put_calls
+
+
+def test_update_job_raises_when_put_fails(monkeypatch):
+    session = FakeSession(
+        FakeResponse(cookies={"session": "session-cookie"}),
+        FakeResponse(error=requests.HTTPError("500 Server Error")),
+    )
+    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
+
+    with pytest.raises(requests.HTTPError, match="500 Server Error"):
+        corgi_api.update_job(
+            "https://corgi.example/api",
+            "123",
+            {"status_id": "5"},
+            "github-token",
+        )
+
+    assert len(session.put_calls) == 1
 
 
 def test_update_job_does_not_put_when_login_sets_no_session_cookie(

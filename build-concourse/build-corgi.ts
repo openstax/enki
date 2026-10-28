@@ -8,7 +8,7 @@ const genericErrorMessage = 'Error occurred in Concourse. See logs for details.'
 const genericAbortMessage = 'Job was aborted.'
 const s3UploadFailMessage = 'Error occurred upload to S3.'
 
-function normalizeGithubToken(credentials: string) {
+export function normalizeGithubToken(credentials: string) {
     return credentials.replace(/^git:/, '').replace(/:x-oauth-basic$/, '')
 }
 
@@ -208,5 +208,7 @@ export function loadSaveAndDump(loadEnvFile: string, saveYamlFile: string) {
     fs.writeFileSync(saveYamlFile, yaml.dump(makePipeline(loadEnv(loadEnvFile))))
 }
 
-loadSaveAndDump('./env/corgi-staging.json', './corgi-staging.yml')
-loadSaveAndDump('./env/corgi-production.json', './corgi-production.yml')
+if (require.main === module) {
+    loadSaveAndDump('./env/corgi-staging.json', './corgi-staging.yml')
+    loadSaveAndDump('./env/corgi-production.json', './corgi-production.yml')
+}
