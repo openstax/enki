@@ -38,11 +38,10 @@ def out(src_path, in_stream):
     msg(f"Updating status of job id {id}")
 
     github_token = input["source"].get("github_token")
-    github_token = (
-        github_token.strip()
-        if isinstance(github_token, str) and github_token.strip()
-        else None
-    )
+    if isinstance(github_token, str):
+        github_token = github_token.strip() or None
+    else:
+        github_token = None
     response = update_job(input["source"]["api_root"], id, data, github_token)
 
     return {"version": {"id": response["id"]}}

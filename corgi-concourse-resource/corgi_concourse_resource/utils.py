@@ -11,7 +11,7 @@ def get_repo_path(job):
     return f"{owner}/{repo_name}"
 
 
-def msg(msg, *args, **kwargs):  # pragma: no cover
+def msg(msg, *args, **kwargs):
     if args or kwargs:
         if args:
             args = tuple(redact_sensitive_input(arg) for arg in args)
@@ -27,6 +27,7 @@ def msg(msg, *args, **kwargs):  # pragma: no cover
 
 
 def looks_like_secret(key: str):
+    """Return True if a dict key name (not its value) suggests a secret."""
     if not isinstance(key, str):
         return False
 

@@ -38,6 +38,7 @@ def update_job(api_root, job_id, data, github_token=None):
                 headers={"Authorization": f"Bearer {github_token}"},
             )
             login_response.raise_for_status()
+            # "session" is the cookie name CORGI sets on a successful login
             if not session.cookies.get("session"):
                 raise RuntimeError(
                     "CORGI token login did not set a session cookie"
