@@ -105,5 +105,7 @@ def test_msg_appends_to_check_log(capsys, monkeypatch):
     utils.msg("Value: {}", {"github_token": "github-secret", "id": 1})
 
     assert opened == [("/var/log/check", "a")]
-    assert log_file.written == ["msg:Value: {'github_token': '[REDACTED]', 'id': 1}\n"]
+    assert log_file.written == [
+        "msg:Value: {'github_token': '[REDACTED]', 'id': 1}\n"
+    ]
     assert "github-secret" not in capsys.readouterr().err
