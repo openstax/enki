@@ -232,9 +232,6 @@ class TestOut:
             ),
         ],
     )
-    @vcr.use_cassette(
-        "tests/cassettes/test_out.yaml", record_mode="new_episode"
-    )
     def test_update_job_status_and_url(self, output, result, monkeypatch):
         id = "1"
         src_path = tempfile.mkdtemp()
@@ -263,15 +260,14 @@ class TestOut:
 
         in_stream = make_stream(payload)
 
-        from corgi_concourse_resource.corgi_api import update_job
-
-        def test_data(api_root, id, data):
+        def test_data(api_root, id, data, github_token=None):
             assert data
             assert id
+            assert github_token is None
             assert "status_id" in data
             assert "artifact_urls" in data
             assert data["artifact_urls"] == result
-            return update_job(api_root, id, data)
+            return {"id": id}
 
         monkeypatch.setattr(
             "corgi_concourse_resource.out.update_job", test_data

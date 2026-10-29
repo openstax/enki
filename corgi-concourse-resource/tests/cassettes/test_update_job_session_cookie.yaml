@@ -1,0 +1,38 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer github-token
+    method: GET
+    uri: http://localhost/api/auth/token-login
+  response:
+    body:
+      string: '{}'
+    headers:
+      Content-Type:
+      - application/json
+      Set-Cookie:
+      - session=abc123; Path=/
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"status_id": "5"}'
+    headers:
+      Content-Type:
+      - application/json
+      Cookie:
+      - session=abc123
+    method: PUT
+    uri: http://localhost/api/jobs/123
+  response:
+    body:
+      string: '{"id": 123, "status_id": "5"}'
+    headers:
+      Content-Type:
+      - application/json
+    status:
+      code: 200
+      message: OK
+version: 1

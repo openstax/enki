@@ -1,4 +1,3 @@
-import json
 from urllib.parse import urlencode
 
 import requests
@@ -29,8 +28,19 @@ def get_job(api_root, job_id):
     return response.json()
 
 
-def update_job(api_root, job_id, data):
+def update_job(api_root, job_id, data, github_token):
     url = build_url(api_root, "jobs", job_id)
-    response = requests.put(url, data=json.dumps(data))
-    msg(response.text)
-    return response.json()
+    with requests.Session() as session:
+        login_url = build_url(api_root, "auth", "token-login")
+        login_response = session.get(
+            login_url,
+            headers={"Authorization": f"Bearer {github_token}"},
+        )
+        login_response.raise_for_status()
+        if not session.cookies.get("session"):
+            raise RuntimeError("CORGI token login did not set a session cookie")
+
+        response = session.put(url, json=data)
+        msg(response.text)
+        response.raise_for_status()
+        return response.json()
