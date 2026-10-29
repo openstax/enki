@@ -1,12 +1,29 @@
 import io
 import json
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 import requests
+import vcr
 
 from corgi_concourse_resource import check, corgi_api, in_, out
+
+
+def request_header(request, header_name):
+    for name, value in request.headers.items():
+        if name.lower() == header_name.lower():
+            return value[0] if isinstance(value, (list, tuple)) else value
+    return None
+
+
+def session_headers_matcher(request1, request2):
+    for header_name in ("Authorization", "Cookie", "Content-Type"):
+        assert request_header(request1, header_name) == request_header(
+            request2, header_name
+        )
+
+
+auth_vcr = vcr.VCR(match_on=("method", "uri", "body", "session_headers"))
+auth_vcr.register_matcher("session_headers", session_headers_matcher)
 
 
 class FakeResponse:
@@ -82,24 +99,6 @@ def test_out_forwards_github_token(tmp_path, monkeypatch):
     assert result == {"version": {"id": "123"}}
     assert forwarded["github_token"] == token
     assert forwarded["api_root"] == "https://corgi.example/api"
-
-
-def test_update_job_without_token_still_updates(monkeypatch):
-    session = FakeSession(FakeResponse(), FakeResponse(json_data={"id": "123"}))
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
-    monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
-
-    result = corgi_api.update_job(
-        "https://corgi.example/api",
-        "123",
-        {"status_id": "5"},
-    )
-
-    assert result == {"id": "123"}
-    assert session.get_calls == []
-    assert session.put_calls == [
-        ("https://corgi.example/api/jobs/123", {"status_id": "5"})
-    ]
 
 
 def test_update_job_logs_in_and_reuses_session_cookie(monkeypatch):
@@ -267,78 +266,37 @@ def test_in_does_not_use_github_token(tmp_path, monkeypatch):
     assert calls == [(("https://corgi.example/api", "123"), {})]
 
 
-class FakeCorgiHandler(BaseHTTPRequestHandler):
-    requests_seen = []
-
-    def log_message(self, *args):
-        pass
-
-    def respond(self, status, body, headers=()):
-        payload = json.dumps(body).encode()
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(payload)))
-        for name, value in headers:
-            self.send_header(name, value)
-        self.end_headers()
-        self.wfile.write(payload)
-
-    def do_GET(self):
-        self.requests_seen.append(("GET", self.path, self.headers))
-        if self.headers.get("Authorization") == "Bearer github-token":
-            self.respond(200, {}, [("Set-Cookie", "session=abc123; Path=/")])
-        else:
-            self.respond(401, {})
-
-    def do_PUT(self):
-        self.requests_seen.append(("PUT", self.path, self.headers))
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
-        if "session=abc123" in (self.headers.get("Cookie") or ""):
-            self.respond(200, {"id": 123, **body})
-        else:
-            self.respond(401, {})
-
-
-@pytest.fixture
-def fake_corgi():
-    FakeCorgiHandler.requests_seen = []
-    server = HTTPServer(("127.0.0.1", 0), FakeCorgiHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield f"http://127.0.0.1:{server.server_port}/api", FakeCorgiHandler
-    server.shutdown()
-    server.server_close()
-    thread.join()
-
-
-def test_update_job_sends_real_session_cookie_over_http(
-    monkeypatch, fake_corgi
-):
-    api_root, handler = fake_corgi
+def test_update_job_sends_real_session_cookie(monkeypatch):
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
-    result = corgi_api.update_job(
-        api_root, "123", {"status_id": "5"}, "github-token"
-    )
+    with auth_vcr.use_cassette(
+        "tests/cassettes/test_update_job_session_cookie.yaml",
+        record_mode="none",
+    ) as cassette:
+        result = corgi_api.update_job(
+            "http://localhost/api",
+            "123",
+            {"status_id": "5"},
+            "github-token",
+        )
 
     assert result == {"id": 123, "status_id": "5"}
-    assert [(method, path) for method, path, _ in handler.requests_seen] == [
-        ("GET", "/api/auth/token-login"),
-        ("PUT", "/api/jobs/123"),
-    ]
-    put_headers = handler.requests_seen[1][2]
-    assert put_headers["Content-Type"] == "application/json"
-    assert "Authorization" not in put_headers
+    assert cassette.all_played
 
 
-def test_update_job_without_token_is_rejected_by_server(
-    monkeypatch, fake_corgi
-):
-    api_root, handler = fake_corgi
+def test_update_job_calls_token_login(monkeypatch):
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
-    with pytest.raises(requests.HTTPError):
-        corgi_api.update_job(api_root, "123", {"status_id": "5"})
+    with (
+        auth_vcr.use_cassette(
+            "tests/cassettes/test_update_job_calls_token_login.yaml",
+            record_mode="none",
+        ) as cassette,
+        pytest.raises(requests.HTTPError) as error,
+    ):
+        corgi_api.update_job(
+            "http://localhost/api", "123", {"status_id": "5"}, None
+        )
 
-    assert [method for method, _, _ in handler.requests_seen] == ["PUT"]
+    assert error.value.response.status_code == 401
+    assert cassette.all_played

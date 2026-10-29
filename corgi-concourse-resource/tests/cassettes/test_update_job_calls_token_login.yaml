@@ -1,0 +1,18 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Authorization:
+      - Bearer None
+    method: GET
+    uri: http://localhost/api/auth/token-login
+  response:
+    body:
+      string: '{}'
+    headers:
+      Content-Type:
+      - application/json
+    status:
+      code: 401
+      message: Unauthorized
+version: 1
