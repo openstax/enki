@@ -115,11 +115,17 @@ const getPageLinks = (doc: Dom) => {
     doc.map('//h:a[@href]', (a) => {
       const href = a.attr('href')?.trim() ?? ''
       if (href.length === 0 || href.startsWith('#')) return null
-      const myHost = 'example-i-am-not-really-used.com'
-      const myProtocol = 'fakeproto:'
+      const myHost = 'page-link-sentinel.invalid'
+      const myProtocol = 'https:'
+      const schemePattern = /^[a-z][a-z0-9+.-]*:/i
       try {
         const u = new URL(href, `${myProtocol}//${myHost}`)
-        if (u.host !== myHost || u.protocol !== myProtocol) return null
+        if (
+          u.host !== myHost ||
+          u.protocol !== myProtocol ||
+          schemePattern.test(href)
+        )
+          return null
         return { a, u }
       } catch (e) {
         const pos = getPos(a.node)

@@ -178,6 +178,11 @@ describe('Pages', () => {
       'file:///tmp/x.xhtml',
       'custom+scheme.v1-x://thing',
       '#anchor',
+      '\\\\evil.example.com\\x.xhtml',
+      '/\\evil.example.com/x.xhtml',
+      '\\/evil.example.com/x.xhtml',
+      'https:page.xhtml',
+      'HTTPS:page.xhtml',
       '//cdn.example.com/x.xhtml',
       '//example.com',
       '  https://example.com/leading-whitespace',
@@ -213,6 +218,20 @@ describe('Pages', () => {
         new RegExp(`href="[^"]*${otherPageFilename}[^"]*#frag"`)
       )
     })
+
+    it.each([
+      `.\\${otherPageFilename}`,
+      `\\${otherPageFilename}`,
+      `.\\${otherPageFilename}#frag`,
+    ])(
+      'resolves the backslash-separated relative link %j like a forward slash',
+      async (href) => {
+        const { p, output } = await parseAndWrite(pageWithLinks(href))
+        expect(p.parsed.pageLinks).toHaveLength(1)
+        expect(output).not.toContain(`href="${href}"`)
+        expect(output).toMatch(new RegExp(`href="[^"]*${otherPageFilename}`))
+      }
+    )
 
     it('only records the page links when mixed with non-page links', async () => {
       const { p, output } = await parseAndWrite(
