@@ -152,6 +152,151 @@ describe('Pages', () => {
     })
   })
 
+  describe('page links', () => {
+    const pageWithLinks = (...hrefs: string[]) => `
+      <html xmlns="http://www.w3.org/1999/xhtml">
+        <head/>
+        <body>
+          <h1 data-type="document-title">${titleText}</h1>
+          ${hrefs.map((h) => `<a href="${h}">link</a>`).join('\n')}
+        </body>
+      </html>`
+
+    const nonPageHrefs = [
+      'http://example.com/a',
+      'https://example.com/a',
+      'HTTPS://EXAMPLE.COM/A',
+      'HtTp://example.com/a',
+      'mailto:someone@example.com',
+      'MAILTO:someone@example.com',
+      'tel:+15555550123',
+      'TEL:+15555550123',
+      'ftp://example.com/file',
+      'sms:+15555550123',
+      'javascript:void(0)',
+      'data:text/plain,hello',
+      'file:///tmp/x.xhtml',
+      'custom+scheme.v1-x://thing',
+      '#anchor',
+      '\\\\evil.example.com\\x.xhtml',
+      '/\\evil.example.com/x.xhtml',
+      '\\/evil.example.com/x.xhtml',
+      'https:page.xhtml',
+      'HTTPS:page.xhtml',
+      '//cdn.example.com/x.xhtml',
+      '//example.com',
+      '  https://example.com/leading-whitespace',
+    ]
+
+    async function parseAndWrite(xml: string) {
+      const p = new PageFile('somepath')
+      p.readXml = (_) => Promise.resolve(parseXml(xml))
+      await p.parse(factorio)
+      await p.write()
+      return { p, output: readFileSync(p.newPath, 'utf8') }
+    }
+
+    it.each(nonPageHrefs)(
+      'does not treat %j as a page link and leaves it untouched',
+      async (href) => {
+        const { p, output } = await parseAndWrite(pageWithLinks(href))
+        expect(p.parsed.pageLinks).toEqual([])
+        expect(output).toContain(`href="${href}"`)
+      }
+    )
+
+    it('rewrites a relative page link (with and without a fragment) and records it', async () => {
+      const { p, output } = await parseAndWrite(
+        pageWithLinks(`./${otherPageFilename}`, `./${otherPageFilename}#frag`)
+      )
+      expect(p.parsed.pageLinks).toHaveLength(2)
+      expect(output).not.toContain(`href="./${otherPageFilename}"`)
+      expect(output).toMatch(
+        new RegExp(`href="[^"]*${otherPageFilename}[^"]*"`)
+      )
+      expect(output).toMatch(
+        new RegExp(`href="[^"]*${otherPageFilename}[^"]*#frag"`)
+      )
+    })
+
+    it.each([
+      `.\\${otherPageFilename}`,
+      `\\${otherPageFilename}`,
+      `.\\${otherPageFilename}#frag`,
+    ])(
+      'resolves the backslash-separated relative link %j like a forward slash',
+      async (href) => {
+        const { p, output } = await parseAndWrite(pageWithLinks(href))
+        expect(p.parsed.pageLinks).toHaveLength(1)
+        expect(output).not.toContain(`href="${href}"`)
+        expect(output).toMatch(new RegExp(`href="[^"]*${otherPageFilename}`))
+      }
+    )
+
+    it('only records the page links when mixed with non-page links', async () => {
+      const { p, output } = await parseAndWrite(
+        pageWithLinks(
+          'tel:+15555550123',
+          `./${otherPageFilename}`,
+          'MAILTO:someone@example.com'
+        )
+      )
+      expect(p.parsed.pageLinks).toHaveLength(1)
+      expect(output).toContain('href="tel:+15555550123"')
+      expect(output).toContain('href="MAILTO:someone@example.com"')
+    })
+
+    it.each(['http://', 'https://[bad', 'http://exa mple.com'])(
+      'filters out the malformed link %j instead of throwing',
+      async (href) => {
+        const warn = jest
+          .spyOn(console, 'warn')
+          .mockImplementation(() => undefined)
+        try {
+          // Use the real readXml (source-mapped) so the warning can report a position
+          mockfs({ somepath: pageWithLinks(href) })
+          const p = new PageFile('somepath')
+          await p.parse(factorio)
+          await p.write()
+          const output = readFileSync(p.newPath, 'utf8')
+          expect(p.parsed.pageLinks).toEqual([])
+          expect(output).toContain(`href="${href}"`)
+          expect(warn).toHaveBeenCalledWith(
+            expect.stringContaining(`Invalid link '${href}'`)
+          )
+        } finally {
+          warn.mockRestore()
+        }
+      }
+    )
+
+    it('warns in parse, then fails loudly in convert, when a link points at a file that does not exist', async () => {
+      const warn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined)
+      try {
+        // Use the real readXml (source-mapped) so the warning can report a position
+        mockfs({
+          [otherPageFilename]: 'contentsdoesnotmatterjustexistence',
+          somepath: pageWithLinks('./does-not-exist'),
+        })
+        const p = new PageFile('somepath')
+        await p.parse(factorio)
+        expect(p.parsed.pageLinks).toEqual([])
+        expect(warn).toHaveBeenCalledWith(
+          expect.stringContaining("Invalid link './does-not-exist'")
+        )
+        // Convert intentionally asserts: parse dropped a link that convert
+        // still sees as a page link
+        await expect(p.write()).rejects.toThrow(
+          /Could not find the target page/
+        )
+      } finally {
+        warn.mockRestore()
+      }
+    })
+  })
+
   describe('heading levels', () => {
     const somePos = {
       source: { fileName: 'somefile.cnxml', content: null },

@@ -103,8 +103,42 @@ function filterNulls<T>(l: Array<T | null>): Array<T> {
   return ret
 }
 
-const pageLinkXpath =
-  '//h:a[@href and not(starts-with(@href, "http:") or starts-with(@href, "https:") or starts-with(@href, "#"))]'
+// A link counts as a page link only if all of these hold:
+// 1. After trimming, href is non-empty.
+// 2. It isn't fragment-only (#...).
+// 3. It has no scheme.
+// 4. It isn't protocol-relative (//host/...).
+// The assumption here is that URL constructor falls back to our Sentinel only
+// when the conditions we're looking for are met.
+const getPageLinks = (doc: Dom) => {
+  return filterNulls(
+    doc.map('//h:a[@href]', (a) => {
+      const href = a.attr('href')?.trim() ?? ''
+      if (href.length === 0 || href.startsWith('#')) return null
+      const myHost = 'page-link-sentinel.invalid'
+      const myProtocol = 'https:'
+      const schemePattern = /^[a-z][a-z0-9+.-]*:/i
+      try {
+        const u = new URL(href, `${myProtocol}//${myHost}`)
+        if (
+          u.host !== myHost ||
+          u.protocol !== myProtocol ||
+          schemePattern.test(href)
+        )
+          return null
+        return { a, u }
+      } catch (e) {
+        const pos = getPos(a.node)
+        console.warn(
+          `WARN: Invalid link '${a.attr('href')}' Source: ${
+            pos.source.fileName
+          }:${pos.lineNumber}:${pos.columnNumber}`
+        )
+        return null
+      }
+    })
+  )
+}
 
 export class PageFile extends XmlFile<
   PageData,
@@ -120,11 +154,7 @@ export class PageFile extends XmlFile<
     if (this._parsed !== undefined) return // Only parse once
     const doc = dom(await this.readXml(this.readPath))
     const pageLinks = filterNulls(
-      doc.map(pageLinkXpath, (a) => {
-        const u = new URL(
-          assertValue(a.attr('href')),
-          'https://example-i-am-not-really-used.com'
-        )
+      getPageLinks(doc).map(({ a, u }) => {
         const pagePathRel = u.pathname.slice(1) // remove leading slash
         const pagePathAbs = resolve(dirname(this.readPath), pagePathRel)
         /* istanbul ignore if */
@@ -281,11 +311,7 @@ export class PageFile extends XmlFile<
 
     // Fix links to other Pages
     const allPages = new Map(this.parsed.pageLinks.map((r) => [r.readPath, r]))
-    doc.forEach(pageLinkXpath, (a) => {
-      const u = new URL(
-        assertValue(a.attr('href')),
-        'https://example-i-am-not-really-used.com'
-      )
+    getPageLinks(doc).forEach(({ a, u }) => {
       const pagePathRel = u.pathname.slice(1) // remove leading slash
       const hash = u.hash.slice(1) // skip the first character because it is '#'
 
