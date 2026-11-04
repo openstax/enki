@@ -5,7 +5,16 @@ from corgi_concourse_resource import utils
 
 @pytest.mark.parametrize(
     "key",
-    ["github_token", "authToken", "APIKey", "private-key", "clientSecret"],
+    [
+        "github_token",
+        "authToken",
+        "APIKey",
+        "private-key",
+        "clientSecret",
+        "password",
+        "passwd",
+        "Authorization",
+    ],
 )
 def test_looks_like_secret_matches_secret_components(key):
     assert utils.looks_like_secret(key)

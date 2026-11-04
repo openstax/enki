@@ -38,6 +38,8 @@ def out(src_path, in_stream):
     msg(f"Updating status of job id {id}")
 
     github_token = input["source"].get("github_token")
+    if not isinstance(github_token, str) or not github_token.strip():
+        raise ValueError("github_token is required in the resource source")
     response = update_job(input["source"]["api_root"], id, data, github_token)
 
     return {"version": {"id": response["id"]}}

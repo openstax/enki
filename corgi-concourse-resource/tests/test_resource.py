@@ -255,6 +255,7 @@ class TestOut:
         }
 
         payload = make_input(None)
+        payload["source"]["github_token"] = "github-token"
         del payload["version"]
         payload["params"] = params
 
@@ -263,7 +264,7 @@ class TestOut:
         def test_data(api_root, id, data, github_token=None):
             assert data
             assert id
-            assert github_token is None
+            assert github_token == "github-token"
             assert "status_id" in data
             assert "artifact_urls" in data
             assert data["artifact_urls"] == result

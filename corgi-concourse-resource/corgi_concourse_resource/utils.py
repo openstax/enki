@@ -35,7 +35,17 @@ def looks_like_secret(key: str):
     key = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", key)
     key = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key)
     parts = re.findall(r"[a-z0-9]+", key.casefold())
-    secret_parts = {"token", "secret", "key", "pem", "psk", "crt"}
+    secret_parts = {
+        "token",
+        "secret",
+        "key",
+        "pem",
+        "psk",
+        "crt",
+        "password",
+        "passwd",
+        "authorization",
+    }
     return any(part in secret_parts for part in parts)
 
 

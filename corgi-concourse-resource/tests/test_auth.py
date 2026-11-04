@@ -149,7 +149,7 @@ def test_update_job_strips_github_token_before_login(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "github_token", [None, "", " \t\n", 12345, {"token": "invalid"}]
+    "github_token", ["", " \t\n", 12345, {"token": "invalid"}]
 )
 def test_update_job_rejects_missing_or_invalid_github_token(
     monkeypatch, github_token
@@ -161,7 +161,9 @@ def test_update_job_rejects_missing_or_invalid_github_token(
         lambda: session_calls.append("created"),
     )
 
-    with pytest.raises(ValueError, match="github_token"):
+    with pytest.raises(
+        ValueError, match="github_token must be a non-empty string"
+    ):
         corgi_api.update_job(
             "https://corgi.example/api", "123", {}, github_token
         )
@@ -217,6 +219,22 @@ def test_update_job_does_not_put_when_login_sets_no_session_cookie(
     assert not session.put_calls
 
 
+def test_update_job_requires_github_token_before_login(monkeypatch):
+    session_calls = []
+    monkeypatch.setattr(
+        corgi_api.requests,
+        "Session",
+        lambda: session_calls.append("created"),
+    )
+
+    with pytest.raises(
+        ValueError, match="github_token must be a non-empty string"
+    ):
+        corgi_api.update_job("https://corgi.example/api", "123", {}, None)
+
+    assert session_calls == []
+
+
 def run_out_and_capture_token(tmp_path, monkeypatch, source_token):
     source = {"api_root": "https://corgi.example/api"}
     if source_token is not MISSING:
@@ -241,21 +259,28 @@ MISSING = object()
 @pytest.mark.parametrize(
     "source_token, expected",
     [
-        (MISSING, None),
-        (None, None),
-        ("", ""),
-        ("   ", "   "),
-        (12345, 12345),
         ("  github-token\n", "  github-token\n"),
+        ("github-token", "github-token"),
     ],
 )
-def test_out_forwards_github_token_unchanged(
+def test_out_forwards_valid_github_token(
     tmp_path, monkeypatch, source_token, expected
 ):
     assert (
         run_out_and_capture_token(tmp_path, monkeypatch, source_token)
         == expected
     )
+
+
+@pytest.mark.parametrize("source_token", [MISSING, None, "", " \t\n", 12345])
+def test_out_rejects_missing_or_invalid_github_token(
+    tmp_path, monkeypatch, source_token
+):
+    with pytest.raises(
+        ValueError,
+        match="github_token is required in the resource source",
+    ):
+        run_out_and_capture_token(tmp_path, monkeypatch, source_token)
 
 
 def test_check_does_not_use_github_token(monkeypatch):
@@ -322,25 +347,4 @@ def test_update_job_sends_real_session_cookie(monkeypatch):
         )
 
     assert result == {"id": 123, "status_id": "5"}
-    assert cassette.all_played
-
-
-def test_update_job_calls_token_login_with_rejected_token(monkeypatch):
-    monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
-
-    with (
-        auth_vcr.use_cassette(
-            "tests/cassettes/test_update_job_calls_token_login.yaml",
-            record_mode="none",
-        ) as cassette,
-        pytest.raises(requests.HTTPError) as error,
-    ):
-        corgi_api.update_job(
-            "http://localhost/api",
-            "123",
-            {"status_id": "5"},
-            "invalid-github-token",
-        )
-
-    assert error.value.response.status_code == 401
     assert cassette.all_played

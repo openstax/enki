@@ -47,6 +47,8 @@ plan:
 to `/auth/token-login` for the update and keeps the resulting session cookie
 in memory for that request. `check` and `in` remain read-only and do not use
 the token. The token is redacted from resource input logs.
+If token login or an update fails, the job can remain in `processing` until
+it is aborted manually.
 
 * `status_id`: The id of the status to change the job
 * `pdf_url`: The url location of the pdf on S3

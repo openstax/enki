@@ -30,10 +30,9 @@ def get_job(api_root, job_id):
 
 def update_job(api_root, job_id, data, github_token):
     url = build_url(api_root, "jobs", job_id)
-    if isinstance(github_token, str):
-        github_token = github_token.strip() or None
-    if not isinstance(github_token, str):
-        raise ValueError(f"github_token: {github_token!r}")
+    if not isinstance(github_token, str) or not github_token.strip():
+        raise ValueError("github_token must be a non-empty string")
+    github_token = github_token.strip()
     with requests.Session() as session:
         login_url = build_url(api_root, "auth", "token-login")
         login_response = session.get(
