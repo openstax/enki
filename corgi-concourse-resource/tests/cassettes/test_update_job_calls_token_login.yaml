@@ -3,7 +3,7 @@ interactions:
     body: null
     headers:
       Authorization:
-      - Bearer None
+      - Bearer invalid-github-token
     method: GET
     uri: http://localhost/api/auth/token-login
   response:

@@ -128,6 +128,47 @@ def test_update_job_logs_in_and_reuses_session_cookie(monkeypatch):
     assert session.session_cookie_on_put == "session-cookie"
 
 
+def test_update_job_strips_github_token_before_login(monkeypatch):
+    session = FakeSession(
+        FakeResponse(cookies={"session": "session-cookie"}),
+        FakeResponse(json_data={"id": "123"}),
+    )
+    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
+
+    corgi_api.update_job(
+        "https://corgi.example/api", "123", {}, "  github-token\n"
+    )
+
+    assert session.get_calls == [
+        (
+            "https://corgi.example/api/auth/token-login",
+            {"Authorization": "Bearer github-token"},
+        )
+    ]
+
+
+@pytest.mark.parametrize(
+    "github_token", [None, "", " \t\n", 12345, {"token": "invalid"}]
+)
+def test_update_job_rejects_missing_or_invalid_github_token(
+    monkeypatch, github_token
+):
+    session_calls = []
+    monkeypatch.setattr(
+        corgi_api.requests,
+        "Session",
+        lambda: session_calls.append("created"),
+    )
+
+    with pytest.raises(ValueError, match="github_token"):
+        corgi_api.update_job(
+            "https://corgi.example/api", "123", {}, github_token
+        )
+
+    assert session_calls == []
+
+
 def test_update_job_does_not_put_when_login_fails(monkeypatch):
     login_response = FakeResponse(error=requests.HTTPError("401 Unauthorized"))
     session = FakeSession(login_response, FakeResponse())
@@ -202,13 +243,13 @@ MISSING = object()
     [
         (MISSING, None),
         (None, None),
-        ("", None),
-        ("   ", None),
-        (12345, None),
-        ("  github-token\n", "github-token"),
+        ("", ""),
+        ("   ", "   "),
+        (12345, 12345),
+        ("  github-token\n", "  github-token\n"),
     ],
 )
-def test_out_normalizes_github_token(
+def test_out_forwards_github_token_unchanged(
     tmp_path, monkeypatch, source_token, expected
 ):
     assert (
@@ -284,7 +325,7 @@ def test_update_job_sends_real_session_cookie(monkeypatch):
     assert cassette.all_played
 
 
-def test_update_job_calls_token_login(monkeypatch):
+def test_update_job_calls_token_login_with_rejected_token(monkeypatch):
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     with (
@@ -295,7 +336,10 @@ def test_update_job_calls_token_login(monkeypatch):
         pytest.raises(requests.HTTPError) as error,
     ):
         corgi_api.update_job(
-            "http://localhost/api", "123", {"status_id": "5"}, None
+            "http://localhost/api",
+            "123",
+            {"status_id": "5"},
+            "invalid-github-token",
         )
 
     assert error.value.response.status_code == 401
