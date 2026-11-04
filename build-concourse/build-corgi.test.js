@@ -2,7 +2,9 @@ require('ts-node/register')
 
 const assert = require('node:assert/strict')
 const test = require('node:test')
-const { normalizeGithubToken } = require('./build-corgi.ts')
+const { normalizeGithubToken, makePipeline } = require('./build-corgi.ts')
+
+test.before(() => { process.env.CODE_VERSION = 'test-code-version' })
 
 test('normalizes Concourse Git credentials', () => {
     assert.equal(normalizeGithubToken('git:github-token:x-oauth-basic'), 'github-token')
@@ -16,9 +18,6 @@ test('normalizes credential prefixes and suffixes independently', () => {
     assert.equal(normalizeGithubToken('git:github-token'), 'github-token')
     assert.equal(normalizeGithubToken('github-token:x-oauth-basic'), 'github-token')
 })
-
-const { makePipeline } = require('./build-corgi.ts')
-test.before(() => { process.env.CODE_VERSION = 'test-code-version' })
 
 const stagingEnv = () => ({ ...require('./env/corgi-staging.json') })
 
