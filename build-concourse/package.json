@@ -10,7 +10,7 @@
     "build:local": "npm run build:json && npm run build:corgi:and-local && npm run build:webhosting:and-local",
     "set:webhosting": "npm run build:webhosting && ts-node ./set-webhosting.ts",
     "start": "npm run build",
-    "test": "npm run build && npm run build:graphs",
+    "test": "node --test build-corgi.test.js && npm run build && npm run build:graphs",
     "coverage": "nyc npm run test",
     "postcoverage": "nyc report --reporter lcov --reporter html --report-dir ../coverage/"
   },
