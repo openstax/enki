@@ -281,5 +281,5 @@ def test_update_job_sends_real_session_cookie(monkeypatch):
             "github-token",
         )
 
-    assert result == {"id": 123, "status_id": "5"}
+    assert result == {"id": "123", "status_id": "5"}
     assert cassette.all_played

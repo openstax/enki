@@ -28,7 +28,7 @@ interactions:
     uri: http://localhost/api/jobs/123
   response:
     body:
-      string: '{"id": 123, "status_id": "5"}'
+      string: '{"id": "123", "status_id": "5"}'
     headers:
       Content-Type:
       - application/json
