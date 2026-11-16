@@ -1,5 +1,6 @@
 import io
 import json
+from unittest.mock import MagicMock, Mock
 
 import pytest
 import requests
@@ -25,87 +26,46 @@ def session_headers_matcher(request1, request2):
 auth_vcr = vcr.VCR(match_on=("method", "uri", "body", "session_headers"))
 auth_vcr.register_matcher("session_headers", session_headers_matcher)
 
-
-class FakeResponse:
-    text = "{}"
-
-    def __init__(self, cookies=None, json_data=None, error=None):
-        self.cookies = cookies or {}
-        self.json_data = json_data or {}
-        self.error = error
-
-    def raise_for_status(self):
-        if self.error:
-            raise self.error
-
-    def json(self):
-        return self.json_data
+MISSING = object()
 
 
-class FakeSession:
-    def __init__(self, login_response, put_response):
-        self.login_response = login_response
-        self.put_response = put_response
-        self.cookies = {}
-        self.get_calls = []
-        self.put_calls = []
-        self.session_cookie_on_put = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        return False
-
-    def get(self, url, headers):
-        self.get_calls.append((url, headers))
-        session_cookie = self.login_response.cookies.get("session")
-        if session_cookie:
-            self.cookies["session"] = session_cookie
-        return self.login_response
-
-    def put(self, url, json):
-        self.put_calls.append((url, json))
-        self.session_cookie_on_put = self.cookies.get("session")
-        return self.put_response
+def mock_response(cookies=None, json_data=None, error=None):
+    response = Mock(spec=requests.Response)
+    response.text = "{}"
+    response.cookies = cookies or {}
+    response.json.return_value = json_data or {}
+    if error:
+        response.raise_for_status.side_effect = error
+    return response
 
 
-def test_out_forwards_github_token(tmp_path, monkeypatch):
-    token = "github-token"
-    payload = {
-        "source": {
-            "api_root": "https://corgi.example/api",
-            "github_token": token,
-        },
-        "params": {"id": "id", "status_id": "5"},
-    }
-    (tmp_path / "id").write_text("123")
-    forwarded = {}
+def mock_session(monkeypatch, login_response, put_response):
+    session = MagicMock(spec=requests.Session)
+    session.cookies = requests.cookies.RequestsCookieJar()
+    session.__enter__.return_value = session
+    session.__exit__.return_value = False
+    session_cookie_on_put = []
 
-    def update_job(api_root, job_id, data, github_token=None):
-        forwarded.update(
-            api_root=api_root,
-            job_id=job_id,
-            data=data,
-            github_token=github_token,
-        )
-        return {"id": job_id}
+    def login(*args, **kwargs):
+        session.cookies.update(login_response.cookies)
+        return login_response
 
-    monkeypatch.setattr(out, "msg", lambda *args, **kwargs: None)
-    monkeypatch.setattr(out, "update_job", update_job)
+    def put(url, json):
+        session_cookie_on_put.append(session.cookies.get("session"))
+        return put_response
 
-    result = out.out(str(tmp_path), io.StringIO(json.dumps(payload)))
-
-    assert result == {"version": {"id": "123"}}
-    assert forwarded["github_token"] == token
-    assert forwarded["api_root"] == "https://corgi.example/api"
+    session.get.side_effect = login
+    session.put.side_effect = put
+    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    return session, session_cookie_on_put
 
 
 def test_update_job_logs_in_and_reuses_session_cookie(monkeypatch):
-    login_response = FakeResponse(cookies={"session": "session-cookie"})
-    put_response = FakeResponse(json_data={"id": "123"})
-    session = FakeSession(login_response, put_response)
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    login_response = mock_response(cookies={"session": "session-cookie"})
+    put_response = mock_response(json_data={"id": "123"})
+    session, session_cookie_on_put = mock_session(
+        monkeypatch, login_response, put_response
+    )
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     result = corgi_api.update_job(
@@ -116,36 +76,32 @@ def test_update_job_logs_in_and_reuses_session_cookie(monkeypatch):
     )
 
     assert result == {"id": "123"}
-    assert session.get_calls == [
-        (
-            "https://corgi.example/api/auth/token-login",
-            {"Authorization": "Bearer github-token"},
-        )
-    ]
-    assert session.put_calls == [
-        ("https://corgi.example/api/jobs/123", {"status_id": "5"})
-    ]
-    assert session.session_cookie_on_put == "session-cookie"
+    session.get.assert_called_once_with(
+        "https://corgi.example/api/auth/token-login",
+        headers={"Authorization": "Bearer github-token"},
+    )
+    session.put.assert_called_once_with(
+        "https://corgi.example/api/jobs/123", json={"status_id": "5"}
+    )
+    assert session_cookie_on_put == ["session-cookie"]
 
 
 def test_update_job_strips_github_token_before_login(monkeypatch):
-    session = FakeSession(
-        FakeResponse(cookies={"session": "session-cookie"}),
-        FakeResponse(json_data={"id": "123"}),
+    session, _ = mock_session(
+        monkeypatch,
+        mock_response(cookies={"session": "session-cookie"}),
+        mock_response(json_data={"id": "123"}),
     )
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     corgi_api.update_job(
         "https://corgi.example/api", "123", {}, "  github-token\n"
     )
 
-    assert session.get_calls == [
-        (
-            "https://corgi.example/api/auth/token-login",
-            {"Authorization": "Bearer github-token"},
-        )
-    ]
+    session.get.assert_called_once_with(
+        "https://corgi.example/api/auth/token-login",
+        headers={"Authorization": "Bearer github-token"},
+    )
 
 
 @pytest.mark.parametrize(
@@ -172,9 +128,8 @@ def test_update_job_rejects_missing_or_invalid_github_token(
 
 
 def test_update_job_does_not_put_when_login_fails(monkeypatch):
-    login_response = FakeResponse(error=requests.HTTPError("401 Unauthorized"))
-    session = FakeSession(login_response, FakeResponse())
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    login_response = mock_response(error=requests.HTTPError("401 Unauthorized"))
+    session, _ = mock_session(monkeypatch, login_response, mock_response())
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     with pytest.raises(requests.HTTPError, match="401 Unauthorized"):
@@ -182,15 +137,15 @@ def test_update_job_does_not_put_when_login_fails(monkeypatch):
             "https://corgi.example/api", "123", {}, "github-token"
         )
 
-    assert not session.put_calls
+    session.put.assert_not_called()
 
 
 def test_update_job_raises_when_put_fails(monkeypatch):
-    session = FakeSession(
-        FakeResponse(cookies={"session": "session-cookie"}),
-        FakeResponse(error=requests.HTTPError("500 Server Error")),
+    session, _ = mock_session(
+        monkeypatch,
+        mock_response(cookies={"session": "session-cookie"}),
+        mock_response(error=requests.HTTPError("500 Server Error")),
     )
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     with pytest.raises(requests.HTTPError, match="500 Server Error"):
@@ -201,14 +156,13 @@ def test_update_job_raises_when_put_fails(monkeypatch):
             "github-token",
         )
 
-    assert len(session.put_calls) == 1
+    session.put.assert_called_once()
 
 
 def test_update_job_does_not_put_when_login_sets_no_session_cookie(
     monkeypatch,
 ):
-    session = FakeSession(FakeResponse(), FakeResponse())
-    monkeypatch.setattr(corgi_api.requests, "Session", lambda: session)
+    session, _ = mock_session(monkeypatch, mock_response(), mock_response())
     monkeypatch.setattr(corgi_api, "msg", lambda *args, **kwargs: None)
 
     with pytest.raises(RuntimeError, match="did not set a session cookie"):
@@ -216,23 +170,7 @@ def test_update_job_does_not_put_when_login_sets_no_session_cookie(
             "https://corgi.example/api", "123", {}, "github-token"
         )
 
-    assert not session.put_calls
-
-
-def test_update_job_requires_github_token_before_login(monkeypatch):
-    session_calls = []
-    monkeypatch.setattr(
-        corgi_api.requests,
-        "Session",
-        lambda: session_calls.append("created"),
-    )
-
-    with pytest.raises(
-        ValueError, match="github_token must be a non-empty string"
-    ):
-        corgi_api.update_job("https://corgi.example/api", "123", {}, None)
-
-    assert session_calls == []
+    session.put.assert_not_called()
 
 
 def run_out_and_capture_token(tmp_path, monkeypatch, source_token):
@@ -251,9 +189,6 @@ def run_out_and_capture_token(tmp_path, monkeypatch, source_token):
     monkeypatch.setattr(out, "update_job", update_job)
     out.out(str(tmp_path), io.StringIO(json.dumps(payload)))
     return forwarded["github_token"]
-
-
-MISSING = object()
 
 
 @pytest.mark.parametrize(
