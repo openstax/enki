@@ -60,4 +60,4 @@ format : $(STATEDIR)/env/pyvenv.cfg
 TEST_EXTRA_ARGS=
 
 test : $(STATEDIR)/env/pyvenv.cfg
-	$(BINDIR)/python -m pytest tests/test_resource.py --cov=corgi_concourse_resource --cov-report=term -vvv $(TEST_EXTRA_ARGS)
+	$(BINDIR)/python -m pytest tests --cov=corgi_concourse_resource --cov-report=term -vvv $(TEST_EXTRA_ARGS)
