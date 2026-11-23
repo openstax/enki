@@ -359,6 +359,7 @@ COPY ./dockerfiles/entrypointd.sh \
     ./dockerfiles/docker-entrypoint.sh \
     ./dockerfiles/docker-entrypoint-with-kcov.sh \
     ./dockerfiles/enki-in-container \
+    ./dockerfiles/check-images.js \
     /dockerfiles/
 
 COPY ./step-config.json $PROJECT_ROOT
