@@ -15,6 +15,16 @@ function findImageBox(box) {
   return null;
 }
 
+function isHiddenByCSS(el) {
+  while (el && el.nodeType === Node.ELEMENT_NODE) {
+    if (window.getComputedStyle(el).display === "none") {
+      return true;
+    }
+    el = el.parentNode;
+  }
+  return false;
+}
+
 Prince.addEventListener("complete", function() {
   var images = document.getElementsByTagName("img");
   for (var i = 0; i < images.length; i++) {
@@ -32,8 +42,10 @@ Prince.addEventListener("complete", function() {
     var src = img.getAttribute("src") || img.src;
 
     if (!imgBox) {
-      Log.error("Image dropped: " + src);
-      Prince.failStatus = true;
+      if (!isHiddenByCSS(img)) {
+        Log.error("Image dropped: " + src);
+        Prince.failStatus = true;
+      }
     } else if (imgBox.w === 0 || imgBox.h === 0) {
       Log.warning("Zero-size box on page " + imgBox.pageNum + ": " + src);
       Prince.failStatus = true;
