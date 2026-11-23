@@ -98,6 +98,61 @@ if [[ "$actual_contents" != "$expected_contents" ]]; then
     exit 1
 fi
 
+# Test that step-pdf fails when an image has no Prince image box or has a zero-size box.
+# Mutate the generated linked XHTML so these cases do not need a separate tiny-book branch.
+pdf_linked_file="$BOOK_DIR/_attic/IO_LINKED/book-slug1.linked.xhtml"
+pdf_linked_backup=$(mktemp)
+cp "$pdf_linked_file" "$pdf_linked_backup"
+restore_pdf_linked_file() {
+    cp "$pdf_linked_backup" "$pdf_linked_file"
+    rm -f "$pdf_linked_backup"
+}
+trap restore_pdf_linked_file EXIT
+
+valid_image_src="$(sed -n 's/.*<img[^>]*src="\([^"]*\)".*/\1/p' "$pdf_linked_backup" | head -n 1)"
+if [[ -z "$valid_image_src" ]]; then
+    echo "Could not find a valid image source in $pdf_linked_file"
+    exit 1
+fi
+
+set_pdf_image_case() {
+    image_case="$1"
+    awk -v image_case="$image_case" -v valid_image_src="$valid_image_src" -v linked_file="$pdf_linked_file" '
+        !added && /<\/body>/ {
+            if (image_case == "missing") {
+                print "    <img src=\"../resources/check-images-test-missing-8e7c1f.png\" alt=\"missing image test\" />"
+            } else {
+                print "    <img src=\"" valid_image_src "\" alt=\"zero-size image test\" style=\"width: 0px; height: 0px;\" />"
+            }
+            added = 1
+        }
+        { print }
+        END {
+            if (!added) {
+                print "Could not find the body element in " linked_file > "/dev/stderr"
+                exit 1
+            }
+        }
+    ' "$pdf_linked_backup" > "$pdf_linked_file"
+}
+
+expect_step_pdf_failure() {
+    image_case="$1"
+    if SKIP_DOCKER_BUILD=1 \
+        ../enki --keep-data --data-dir "$BOOK_DIR" --command step-pdf --repo 'philschatz/tiny-book' --ref long-lived-branch-for-testing-with-#-char; then
+        echo "Expected step-pdf to fail for the $image_case image case"
+        exit 1
+    fi
+}
+
+set_pdf_image_case missing
+expect_step_pdf_failure missing
+
+set_pdf_image_case zero-size
+expect_step_pdf_failure zero-size
+
+restore_pdf_linked_file
+trap - EXIT
 
 # Test without book slug
 rm $BOOK_DIR/_attic/IO_BOOK/slugs
